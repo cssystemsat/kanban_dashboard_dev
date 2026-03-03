@@ -62,7 +62,9 @@ export default function DateFilterCompact({ onDateChange }: DateFilterCompactPro
   const getPresetLabel = () => {
     if (activePreset === '7d') return 'Últimos 7d';
     if (activePreset === '30d') return 'Últimos 30d';
+    if (activePreset === '60d') return 'Últimos 60d';
     if (activePreset === '90d') return 'Últimos 90d';
+    if (activePreset === '7d-contract') return '7+ dias';
     if (activePreset === '30d-contract') return '30+ dias';
     if (activePreset === '60d-contract') return '60+ dias';
     if (activePreset === '90d-contract') return '90+ dias';
@@ -93,9 +95,9 @@ export default function DateFilterCompact({ onDateChange }: DateFilterCompactPro
       {/* Menu Dropdown */}
       {showCustom && (
         <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-w-72">
-          {/* Presets */}
+          {/* Filtro 1 */}
           <div className="p-3 border-b border-gray-200">
-            <p className="text-xs font-semibold text-gray-600 mb-2 px-2">Presets</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2 px-2">Filtro 1</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => applyPreset(7)}
@@ -120,6 +122,17 @@ export default function DateFilterCompact({ onDateChange }: DateFilterCompactPro
               </button>
 
               <button
+                onClick={() => applyPreset(60)}
+                className={`px-3 py-2 rounded text-sm font-medium transition-colors text-left ${
+                  activePreset === '60d'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Últimos 60 dias
+              </button>
+
+              <button
                 onClick={() => applyPreset(90)}
                 className={`px-3 py-2 rounded text-sm font-medium transition-colors text-left ${
                   activePreset === '90d'
@@ -132,13 +145,29 @@ export default function DateFilterCompact({ onDateChange }: DateFilterCompactPro
             </div>
           </div>
 
-          {/* Presets 2 - Dias de Contrato */}
+          {/* Filtro 2 */}
           <div className="p-3 border-b border-gray-200">
-            <p className="text-xs font-semibold text-gray-600 mb-2 px-2">Presets 2 - Dias de Contrato</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2 px-2">Filtro 2</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => {
-                  const today = new Date();
+                  const start7 = new Date();
+                  start7.setDate(start7.getDate() - 7);
+                  setActivePreset('7d-contract');
+                  setShowCustom(false);
+                  onDateChange(new Date(0), start7);
+                }}
+                className={`px-3 py-2 rounded text-sm font-medium transition-colors text-left ${
+                  activePreset === '7d-contract'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                7+ dias de contrato
+              </button>
+
+              <button
+                onClick={() => {
                   const start30 = new Date();
                   start30.setDate(start30.getDate() - 30);
                   setActivePreset('30d-contract');

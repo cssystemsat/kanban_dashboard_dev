@@ -15,3 +15,6 @@
 - [x] Configurar logo como favicon na aba do navegador
 - [x] Exibir logo no menu lateral (SideMenu)
 - [x] Inverter ordenação dos clientes na aba Marcos (mais antigo para mais novo)
+- [x] Renomear "Presets" para "Filtro 1" e "Presets 2 - Dias de Contrato" para "Filtro 2"
+- [x] Adicionar opção "Últimos 60 dias" no Filtro 1
+- [x] Adicionar opção "7+ dias de contrato" no Filtro 2
