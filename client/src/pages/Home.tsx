@@ -103,12 +103,13 @@ export default function Home() {
   });
 
   // Agrupar clientes por marco
+  // Clientes com isComplete=true pertencem APENAS à coluna "100% Implantados"
   const marcos = [
-    { id: 1, nome: "Marco 1 (7 dias)", clientes: sortedData.filter(c => c.marco === 1) },
-    { id: 2, nome: "Marco 2 (21 dias)", clientes: sortedData.filter(c => c.marco === 2) },
-    { id: 3, nome: "Marco 3 (49 dias)", clientes: sortedData.filter(c => c.marco === 3) },
-    { id: 4, nome: "Marco 4 (70 dias)", clientes: sortedData.filter(c => c.marco === 4) },
-    { id: 5, nome: "Marco 5 (180 dias)", clientes: sortedData.filter(c => c.marco === 5) },
+    { id: 1, nome: "Marco 1 (7 dias)", clientes: sortedData.filter(c => c.marco === 1 && !c.isComplete) },
+    { id: 2, nome: "Marco 2 (21 dias)", clientes: sortedData.filter(c => c.marco === 2 && !c.isComplete) },
+    { id: 3, nome: "Marco 3 (49 dias)", clientes: sortedData.filter(c => c.marco === 3 && !c.isComplete) },
+    { id: 4, nome: "Marco 4 (70 dias)", clientes: sortedData.filter(c => c.marco === 4 && !c.isComplete) },
+    { id: 5, nome: "Marco 5 (180 dias)", clientes: sortedData.filter(c => c.marco === 5 && !c.isComplete) },
     { id: 6, nome: "100% Implantados", clientes: sortedData.filter(c => c.isComplete) },
   ];
 

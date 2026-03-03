@@ -19,3 +19,4 @@
 - [x] Adicionar opção "Últimos 60 dias" no Filtro 1
 - [x] Adicionar opção "7+ dias de contrato" no Filtro 2
 - [x] Corrigir cor do % desatualizado nos cards da aba Marcos (vermelho apenas acima de 30%)
+- [x] Corrigir duplicação: clientes 100% implantados não devem aparecer nos marcos numerados
