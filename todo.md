@@ -18,3 +18,4 @@
 - [x] Renomear "Presets" para "Filtro 1" e "Presets 2 - Dias de Contrato" para "Filtro 2"
 - [x] Adicionar opção "Últimos 60 dias" no Filtro 1
 - [x] Adicionar opção "7+ dias de contrato" no Filtro 2
+- [x] Corrigir cor do % desatualizado nos cards da aba Marcos (vermelho apenas acima de 30%)

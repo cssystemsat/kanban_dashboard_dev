@@ -114,9 +114,17 @@ export default function ClientCard({ client }: ClientCardProps) {
         {/* % Desatualizado */}
         {client.percentualDesatualizado && client.percentualDesatualizado > 0 && (
           <div className="flex items-center gap-2 text-xs">
-            <AlertCircle className="w-3 h-3 flex-shrink-0" style={{ color: '#FF6B6B' }} />
+            <AlertCircle
+              className="w-3 h-3 flex-shrink-0"
+              style={{ color: client.percentualDesatualizado > 30 ? '#FF6B6B' : '#9CA3AF' }}
+            />
             <span style={{ color: '#4A5F7F' }}>
-              <span className="font-600" style={{ color: '#FF6B6B' }}>{client.percentualDesatualizado.toFixed(1)}%</span>
+              <span
+                className="font-600"
+                style={{ color: client.percentualDesatualizado > 30 ? '#FF6B6B' : '#4A5F7F' }}
+              >
+                {client.percentualDesatualizado.toFixed(1)}%
+              </span>
               <span className="ml-1" style={{ color: '#9CA3AF' }}>desatualizados</span>
             </span>
           </div>
