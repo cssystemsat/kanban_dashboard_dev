@@ -14,3 +14,4 @@
 - [x] Upload da logo Systemsat para CDN
 - [x] Configurar logo como favicon na aba do navegador
 - [x] Exibir logo no menu lateral (SideMenu)
+- [x] Inverter ordenação dos clientes na aba Marcos (mais antigo para mais novo)

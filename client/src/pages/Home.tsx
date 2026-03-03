@@ -24,7 +24,7 @@ export default function Home() {
   const [dateFilterEnd, setDateFilterEnd] = useState<Date | null>(null);
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] = useState<number | null>(null);
   const [selectedObjetivo, setSelectedObjetivo] = useState<string | null>(null);
 
@@ -89,7 +89,7 @@ export default function Home() {
   // Obter lista única de CSMs
   const csms = Array.from(new Set(data.map(c => c.atendente).filter(Boolean))).sort();
 
-  // Ordenar clientes por data de entrada (mais novos em cima)
+  // Ordenar clientes por data de entrada (mais antigos em cima)
   const sortedData = [...filteredData].sort((a, b) => {
     const parseDate = (dateStr: string | undefined) => {
       if (!dateStr) return new Date(0);
@@ -99,7 +99,7 @@ export default function Home() {
     };
     const dateA = parseDate(a.entrada);
     const dateB = parseDate(b.entrada);
-    return dateB.getTime() - dateA.getTime(); // Mais novos primeiro
+    return dateA.getTime() - dateB.getTime(); // Mais antigos primeiro
   });
 
   // Agrupar clientes por marco
