@@ -29,22 +29,22 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Header do Menu */}
-      <div className="p-4 border-b" style={{ borderColor: '#E0E8F0' }}>
-        <div className="flex items-center justify-center h-16">
-          {isExpanded ? (
-            <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/systemsat_logo_674d294f.jpg"
-              alt="Systemsat"
-              className="h-10 w-auto object-contain"
-            />
-          ) : (
-            <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/favicon_df62fb09.png"
-              alt="Systemsat"
-              className="h-8 w-8 object-contain"
-            />
-          )}
-        </div>
+      <div className="px-3 py-3 border-b flex items-center justify-center" style={{ borderColor: '#1a3a5c', minHeight: '72px' }}>
+        {isExpanded ? (
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/systemsat_logo_674d294f.jpg"
+            alt="Systemsat"
+            className="w-full object-contain rounded"
+            style={{ maxHeight: '56px' }}
+          />
+        ) : (
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/favicon_df62fb09.png"
+            alt="Systemsat"
+            className="object-contain rounded"
+            style={{ width: '44px', height: '44px' }}
+          />
+        )}
       </div>
 
       {/* Itens do Menu */}
