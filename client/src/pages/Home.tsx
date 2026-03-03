@@ -124,14 +124,6 @@ export default function Home() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {/* Logo SystemSat */}
-              <div className="bg-white rounded-lg px-3 py-2">
-                <img 
-                  src="/systemsat-logo.png" 
-                  alt="SystemSat" 
-                  className="h-16"
-                />
-              </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Dashboard do CS</h1>
                 <p className="text-sm text-gray-300 mt-1">
