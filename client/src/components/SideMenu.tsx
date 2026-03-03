@@ -31,8 +31,18 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
       {/* Header do Menu */}
       <div className="p-4 border-b" style={{ borderColor: '#E0E8F0' }}>
         <div className="flex items-center justify-center h-16">
-          {isExpanded && (
-            <span className="text-white font-bold text-lg">Menu</span>
+          {isExpanded ? (
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/systemsat_logo_674d294f.jpg"
+              alt="Systemsat"
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/favicon_df62fb09.png"
+              alt="Systemsat"
+              className="h-8 w-8 object-contain"
+            />
           )}
         </div>
       </div>

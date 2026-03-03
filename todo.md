@@ -11,3 +11,6 @@
 - [x] Verificar build e funcionamento (TypeScript sem erros, servidor rodando)
 - [x] Salvar checkpoint e publicar
 - [x] Alterar título da aba do navegador para "Painel de Controle do CS"
+- [x] Upload da logo Systemsat para CDN
+- [x] Configurar logo como favicon na aba do navegador
+- [x] Exibir logo no menu lateral (SideMenu)
