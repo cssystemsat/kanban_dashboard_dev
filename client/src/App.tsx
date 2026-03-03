@@ -1,38 +1,84 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { useState } from "react";
+import SideMenu from "./components/SideMenu";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Ongoing from "./pages/Ongoing";
+import Churns from "./pages/Churns";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
 
-function Router() {
-  // make sure to consider if you need authentication for certain routes
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
+/**
+ * App.tsx - Roteamento Principal
+ * Design: SystemSat
+ * - Menu lateral com navegação
+ * - Páginas: Dashboard, Marcos, Ongoing, Migração, Red Flags
+ */
 function App() {
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'marcos':
+        return <Home />;
+      case 'ongoing':
+        return <Ongoing />;
+      case 'churns':
+        return <Churns />;
+      case 'migracao':
+        return (
+          <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold" style={{ color: '#001F3F' }}>
+                  Migração
+                </h1>
+                <p className="text-gray-600 mt-2">Página de Migração (em construção)</p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors"
+              >
+                Atualizar
+              </button>
+            </div>
+          </div>
+        );
+      case 'redflags':
+        return (
+          <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold" style={{ color: '#001F3F' }}>
+                  Red Flags
+                </h1>
+                <p className="text-gray-600 mt-2">Página de Red Flags (em construção)</p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors"
+              >
+                Atualizar
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return <Home />;
+    }
+  };
+
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <SideMenu currentPage={currentPage} onPageChange={setCurrentPage} />
+          {renderPage()}
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
