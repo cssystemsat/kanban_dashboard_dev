@@ -9,4 +9,5 @@
 - [x] Ajustar App.tsx com rotas do Kanban
 - [x] Escrever/atualizar testes vitest (3 testes passando)
 - [x] Verificar build e funcionamento (TypeScript sem erros, servidor rodando)
-- [ ] Salvar checkpoint e publicar
+- [x] Salvar checkpoint e publicar
+- [x] Alterar título da aba do navegador para "Painel de Controle do CS"
