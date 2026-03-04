@@ -1,8 +1,9 @@
 import { ClientData } from '@/hooks/useKanbanData';
-import { X, Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { useMemo } from 'react';
 import URsEvolutionChart from './URsEvolutionChart';
 import { useURsEvolution } from '@/hooks/useURsEvolution';
+import { useAgendaData } from '@/hooks/useAgendaData';
 
 interface ClientDetailsModalProps {
   client: ClientData;
@@ -14,6 +15,7 @@ export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDe
   if (!isOpen) return null;
 
   const { data: clientEvolutionData } = useURsEvolution(client.codigoCliente);
+  const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(client.nome);
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -276,6 +278,19 @@ export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDe
                     <p className="text-sm font-bold" style={{ color: '#001F3F' }}>{client.cidade}</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Última Atualização Operacional (Agendas) */}
+            {!agendaLoading && agendaEntry && (
+              <div className="flex items-start gap-3 border-t pt-4" style={{ borderColor: '#E0E8F0' }}>
+                <Activity className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#00DD00' }} />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-gray-600">
+                    Última atualização operacional ({agendaEntry.data})
+                  </p>
+                  <p className="text-sm mt-1" style={{ color: '#001F3F' }}>{agendaEntry.status}</p>
+                </div>
               </div>
             )}
 
