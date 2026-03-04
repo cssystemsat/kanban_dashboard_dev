@@ -23,3 +23,4 @@
 - [x] Criar hook useAgendaData para buscar última atualização operacional da aba Agendas
 - [x] Exibir última atualização operacional no modal do cliente (aba Marcos), acima do gráfico de URs
 - [x] Adicionar indicador visual de alerta no card e modal quando cliente sem atualização há mais de 30 dias
+- [x] Remover "Sem registro operacional" do card (manter apenas no modal)
