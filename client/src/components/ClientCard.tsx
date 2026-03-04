@@ -1,6 +1,7 @@
 import { ClientData } from '@/hooks/useKanbanData';
 import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X } from 'lucide-react';
 import { useState } from 'react';
+import { useAgendaData, isAgendaOutdated, getDaysSinceUpdate } from '@/hooks/useAgendaData';
 
 interface ClientCardProps {
   client: ClientData;
@@ -9,6 +10,9 @@ interface ClientCardProps {
 export default function ClientCard({ client }: ClientCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const isOverdue = client.marcoStatus === 'atrasado';
+  const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(client.nome);
+  const semAtualizacao = isAgendaOutdated(agendaEntry, agendaLoading);
+  const diasSemAtualizar = getDaysSinceUpdate(agendaEntry);
 
   const badgeColor = isOverdue
     ? 'bg-red-50 border-red-200 text-red-700'
@@ -173,6 +177,22 @@ export default function ClientCard({ client }: ClientCardProps) {
                 </span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Alerta: sem atualização operacional há mais de 30 dias */}
+        {!agendaLoading && semAtualizacao && (
+          <div
+            className="flex items-center gap-2 text-xs px-2 py-1 rounded"
+            style={{ backgroundColor: '#FFF7ED', border: '1px solid #FED7AA' }}
+            title={agendaEntry ? `Última atualização há ${diasSemAtualizar} dias` : 'Sem registro na aba Agendas'}
+          >
+            <AlertCircle className="w-3 h-3 flex-shrink-0" style={{ color: '#F97316' }} />
+            <span style={{ color: '#9A3412' }}>
+              {agendaEntry
+                ? `Sem atualiz. há ${diasSemAtualizar}d`
+                : 'Sem registro operacional'}
+            </span>
           </div>
         )}
 

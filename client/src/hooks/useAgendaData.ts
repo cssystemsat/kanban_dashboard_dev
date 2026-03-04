@@ -58,6 +58,29 @@ async function loadAgendaCache(): Promise<Map<string, AgendaEntry>> {
   return map;
 }
 
+const OUTDATED_THRESHOLD_DAYS = 30;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Calcula quantos dias se passaram desde a última atualização.
+ * Retorna null se não houver registro.
+ */
+export function getDaysSinceUpdate(entry: AgendaEntry | null): number | null {
+  if (!entry || entry.timestamp === 0) return null;
+  return Math.floor((Date.now() - entry.timestamp) / MS_PER_DAY);
+}
+
+/**
+ * Retorna true se o cliente não tem atualização há mais de 30 dias
+ * OU se não tem nenhum registro na aba Agendas.
+ */
+export function isAgendaOutdated(entry: AgendaEntry | null, loading: boolean): boolean {
+  if (loading) return false;
+  if (!entry) return true; // sem registro = sem atualização
+  const days = getDaysSinceUpdate(entry);
+  return days !== null && days > OUTDATED_THRESHOLD_DAYS;
+}
+
 /**
  * Retorna a última entrada operacional de um cliente específico da aba Agendas.
  * O match é feito pelo nome do cliente (Coluna B da aba Agendas = Coluna B da planilha Marcos).

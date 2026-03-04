@@ -3,7 +3,7 @@ import { X, Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Hea
 import { useMemo } from 'react';
 import URsEvolutionChart from './URsEvolutionChart';
 import { useURsEvolution } from '@/hooks/useURsEvolution';
-import { useAgendaData } from '@/hooks/useAgendaData';
+import { useAgendaData, isAgendaOutdated, getDaysSinceUpdate } from '@/hooks/useAgendaData';
 
 interface ClientDetailsModalProps {
   client: ClientData;
@@ -16,6 +16,8 @@ export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDe
 
   const { data: clientEvolutionData } = useURsEvolution(client.codigoCliente);
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(client.nome);
+  const semAtualizacao = isAgendaOutdated(agendaEntry, agendaLoading);
+  const diasSemAtualizar = getDaysSinceUpdate(agendaEntry);
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -282,14 +284,39 @@ export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDe
             )}
 
             {/* Última Atualização Operacional (Agendas) */}
-            {!agendaLoading && agendaEntry && (
+            {!agendaLoading && (
               <div className="flex items-start gap-3 border-t pt-4" style={{ borderColor: '#E0E8F0' }}>
-                <Activity className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#00DD00' }} />
+                <Activity
+                  className="w-4 h-4 mt-0.5 flex-shrink-0"
+                  style={{ color: semAtualizacao ? '#F97316' : '#00DD00' }}
+                />
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-gray-600">
-                    Última atualização operacional ({agendaEntry.data})
-                  </p>
-                  <p className="text-sm mt-1" style={{ color: '#001F3F' }}>{agendaEntry.status}</p>
+                  {agendaEntry ? (
+                    <>
+                      <p className="text-xs font-semibold" style={{ color: semAtualizacao ? '#9A3412' : '#4B5563' }}>
+                        Última atualização operacional ({agendaEntry.data})
+                        {semAtualizacao && (
+                          <span
+                            className="ml-2 px-1.5 py-0.5 rounded text-xs font-semibold"
+                            style={{ backgroundColor: '#FFF7ED', color: '#9A3412', border: '1px solid #FED7AA' }}
+                          >
+                            {diasSemAtualizar}d sem atualizar
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm mt-1" style={{ color: '#001F3F' }}>{agendaEntry.status}</p>
+                    </>
+                  ) : (
+                    <div
+                      className="flex items-center gap-2 px-2 py-1 rounded"
+                      style={{ backgroundColor: '#FFF7ED', border: '1px solid #FED7AA' }}
+                    >
+                      <AlertCircle className="w-3 h-3" style={{ color: '#F97316' }} />
+                      <p className="text-xs font-semibold" style={{ color: '#9A3412' }}>
+                        Sem registro operacional na aba Agendas
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
