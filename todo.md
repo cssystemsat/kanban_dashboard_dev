@@ -24,3 +24,5 @@
 - [x] Exibir última atualização operacional no modal do cliente (aba Marcos), acima do gráfico de URs
 - [x] Adicionar indicador visual de alerta no card e modal quando cliente sem atualização há mais de 30 dias
 - [x] Remover "Sem registro operacional" do card (manter apenas no modal)
+- [x] Atualizar hook useAgendaData para retornar todos os registros do cliente
+- [x] Adicionar botão "Histórico" no modal com menu suspenso de registros por data (decrescente)

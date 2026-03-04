@@ -8,7 +8,8 @@ export interface AgendaEntry {
 }
 
 // Cache global em memória (compartilhado entre instâncias do hook)
-let globalCache: Map<string, AgendaEntry> | null = null;
+// Armazena TODOS os registros por cliente (não apenas o mais recente)
+let globalAllEntries: Map<string, AgendaEntry[]> | null = null;
 let cacheTimestamp = 0;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos
 
@@ -24,14 +25,14 @@ function parseDate(dateStr: string): number {
   return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
-async function loadAgendaCache(): Promise<Map<string, AgendaEntry>> {
+async function loadAgendaCache(): Promise<Map<string, AgendaEntry[]>> {
   const response = await fetch(SHEET_URL);
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const csv = await response.text();
   const lines = csv.split('\n');
 
-  // Mapa: nome_cliente → entrada mais recente (último registro em caso de empate de data)
-  const map = new Map<string, AgendaEntry>();
+  // Mapa: nome_cliente → lista de TODOS os registros
+  const map = new Map<string, AgendaEntry[]>();
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -48,12 +49,18 @@ async function loadAgendaCache(): Promise<Map<string, AgendaEntry>> {
     const timestamp = parseDate(data);
     if (timestamp === 0) continue;
 
-    const existing = map.get(cliente);
-    // Substitui se: data mais recente OU mesma data (pega o último que aparece)
-    if (!existing || timestamp >= existing.timestamp) {
-      map.set(cliente, { data, cliente, status: statusRaw, timestamp });
-    }
+    const entry: AgendaEntry = { data, cliente, status: statusRaw, timestamp };
+    const existing = map.get(cliente) ?? [];
+    existing.push(entry);
+    map.set(cliente, existing);
   }
+
+  // Ordenar cada lista por timestamp decrescente (mais recente primeiro)
+  // Em empate de data, o último que aparece na planilha fica primeiro
+  Array.from(map.keys()).forEach((key) => {
+    const entries = map.get(key)!;
+    map.set(key, entries.sort((a: AgendaEntry, b: AgendaEntry) => b.timestamp - a.timestamp));
+  });
 
   return map;
 }
@@ -82,11 +89,13 @@ export function isAgendaOutdated(entry: AgendaEntry | null, loading: boolean): b
 }
 
 /**
- * Retorna a última entrada operacional de um cliente específico da aba Agendas.
+ * Retorna a última entrada operacional de um cliente específico da aba Agendas,
+ * além de todos os registros históricos em ordem decrescente de data.
  * O match é feito pelo nome do cliente (Coluna B da aba Agendas = Coluna B da planilha Marcos).
  */
 export function useAgendaData(nomeCliente?: string) {
   const [entry, setEntry] = useState<AgendaEntry | null>(null);
+  const [history, setHistory] = useState<AgendaEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,20 +107,25 @@ export function useAgendaData(nomeCliente?: string) {
     const fetchData = async () => {
       try {
         // Usar cache em memória se ainda válido
-        if (globalCache && Date.now() - cacheTimestamp < CACHE_DURATION) {
-          setEntry(globalCache.get(nomeCliente) ?? null);
+        if (globalAllEntries && Date.now() - cacheTimestamp < CACHE_DURATION) {
+          const entries = globalAllEntries.get(nomeCliente) ?? [];
+          setEntry(entries[0] ?? null);
+          setHistory(entries);
           setLoading(false);
           return;
         }
 
         const map = await loadAgendaCache();
-        globalCache = map;
+        globalAllEntries = map;
         cacheTimestamp = Date.now();
 
-        setEntry(map.get(nomeCliente) ?? null);
+        const entries = map.get(nomeCliente) ?? [];
+        setEntry(entries[0] ?? null);
+        setHistory(entries);
       } catch (error) {
         console.error('[useAgendaData] Erro ao carregar aba Agendas:', error);
         setEntry(null);
+        setHistory([]);
       } finally {
         setLoading(false);
       }
@@ -120,5 +134,5 @@ export function useAgendaData(nomeCliente?: string) {
     fetchData();
   }, [nomeCliente]);
 
-  return { entry, loading };
+  return { entry, history, loading };
 }

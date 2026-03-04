@@ -1,6 +1,6 @@
 import { ClientData } from '@/hooks/useKanbanData';
-import { X, Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { useMemo } from 'react';
+import { X, Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, Activity, History, ChevronDown, ChevronUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import URsEvolutionChart from './URsEvolutionChart';
 import { useURsEvolution } from '@/hooks/useURsEvolution';
 import { useAgendaData, isAgendaOutdated, getDaysSinceUpdate } from '@/hooks/useAgendaData';
@@ -14,8 +14,9 @@ interface ClientDetailsModalProps {
 export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsModalProps) {
   if (!isOpen) return null;
 
+  const [showHistory, setShowHistory] = useState(false);
   const { data: clientEvolutionData } = useURsEvolution(client.codigoCliente);
-  const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(client.nome);
+  const { entry: agendaEntry, history: agendaHistory, loading: agendaLoading } = useAgendaData(client.nome);
   const semAtualizacao = isAgendaOutdated(agendaEntry, agendaLoading);
   const diasSemAtualizar = getDaysSinceUpdate(agendaEntry);
 
@@ -293,18 +294,62 @@ export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDe
                 <div className="flex-1">
                   {agendaEntry ? (
                     <>
-                      <p className="text-xs font-semibold" style={{ color: semAtualizacao ? '#9A3412' : '#4B5563' }}>
-                        Última atualização operacional ({agendaEntry.data})
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs font-semibold" style={{ color: semAtualizacao ? '#9A3412' : '#4B5563' }}>
+                          Última atualização operacional ({agendaEntry.data})
+                        </p>
                         {semAtualizacao && (
                           <span
-                            className="ml-2 px-1.5 py-0.5 rounded text-xs font-semibold"
+                            className="px-1.5 py-0.5 rounded text-xs font-semibold"
                             style={{ backgroundColor: '#FFF7ED', color: '#9A3412', border: '1px solid #FED7AA' }}
                           >
                             {diasSemAtualizar}d sem atualizar
                           </span>
                         )}
-                      </p>
+                        {agendaHistory.length > 0 && (
+                          <button
+                            onClick={() => setShowHistory(!showHistory)}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors"
+                            style={{
+                              backgroundColor: showHistory ? '#E0E8F0' : '#F0F4F8',
+                              color: '#374151',
+                              border: '1px solid #CBD5E1',
+                            }}
+                          >
+                            <History className="w-3 h-3" />
+                            Histórico
+                            {showHistory ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          </button>
+                        )}
+                      </div>
                       <p className="text-sm mt-1" style={{ color: '#001F3F' }}>{agendaEntry.status}</p>
+
+                      {/* Menu suspenso de histórico */}
+                      {showHistory && agendaHistory.length > 0 && (
+                        <div
+                          className="mt-2 rounded-lg overflow-hidden"
+                          style={{ border: '1px solid #E0E8F0', maxHeight: '220px', overflowY: 'auto' }}
+                        >
+                          {agendaHistory.map((h, idx) => (
+                            <div
+                              key={idx}
+                              className="flex gap-3 px-3 py-2 text-xs"
+                              style={{
+                                backgroundColor: idx % 2 === 0 ? '#F8FAFC' : '#FFFFFF',
+                                borderBottom: idx < agendaHistory.length - 1 ? '1px solid #F0F4F8' : 'none',
+                              }}
+                            >
+                              <span
+                                className="font-semibold flex-shrink-0"
+                                style={{ color: '#64748B', minWidth: '72px' }}
+                              >
+                                {h.data}
+                              </span>
+                              <span style={{ color: '#1E293B' }}>{h.status}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div
