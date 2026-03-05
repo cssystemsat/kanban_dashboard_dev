@@ -14,7 +14,7 @@ let cacheTimestamp = 0;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos
 
 const SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC/pub?gid=1655169262&single=true&output=csv';
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC/pub?gid=1831685689&single=true&output=csv';
 
 function parseDate(dateStr: string): number {
   if (!dateStr) return 0;

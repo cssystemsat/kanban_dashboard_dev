@@ -37,3 +37,4 @@
 - [x] Adicionar "Operacional (migração)" nas opções de Situação
 - [x] Renomear "Tipo de atendimento" para "Origem do atendimento"
 - [x] Renomear "Razão" para "Tópico"
+- [x] Alterar origem dos registros operacionais no modal: de gid=1655169262 para gid=1831685689
