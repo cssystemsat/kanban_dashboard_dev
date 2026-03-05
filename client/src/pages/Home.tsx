@@ -29,7 +29,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] = useState<number | null>(null);
-  const [selectedObjetivo, setSelectedObjetivo] = useState<string | null>(null);
+  // selectedObjetivo removido
 
   useEffect(() => {
     fetchData();
@@ -62,11 +62,7 @@ export default function Home() {
       client.percentualDesatualizado !== undefined && client.percentualDesatualizado >= percentualDesatualizadoFilter
     );
   }
-  if (selectedObjetivo) {
-    filteredData = filteredData.filter(client =>
-      client.tagsCliente && client.tagsCliente.toLowerCase().includes(selectedObjetivo.toLowerCase())
-    );
-  }
+
 
   // Contagens base (sem filtro de flag, mas com filtros de CSM e data)
   let baseDataForCounts = data;
@@ -118,119 +114,67 @@ export default function Home() {
   ];
 
   const totalClientes = filteredData.length;
-  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null || selectedObjetivo);
+  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: '#001F3F', borderColor: '#E0E8F0' }}>
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Dashboard do CS</h1>
-              <p className="text-sm text-gray-300 mt-1">Acompanhamento de clientes por etapa de implementação</p>
+      {/* Header compacto */}
+      <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: '#001F3F', borderColor: '#1a3a5c' }}>
+        <div className="px-4 py-2">
+          <div className="flex items-center gap-2">
+            {/* Título */}
+            <div className="mr-2">
+              <h1 className="text-lg font-bold text-white leading-none">Dashboard do CS</h1>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <input
-                type="text"
-                placeholder="Buscar cliente..."
-                value={searchCliente}
-                onChange={(e) => setSearchCliente(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', minWidth: '150px' }}
-              />
 
-              <button
-                onClick={() => setStatusFilter(statusFilter === 'ok' ? 'all' : 'ok')}
-                className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap ${
-                  statusFilter === 'ok'
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'border border-green-600 text-green-600 hover:bg-green-50 bg-transparent'
-                }`}
-              >
-                No Prazo ({clientesNoPrazo})
-              </button>
+            {/* Filtros em linha */}
+            <input
+              type="text"
+              placeholder="Buscar cliente..."
+              value={searchCliente}
+              onChange={(e) => setSearchCliente(e.target.value)}
+              className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
+              style={{ minWidth: '140px' }}
+            />
 
-              <button
-                onClick={() => setStatusFilter(statusFilter === 'atrasado' ? 'all' : 'atrasado')}
-                className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap ${
-                  statusFilter === 'atrasado'
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'border border-red-600 text-red-600 hover:bg-red-50 bg-transparent'
-                }`}
-              >
-                Atrasados ({clientesAtrasados})
-              </button>
+            <select
+              value={selectedAtendente || ''}
+              onChange={(e) => setSelectedAtendente(e.target.value || null)}
+              className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+            >
+              <option value="">Todos os CSMs</option>
+              {csms.map(csm => (
+                <option key={csm} value={csm}>{csm}</option>
+              ))}
+            </select>
 
-              {/* Botões de Flag — 3 níveis */}
-              {FLAG_LEVELS.map((level) => {
-                const s = FLAG_STYLES[level];
-                const isActive = flagFilter === level;
-                return (
-                  <button
-                    key={level}
-                    onClick={() => setFlagFilter(isActive ? null : level)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap"
-                    style={{
-                      backgroundColor: isActive ? s.activeBg : s.bg,
-                      color: isActive ? s.activeText : s.color,
-                      border: `1.5px solid ${s.border}`,
-                    }}
-                  >
-                    <Flag className="w-4 h-4" />
-                    {level} {flagCounts[level] > 0 && `(${flagCounts[level]})`}
-                  </button>
-                );
-              })}
+            <input
+              type="number"
+              min="0"
+              max="100"
+              placeholder="% Desatualizado"
+              value={percentualDesatualizadoFilter !== null ? percentualDesatualizadoFilter : ''}
+              onChange={(e) => setPercentualDesatualizadoFilter(e.target.value ? parseFloat(e.target.value) : null)}
+              className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white focus:outline-none"
+              style={{ minWidth: '120px' }}
+            />
 
-              <DateFilterCompact
-                onDateChange={(start, end) => {
-                  setDateFilterStart(start);
-                  setDateFilterEnd(end);
-                }}
-              />
+            <DateFilterCompact
+              onDateChange={(start, end) => {
+                setDateFilterStart(start);
+                setDateFilterEnd(end);
+              }}
+            />
 
-              <select
-                value={selectedAtendente || ''}
-                onChange={(e) => setSelectedAtendente(e.target.value || null)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0' }}
-              >
-                <option value="">Todos os CSMs</option>
-                {csms.map(csm => (
-                  <option key={csm} value={csm}>{csm}</option>
-                ))}
-              </select>
-
-              <input
-                type="number"
-                min="0"
-                max="100"
-                placeholder="% Desatualizado"
-                value={percentualDesatualizadoFilter !== null ? percentualDesatualizadoFilter : ''}
-                onChange={(e) => setPercentualDesatualizadoFilter(e.target.value ? parseFloat(e.target.value) : null)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', minWidth: '120px' }}
-              />
-
-              <select
-                value={selectedObjetivo || ''}
-                onChange={(e) => setSelectedObjetivo(e.target.value || null)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', minWidth: '140px' }}
-              >
-                <option value="">Todos os Objetivos</option>
-                <option value="Videomensagem">Videomensagem</option>
-                <option value="Identificacao">Identificacao motorista</option>
-                <option value="Lobo">Lobo Solitario</option>
-              </select>
-
+            {/* Botão Atualizar — canto direito */}
+            <div className="ml-auto">
               <Button
                 onClick={fetchData}
                 disabled={loading}
-                className="gap-2 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap"
+                size="sm"
+                className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap"
               >
-                <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Atualizando...' : 'Atualizar'}
               </Button>
             </div>
@@ -249,13 +193,12 @@ export default function Home() {
             {flagFilter && ` | ${flagFilter}`}
             {selectedAtendente && ` | CSM: ${selectedAtendente}`}
             {percentualDesatualizadoFilter !== null && ` | % Desatualizado >= ${percentualDesatualizadoFilter}%`}
-            {selectedObjetivo && ` | Objetivo: ${selectedObjetivo}`}
           </p>
         </div>
       )}
 
       {/* Conteúdo Principal */}
-      <main className="p-6">
+      <main className="px-4 pt-3 pb-4">
         {error && (
           <div className="mx-6 mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-700">Erro ao carregar dados: {error}</p>

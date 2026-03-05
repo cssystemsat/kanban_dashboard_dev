@@ -52,3 +52,6 @@
 - [x] Corrigir contraste do botão Black Flag nos filtros (fundo branco com texto/borda preta)
 - [x] Compactar painéis de métricas em linha única horizontal no Home.tsx e Ongoing.tsx
 - [x] Aumentar e esticar barra de métricas para cobrir toda a largura em linha única
+- [x] Remover filtro de objetivos do Home.tsx
+- [x] Mover botão Atualizar para o canto superior direito do header
+- [x] Subir painel de métricas para reduzir espaço entre header e cards
