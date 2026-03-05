@@ -47,3 +47,4 @@
 - [x] Substituir badges de texto de flag por ícones de bandeira coloridos nos cards
 - [x] Otimizar layout dos cards para não cortar o nome dos clientes
 - [x] Exibir ícone de bandeira + nome da flag em linha abaixo do nome do cliente nos cards
+- [x] Remover alerta "Sem atualiz. há Xd" dos cards Marcos e Ongoing

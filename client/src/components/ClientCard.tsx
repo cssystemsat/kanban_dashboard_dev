@@ -197,17 +197,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           </div>
         )}
 
-        {/* Alerta: sem atualização operacional há mais de 30 dias */}
-        {!agendaLoading && semAtualizacao && agendaEntry && (
-          <div
-            className="flex items-center gap-2 text-xs px-2 py-1 rounded"
-            style={{ backgroundColor: '#FFF7ED', border: '1px solid #FED7AA' }}
-            title={`Última atualização há ${diasSemAtualizar} dias`}
-          >
-            <AlertCircle className="w-3 h-3 flex-shrink-0" style={{ color: '#F97316' }} />
-            <span style={{ color: '#9A3412' }}>{`Sem atualiz. há ${diasSemAtualizar}d`}</span>
-          </div>
-        )}
+
 
         {/* Ganho e Perda de URs */}
         <div className="flex gap-2 text-xs">
