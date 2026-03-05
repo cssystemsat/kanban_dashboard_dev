@@ -38,3 +38,9 @@
 - [x] Renomear "Tipo de atendimento" para "Origem do atendimento"
 - [x] Renomear "Razão" para "Tópico"
 - [x] Alterar origem dos registros operacionais no modal: de gid=1655169262 para gid=1831685689
+- [x] Atualizar coluna O (flag) nos hooks: de checkbox para texto com 3 níveis (Red Flag, Yellow Flag, Black Flag)
+- [x] Atualizar coluna Q (estrela) nos hooks: checkbox booleano, só exibir se houver flag
+- [x] Atualizar ClientCard (Marcos): canto superior direito com estrela + flag colorida + No prazo/Atrasado
+- [x] Atualizar OngoingCard: canto superior direito com estrela + flag colorida
+- [x] Restaurar texto "No prazo"/"Atrasado" no lugar dos círculos nos cards
+- [x] Atualizar filtros de flag em Marcos e Ongoing para os 3 novos níveis

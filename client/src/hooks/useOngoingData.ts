@@ -11,7 +11,8 @@ export interface OngoingClientData {
   percentualDesatualizado: number; // Coluna I - % Base Desatualizada
   unidadesDesatualizadas: number; // Coluna J - Unidades Desatualizadas
   ultimoContato: string; // Coluna L - Último Contato
-  redFlag: boolean; // Coluna O - Red Flag
+  flag: string; // Coluna O — 'Red Flag' | 'Yellow Flag' | 'Black Flag' | ''
+  estrela: boolean; // Coluna Q — checkbox
   situacao: string; // Coluna V - Situação
   comercial: string; // Coluna X - Comercial
   decisor: string; // Coluna AE - Decisor
@@ -101,8 +102,9 @@ export function useOngoingData() {
             const percentualDesatualizado = parseFloat((row[8] || '0').replace('%', '')) || 0; // Coluna I (8)
             const unidadesDesatualizadas = parseInt(row[9] || '0'); // Coluna J (9)
             const ultimoContato = String(row[11] || '').trim(); // Coluna L (11)
-            const redFlagStr = String(row[14] || '').toLowerCase(); // Coluna O (14)
-            const redFlag = redFlagStr === 'true' || redFlagStr === 'sim' || redFlagStr === '1';
+            const flag = String(row[14] || '').trim(); // Coluna O (14) — texto do nível de flag
+            const estrelaStr = String(row[16] || '').trim().toUpperCase(); // Coluna Q (16)
+            const estrela = estrelaStr === 'TRUE';
             const situacao = String(row[21] || '').trim(); // Coluna V (21)
             const comercial = String(row[23] || '').trim(); // Coluna X (23)
             const decisor = String(row[30] || '').trim(); // Coluna AE (30)
@@ -121,7 +123,8 @@ export function useOngoingData() {
                 percentualDesatualizado,
                 unidadesDesatualizadas,
                 ultimoContato,
-                redFlag,
+                flag,
+                estrela,
                 situacao,
                 comercial,
                 decisor,

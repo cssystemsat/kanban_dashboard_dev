@@ -1,9 +1,19 @@
 import { OngoingClientData } from '@/hooks/useOngoingData';
-import { MessageCircle, AlertTriangle, Headphones } from 'lucide-react';
+import { MessageCircle, Headphones, Star } from 'lucide-react';
 
 interface OngoingCardProps {
   client: OngoingClientData;
   onAtendimento?: (client: OngoingClientData) => void;
+}
+
+/** Retorna cor e bg para cada nível de flag */
+function getFlagStyle(flag: string): { color: string; bg: string } | null {
+  switch (flag) {
+    case 'Red Flag':    return { color: '#DC2626', bg: '#FEE2E2' };
+    case 'Yellow Flag': return { color: '#D97706', bg: '#FEF3C7' };
+    case 'Black Flag':  return { color: '#1F2937', bg: '#F3F4F6' };
+    default:            return null;
+  }
 }
 
 export default function OngoingCard({ client, onAtendimento }: OngoingCardProps) {
@@ -14,28 +24,43 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
   };
 
   const deltaColor = getDeltaColor(client.deltaConsumo);
+  const flagStyle = getFlagStyle(client.flag);
+  const hasFlag = !!flagStyle;
 
   return (
     <div
       className="bg-white rounded-lg border-2 p-2 hover:shadow-lg transition-all cursor-pointer"
-      style={{
-        borderColor: client.redFlag ? '#DC2626' : '#E0E8F0',
-        backgroundColor: client.redFlag ? '#FEF2F2' : '#FFFFFF',
-      }}
+      style={{ borderColor: '#E0E8F0' }}
     >
-      {/* Header com Nome e Red Flag */}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
-          <h3 className="font-bold text-xs" style={{ color: '#001F3F' }}>
+      {/* Header com Nome + [estrela | flag] */}
+      <div className="flex items-start justify-between mb-2 gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-xs truncate" style={{ color: '#001F3F' }}>
             {client.nome}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">{client.codigoCliente}</p>
         </div>
-        {client.redFlag && (
-          <div className="ml-2 p-1 bg-red-100 rounded">
-            <AlertTriangle size={16} className="text-red-600" />
-          </div>
-        )}
+
+        {/* Canto superior direito: estrela + flag */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {hasFlag && client.estrela && (
+            <span title="Destaque">
+              <Star
+                className="w-3.5 h-3.5 fill-current"
+                style={{ color: '#F59E0B' }}
+              />
+            </span>
+          )}
+          {hasFlag && (
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded leading-none"
+              style={{ backgroundColor: flagStyle!.bg, color: flagStyle!.color }}
+              title={client.flag}
+            >
+              {client.flag}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Informações Principais em Grid */}
@@ -128,7 +153,6 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
         <button
           onClick={(e) => {
             e.stopPropagation();
-            // Implementar ação de WhatsApp se necessário
           }}
           className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 transition-colors text-sm font-medium"
           title="Enviar WhatsApp"

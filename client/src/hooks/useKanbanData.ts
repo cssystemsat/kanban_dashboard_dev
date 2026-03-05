@@ -10,7 +10,8 @@ export interface ClientData {
   rastreadores: string;
   ultimoBoleto: string;
   atendente: string;
-  redFlag: boolean;
+  flag: string; // Coluna O — 'Red Flag' | 'Yellow Flag' | 'Black Flag' | ''
+  estrela: boolean; // Coluna Q — checkbox
   comercial: string;
   saude: string;
   marco: number;
@@ -127,7 +128,8 @@ export const useKanbanData = () => {
       const rastreadoresIdx = 9; // Coluna J
       const percentualDesatualizadoIdx = 8; // Coluna I - % Veículos Desatualizados
       const diasUltimoContatoIdx = 12; // Coluna M - Dias do último contato
-      const redFlagIdx = 14; // Coluna O
+      const flagIdx = 14; // Coluna O — nível de flag (texto)
+      const estrelaIdx = 16; // Coluna Q — estrela (checkbox)
       const comercialIdx = 23; // Coluna X
       const saudeIdx = 27; // Coluna AB
       const ganhoUrsIdx = 28; // Coluna AC
@@ -219,7 +221,8 @@ export const useKanbanData = () => {
           rastreadores: row[rastreadoresIdx]?.trim() || '',
           ultimoBoleto: row[ultimoBoletoIdx]?.trim() || '',
           atendente: row[atendenteIdx]?.trim() || '',
-          redFlag: row[redFlagIdx]?.trim().toUpperCase() === 'TRUE',
+          flag: row[flagIdx]?.trim() || '',
+          estrela: row[estrelaIdx]?.trim().toUpperCase() === 'TRUE',
           comercial: row[comercialIdx]?.trim() || '',
           saude: row[saudeIdx]?.trim() || '',
           marco,

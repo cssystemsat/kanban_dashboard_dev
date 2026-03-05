@@ -104,10 +104,17 @@ export default function ClientDetailsModal({ client, isOpen, onClose }: ClientDe
               >
                 {client.marcoStatus === 'atrasado' ? 'Atrasado' : 'No prazo'}
               </div>
-              {client.redFlag && (
-                <div className="px-3 py-1 rounded-full text-sm font-600 bg-red-100 text-red-700 border border-red-300 flex items-center gap-1">
+              {client.flag && (
+                <div
+                  className="px-3 py-1 rounded-full text-sm font-600 flex items-center gap-1"
+                  style={{
+                    backgroundColor: client.flag === 'Red Flag' ? '#FEE2E2' : client.flag === 'Yellow Flag' ? '#FEF3C7' : '#F3F4F6',
+                    color: client.flag === 'Red Flag' ? '#DC2626' : client.flag === 'Yellow Flag' ? '#D97706' : '#1F2937',
+                    border: `1px solid ${client.flag === 'Red Flag' ? '#FECACA' : client.flag === 'Yellow Flag' ? '#FDE68A' : '#D1D5DB'}`,
+                  }}
+                >
                   <Flag className="w-3 h-3" />
-                  Red Flag
+                  {client.flag}
                 </div>
               )}
             </div>

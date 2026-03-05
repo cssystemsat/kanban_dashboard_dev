@@ -1,71 +1,71 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { RefreshCw, Flag } from 'lucide-react';
 import { useOngoingData, OngoingClientData } from '@/hooks/useOngoingData';
-import DateFilterCompact from '@/components/DateFilterCompact';
 import OngoingCard from '@/components/OngoingCard';
 import OngoingClientModal from '@/components/OngoingClientModal';
 import AtendimentoModal from '@/components/AtendimentoModal';
 import type { ClientData } from '@/hooks/useKanbanData';
 
-/**
- * Página Ongoing
- * Design: SystemSat
- * - Grid de cards em ordem alfabética
- * - Mesmos filtros da aba Marcos (sem No Prazo/Atrasados)
- * - Scroll vertical único
- */
+const FLAG_LEVELS = ['Red Flag', 'Yellow Flag', 'Black Flag'] as const;
+type FlagLevel = typeof FLAG_LEVELS[number];
+
+const FLAG_STYLES: Record<FlagLevel, { color: string; border: string; activeBg: string }> = {
+  'Red Flag':    { color: '#DC2626', border: '#DC2626', activeBg: '#DC2626' },
+  'Yellow Flag': { color: '#D97706', border: '#D97706', activeBg: '#D97706' },
+  'Black Flag':  { color: '#1F2937', border: '#374151', activeBg: '#374151' },
+};
+
 export default function Ongoing() {
   const { data, loading } = useOngoingData();
   const [selectedClient, setSelectedClient] = useState<OngoingClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
-  const [showOnlyRedFlag, setShowOnlyRedFlag] = useState(false);
+  const [flagFilter, setFlagFilter] = useState<FlagLevel | null>(null);
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(null);
   const [searchCliente, setSearchCliente] = useState<string>('');
   const [ultimoBoletoMin, setUltimoBoletoMin] = useState<number | null>(null);
   const [ultimoBoletoMax, setUltimoBoletoMax] = useState<number | null>(null);
   const [selectedSituacao, setSelectedSituacao] = useState<string | null>(null);
 
-  // Filtrar dados baseado nos filtros ativos
-  let filteredData = showOnlyRedFlag ? data.filter(client => client.redFlag) : data;
-  
+  // Filtrar dados
+  let filteredData = flagFilter ? data.filter(client => client.flag === flagFilter) : data;
+
   if (selectedAtendente) {
     filteredData = filteredData.filter(client => client.csm === selectedAtendente);
   }
-  
   if (searchCliente.trim()) {
-    filteredData = filteredData.filter(client => 
+    filteredData = filteredData.filter(client =>
       client.nome.toLowerCase().includes(searchCliente.toLowerCase())
     );
   }
-  
   if (ultimoBoletoMin !== null) {
     filteredData = filteredData.filter(client => client.ultimoBoleto >= ultimoBoletoMin);
   }
-  
   if (ultimoBoletoMax !== null) {
     filteredData = filteredData.filter(client => client.ultimoBoleto <= ultimoBoletoMax);
   }
-  
   if (selectedSituacao) {
     filteredData = filteredData.filter(client => client.situacao === selectedSituacao);
   }
 
-  // Calcular Red Flags considerando todos os filtros
+  // Contagens base (sem filtro de flag, mas com filtro de CSM)
   let baseDataForCounts = data;
   if (selectedAtendente) {
     baseDataForCounts = baseDataForCounts.filter(client => client.csm === selectedAtendente);
   }
-  let redFlagCount = baseDataForCounts.filter(client => client.redFlag).length;
 
-  // Obter lista única de CSMs
+  const flagCounts: Record<FlagLevel, number> = {
+    'Red Flag':    baseDataForCounts.filter(c => c.flag === 'Red Flag').length,
+    'Yellow Flag': baseDataForCounts.filter(c => c.flag === 'Yellow Flag').length,
+    'Black Flag':  baseDataForCounts.filter(c => c.flag === 'Black Flag').length,
+  };
+
+  // Obter lista única de CSMs e Situações
   const csms = Array.from(new Set(data.map(c => c.csm).filter(Boolean))).sort();
-  
-  // Obter lista única de Situações
   const situacoes = Array.from(new Set(data.map(c => c.situacao).filter(Boolean))).sort();
 
-  // Dados já estão ordenados alfabeticamente pelo hook
   const sortedData = [...filteredData];
+  const hasActiveFilter = !!(ultimoBoletoMin !== null || ultimoBoletoMax !== null || searchCliente || flagFilter || selectedAtendente || selectedSituacao);
 
   return (
     <div className="md:ml-20 p-4 md:p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
@@ -73,9 +73,7 @@ export default function Ongoing() {
       <header className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold" style={{ color: '#001F3F' }}>
-              Dashboard Ongoing
-            </h1>
+            <h1 className="text-3xl font-bold" style={{ color: '#001F3F' }}>Dashboard Ongoing</h1>
             <p className="text-gray-600 mt-1">Clientes em acompanhamento contínuo</p>
           </div>
           <button
@@ -89,8 +87,8 @@ export default function Ongoing() {
 
         {/* Filtros */}
         <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-            {/* Busca de Cliente */}
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Busca */}
             <input
               type="text"
               placeholder="Buscar cliente..."
@@ -100,18 +98,26 @@ export default function Ongoing() {
               style={{ borderColor: '#E0E8F0', minWidth: '150px' }}
             />
 
-            {/* Filtro de Red Flags */}
-            <button
-              onClick={() => setShowOnlyRedFlag(!showOnlyRedFlag)}
-              className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap flex items-center gap-2 ${
-                showOnlyRedFlag
-                  ? 'bg-red-600 hover:bg-red-700 text-white'
-                  : 'border border-red-600 text-red-600 hover:bg-red-50 bg-transparent'
-              }`}
-            >
-              <Flag size={16} />
-              Red Flags ({redFlagCount})
-            </button>
+            {/* Botões de Flag — 3 níveis */}
+            {FLAG_LEVELS.map((level) => {
+              const s = FLAG_STYLES[level];
+              const isActive = flagFilter === level;
+              return (
+                <button
+                  key={level}
+                  onClick={() => setFlagFilter(isActive ? null : level)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap"
+                  style={{
+                    backgroundColor: isActive ? s.activeBg : 'transparent',
+                    color: isActive ? '#FFFFFF' : s.color,
+                    border: `1.5px solid ${s.border}`,
+                  }}
+                >
+                  <Flag size={14} />
+                  {level} {flagCounts[level] > 0 && `(${flagCounts[level]})`}
+                </button>
+              );
+            })}
 
             {/* Filtro de CSM */}
             <select
@@ -126,29 +132,27 @@ export default function Ongoing() {
               ))}
             </select>
 
-            {/* Filtro de Último Boleto - Mínimo */}
+            {/* Filtro de Último Boleto */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">Último Boleto Mín</label>
+              <label className="text-xs font-semibold text-gray-600">Boleto Mín</label>
               <input
                 type="number"
                 placeholder="Mínimo"
                 value={ultimoBoletoMin ?? ''}
                 onChange={(e) => setUltimoBoletoMin(e.target.value ? parseFloat(e.target.value) : null)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', width: '120px' }}
+                style={{ borderColor: '#E0E8F0', width: '110px' }}
               />
             </div>
-
-            {/* Filtro de Último Boleto - Máximo */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">Último Boleto Máx</label>
+              <label className="text-xs font-semibold text-gray-600">Boleto Máx</label>
               <input
                 type="number"
                 placeholder="Máximo"
                 value={ultimoBoletoMax ?? ''}
                 onChange={(e) => setUltimoBoletoMax(e.target.value ? parseFloat(e.target.value) : null)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', width: '120px' }}
+                style={{ borderColor: '#E0E8F0', width: '110px' }}
               />
             </div>
 
@@ -165,11 +169,11 @@ export default function Ongoing() {
               ))}
             </select>
 
-            {/* Botão Limpar */}
+            {/* Limpar */}
             <button
               onClick={() => {
                 setSearchCliente('');
-                setShowOnlyRedFlag(false);
+                setFlagFilter(null);
                 setSelectedAtendente(null);
                 setUltimoBoletoMin(null);
                 setUltimoBoletoMax(null);
@@ -183,14 +187,14 @@ export default function Ongoing() {
         </div>
 
         {/* Resumo de Filtros Ativos */}
-        {(ultimoBoletoMin !== null || ultimoBoletoMax !== null || searchCliente || showOnlyRedFlag || selectedAtendente || selectedSituacao) && (
+        {hasActiveFilter && (
           <div className="px-6 py-3 bg-blue-50 border-b border-blue-200 mt-4 rounded-lg">
             <p className="text-sm text-gray-700">
               <span className="font-semibold" style={{ color: '#001F3F' }}>Filtros Ativos:</span>
-              {ultimoBoletoMin !== null && ` Último Boleto Mín: R$ ${ultimoBoletoMin.toFixed(2)}`}
+              {ultimoBoletoMin !== null && ` Boleto Mín: R$ ${ultimoBoletoMin.toFixed(2)}`}
               {ultimoBoletoMax !== null && ` | Máx: R$ ${ultimoBoletoMax.toFixed(2)}`}
               {searchCliente && ` | Cliente: ${searchCliente}`}
-              {showOnlyRedFlag && ' | Red Flags'}
+              {flagFilter && ` | ${flagFilter}`}
               {selectedAtendente && ` | CSM: ${selectedAtendente}`}
               {selectedSituacao && ` | Situação: ${selectedSituacao}`}
             </p>
@@ -210,31 +214,37 @@ export default function Ongoing() {
         ) : (
           <>
             {/* Estatísticas */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
               <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Total de Clientes</p>
+                <p className="text-sm text-gray-600">Total</p>
                 <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{data.length}</p>
               </div>
               <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
                 <p className="text-sm text-gray-600">Filtrados</p>
                 <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{sortedData.length}</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Red Flags</p>
-                <p className="text-3xl font-bold text-red-600">{redFlagCount}</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">CSMs</p>
-                <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{csms.length}</p>
-              </div>
+              {/* Contadores de flag */}
+              {FLAG_LEVELS.map((level) => {
+                const s = FLAG_STYLES[level];
+                const isActive = flagFilter === level;
+                return (
+                  <div
+                    key={level}
+                    className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
+                    style={{ borderColor: isActive ? s.border : '#E0E8F0', borderWidth: isActive ? '2px' : '1px' }}
+                    onClick={() => setFlagFilter(isActive ? null : level)}
+                  >
+                    <p className="text-sm text-gray-600">{level}</p>
+                    <p className="text-3xl font-bold" style={{ color: s.color }}>{flagCounts[level]}</p>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Grid de Cards */}
             {sortedData.length === 0 ? (
-              <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                  <p className="text-gray-600 text-lg">Nenhum cliente encontrado com os filtros selecionados.</p>
-                </div>
+              <div className="flex items-center justify-center min-h-[40vh]">
+                <p className="text-gray-600 text-lg">Nenhum cliente encontrado com os filtros selecionados.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
@@ -261,7 +271,7 @@ export default function Ongoing() {
         )}
       </main>
 
-      {/* Modal de Detalhes do Cliente */}
+      {/* Modal de Detalhes */}
       {selectedClient && (
         <OngoingClientModal
           client={selectedClient}
@@ -269,6 +279,7 @@ export default function Ongoing() {
           onClose={() => setIsModalOpen(false)}
         />
       )}
+
       {/* Modal de Atendimento */}
       {atendimentoClient && (
         <AtendimentoModal

@@ -134,9 +134,9 @@ export default function OngoingClientModal({
 
             {/* Red Flag */}
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-600 mb-1">Red Flag</p>
-              <p className={`font-semibold text-sm ${client.redFlag ? 'text-red-600' : 'text-green-600'}`}>
-                {client.redFlag ? 'Sim' : 'Não'}
+              <p className="text-xs text-gray-600 mb-1">Flag</p>
+              <p className="font-semibold text-sm" style={{ color: client.flag ? '#DC2626' : '#059669' }}>
+                {client.flag || 'Nenhuma'}
               </p>
             </div>
           </div>

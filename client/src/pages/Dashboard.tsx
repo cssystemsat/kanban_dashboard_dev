@@ -27,7 +27,7 @@ export default function Dashboard() {
     filteredData = filteredData.filter(c => c.atendente === selectedCSM);
   }
   if (showRedFlagsOnly) {
-    filteredData = filteredData.filter(c => c.redFlag);
+    filteredData = filteredData.filter(c => !!c.flag);
   }
   if (statusFilter !== 'all') {
     filteredData = filteredData.filter(c => c.marcoStatus === statusFilter);
@@ -37,7 +37,7 @@ export default function Dashboard() {
   const totalClientes = filteredData.length;
   const clientesNoPrazo = data.filter(c => c.marcoStatus === 'ok').length;
   const clientesAtrasados = data.filter(c => c.marcoStatus === 'atrasado').length;
-  const redFlagCount = filteredData.filter(c => c.redFlag).length;
+  const redFlagCount = filteredData.filter(c => !!c.flag).length;
 
   // Calcular ganho/perda de URs
   const ganhoTotalURs = filteredData.reduce((acc, c) => {

@@ -1,11 +1,21 @@
 import { ClientData } from '@/hooks/useKanbanData';
-import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X, Headphones } from 'lucide-react';
+import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X, Headphones, Star } from 'lucide-react';
 import { useState } from 'react';
 import { useAgendaData, isAgendaOutdated, getDaysSinceUpdate } from '@/hooks/useAgendaData';
 
 interface ClientCardProps {
   client: ClientData;
   onAtendimento?: (client: ClientData) => void;
+}
+
+/** Retorna cor e label para cada nível de flag */
+function getFlagStyle(flag: string): { color: string; bg: string } | null {
+  switch (flag) {
+    case 'Red Flag':    return { color: '#DC2626', bg: '#FEE2E2' };
+    case 'Yellow Flag': return { color: '#D97706', bg: '#FEF3C7' };
+    case 'Black Flag':  return { color: '#1F2937', bg: '#F3F4F6' };
+    default:            return null;
+  }
 }
 
 export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
@@ -15,8 +25,8 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
   const semAtualizacao = isAgendaOutdated(agendaEntry, agendaLoading);
   const diasSemAtualizar = getDaysSinceUpdate(agendaEntry);
 
-  const circleColor = isOverdue ? '#EF4444' : '#22C55E';
-  const circleTitle = isOverdue ? 'Atrasado' : 'No prazo';
+  const flagStyle = getFlagStyle(client.flag);
+  const hasFlag = !!flagStyle;
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -33,27 +43,16 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Não abrir tooltip - deixar o parent (KanbanColumn) lidar com o clique
-  };
-
   return (
-    <div
-      className="relative"
-    >
+    <div className="relative">
       <div
-        className={`
-          bg-white rounded-lg border p-3 
-          transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
-          flex flex-col gap-2 shadow-sm cursor-pointer
-        `}
+        className="bg-white rounded-lg border p-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-2 shadow-sm cursor-pointer"
         style={{ borderColor: '#E0E8F0' }}
       >
-        {/* Header com ícone WhatsApp, nome e badge */}
+        {/* Header: WhatsApp + nome + [estrela | flag | status] */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2 flex-1">
-            {/* Ícone WhatsApp pequeno na frente do nome */}
+          {/* Esquerda: ícone WA + nome */}
+          <div className="flex items-start gap-2 flex-1 min-w-0">
             {client.whatsappGrupo && (
               <button
                 onClick={handleWhatsAppGrupo}
@@ -77,19 +76,45 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
             {!client.whatsappGrupo && !client.whatsapp && (
               <div className="flex-shrink-0 w-5 h-5" />
             )}
-            
-            {/* Nome do cliente */}
-            <h3 className="font-bold text-xs flex-1 leading-tight" style={{ color: '#001F3F' }}>
+            <h3 className="font-bold text-xs flex-1 leading-tight truncate" style={{ color: '#001F3F' }}>
               {client.nome}
             </h3>
           </div>
-          
-          {/* Círculo de status */}
-          <div
-            className="flex-shrink-0 w-3 h-3 rounded-full"
-            style={{ backgroundColor: circleColor }}
-            title={circleTitle}
-          />
+
+          {/* Direita: estrela + flag + No prazo/Atrasado */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Estrela — só aparece se houver flag */}
+            {hasFlag && client.estrela && (
+              <span title="Destaque">
+                <Star
+                  className="w-3.5 h-3.5 fill-current"
+                  style={{ color: '#F59E0B' }}
+                />
+              </span>
+            )}
+
+            {/* Badge de Flag */}
+            {hasFlag && (
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded leading-none"
+                style={{ backgroundColor: flagStyle!.bg, color: flagStyle!.color }}
+                title={client.flag}
+              >
+                {client.flag}
+              </span>
+            )}
+
+            {/* No prazo / Atrasado */}
+            <span
+              className="text-[10px] font-semibold px-1.5 py-0.5 rounded leading-none"
+              style={{
+                backgroundColor: isOverdue ? '#FEE2E2' : '#D1FAE5',
+                color: isOverdue ? '#DC2626' : '#059669',
+              }}
+            >
+              {isOverdue ? 'Atrasado' : 'No prazo'}
+            </span>
+          </div>
         </div>
 
         {/* Entrada com dias corridos */}
@@ -140,7 +165,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           </div>
         )}
 
-        {/* Informacoes de Boleto */}
+        {/* Informações de Boleto */}
         {(client.ultimoBoleto || client.consumo || client.deltaConsumo) && (
           <div className="flex flex-col gap-1 text-xs">
             {client.ultimoBoleto && (
@@ -163,7 +188,10 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
             )}
             {client.deltaConsumo && (
               <div className="flex items-center gap-2">
-                <DollarSign className="w-3 h-3 flex-shrink-0" style={{ color: client.deltaConsumo.startsWith('-') ? '#EF4444' : '#10B981' }} />
+                <DollarSign
+                  className="w-3 h-3 flex-shrink-0"
+                  style={{ color: client.deltaConsumo.startsWith('-') ? '#EF4444' : '#10B981' }}
+                />
                 <span style={{
                   color: client.deltaConsumo.startsWith('-') ? '#EF4444' : '#10B981',
                   fontWeight: '600'
@@ -218,25 +246,18 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           <Headphones className="w-3 h-3" />
           Atendimento
         </button>
-
       </div>
 
-      {/* Tooltip desabilitado - usar modal em vez disso */}
-      {false && (
-        <div 
-          className="absolute left-0 right-0 top-0 z-50 rounded-lg p-3 text-xs shadow-lg border" 
+      {/* Tooltip desabilitado */}
+      {false && showTooltip && (
+        <div
+          className="absolute left-0 right-0 top-0 z-50 rounded-lg p-3 text-xs shadow-lg border"
           style={{ backgroundColor: '#001F3F', borderColor: '#00DD00', color: '#FFFFFF' }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botão Fechar */}
-          <button
-            onClick={() => setShowTooltip(false)}
-            className="absolute top-2 right-2 p-1 hover:opacity-70 transition-opacity"
-          >
+          <button onClick={() => setShowTooltip(false)} className="absolute top-2 right-2 p-1 hover:opacity-70 transition-opacity">
             <X className="w-4 h-4" />
           </button>
-
-          {/* CSM */}
           {client.atendente && (
             <div className="flex items-start gap-2 mb-2">
               <User className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#00DD00' }} />
@@ -246,16 +267,12 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
               </div>
             </div>
           )}
-
-          {/* Red Flag */}
-          {client.redFlag && (
-            <div className="flex items-center gap-2 mb-2 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255, 107, 107, 0.2)' }}>
-              <Flag className="w-3 h-3 flex-shrink-0" style={{ color: '#FF6B6B' }} />
-              <span className="font-600" style={{ color: '#FF6B6B' }}>Red Flag Ativa</span>
+          {hasFlag && (
+            <div className="flex items-center gap-2 mb-2 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255,107,107,0.2)' }}>
+              <Flag className="w-3 h-3 flex-shrink-0" style={{ color: flagStyle!.color }} />
+              <span className="font-600" style={{ color: flagStyle!.color }}>{client.flag}</span>
             </div>
           )}
-
-          {/* Comercial */}
           {client.comercial && (
             <div className="flex items-start gap-2 mb-2">
               <Briefcase className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#00DD00' }} />
@@ -265,8 +282,6 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
               </div>
             </div>
           )}
-
-          {/* Saúde do Cliente */}
           {client.saude && (
             <div className="flex items-start gap-2 mb-2">
               <Heart className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#00DD00' }} />
@@ -275,55 +290,6 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
                 <p style={{ color: '#FFFFFF' }}>{client.saude}</p>
               </div>
             </div>
-          )}
-
-          {/* Decisor */}
-          {client.decisor && (
-            <div className="flex items-start gap-2 mb-2">
-              <User className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#00DD00' }} />
-              <div>
-                <p className="font-600" style={{ color: '#E0E8F0' }}>Decisor</p>
-                <p style={{ color: '#FFFFFF' }}>{client.decisor}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Botão WhatsApp do Decisor (se houver) */}
-          {client.whatsapp && (
-            <button
-              onClick={handleWhatsApp}
-              className="w-full mt-2 px-2 py-1 rounded text-xs font-600 transition-colors hover:opacity-80 flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#25D366', color: '#FFFFFF' }}
-            >
-              <MessageCircle className="w-3 h-3" />
-              WhatsApp Decisor
-            </button>
-          )}
-
-          {/* Botão Grupo WhatsApp */}
-          {client.whatsappGrupo && (
-            <button
-              onClick={handleWhatsAppGrupo}
-              className="w-full mt-2 px-2 py-1 rounded text-xs font-600 transition-colors hover:opacity-80 flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#25D366', color: '#FFFFFF' }}
-            >
-              <MessageCircle className="w-3 h-3" />
-              Grupo WhatsApp
-            </button>
-          )}
-
-          {/* Botão Bitrix */}
-          {client.bitrixLink && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(client.bitrixLink, '_blank');
-              }}
-              className="w-full mt-2 px-2 py-1 rounded text-xs font-600 transition-colors hover:opacity-80"
-              style={{ backgroundColor: '#00DD00', color: '#001F3F' }}
-            >
-              Bitrix
-            </button>
           )}
         </div>
       )}

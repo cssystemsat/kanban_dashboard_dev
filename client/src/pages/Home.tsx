@@ -8,16 +8,18 @@ import { useKanbanData, ClientData } from "@/hooks/useKanbanData";
 import { Flag, RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
-/**
- * Dashboard do CS - Kanban com scroll horizontal
- * Design: Corporate Tech (SystemSat)
- * - Cores: Azul Marinho (#001F3F) + Verde Neon (#00DD00)
- * - Layout: Cada marco com seu próprio scroll
- * - Logo: SystemSat no topo
- */
+const FLAG_LEVELS = ['Red Flag', 'Yellow Flag', 'Black Flag'] as const;
+type FlagLevel = typeof FLAG_LEVELS[number];
+
+const FLAG_STYLES: Record<FlagLevel, { color: string; border: string; bg: string; activeBg: string }> = {
+  'Red Flag':    { color: '#DC2626', border: '#DC2626', bg: 'transparent',  activeBg: '#DC2626' },
+  'Yellow Flag': { color: '#D97706', border: '#D97706', bg: 'transparent',  activeBg: '#D97706' },
+  'Black Flag':  { color: '#1F2937', border: '#374151', bg: 'transparent',  activeBg: '#374151' },
+};
+
 export default function Home() {
   const { data, loading, error, fetchData } = useKanbanData();
-  const [showOnlyRedFlag, setShowOnlyRedFlag] = useState(false);
+  const [flagFilter, setFlagFilter] = useState<FlagLevel | null>(null);
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(null);
   const [searchCliente, setSearchCliente] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ok' | 'atrasado'>('all');
@@ -26,7 +28,6 @@ export default function Home() {
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] = useState<number | null>(null);
   const [selectedObjetivo, setSelectedObjetivo] = useState<string | null>(null);
 
@@ -34,13 +35,13 @@ export default function Home() {
     fetchData();
   }, [fetchData]);
 
-  // Filtrar dados baseado no toggle de Red Flag, CSM, busca de cliente, status e data
-  let filteredData = showOnlyRedFlag ? data.filter(client => client.redFlag) : data;
+  // Filtrar dados
+  let filteredData = flagFilter ? data.filter(client => client.flag === flagFilter) : data;
   if (selectedAtendente) {
     filteredData = filteredData.filter(client => client.atendente === selectedAtendente);
   }
   if (searchCliente.trim()) {
-    filteredData = filteredData.filter(client => 
+    filteredData = filteredData.filter(client =>
       client.nome.toLowerCase().includes(searchCliente.toLowerCase())
     );
   }
@@ -52,24 +53,22 @@ export default function Home() {
       if (!client.entrada) return false;
       const parts = client.entrada.trim().split('/');
       if (parts.length !== 3) return false;
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      const clientDate = new Date(year, month - 1, day);
+      const clientDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
       return clientDate >= dateFilterStart && clientDate <= dateFilterEnd;
     });
   }
   if (percentualDesatualizadoFilter !== null) {
-    filteredData = filteredData.filter(client => 
+    filteredData = filteredData.filter(client =>
       client.percentualDesatualizado !== undefined && client.percentualDesatualizado >= percentualDesatualizadoFilter
     );
   }
   if (selectedObjetivo) {
-    filteredData = filteredData.filter(client => 
+    filteredData = filteredData.filter(client =>
       client.tagsCliente && client.tagsCliente.toLowerCase().includes(selectedObjetivo.toLowerCase())
     );
   }
-  // Calcular Red Flags considerando todos os filtros (data, CSM, etc)
+
+  // Contagens base (sem filtro de flag, mas com filtros de CSM e data)
   let baseDataForCounts = data;
   if (selectedAtendente) {
     baseDataForCounts = baseDataForCounts.filter(client => client.atendente === selectedAtendente);
@@ -79,15 +78,21 @@ export default function Home() {
       if (!client.entrada) return false;
       const parts = client.entrada.trim().split('/');
       if (parts.length !== 3) return false;
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      const clientDate = new Date(year, month - 1, day);
+      const clientDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
       return clientDate >= dateFilterStart && clientDate <= dateFilterEnd;
     });
   }
-  let redFlagCount = baseDataForCounts.filter(client => client.redFlag).length;
-  
+
+  // Contagem por nível de flag
+  const flagCounts: Record<FlagLevel, number> = {
+    'Red Flag':    baseDataForCounts.filter(c => c.flag === 'Red Flag').length,
+    'Yellow Flag': baseDataForCounts.filter(c => c.flag === 'Yellow Flag').length,
+    'Black Flag':  baseDataForCounts.filter(c => c.flag === 'Black Flag').length,
+  };
+
+  const clientesNoPrazo = baseDataForCounts.filter(c => c.marcoStatus === 'ok').length;
+  const clientesAtrasados = baseDataForCounts.filter(c => c.marcoStatus === 'atrasado').length;
+
   // Obter lista única de CSMs
   const csms = Array.from(new Set(data.map(c => c.atendente).filter(Boolean))).sort();
 
@@ -99,40 +104,31 @@ export default function Home() {
       if (parts.length !== 3) return new Date(0);
       return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
     };
-    const dateA = parseDate(a.entrada);
-    const dateB = parseDate(b.entrada);
-    return dateA.getTime() - dateB.getTime(); // Mais antigos primeiro
+    return parseDate(a.entrada).getTime() - parseDate(b.entrada).getTime();
   });
 
   // Agrupar clientes por marco
-  // Clientes com isComplete=true pertencem APENAS à coluna "100% Implantados"
   const marcos = [
-    { id: 1, nome: "Marco 1 (7 dias)", clientes: sortedData.filter(c => c.marco === 1 && !c.isComplete) },
-    { id: 2, nome: "Marco 2 (21 dias)", clientes: sortedData.filter(c => c.marco === 2 && !c.isComplete) },
-    { id: 3, nome: "Marco 3 (49 dias)", clientes: sortedData.filter(c => c.marco === 3 && !c.isComplete) },
-    { id: 4, nome: "Marco 4 (70 dias)", clientes: sortedData.filter(c => c.marco === 4 && !c.isComplete) },
+    { id: 1, nome: "Marco 1 (7 dias)",   clientes: sortedData.filter(c => c.marco === 1 && !c.isComplete) },
+    { id: 2, nome: "Marco 2 (21 dias)",  clientes: sortedData.filter(c => c.marco === 2 && !c.isComplete) },
+    { id: 3, nome: "Marco 3 (49 dias)",  clientes: sortedData.filter(c => c.marco === 3 && !c.isComplete) },
+    { id: 4, nome: "Marco 4 (70 dias)",  clientes: sortedData.filter(c => c.marco === 4 && !c.isComplete) },
     { id: 5, nome: "Marco 5 (180 dias)", clientes: sortedData.filter(c => c.marco === 5 && !c.isComplete) },
-    { id: 6, nome: "100% Implantados", clientes: sortedData.filter(c => c.isComplete) },
+    { id: 6, nome: "100% Implantados",   clientes: sortedData.filter(c => c.isComplete) },
   ];
 
-  // Calcular estatísticas considerando todos os filtros
   const totalClientes = filteredData.length;
-  const clientesNoPrazo = baseDataForCounts.filter(c => c.marcoStatus === 'ok').length;
-  const clientesAtrasados = baseDataForCounts.filter(c => c.marcoStatus === 'atrasado').length;
+  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null || selectedObjetivo);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
-      {/* Header com Logo e Título */}
+      {/* Header */}
       <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: '#001F3F', borderColor: '#E0E8F0' }}>
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-white">Dashboard do CS</h1>
-                <p className="text-sm text-gray-300 mt-1">
-                  Acompanhamento de clientes por etapa de implementação
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Dashboard do CS</h1>
+              <p className="text-sm text-gray-300 mt-1">Acompanhamento de clientes por etapa de implementação</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <input
@@ -143,7 +139,7 @@ export default function Home() {
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
                 style={{ borderColor: '#E0E8F0', minWidth: '150px' }}
               />
-              
+
               <button
                 onClick={() => setStatusFilter(statusFilter === 'ok' ? 'all' : 'ok')}
                 className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap ${
@@ -154,7 +150,7 @@ export default function Home() {
               >
                 No Prazo ({clientesNoPrazo})
               </button>
-              
+
               <button
                 onClick={() => setStatusFilter(statusFilter === 'atrasado' ? 'all' : 'atrasado')}
                 className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap ${
@@ -165,26 +161,35 @@ export default function Home() {
               >
                 Atrasados ({clientesAtrasados})
               </button>
-              
-              <Button
-                onClick={() => setShowOnlyRedFlag(!showOnlyRedFlag)}
-                className={`gap-2 whitespace-nowrap ${
-                  showOnlyRedFlag
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'border-2 border-red-600 text-red-600 hover:bg-red-50 bg-transparent'
-                }`}
-              >
-                <Flag className="w-4 h-4" />
-                Red Flags {redFlagCount > 0 && `(${redFlagCount})`}
-              </Button>
 
-              <DateFilterCompact 
+              {/* Botões de Flag — 3 níveis */}
+              {FLAG_LEVELS.map((level) => {
+                const s = FLAG_STYLES[level];
+                const isActive = flagFilter === level;
+                return (
+                  <button
+                    key={level}
+                    onClick={() => setFlagFilter(isActive ? null : level)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap"
+                    style={{
+                      backgroundColor: isActive ? s.activeBg : 'transparent',
+                      color: isActive ? '#FFFFFF' : s.color,
+                      border: `1.5px solid ${s.border}`,
+                    }}
+                  >
+                    <Flag className="w-4 h-4" />
+                    {level} {flagCounts[level] > 0 && `(${flagCounts[level]})`}
+                  </button>
+                );
+              })}
+
+              <DateFilterCompact
                 onDateChange={(start, end) => {
                   setDateFilterStart(start);
                   setDateFilterEnd(end);
                 }}
               />
-              
+
               <select
                 value={selectedAtendente || ''}
                 onChange={(e) => setSelectedAtendente(e.target.value || null)}
@@ -193,9 +198,7 @@ export default function Home() {
               >
                 <option value="">Todos os CSMs</option>
                 {csms.map(csm => (
-                  <option key={csm} value={csm}>
-                    {csm}
-                  </option>
+                  <option key={csm} value={csm}>{csm}</option>
                 ))}
               </select>
 
@@ -209,7 +212,7 @@ export default function Home() {
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
                 style={{ borderColor: '#E0E8F0', minWidth: '120px' }}
               />
-              
+
               <select
                 value={selectedObjetivo || ''}
                 onChange={(e) => setSelectedObjetivo(e.target.value || null)}
@@ -221,7 +224,7 @@ export default function Home() {
                 <option value="Identificacao">Identificacao motorista</option>
                 <option value="Lobo">Lobo Solitario</option>
               </select>
-              
+
               <Button
                 onClick={fetchData}
                 disabled={loading}
@@ -236,14 +239,14 @@ export default function Home() {
       </header>
 
       {/* Resumo de Filtros Ativos */}
-      {(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || showOnlyRedFlag || selectedAtendente || percentualDesatualizadoFilter !== null || selectedObjetivo) && (
+      {hasActiveFilter && (
         <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
           <p className="text-sm text-gray-700">
             <span className="font-semibold" style={{ color: '#001F3F' }}>Filtros Ativos:</span>
             {dateFilterStart && dateFilterEnd && ` Data: ${dateFilterStart.toLocaleDateString('pt-BR')} - ${dateFilterEnd.toLocaleDateString('pt-BR')}`}
             {searchCliente && ` | Cliente: ${searchCliente}`}
             {statusFilter !== 'all' && ` | Status: ${statusFilter === 'ok' ? 'No Prazo' : 'Atrasado'}`}
-            {showOnlyRedFlag && ' | Red Flags'}
+            {flagFilter && ` | ${flagFilter}`}
             {selectedAtendente && ` | CSM: ${selectedAtendente}`}
             {percentualDesatualizadoFilter !== null && ` | % Desatualizado >= ${percentualDesatualizadoFilter}%`}
             {selectedObjetivo && ` | Objetivo: ${selectedObjetivo}`}
@@ -255,24 +258,14 @@ export default function Home() {
       <main className="p-6">
         {error && (
           <div className="mx-6 mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">
-              Erro ao carregar dados: {error}
-            </p>
+            <p className="text-sm text-red-700">Erro ao carregar dados: {error}</p>
           </div>
         )}
 
-        {showOnlyRedFlag && filteredData.length === 0 && !loading && (
+        {flagFilter && filteredData.length === 0 && !loading && (
           <div className="mx-6 mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-700">
-              ✓ Nenhum cliente marcado como Red Flag. Excelente!
-            </p>
-          </div>
-        )}
-
-        {selectedAtendente && filteredData.length === 0 && !loading && !showOnlyRedFlag && (
-          <div className="mx-6 mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
-              Nenhum cliente encontrado para o CSM selecionado.
+              ✓ Nenhum cliente marcado como {flagFilter}.
             </p>
           </div>
         )}
@@ -286,30 +279,51 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Estatísticas - Painéis como Botões */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Total de Clientes</p>
+            {/* Estatísticas */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
+              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
+                <p className="text-sm text-gray-600">Total</p>
                 <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{totalClientes}</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow" style={{ borderColor: statusFilter === 'ok' ? '#00DD00' : '#E0E8F0', borderWidth: statusFilter === 'ok' ? '2px' : '1px', backgroundColor: statusFilter === 'ok' ? '#F0FFF4' : '#FFFFFF' }} onClick={() => setStatusFilter(statusFilter === 'ok' ? 'all' : 'ok')}>
+              <div
+                className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
+                style={{ borderColor: statusFilter === 'ok' ? '#00DD00' : '#E0E8F0', borderWidth: statusFilter === 'ok' ? '2px' : '1px', backgroundColor: statusFilter === 'ok' ? '#F0FFF4' : '#FFFFFF' }}
+                onClick={() => setStatusFilter(statusFilter === 'ok' ? 'all' : 'ok')}
+              >
                 <p className="text-sm text-gray-600">No Prazo</p>
                 <p className="text-3xl font-bold" style={{ color: '#00DD00' }}>{clientesNoPrazo}</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow" style={{ borderColor: statusFilter === 'atrasado' ? '#EF4444' : '#E0E8F0', borderWidth: statusFilter === 'atrasado' ? '2px' : '1px', backgroundColor: statusFilter === 'atrasado' ? '#FEF2F2' : '#FFFFFF' }} onClick={() => setStatusFilter(statusFilter === 'atrasado' ? 'all' : 'atrasado')}>
+              <div
+                className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
+                style={{ borderColor: statusFilter === 'atrasado' ? '#EF4444' : '#E0E8F0', borderWidth: statusFilter === 'atrasado' ? '2px' : '1px', backgroundColor: statusFilter === 'atrasado' ? '#FEF2F2' : '#FFFFFF' }}
+                onClick={() => setStatusFilter(statusFilter === 'atrasado' ? 'all' : 'atrasado')}
+              >
                 <p className="text-sm text-gray-600">Atrasados</p>
                 <p className="text-3xl font-bold text-red-600">{clientesAtrasados}</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Red Flags</p>
-                <p className="text-3xl font-bold text-red-600">{redFlagCount}</p>
-              </div>
+              {/* Contadores de flag */}
+              {FLAG_LEVELS.map((level) => {
+                const s = FLAG_STYLES[level];
+                const isActive = flagFilter === level;
+                return (
+                  <div
+                    key={level}
+                    className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
+                    style={{
+                      borderColor: isActive ? s.border : '#E0E8F0',
+                      borderWidth: isActive ? '2px' : '1px',
+                    }}
+                    onClick={() => setFlagFilter(isActive ? null : level)}
+                  >
+                    <p className="text-sm text-gray-600">{level}</p>
+                    <p className="text-3xl font-bold" style={{ color: s.color }}>{flagCounts[level]}</p>
+                  </div>
+                );
+              })}
             </div>
 
-
-
-            {/* Kanban com Scroll Horizontal por Marco */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4 overflow-x-auto" style={{ height: 'auto', minHeight: '600px' }}>
+            {/* Kanban */}
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4 overflow-x-auto" style={{ minHeight: '600px' }}>
               {marcos.map(marco => (
                 <KanbanColumn
                   key={marco.id}
