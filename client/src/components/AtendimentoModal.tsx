@@ -72,8 +72,8 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
   });
 
   const handleEnviar = () => {
-    if (!form.tipo || !form.situacao || !form.razao || !form.resumo.trim() || !form.duracao) {
-      toast.warning('Preencha todos os campos antes de enviar.');
+    if (!form.tipo || !form.situacao || !form.razao || !form.duracao) {
+      toast.warning('Preencha todos os campos obrigatórios antes de enviar.');
       return;
     }
     gravar.mutate({
@@ -81,7 +81,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
       tipo: form.tipo,
       situacao: form.situacao,
       razao: form.razao,
-      resumo: form.resumo.trim(),
+      resumo: form.resumo.trim() || 'sem resumo',
       duracao: form.duracao,
     });
   };
@@ -213,7 +213,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
             {/* Resumo */}
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: '#374151' }}>
-                Resumo <span style={{ color: '#EF4444' }}>*</span>
+                Resumo <span style={{ color: '#9CA3AF', fontWeight: 'normal' }}>(opcional)</span>
               </label>
               <textarea
                 value={form.resumo}

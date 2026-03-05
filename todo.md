@@ -32,3 +32,4 @@
 - [x] Adicionar botão Atendimento azul no card
 - [x] Criar modal AtendimentoModal com formulário de lançamento
 - [x] Adicionar campo "Razão" no modal de atendimento (coluna G na planilha)
+- [x] Tornar campo Resumo opcional no modal (fallback "sem resumo" na planilha)
