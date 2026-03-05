@@ -8,12 +8,12 @@ interface ClientCardProps {
   onAtendimento?: (client: ClientData) => void;
 }
 
-/** Retorna cor e label para cada nível de flag */
-function getFlagStyle(flag: string): { color: string; bg: string } | null {
+/** Cor do ícone de bandeira para cada nível */
+function getFlagColor(flag: string): string | null {
   switch (flag) {
-    case 'Red Flag':    return { color: '#DC2626', bg: '#FEE2E2' };
-    case 'Yellow Flag': return { color: '#D97706', bg: '#FEF3C7' };
-    case 'Black Flag':  return { color: '#1F2937', bg: '#F3F4F6' };
+    case 'Red Flag':    return '#DC2626';
+    case 'Yellow Flag': return '#D97706';
+    case 'Black Flag':  return '#1F2937';
     default:            return null;
   }
 }
@@ -25,8 +25,8 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
   const semAtualizacao = isAgendaOutdated(agendaEntry, agendaLoading);
   const diasSemAtualizar = getDaysSinceUpdate(agendaEntry);
 
-  const flagStyle = getFlagStyle(client.flag);
-  const hasFlag = !!flagStyle;
+  const flagColor = getFlagColor(client.flag);
+  const hasFlag = !!flagColor;
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,72 +49,63 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
         className="bg-white rounded-lg border p-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-2 shadow-sm cursor-pointer"
         style={{ borderColor: '#E0E8F0' }}
       >
-        {/* Header: WhatsApp + nome + [estrela | flag | status] */}
-        <div className="flex items-start justify-between gap-2">
-          {/* Esquerda: ícone WA + nome */}
-          <div className="flex items-start gap-2 flex-1 min-w-0">
-            {client.whatsappGrupo && (
-              <button
-                onClick={handleWhatsAppGrupo}
-                className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all hover:opacity-80 hover:scale-110"
-                style={{ backgroundColor: '#25D366' }}
-                title="Abrir grupo do WhatsApp"
-              >
-                <MessageCircle className="w-3 h-3 text-white" />
-              </button>
-            )}
-            {!client.whatsappGrupo && client.whatsapp && (
-              <button
-                onClick={handleWhatsApp}
-                className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all hover:opacity-80 hover:scale-110"
-                style={{ backgroundColor: '#25D366' }}
-                title="Enviar WhatsApp"
-              >
-                <MessageCircle className="w-3 h-3 text-white" />
-              </button>
-            )}
-            {!client.whatsappGrupo && !client.whatsapp && (
-              <div className="flex-shrink-0 w-5 h-5" />
-            )}
-            <h3 className="font-bold text-xs flex-1 leading-tight truncate" style={{ color: '#001F3F' }}>
-              {client.nome}
-            </h3>
-          </div>
-
-          {/* Direita: estrela + flag + No prazo/Atrasado */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Estrela — só aparece se houver flag */}
-            {hasFlag && client.estrela && (
-              <span title="Destaque">
-                <Star
-                  className="w-3.5 h-3.5 fill-current"
-                  style={{ color: '#F59E0B' }}
-                />
-              </span>
-            )}
-
-            {/* Badge de Flag */}
-            {hasFlag && (
-              <span
-                className="text-[10px] font-bold px-1.5 py-0.5 rounded leading-none"
-                style={{ backgroundColor: flagStyle!.bg, color: flagStyle!.color }}
-                title={client.flag}
-              >
-                {client.flag}
-              </span>
-            )}
-
-            {/* No prazo / Atrasado */}
-            <span
-              className="text-[10px] font-semibold px-1.5 py-0.5 rounded leading-none"
-              style={{
-                backgroundColor: isOverdue ? '#FEE2E2' : '#D1FAE5',
-                color: isOverdue ? '#DC2626' : '#059669',
-              }}
+        {/* Linha 1: WA + nome (sem truncate, quebra linha) */}
+        <div className="flex items-start gap-2">
+          {/* Ícone WhatsApp */}
+          {client.whatsappGrupo ? (
+            <button
+              onClick={handleWhatsAppGrupo}
+              className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all hover:opacity-80 hover:scale-110 mt-0.5"
+              style={{ backgroundColor: '#25D366' }}
+              title="Abrir grupo do WhatsApp"
             >
-              {isOverdue ? 'Atrasado' : 'No prazo'}
+              <MessageCircle className="w-3 h-3 text-white" />
+            </button>
+          ) : client.whatsapp ? (
+            <button
+              onClick={handleWhatsApp}
+              className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all hover:opacity-80 hover:scale-110 mt-0.5"
+              style={{ backgroundColor: '#25D366' }}
+              title="Enviar WhatsApp"
+            >
+              <MessageCircle className="w-3 h-3 text-white" />
+            </button>
+          ) : (
+            <div className="flex-shrink-0 w-5 h-5 mt-0.5" />
+          )}
+
+          {/* Nome — quebra linha, não trunca */}
+          <h3 className="font-bold text-xs leading-snug flex-1" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
+            {client.nome}
+          </h3>
+        </div>
+
+        {/* Linha 2: ícones de status no canto direito — estrela + bandeira + No prazo/Atrasado */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Estrela — só se houver flag */}
+          {hasFlag && client.estrela && (
+            <span title="Destaque">
+              <Star className="w-3.5 h-3.5 fill-current" style={{ color: '#F59E0B' }} />
             </span>
-          </div>
+          )}
+
+          {/* Ícone de bandeira colorido */}
+          {hasFlag && (
+            <span title={client.flag}>
+              <Flag className="w-3.5 h-3.5 fill-current" style={{ color: flagColor! }} />
+            </span>
+          )}
+
+          {/* No prazo / Atrasado */}
+          <span
+            className="text-[10px] font-semibold px-1.5 py-0.5 rounded leading-none"
+            style={{
+              backgroundColor: isOverdue ? '#FEE2E2' : '#D1FAE5',
+              color: isOverdue ? '#DC2626' : '#059669',
+            }}
+          >
+            {isOverdue ? 'Atrasado' : 'No prazo'}
+          </span>
         </div>
 
         {/* Entrada com dias corridos */}
@@ -173,7 +164,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
                 <DollarSign className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
                 <span style={{ color: '#4A5F7F' }}>
                   <span className="font-600" style={{ color: '#001F3F' }}>Boleto:</span>
-                  <span className="ml-1" style={{ color: '#4A5F7F' }}>{client.ultimoBoleto}</span>
+                  <span className="ml-1">{client.ultimoBoleto}</span>
                 </span>
               </div>
             )}
@@ -182,7 +173,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
                 <DollarSign className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
                 <span style={{ color: '#4A5F7F' }}>
                   <span className="font-600" style={{ color: '#001F3F' }}>Consumo:</span>
-                  <span className="ml-1" style={{ color: '#4A5F7F' }}>{client.consumo}</span>
+                  <span className="ml-1">{client.consumo}</span>
                 </span>
               </div>
             )}
@@ -211,9 +202,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
             title={`Última atualização há ${diasSemAtualizar} dias`}
           >
             <AlertCircle className="w-3 h-3 flex-shrink-0" style={{ color: '#F97316' }} />
-            <span style={{ color: '#9A3412' }}>
-              {`Sem atualiz. há ${diasSemAtualizar}d`}
-            </span>
+            <span style={{ color: '#9A3412' }}>{`Sem atualiz. há ${diasSemAtualizar}d`}</span>
           </div>
         )}
 
@@ -269,8 +258,8 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           )}
           {hasFlag && (
             <div className="flex items-center gap-2 mb-2 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255,107,107,0.2)' }}>
-              <Flag className="w-3 h-3 flex-shrink-0" style={{ color: flagStyle!.color }} />
-              <span className="font-600" style={{ color: flagStyle!.color }}>{client.flag}</span>
+              <Flag className="w-3 h-3 flex-shrink-0 fill-current" style={{ color: flagColor! }} />
+              <span className="font-600" style={{ color: flagColor! }}>{client.flag}</span>
             </div>
           )}
           {client.comercial && (

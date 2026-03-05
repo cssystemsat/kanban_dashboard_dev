@@ -1,17 +1,17 @@
 import { OngoingClientData } from '@/hooks/useOngoingData';
-import { MessageCircle, Headphones, Star } from 'lucide-react';
+import { MessageCircle, Headphones, Star, Flag } from 'lucide-react';
 
 interface OngoingCardProps {
   client: OngoingClientData;
   onAtendimento?: (client: OngoingClientData) => void;
 }
 
-/** Retorna cor e bg para cada nível de flag */
-function getFlagStyle(flag: string): { color: string; bg: string } | null {
+/** Cor do ícone de bandeira para cada nível */
+function getFlagColor(flag: string): string | null {
   switch (flag) {
-    case 'Red Flag':    return { color: '#DC2626', bg: '#FEE2E2' };
-    case 'Yellow Flag': return { color: '#D97706', bg: '#FEF3C7' };
-    case 'Black Flag':  return { color: '#1F2937', bg: '#F3F4F6' };
+    case 'Red Flag':    return '#DC2626';
+    case 'Yellow Flag': return '#D97706';
+    case 'Black Flag':  return '#1F2937';
     default:            return null;
   }
 }
@@ -24,43 +24,35 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
   };
 
   const deltaColor = getDeltaColor(client.deltaConsumo);
-  const flagStyle = getFlagStyle(client.flag);
-  const hasFlag = !!flagStyle;
+  const flagColor = getFlagColor(client.flag);
+  const hasFlag = !!flagColor;
 
   return (
     <div
       className="bg-white rounded-lg border-2 p-2 hover:shadow-lg transition-all cursor-pointer"
       style={{ borderColor: '#E0E8F0' }}
     >
-      {/* Header com Nome + [estrela | flag] */}
-      <div className="flex items-start justify-between mb-2 gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-xs truncate" style={{ color: '#001F3F' }}>
-            {client.nome}
-          </h3>
-          <p className="text-xs text-gray-500 mt-0.5">{client.codigoCliente}</p>
-        </div>
+      {/* Header: Nome (quebra linha) + ícones de status */}
+      <div className="mb-2">
+        {/* Linha de ícones de status: estrela + bandeira */}
+        {hasFlag && (
+          <div className="flex items-center gap-1 mb-1">
+            {client.estrela && (
+              <span title="Destaque">
+                <Star className="w-3.5 h-3.5 fill-current" style={{ color: '#F59E0B' }} />
+              </span>
+            )}
+            <span title={client.flag}>
+              <Flag className="w-3.5 h-3.5 fill-current" style={{ color: flagColor! }} />
+            </span>
+          </div>
+        )}
 
-        {/* Canto superior direito: estrela + flag */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {hasFlag && client.estrela && (
-            <span title="Destaque">
-              <Star
-                className="w-3.5 h-3.5 fill-current"
-                style={{ color: '#F59E0B' }}
-              />
-            </span>
-          )}
-          {hasFlag && (
-            <span
-              className="text-[10px] font-bold px-1.5 py-0.5 rounded leading-none"
-              style={{ backgroundColor: flagStyle!.bg, color: flagStyle!.color }}
-              title={client.flag}
-            >
-              {client.flag}
-            </span>
-          )}
-        </div>
+        {/* Nome — sem truncate, quebra linha */}
+        <h3 className="font-bold text-xs leading-snug" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
+          {client.nome}
+        </h3>
+        <p className="text-xs text-gray-500 mt-0.5">{client.codigoCliente}</p>
       </div>
 
       {/* Informações Principais em Grid */}
@@ -68,9 +60,7 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
         {/* Placas */}
         <div className="bg-gray-50 rounded p-1">
           <p className="text-xs text-gray-600">Placas</p>
-          <p className="font-bold text-xs" style={{ color: '#001F3F' }}>
-            {client.placas}
-          </p>
+          <p className="font-bold text-xs" style={{ color: '#001F3F' }}>{client.placas}</p>
         </div>
 
         {/* Último Boleto */}
@@ -92,9 +82,7 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
         {/* Situação */}
         <div className="bg-gray-50 rounded p-1">
           <p className="text-xs text-gray-600">Situação</p>
-          <p className="font-bold text-xs" style={{ color: '#001F3F' }}>
-            {client.situacao || '-'}
-          </p>
+          <p className="font-bold text-xs" style={{ color: '#001F3F' }}>{client.situacao || '-'}</p>
         </div>
       </div>
 
@@ -102,21 +90,15 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
       <div className="grid grid-cols-3 gap-1 mb-2 text-xs">
         <div>
           <p className="text-gray-600">CSM</p>
-          <p className="font-semibold" style={{ color: '#001F3F' }}>
-            {client.csm || '-'}
-          </p>
+          <p className="font-semibold" style={{ color: '#001F3F' }}>{client.csm || '-'}</p>
         </div>
         <div>
           <p className="text-gray-600">Decisor</p>
-          <p className="font-semibold" style={{ color: '#001F3F' }}>
-            {client.decisor || '-'}
-          </p>
+          <p className="font-semibold" style={{ color: '#001F3F' }}>{client.decisor || '-'}</p>
         </div>
         <div>
           <p className="text-gray-600">Comercial</p>
-          <p className="font-semibold" style={{ color: '#001F3F' }}>
-            {client.comercial || '-'}
-          </p>
+          <p className="font-semibold" style={{ color: '#001F3F' }}>{client.comercial || '-'}</p>
         </div>
       </div>
 
@@ -148,12 +130,10 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
         )}
       </div>
 
-      {/* Footer com WhatsApp + Atendimento */}
+      {/* Footer: WhatsApp + Atendimento */}
       <div className="flex items-center gap-2 pt-1">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
+          onClick={(e) => e.stopPropagation()}
           className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 transition-colors text-sm font-medium"
           title="Enviar WhatsApp"
         >
