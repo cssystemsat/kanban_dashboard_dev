@@ -279,45 +279,62 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Estatísticas */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{totalClientes}</p>
+            {/* Estatísticas — linha única compacta */}
+            <div className="flex flex-wrap items-center gap-2 mb-4 bg-white rounded-lg border px-3 py-2" style={{ borderColor: '#E0E8F0' }}>
+              {/* Total */}
+              <div className="flex items-center gap-1.5 px-2 py-1">
+                <span className="text-xs text-gray-500">Total</span>
+                <span className="text-sm font-bold" style={{ color: '#001F3F' }}>{totalClientes}</span>
               </div>
-              <div
-                className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
-                style={{ borderColor: statusFilter === 'ok' ? '#00DD00' : '#E0E8F0', borderWidth: statusFilter === 'ok' ? '2px' : '1px', backgroundColor: statusFilter === 'ok' ? '#F0FFF4' : '#FFFFFF' }}
+
+              <div className="w-px h-5 bg-gray-200" />
+
+              {/* No Prazo */}
+              <button
                 onClick={() => setStatusFilter(statusFilter === 'ok' ? 'all' : 'ok')}
+                className="flex items-center gap-1.5 px-2 py-1 rounded transition-colors"
+                style={{ backgroundColor: statusFilter === 'ok' ? '#D1FAE5' : 'transparent' }}
               >
-                <p className="text-sm text-gray-600">No Prazo</p>
-                <p className="text-3xl font-bold" style={{ color: '#00DD00' }}>{clientesNoPrazo}</p>
-              </div>
-              <div
-                className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
-                style={{ borderColor: statusFilter === 'atrasado' ? '#EF4444' : '#E0E8F0', borderWidth: statusFilter === 'atrasado' ? '2px' : '1px', backgroundColor: statusFilter === 'atrasado' ? '#FEF2F2' : '#FFFFFF' }}
+                <span className="text-xs text-gray-500">No prazo</span>
+                <span className="text-sm font-bold" style={{ color: '#059669' }}>{clientesNoPrazo}</span>
+              </button>
+
+              {/* Atrasados */}
+              <button
                 onClick={() => setStatusFilter(statusFilter === 'atrasado' ? 'all' : 'atrasado')}
+                className="flex items-center gap-1.5 px-2 py-1 rounded transition-colors"
+                style={{ backgroundColor: statusFilter === 'atrasado' ? '#FEE2E2' : 'transparent' }}
               >
-                <p className="text-sm text-gray-600">Atrasados</p>
-                <p className="text-3xl font-bold text-red-600">{clientesAtrasados}</p>
-              </div>
-              {/* Contadores de flag */}
+                <span className="text-xs text-gray-500">Atrasados</span>
+                <span className="text-sm font-bold text-red-600">{clientesAtrasados}</span>
+              </button>
+
+              <div className="w-px h-5 bg-gray-200" />
+
+              {/* Flags */}
               {FLAG_LEVELS.map((level) => {
                 const s = FLAG_STYLES[level];
                 const isActive = flagFilter === level;
                 return (
-                  <div
+                  <button
                     key={level}
-                    className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
-                    style={{
-                      borderColor: isActive ? s.border : '#E0E8F0',
-                      borderWidth: isActive ? '2px' : '1px',
-                    }}
                     onClick={() => setFlagFilter(isActive ? null : level)}
+                    className="flex items-center gap-1 px-2 py-1 rounded transition-colors"
+                    style={{
+                      backgroundColor: isActive ? (level === 'Black Flag' ? '#374151' : s.activeBg) : (level === 'Black Flag' ? '#F9FAFB' : 'transparent'),
+                      border: `1px solid ${isActive ? s.border : '#E5E7EB'}`,
+                    }}
                   >
-                    <p className="text-sm text-gray-600">{level}</p>
-                    <p className="text-3xl font-bold" style={{ color: s.color }}>{flagCounts[level]}</p>
-                  </div>
+                    <Flag className="w-3 h-3 fill-current" style={{ color: isActive ? (level === 'Black Flag' ? '#FFFFFF' : '#FFFFFF') : s.color }} />
+                    <span className="text-xs" style={{ color: isActive ? (level === 'Black Flag' ? '#FFFFFF' : '#FFFFFF') : s.color }}>
+                      {level.replace(' Flag', '')}
+                    </span>
+                    {flagCounts[level] > 0 && (
+                      <span className="text-xs font-bold" style={{ color: isActive ? (level === 'Black Flag' ? '#FFFFFF' : '#FFFFFF') : s.color }}>
+                        {flagCounts[level]}
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </div>

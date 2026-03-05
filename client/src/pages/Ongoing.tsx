@@ -213,30 +213,50 @@ export default function Ongoing() {
           </div>
         ) : (
           <>
-            {/* Estatísticas */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{data.length}</p>
+            {/* Estatísticas — linha única compacta */}
+            <div className="flex flex-wrap items-center gap-2 mb-4 bg-white rounded-lg border px-3 py-2" style={{ borderColor: '#E0E8F0' }}>
+              {/* Total */}
+              <div className="flex items-center gap-1.5 px-2 py-1">
+                <span className="text-xs text-gray-500">Total</span>
+                <span className="text-sm font-bold" style={{ color: '#001F3F' }}>{data.length}</span>
               </div>
-              <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-                <p className="text-sm text-gray-600">Filtrados</p>
-                <p className="text-3xl font-bold" style={{ color: '#001F3F' }}>{sortedData.length}</p>
-              </div>
-              {/* Contadores de flag */}
+
+              {sortedData.length !== data.length && (
+                <>
+                  <div className="w-px h-5 bg-gray-200" />
+                  <div className="flex items-center gap-1.5 px-2 py-1">
+                    <span className="text-xs text-gray-500">Filtrados</span>
+                    <span className="text-sm font-bold" style={{ color: '#001F3F' }}>{sortedData.length}</span>
+                  </div>
+                </>
+              )}
+
+              <div className="w-px h-5 bg-gray-200" />
+
+              {/* Flags */}
               {FLAG_LEVELS.map((level) => {
                 const s = FLAG_STYLES[level];
                 const isActive = flagFilter === level;
                 return (
-                  <div
+                  <button
                     key={level}
-                    className="bg-white rounded-lg p-4 border cursor-pointer hover:shadow-md transition-shadow"
-                    style={{ borderColor: isActive ? s.border : '#E0E8F0', borderWidth: isActive ? '2px' : '1px' }}
                     onClick={() => setFlagFilter(isActive ? null : level)}
+                    className="flex items-center gap-1 px-2 py-1 rounded transition-colors"
+                    style={{
+                      backgroundColor: isActive ? (level === 'Black Flag' ? '#374151' : s.activeBg) : (level === 'Black Flag' ? '#F9FAFB' : 'transparent'),
+                      border: `1px solid ${isActive ? s.border : '#E5E7EB'}`,
+                    }}
                   >
-                    <p className="text-sm text-gray-600">{level}</p>
-                    <p className="text-3xl font-bold" style={{ color: s.color }}>{flagCounts[level]}</p>
-                  </div>
+                    <Flag size={12} style={{ color: isActive ? '#FFFFFF' : s.color }} />
+                    <span className="text-xs" style={{ color: isActive ? '#FFFFFF' : s.color }}>
+                      {level.replace(' Flag', '')}
+                    </span>
+                    {flagCounts[level] > 0 && (
+                      <span className="text-xs font-bold" style={{ color: isActive ? '#FFFFFF' : s.color }}>
+                        {flagCounts[level]}
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </div>
