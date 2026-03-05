@@ -34,3 +34,6 @@
 - [x] Adicionar campo "Razão" no modal de atendimento (coluna G na planilha)
 - [x] Tornar campo Resumo opcional no modal (fallback "sem resumo" na planilha)
 - [x] Adicionar botão Atendimento na aba Ongoing
+- [x] Adicionar "Operacional (migração)" nas opções de Situação
+- [x] Renomear "Tipo de atendimento" para "Origem do atendimento"
+- [x] Renomear "Razão" para "Tópico"
