@@ -11,10 +11,10 @@ import { useEffect, useState } from "react";
 const FLAG_LEVELS = ['Red Flag', 'Yellow Flag', 'Black Flag'] as const;
 type FlagLevel = typeof FLAG_LEVELS[number];
 
-const FLAG_STYLES: Record<FlagLevel, { color: string; border: string; bg: string; activeBg: string }> = {
-  'Red Flag':    { color: '#DC2626', border: '#DC2626', bg: 'transparent',  activeBg: '#DC2626' },
-  'Yellow Flag': { color: '#D97706', border: '#D97706', bg: 'transparent',  activeBg: '#D97706' },
-  'Black Flag':  { color: '#1F2937', border: '#374151', bg: 'transparent',  activeBg: '#374151' },
+const FLAG_STYLES: Record<FlagLevel, { color: string; border: string; bg: string; activeBg: string; activeText: string }> = {
+  'Red Flag':    { color: '#DC2626', border: '#DC2626', bg: 'transparent',  activeBg: '#DC2626', activeText: '#FFFFFF' },
+  'Yellow Flag': { color: '#D97706', border: '#D97706', bg: 'transparent',  activeBg: '#D97706', activeText: '#FFFFFF' },
+  'Black Flag':  { color: '#1F2937', border: '#374151', bg: '#FFFFFF',      activeBg: '#374151', activeText: '#FFFFFF' },
 };
 
 export default function Home() {
@@ -172,8 +172,8 @@ export default function Home() {
                     onClick={() => setFlagFilter(isActive ? null : level)}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap"
                     style={{
-                      backgroundColor: isActive ? s.activeBg : 'transparent',
-                      color: isActive ? '#FFFFFF' : s.color,
+                      backgroundColor: isActive ? s.activeBg : s.bg,
+                      color: isActive ? s.activeText : s.color,
                       border: `1.5px solid ${s.border}`,
                     }}
                   >

@@ -48,3 +48,5 @@
 - [x] Otimizar layout dos cards para não cortar o nome dos clientes
 - [x] Exibir ícone de bandeira + nome da flag em linha abaixo do nome do cliente nos cards
 - [x] Remover alerta "Sem atualiz. há Xd" dos cards Marcos e Ongoing
+- [x] Mover ganho/perda de URs para o canto superior direito do card Marcos (ao lado do nome)
+- [x] Corrigir contraste do botão Black Flag nos filtros (fundo branco com texto/borda preta)

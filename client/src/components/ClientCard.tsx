@@ -78,6 +78,24 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           <h3 className="font-bold text-xs leading-snug flex-1" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
             {client.nome}
           </h3>
+
+          {/* Ganho e Perda de URs — canto superior direito */}
+          {(client.ganhoUrs || client.perdaUrs) && (
+            <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+              {client.ganhoUrs && (
+                <span className="flex items-center gap-0.5 text-[10px] font-semibold leading-none" style={{ color: '#10B981' }}>
+                  <TrendingUp className="w-3 h-3" />
+                  +{client.ganhoUrs}
+                </span>
+              )}
+              {client.perdaUrs && (
+                <span className="flex items-center gap-0.5 text-[10px] font-semibold leading-none" style={{ color: '#EF4444' }}>
+                  <TrendingDown className="w-3 h-3" />
+                  -{client.perdaUrs}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Linha 2: bandeira + nome da flag + No prazo/Atrasado */}
@@ -198,22 +216,6 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
         )}
 
 
-
-        {/* Ganho e Perda de URs */}
-        <div className="flex gap-2 text-xs">
-          {client.ganhoUrs && (
-            <div className="flex items-center gap-1 flex-1">
-              <TrendingUp className="w-3 h-3 flex-shrink-0" style={{ color: '#10B981' }} />
-              <span style={{ color: '#10B981' }}>+{client.ganhoUrs}</span>
-            </div>
-          )}
-          {client.perdaUrs && (
-            <div className="flex items-center gap-1 flex-1">
-              <TrendingDown className="w-3 h-3 flex-shrink-0" style={{ color: '#EF4444' }} />
-              <span style={{ color: '#EF4444' }}>-{client.perdaUrs}</span>
-            </div>
-          )}
-        </div>
 
         {/* Botão Atendimento */}
         <button
