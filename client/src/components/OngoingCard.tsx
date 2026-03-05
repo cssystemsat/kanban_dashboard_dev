@@ -32,27 +32,30 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
       className="bg-white rounded-lg border-2 p-2 hover:shadow-lg transition-all cursor-pointer"
       style={{ borderColor: '#E0E8F0' }}
     >
-      {/* Header: Nome (quebra linha) + ícones de status */}
+      {/* Header: Nome (quebra linha) + bandeira + nome da flag */}
       <div className="mb-2">
-        {/* Linha de ícones de status: estrela + bandeira */}
-        {hasFlag && (
-          <div className="flex items-center gap-1 mb-1">
-            {client.estrela && (
-              <span title="Destaque">
-                <Star className="w-3.5 h-3.5 fill-current" style={{ color: '#F59E0B' }} />
-              </span>
-            )}
-            <span title={client.flag}>
-              <Flag className="w-3.5 h-3.5 fill-current" style={{ color: flagColor! }} />
-            </span>
-          </div>
-        )}
-
         {/* Nome — sem truncate, quebra linha */}
         <h3 className="font-bold text-xs leading-snug" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
           {client.nome}
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">{client.codigoCliente}</p>
+
+        {/* Bandeira + nome da flag + estrela */}
+        {hasFlag && (
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            {client.estrela && (
+              <span title="Destaque">
+                <Star className="w-3 h-3 fill-current" style={{ color: '#F59E0B' }} />
+              </span>
+            )}
+            <span className="flex items-center gap-0.5">
+              <Flag className="w-3 h-3 fill-current flex-shrink-0" style={{ color: flagColor! }} />
+              <span className="text-[10px] font-semibold leading-none" style={{ color: flagColor! }}>
+                {client.flag}
+              </span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Informações Principais em Grid */}

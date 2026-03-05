@@ -46,3 +46,4 @@
 - [x] Atualizar filtros de flag em Marcos e Ongoing para os 3 novos níveis
 - [x] Substituir badges de texto de flag por ícones de bandeira coloridos nos cards
 - [x] Otimizar layout dos cards para não cortar o nome dos clientes
+- [x] Exibir ícone de bandeira + nome da flag em linha abaixo do nome do cliente nos cards

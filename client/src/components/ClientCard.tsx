@@ -80,19 +80,22 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           </h3>
         </div>
 
-        {/* Linha 2: ícones de status no canto direito — estrela + bandeira + No prazo/Atrasado */}
+        {/* Linha 2: bandeira + nome da flag + No prazo/Atrasado */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {/* Estrela — só se houver flag */}
           {hasFlag && client.estrela && (
             <span title="Destaque">
-              <Star className="w-3.5 h-3.5 fill-current" style={{ color: '#F59E0B' }} />
+              <Star className="w-3 h-3 fill-current" style={{ color: '#F59E0B' }} />
             </span>
           )}
 
-          {/* Ícone de bandeira colorido */}
+          {/* Bandeira + nome da flag */}
           {hasFlag && (
-            <span title={client.flag}>
-              <Flag className="w-3.5 h-3.5 fill-current" style={{ color: flagColor! }} />
+            <span className="flex items-center gap-0.5">
+              <Flag className="w-3 h-3 fill-current flex-shrink-0" style={{ color: flagColor! }} />
+              <span className="text-[10px] font-semibold leading-none" style={{ color: flagColor! }}>
+                {client.flag}
+              </span>
             </span>
           )}
 
