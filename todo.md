@@ -55,3 +55,9 @@
 - [x] Remover filtro de objetivos do Home.tsx
 - [x] Mover botão Atualizar para o canto superior direito do header
 - [x] Subir painel de métricas para reduzir espaço entre header e cards
+- [x] Criar tabela allowed_emails no banco com CRUD via tRPC
+- [x] Criar página Configurações com gerenciamento de e-mails permitidos (só admins)
+- [x] Verificar permissão no botão de lançamento de atendimento (mostrar "Acesso negado" se não autorizado)
+- [x] Adicionar aba Configurações no sidebar (visível só para agendamento.cs@ e joao.pedro@)
+- [x] Adicionar botão de login/logout no sidebar
+- [x] Seed inicial com e-mails admins na tabela allowed_emails

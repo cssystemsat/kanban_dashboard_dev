@@ -25,4 +25,15 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+// Tabela de e-mails autorizados a lançar atendimentos
+export const allowedEmails = mysqlTable("allowed_emails", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  label: text("label"), // nome/descrição opcional
+  isAdmin: int("isAdmin").default(0).notNull(), // 1 = pode acessar Configurações
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AllowedEmail = typeof allowedEmails.$inferSelect;
+export type InsertAllowedEmail = typeof allowedEmails.$inferInsert;

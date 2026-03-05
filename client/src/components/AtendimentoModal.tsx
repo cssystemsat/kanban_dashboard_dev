@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, Headphones, CheckCircle, Loader2 } from 'lucide-react';
+import { X, Headphones, CheckCircle, Loader2, ShieldX, LogIn } from 'lucide-react';
 import { ClientData } from '@/hooks/useKanbanData';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { getLoginUrl } from '@/const';
 
 interface AtendimentoModalProps {
   client: ClientData;
@@ -57,6 +58,8 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
   const [form, setForm] = useState(INITIAL_FORM);
   const [enviado, setEnviado] = useState(false);
 
+  const { data: permission, isLoading: permLoading } = trpc.atendimento.checkPermission.useQuery();
+
   const gravar = trpc.atendimento.gravar.useMutation({
     onSuccess: (data) => {
       toast.success(`Atendimento registrado na linha ${data.row} da planilha!`);
@@ -91,6 +94,52 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
     setForm(INITIAL_FORM);
     setEnviado(false);
   };
+
+  // Tela de carregando permissão
+  if (permLoading) {
+    return (
+      <>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+          <div className="relative w-full max-w-md rounded-xl p-8 shadow-2xl flex flex-col items-center gap-3" style={{ backgroundColor: 'white', border: '2px solid #E5E7EB' }}>
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <p className="text-sm text-gray-500">Verificando permissão...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Tela de acesso negado
+  if (!permission?.allowed) {
+    return (
+      <>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+          <div className="relative w-full max-w-md rounded-xl p-8 shadow-2xl flex flex-col items-center gap-4" style={{ backgroundColor: 'white', border: '2px solid #EF4444' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={onClose} className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#6B7280' }}>
+              <X className="w-4 h-4" />
+            </button>
+            <ShieldX className="w-12 h-12 text-red-400" />
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-gray-800 mb-1">Acesso negado</h2>
+              <p className="text-sm text-gray-500">
+                {!permission ? 'Você precisa estar autenticado para lançar atendimentos.' : 'Seu e-mail não está na lista de usuários autorizados.'}
+              </p>
+            </div>
+            {!permission && (
+              <button
+                onClick={() => window.location.href = getLoginUrl()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                style={{ backgroundColor: '#1D4ED8' }}
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar com Google
+              </button>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

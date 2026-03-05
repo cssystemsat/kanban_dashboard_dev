@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, InsertAllowedEmail, allowedEmails, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,42 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ---- Allowed Emails helpers ----
+
+export async function getAllowedEmails() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(allowedEmails).orderBy(allowedEmails.email);
+}
+
+export async function isEmailAllowed(email: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(allowedEmails).where(eq(allowedEmails.email, email.toLowerCase())).limit(1);
+  return result.length > 0;
+}
+
+export async function isEmailAdmin(email: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(allowedEmails).where(eq(allowedEmails.email, email.toLowerCase())).limit(1);
+  return result.length > 0 && result[0].isAdmin === 1;
+}
+
+export async function addAllowedEmail(data: InsertAllowedEmail) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  await db.insert(allowedEmails).values({ ...data, email: data.email.toLowerCase() });
+}
+
+export async function updateAllowedEmail(id: number, data: Partial<InsertAllowedEmail>) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  await db.update(allowedEmails).set(data).where(eq(allowedEmails.id, id));
+}
+
+export async function deleteAllowedEmail(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  await db.delete(allowedEmails).where(eq(allowedEmails.id, id));
+}

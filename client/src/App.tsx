@@ -6,8 +6,9 @@ import SideMenu from "./components/SideMenu";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Ongoing from "./pages/Ongoing";
-import Churns from "./pages/Churns";
-import ErrorBoundary from "./components/ErrorBoundary";
+import Churns from './pages/Churns';
+import Configuracoes from './pages/Configuracoes';
+import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 /**
@@ -29,6 +30,8 @@ function App() {
         return <Ongoing />;
       case 'churns':
         return <Churns />;
+      case 'configuracoes':
+        return <Configuracoes />;
       case 'migracao':
         return (
           <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>

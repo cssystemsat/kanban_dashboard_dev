@@ -1,0 +1,9 @@
+{
+  "query": "\nINSERT INTO allowed_emails (email, label, isAdmin, createdAt, updatedAt)\nVALUES \n  ('agendamento.cs@systemsat.com.br', 'Agendamento CS', 1, NOW(), NOW()),\n  ('joao.pedro@systemsat.com.br', 'João Pedro', 1, NOW(), NOW())\nON DUPLICATE KEY UPDATE updatedAt = NOW();\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute \nINSERT INTO allowed_emails (email, label, isAdmin, createdAt, updatedAt)\nVALUES \n  ('agendamento.cs@systemsat.com.br', 'Agendamento CS', 1, NOW(), NOW()),\n  ('joao.pedro@systemsat.com.br', 'João Pedro', 1, NOW(), NOW())\nON DUPLICATE KEY UPDATE updatedAt = NOW();\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 148
+}
