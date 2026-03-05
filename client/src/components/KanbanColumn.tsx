@@ -6,9 +6,10 @@ interface KanbanColumnProps {
   marcoName?: string;
   clients: ClientData[];
   onClientClick?: (client: ClientData) => void;
+  onAtendimento?: (client: ClientData) => void;
 }
 
-export default function KanbanColumn({ marcoNumber, marcoName, clients, onClientClick }: KanbanColumnProps) {
+export default function KanbanColumn({ marcoNumber, marcoName, clients, onClientClick, onAtendimento }: KanbanColumnProps) {
   // Para a coluna 100% Implantados (marcoNumber === 6), mostrar todos os clientes com isComplete
   const columnClients = marcoNumber === 6 
     ? clients.filter(c => c.isComplete)
@@ -36,7 +37,7 @@ export default function KanbanColumn({ marcoNumber, marcoName, clients, onClient
           ) : (
             columnClients.map(client => (
               <div key={client.id} onClick={() => onClientClick?.(client)} className="cursor-pointer">
-                <ClientCard client={client} />
+                <ClientCard client={client} onAtendimento={onAtendimento} />
               </div>
             ))
           )}

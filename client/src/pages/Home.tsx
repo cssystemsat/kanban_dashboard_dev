@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import KanbanColumn from "@/components/KanbanColumn";
 import DateFilterCompact from "@/components/DateFilterCompact";
 import ClientDetailsModal from "@/components/ClientDetailsModal";
+import AtendimentoModal from "@/components/AtendimentoModal";
 import AISearchBox from "@/components/AISearchBox";
 import { useKanbanData, ClientData } from "@/hooks/useKanbanData";
 import { Flag, RotateCw } from "lucide-react";
@@ -24,6 +25,7 @@ export default function Home() {
   const [dateFilterEnd, setDateFilterEnd] = useState<Date | null>(null);
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] = useState<number | null>(null);
   const [selectedObjetivo, setSelectedObjetivo] = useState<string | null>(null);
@@ -318,6 +320,7 @@ export default function Home() {
                     setSelectedClient(client);
                     setIsModalOpen(true);
                   }}
+                  onAtendimento={(client) => setAtendimentoClient(client)}
                 />
               ))}
             </div>
@@ -334,6 +337,14 @@ export default function Home() {
             setIsModalOpen(false);
             setSelectedClient(null);
           }}
+        />
+      )}
+
+      {/* Modal de Atendimento */}
+      {atendimentoClient && (
+        <AtendimentoModal
+          client={atendimentoClient}
+          onClose={() => setAtendimentoClient(null)}
         />
       )}
 

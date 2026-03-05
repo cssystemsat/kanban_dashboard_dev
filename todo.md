@@ -26,3 +26,8 @@
 - [x] Remover "Sem registro operacional" do card (manter apenas no modal)
 - [x] Atualizar hook useAgendaData para retornar todos os registros do cliente
 - [x] Adicionar botão "Histórico" no modal com menu suspenso de registros por data (decrescente)
+- [x] Configurar credenciais Google Sheets API como secret no projeto
+- [x] Criar endpoint tRPC para gravar atendimento na aba Agendas (gid=1655169262)
+- [x] Transformar indicadores No Prazo/Atrasado em círculos verde/vermelho no card
+- [x] Adicionar botão Atendimento azul no card
+- [x] Criar modal AtendimentoModal com formulário de lançamento

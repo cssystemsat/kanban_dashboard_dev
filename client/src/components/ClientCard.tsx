@@ -1,24 +1,22 @@
 import { ClientData } from '@/hooks/useKanbanData';
-import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X } from 'lucide-react';
+import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X, Headphones } from 'lucide-react';
 import { useState } from 'react';
 import { useAgendaData, isAgendaOutdated, getDaysSinceUpdate } from '@/hooks/useAgendaData';
 
 interface ClientCardProps {
   client: ClientData;
+  onAtendimento?: (client: ClientData) => void;
 }
 
-export default function ClientCard({ client }: ClientCardProps) {
+export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const isOverdue = client.marcoStatus === 'atrasado';
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(client.nome);
   const semAtualizacao = isAgendaOutdated(agendaEntry, agendaLoading);
   const diasSemAtualizar = getDaysSinceUpdate(agendaEntry);
 
-  const badgeColor = isOverdue
-    ? 'bg-red-50 border-red-200 text-red-700'
-    : 'bg-green-50 border-green-200 text-green-700';
-
-  const badgeText = isOverdue ? 'Atrasado' : 'No prazo';
+  const circleColor = isOverdue ? '#EF4444' : '#22C55E';
+  const circleTitle = isOverdue ? 'Atrasado' : 'No prazo';
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -86,15 +84,12 @@ export default function ClientCard({ client }: ClientCardProps) {
             </h3>
           </div>
           
-          {/* Badge de status */}
+          {/* Círculo de status */}
           <div
-            className={`
-              px-2 py-0.5 rounded text-xs font-600 border whitespace-nowrap flex-shrink-0
-              ${badgeColor}
-            `}
-          >
-            {badgeText}
-          </div>
+            className="flex-shrink-0 w-3 h-3 rounded-full"
+            style={{ backgroundColor: circleColor }}
+            title={circleTitle}
+          />
         </div>
 
         {/* Entrada com dias corridos */}
@@ -210,6 +205,19 @@ export default function ClientCard({ client }: ClientCardProps) {
           )}
         </div>
 
+        {/* Botão Atendimento */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onAtendimento?.(client);
+          }}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-semibold transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
+          style={{ backgroundColor: '#1D4ED8', color: '#FFFFFF' }}
+          title="Registrar atendimento"
+        >
+          <Headphones className="w-3 h-3" />
+          Atendimento
+        </button>
 
       </div>
 
