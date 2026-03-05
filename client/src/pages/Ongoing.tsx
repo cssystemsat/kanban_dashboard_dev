@@ -213,49 +213,46 @@ export default function Ongoing() {
           </div>
         ) : (
           <>
-            {/* Estatísticas — linha única compacta */}
-            <div className="flex flex-wrap items-center gap-2 mb-4 bg-white rounded-lg border px-3 py-2" style={{ borderColor: '#E0E8F0' }}>
+            {/* Estatísticas — barra horizontal ponta a ponta */}
+            <div className="flex items-stretch mb-4 bg-white rounded-lg border overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
               {/* Total */}
-              <div className="flex items-center gap-1.5 px-2 py-1">
-                <span className="text-xs text-gray-500">Total</span>
-                <span className="text-sm font-bold" style={{ color: '#001F3F' }}>{data.length}</span>
+              <div className="flex flex-col items-center justify-center flex-1 py-3 px-2 border-r" style={{ borderColor: '#E0E8F0' }}>
+                <span className="text-[11px] text-gray-500 leading-none mb-1">Total</span>
+                <span className="text-xl font-bold leading-none" style={{ color: '#001F3F' }}>{data.length}</span>
               </div>
 
+              {/* Filtrados — só quando há filtro ativo */}
               {sortedData.length !== data.length && (
-                <>
-                  <div className="w-px h-5 bg-gray-200" />
-                  <div className="flex items-center gap-1.5 px-2 py-1">
-                    <span className="text-xs text-gray-500">Filtrados</span>
-                    <span className="text-sm font-bold" style={{ color: '#001F3F' }}>{sortedData.length}</span>
-                  </div>
-                </>
+                <div className="flex flex-col items-center justify-center flex-1 py-3 px-2 border-r" style={{ borderColor: '#E0E8F0' }}>
+                  <span className="text-[11px] text-gray-500 leading-none mb-1">Filtrados</span>
+                  <span className="text-xl font-bold leading-none" style={{ color: '#001F3F' }}>{sortedData.length}</span>
+                </div>
               )}
 
-              <div className="w-px h-5 bg-gray-200" />
-
               {/* Flags */}
-              {FLAG_LEVELS.map((level) => {
+              {FLAG_LEVELS.map((level, i) => {
                 const s = FLAG_STYLES[level];
                 const isActive = flagFilter === level;
+                const isLast = i === FLAG_LEVELS.length - 1;
                 return (
                   <button
                     key={level}
                     onClick={() => setFlagFilter(isActive ? null : level)}
-                    className="flex items-center gap-1 px-2 py-1 rounded transition-colors"
+                    className="flex flex-col items-center justify-center flex-1 py-3 px-2 transition-colors"
                     style={{
-                      backgroundColor: isActive ? (level === 'Black Flag' ? '#374151' : s.activeBg) : (level === 'Black Flag' ? '#F9FAFB' : 'transparent'),
-                      border: `1px solid ${isActive ? s.border : '#E5E7EB'}`,
+                      borderRight: isLast ? 'none' : `1px solid #E0E8F0`,
+                      backgroundColor: isActive
+                        ? (level === 'Black Flag' ? '#374151' : s.activeBg)
+                        : (level === 'Black Flag' ? '#F9FAFB' : 'transparent'),
                     }}
                   >
-                    <Flag size={12} style={{ color: isActive ? '#FFFFFF' : s.color }} />
-                    <span className="text-xs" style={{ color: isActive ? '#FFFFFF' : s.color }}>
+                    <span className="flex items-center gap-1 text-[11px] leading-none mb-1" style={{ color: isActive ? '#FFFFFF' : s.color }}>
+                      <Flag size={12} className="fill-current" />
                       {level.replace(' Flag', '')}
                     </span>
-                    {flagCounts[level] > 0 && (
-                      <span className="text-xs font-bold" style={{ color: isActive ? '#FFFFFF' : s.color }}>
-                        {flagCounts[level]}
-                      </span>
-                    )}
+                    <span className="text-xl font-bold leading-none" style={{ color: isActive ? '#FFFFFF' : s.color }}>
+                      {flagCounts[level]}
+                    </span>
                   </button>
                 );
               })}
