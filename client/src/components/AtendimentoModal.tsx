@@ -22,6 +22,20 @@ const SITUACOES = [
   'Problemas',
 ];
 
+const RAZOES = [
+  'Web',
+  'SSX Mobile',
+  'SSX Onboard',
+  'Quick Service',
+  'Rastreadores',
+  'Tag',
+  'Periféricos',
+  'Câmera',
+  'API',
+  'Financeiro',
+  'Comercial',
+];
+
 const DURACOES = [
   '5 minutos',
   '10 minutos',
@@ -33,6 +47,7 @@ const DURACOES = [
 const INITIAL_FORM = {
   tipo: '',
   situacao: '',
+  razao: '',
   resumo: '',
   duracao: '',
 };
@@ -57,7 +72,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
   });
 
   const handleEnviar = () => {
-    if (!form.tipo || !form.situacao || !form.resumo.trim() || !form.duracao) {
+    if (!form.tipo || !form.situacao || !form.razao || !form.resumo.trim() || !form.duracao) {
       toast.warning('Preencha todos os campos antes de enviar.');
       return;
     }
@@ -65,6 +80,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
       cliente: client.nome,
       tipo: form.tipo,
       situacao: form.situacao,
+      razao: form.razao,
       resumo: form.resumo.trim(),
       duracao: form.duracao,
     });
@@ -166,6 +182,30 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
                 <option value="" disabled>Selecione...</option>
                 {SITUACOES.map((s) => (
                   <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Razão */}
+            <div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#374151' }}>
+                Razão <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <select
+                value={form.razao}
+                onChange={(e) => setForm({ ...form, razao: e.target.value })}
+                className="w-full text-sm rounded-lg px-3 py-2 outline-none transition-all"
+                style={{
+                  border: '1.5px solid #D1D5DB',
+                  color: form.razao ? '#111827' : '#9CA3AF',
+                  backgroundColor: '#FAFAFA',
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#1D4ED8')}
+                onBlur={(e) => (e.target.style.borderColor = '#D1D5DB')}
+              >
+                <option value="" disabled>Selecione...</option>
+                {RAZOES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
                 ))}
               </select>
             </div>

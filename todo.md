@@ -31,3 +31,4 @@
 - [x] Transformar indicadores No Prazo/Atrasado em círculos verde/vermelho no card
 - [x] Adicionar botão Atendimento azul no card
 - [x] Criar modal AtendimentoModal com formulário de lançamento
+- [x] Adicionar campo "Razão" no modal de atendimento (coluna G na planilha)

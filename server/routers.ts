@@ -35,6 +35,7 @@ export const appRouter = router({
           cliente: z.string(),
           tipo: z.string(),
           situacao: z.string(),
+          razao: z.string(),
           resumo: z.string(),
           duracao: z.string(),
         })
@@ -51,6 +52,7 @@ export const appRouter = router({
           cliente: input.cliente,
           tipo: input.tipo,
           situacao: input.situacao,
+          razao: input.razao,
           resumo: input.resumo,
           duracao: input.duracao,
         });

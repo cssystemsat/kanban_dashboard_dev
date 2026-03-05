@@ -48,13 +48,14 @@ export async function getNextEmptyRow(sheetName: string): Promise<number> {
 
 /**
  * Grava um atendimento na aba Agendas (gid=1655169262).
- * Colunas: A=data, B=cliente, C=tipo, D=situação, E=resumo, F=duração
+ * Colunas: A=data, B=cliente, C=tipo, D=situação, E=resumo, F=duração, G=razão
  */
 export async function appendAtendimento(data: {
   data: string;
   cliente: string;
   tipo: string;
   situacao: string;
+  razao: string;
   resumo: string;
   duracao: string;
 }): Promise<{ row: number; sheetName: string }> {
@@ -66,7 +67,7 @@ export async function appendAtendimento(data: {
   }
 
   const nextRow = await getNextEmptyRow(sheetName);
-  const range = `${sheetName}!A${nextRow}:F${nextRow}`;
+  const range = `${sheetName}!A${nextRow}:G${nextRow}`;
 
   const sheets = getSheetsClient();
   await sheets.spreadsheets.values.update({
@@ -82,6 +83,7 @@ export async function appendAtendimento(data: {
           data.situacao,
           data.resumo,
           data.duracao,
+          data.razao,
         ],
       ],
     },

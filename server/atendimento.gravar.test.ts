@@ -33,6 +33,7 @@ describe("atendimento.gravar", () => {
       cliente: "Cliente Teste",
       tipo: "Whatsapp privado",
       situacao: "Dúvidas",
+      razao: "Web",
       resumo: "Cliente perguntou sobre o módulo de relatórios",
       duracao: "10 minutos",
     });
@@ -51,6 +52,7 @@ describe("atendimento.gravar", () => {
         cliente: "Cliente Teste",
         tipo: "Ligação",
         situacao: "Reclamações",
+        razao: "Financeiro",
         resumo: "", // vazio é permitido pelo schema (validação no frontend)
         duracao: "30 minutos",
       })
