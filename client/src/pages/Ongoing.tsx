@@ -4,6 +4,8 @@ import { useOngoingData, OngoingClientData } from '@/hooks/useOngoingData';
 import DateFilterCompact from '@/components/DateFilterCompact';
 import OngoingCard from '@/components/OngoingCard';
 import OngoingClientModal from '@/components/OngoingClientModal';
+import AtendimentoModal from '@/components/AtendimentoModal';
+import type { ClientData } from '@/hooks/useKanbanData';
 
 /**
  * Página Ongoing
@@ -16,6 +18,7 @@ export default function Ongoing() {
   const { data, loading } = useOngoingData();
   const [selectedClient, setSelectedClient] = useState<OngoingClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
   const [showOnlyRedFlag, setShowOnlyRedFlag] = useState(false);
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(null);
   const [searchCliente, setSearchCliente] = useState<string>('');
@@ -244,7 +247,12 @@ export default function Ongoing() {
                     }}
                     className="cursor-pointer"
                   >
-                    <OngoingCard client={client} />
+                    <OngoingCard
+                      client={client}
+                      onAtendimento={(c) => {
+                        setAtendimentoClient({ nome: c.nome } as ClientData);
+                      }}
+                    />
                   </div>
                 ))}
               </div>
@@ -259,6 +267,13 @@ export default function Ongoing() {
           client={selectedClient}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+        />
+      )}
+      {/* Modal de Atendimento */}
+      {atendimentoClient && (
+        <AtendimentoModal
+          client={atendimentoClient}
+          onClose={() => setAtendimentoClient(null)}
         />
       )}
     </div>

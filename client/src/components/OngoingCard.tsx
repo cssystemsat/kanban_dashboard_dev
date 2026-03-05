@@ -1,11 +1,12 @@
 import { OngoingClientData } from '@/hooks/useOngoingData';
-import { MessageCircle, AlertTriangle } from 'lucide-react';
+import { MessageCircle, AlertTriangle, Headphones } from 'lucide-react';
 
 interface OngoingCardProps {
   client: OngoingClientData;
+  onAtendimento?: (client: OngoingClientData) => void;
 }
 
-export default function OngoingCard({ client }: OngoingCardProps) {
+export default function OngoingCard({ client, onAtendimento }: OngoingCardProps) {
   const getDeltaColor = (delta: number) => {
     if (delta > 0) return { bg: '#D1FAE5', text: '#059669' };
     if (delta < 0) return { bg: '#FEE2E2', text: '#DC2626' };
@@ -122,18 +123,30 @@ export default function OngoingCard({ client }: OngoingCardProps) {
         )}
       </div>
 
-      {/* Footer com WhatsApp */}
-      <div className="flex items-center justify-center pt-1">
+      {/* Footer com WhatsApp + Atendimento */}
+      <div className="flex items-center gap-2 pt-1">
         <button
           onClick={(e) => {
             e.stopPropagation();
             // Implementar ação de WhatsApp se necessário
           }}
-          className="w-full bg-green-500 hover:bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 transition-colors text-sm font-medium"
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 transition-colors text-sm font-medium"
           title="Enviar WhatsApp"
         >
           <MessageCircle size={16} />
           WhatsApp
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onAtendimento?.(client);
+          }}
+          className="flex-1 text-white rounded py-2 flex items-center justify-center gap-2 transition-colors text-sm font-medium hover:opacity-90"
+          style={{ backgroundColor: '#1D4ED8' }}
+          title="Registrar Atendimento"
+        >
+          <Headphones size={16} />
+          Atendimento
         </button>
       </div>
     </div>
