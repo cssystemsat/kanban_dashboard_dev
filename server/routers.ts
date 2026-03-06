@@ -12,6 +12,18 @@ import {
   addAllowedEmail,
   updateAllowedEmail,
   deleteAllowedEmail,
+  getEmailEntry,
+  getChecklistsForUser,
+  getChecklistById,
+  createChecklist,
+  updateChecklist,
+  deleteChecklist,
+  getItemsByChecklist,
+  addChecklistItem,
+  updateChecklistItem,
+  deleteChecklistItem,
+  getCompletionsForUser,
+  toggleCompletion,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 
@@ -101,7 +113,7 @@ export const appRouter = router({
         return { success: true };
       }),
     updateEmail: publicProcedure
-      .input(z.object({ id: z.number(), email: z.string().email().optional(), label: z.string().optional(), isAdmin: z.boolean().optional() }))
+      .input(z.object({ id: z.number(), email: z.string().email().optional(), label: z.string().optional(), isAdmin: z.boolean().optional(), allowedPages: z.array(z.string()).nullable().optional() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
         const admin = await isEmailAdmin(ctx.user.email);
@@ -111,6 +123,7 @@ export const appRouter = router({
         if (data.email !== undefined) updateData.email = data.email.toLowerCase();
         if (data.label !== undefined) updateData.label = data.label;
         if (data.isAdmin !== undefined) updateData.isAdmin = data.isAdmin ? 1 : 0;
+        if (data.allowedPages !== undefined) updateData.allowedPages = data.allowedPages === null ? null : JSON.stringify(data.allowedPages);
         await updateAllowedEmail(id, updateData as Parameters<typeof updateAllowedEmail>[1]);
         return { success: true };
       }),
@@ -121,6 +134,130 @@ export const appRouter = router({
         const admin = await isEmailAdmin(ctx.user.email);
         if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
         await deleteAllowedEmail(input.id);
+        return { success: true };
+      }),
+    // Retorna as abas permitidas para o usuário atual
+    myPermissions: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false };
+      const entry = await getEmailEntry(ctx.user.email);
+      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false };
+      const allowedPages = entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null;
+      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true };
+    }),
+  }),
+  checklists: router({
+    // Listar checklists visíveis para o usuário
+    list: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const admin = await isEmailAdmin(ctx.user.email);
+      const lists = await getChecklistsForUser(ctx.user.email, admin);
+      // Para cada checklist, buscar itens e completions do dia
+      const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }); // YYYY-MM-DD
+      const completions = await getCompletionsForUser(ctx.user.email, today);
+      const completedItemIds = new Set(completions.map(c => c.itemId));
+      const result = await Promise.all(lists.map(async (cl) => {
+        const items = await getItemsByChecklist(cl.id);
+        return {
+          ...cl,
+          items: items.sort((a, b) => a.order - b.order).map(item => ({
+            ...item,
+            completed: completedItemIds.has(item.id),
+          })),
+          isOwner: cl.ownerEmail === ctx.user!.email,
+        };
+      }));
+      return result;
+    }),
+    create: publicProcedure
+      .input(z.object({
+        title: z.string().min(1).max(255),
+        description: z.string().optional(),
+        resetType: z.enum(['daily', 'manual', 'none']).default('daily'),
+        isAdminChecklist: z.boolean().default(false),
+        items: z.array(z.string()).default([]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const allowed = await isEmailAllowed(ctx.user.email);
+        if (!allowed) throw new TRPCError({ code: 'FORBIDDEN' });
+        const admin = await isEmailAdmin(ctx.user.email);
+        const checklistId = await createChecklist({
+          ownerEmail: ctx.user.email,
+          title: input.title,
+          description: input.description ?? null,
+          resetType: input.resetType,
+          isAdminChecklist: (input.isAdminChecklist && admin) ? 1 : 0,
+        });
+        for (let i = 0; i < input.items.length; i++) {
+          if (input.items[i].trim()) {
+            await addChecklistItem({ checklistId, text: input.items[i].trim(), order: i });
+          }
+        }
+        return { success: true, id: checklistId };
+      }),
+    update: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().min(1).max(255).optional(),
+        description: z.string().optional(),
+        resetType: z.enum(['daily', 'manual', 'none']).optional(),
+        isAdminChecklist: z.boolean().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const cl = await getChecklistById(input.id);
+        if (!cl) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (cl.ownerEmail !== ctx.user.email) throw new TRPCError({ code: 'FORBIDDEN' });
+        const admin = await isEmailAdmin(ctx.user.email);
+        const updateData: Record<string, unknown> = {};
+        if (input.title !== undefined) updateData.title = input.title;
+        if (input.description !== undefined) updateData.description = input.description;
+        if (input.resetType !== undefined) updateData.resetType = input.resetType;
+        if (input.isAdminChecklist !== undefined) updateData.isAdminChecklist = (input.isAdminChecklist && admin) ? 1 : 0;
+        await updateChecklist(input.id, updateData as Parameters<typeof updateChecklist>[1]);
+        return { success: true };
+      }),
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const cl = await getChecklistById(input.id);
+        if (!cl) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (cl.ownerEmail !== ctx.user.email) throw new TRPCError({ code: 'FORBIDDEN' });
+        await deleteChecklist(input.id);
+        return { success: true };
+      }),
+    addItem: publicProcedure
+      .input(z.object({ checklistId: z.number(), text: z.string().min(1).max(500), order: z.number().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const cl = await getChecklistById(input.checklistId);
+        if (!cl) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (cl.ownerEmail !== ctx.user.email) throw new TRPCError({ code: 'FORBIDDEN' });
+        const id = await addChecklistItem({ checklistId: input.checklistId, text: input.text, order: input.order ?? 0 });
+        return { success: true, id };
+      }),
+    updateItem: publicProcedure
+      .input(z.object({ id: z.number(), text: z.string().min(1).max(500).optional(), order: z.number().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const { id, ...data } = input;
+        await updateChecklistItem(id, data);
+        return { success: true };
+      }),
+    deleteItem: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        await deleteChecklistItem(input.id);
+        return { success: true };
+      }),
+    toggleItem: publicProcedure
+      .input(z.object({ itemId: z.number(), completed: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+        await toggleCompletion(input.itemId, ctx.user.email, today, input.completed);
         return { success: true };
       }),
   }),

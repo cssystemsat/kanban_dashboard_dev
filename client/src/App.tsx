@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Ongoing from "./pages/Ongoing";
 import Churns from './pages/Churns';
 import Configuracoes from './pages/Configuracoes';
+import Ferramentas from './pages/Ferramentas';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -32,6 +33,8 @@ function App() {
         return <Churns />;
       case 'configuracoes':
         return <Configuracoes />;
+      case 'ferramentas':
+        return <Ferramentas />;
       case 'migracao':
         return (
           <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>

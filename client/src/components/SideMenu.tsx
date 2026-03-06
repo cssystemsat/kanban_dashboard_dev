@@ -1,5 +1,5 @@
-import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, Settings, LogIn, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, Settings, LogIn, LogOut, Wrench } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { getLoginUrl } from '@/const';
 
@@ -8,25 +8,70 @@ interface SideMenuProps {
   onPageChange: (page: string) => void;
 }
 
+// Mapeamento de todas as abas disponíveis
+const ALL_MENU_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'marcos', label: 'Marcos', icon: CheckSquare },
+  { id: 'ongoing', label: 'Ongoing', icon: Users },
+  { id: 'churns', label: 'CHURNs', icon: TrendingDown },
+  { id: 'migracao', label: 'Migração', icon: AlertCircle },
+  { id: 'redflags', label: 'Red Flags', icon: AlertCircle },
+  { id: 'ferramentas', label: 'Ferramentas', icon: Wrench },
+];
+
+// Obtém a data de hoje no fuso de Brasília (YYYY-MM-DD)
+function getTodayBRT(): string {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+}
+
 export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { data: user } = trpc.auth.me.useQuery();
   const { data: permission } = trpc.atendimento.checkPermission.useQuery();
+  const { data: myPerms } = trpc.config.myPermissions.useQuery(undefined, {
+    enabled: !!user,
+  });
+  const utils = trpc.useUtils();
+
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => window.location.reload(),
   });
 
   const isAdmin = permission?.isAdmin === true;
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'marcos', label: 'Marcos', icon: CheckSquare },
-    { id: 'ongoing', label: 'Ongoing', icon: Users },
-    { id: 'churns', label: 'CHURNs', icon: TrendingDown },
-    { id: 'migracao', label: 'Migração', icon: AlertCircle },
-    { id: 'redflags', label: 'Red Flags', icon: AlertCircle },
-  ];
+  // Reset diário automático: invalida cache de checklists quando muda o dia
+  useEffect(() => {
+    if (!user) return;
+    const stored = localStorage.getItem('checklist_last_date');
+    const today = getTodayBRT();
+    if (stored !== today) {
+      localStorage.setItem('checklist_last_date', today);
+      utils.checklists.list.invalidate();
+    }
+
+    // Verificar a cada minuto se o dia mudou (para usuários que ficam logados a noite toda)
+    const interval = setInterval(() => {
+      const now = getTodayBRT();
+      const last = localStorage.getItem('checklist_last_date');
+      if (last !== now) {
+        localStorage.setItem('checklist_last_date', now);
+        utils.checklists.list.invalidate();
+      }
+    }, 60_000);
+
+    return () => clearInterval(interval);
+  }, [user, utils]);
+
+  // Filtrar abas visíveis baseado nas permissões do usuário
+  // - Se não logado ou sem permissões: mostra todas (painel é público)
+  // - Se logado e tem allowedPages: mostra apenas as permitidas
+  // - Se logado e allowedPages é null: mostra todas
+  const visibleMenuItems = (() => {
+    if (!user || !myPerms || !myPerms.isAllowed) return ALL_MENU_ITEMS;
+    if (myPerms.allowedPages === null) return ALL_MENU_ITEMS; // acesso total
+    return ALL_MENU_ITEMS.filter(item => myPerms.allowedPages!.includes(item.id));
+  })();
 
   return (
     <div
@@ -58,8 +103,8 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
       </div>
 
       {/* Itens do Menu */}
-      <nav className="flex flex-col gap-2 p-4 flex-1">
-        {menuItems.map((item) => {
+      <nav className="flex flex-col gap-2 p-4 flex-1 overflow-y-auto">
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
 
@@ -87,7 +132,8 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
           );
         })}
 
-        {/* Separador + Configurações (só para admins) */}
+        {/* Separador + Ferramentas (se não estiver na lista principal) */}
+        {/* Configurações (só para admins) */}
         {isAdmin && (
           <>
             <div className="my-1 border-t" style={{ borderColor: '#1a3a5c' }} />
@@ -112,7 +158,7 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
         )}
       </nav>
 
-      {/* Rodapé: login/logout + versão */}
+      {/* Rodapé: login/logout */}
       <div className="p-4 border-t" style={{ borderColor: '#1a3a5c' }}>
         {user ? (
           <button

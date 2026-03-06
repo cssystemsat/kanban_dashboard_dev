@@ -61,3 +61,10 @@
 - [x] Adicionar aba Configurações no sidebar (visível só para agendamento.cs@ e joao.pedro@)
 - [x] Adicionar botão de login/logout no sidebar
 - [x] Seed inicial com e-mails admins na tabela allowed_emails
+- [x] Adicionar coluna allowedPages em allowed_emails (abas permitidas por usuário)
+- [x] Criar tabelas checklists, checklist_items e checklist_completions no banco
+- [x] Criar procedures tRPC para CRUD de checklists, itens e completions
+- [x] Criar página Ferramentas com sub-página Checklists
+- [x] Atualizar Configurações: seleção de abas permitidas por usuário
+- [x] Atualizar SideMenu: aba Ferramentas, restrição de abas por usuário
+- [x] Implementar reset diário automático dos checklists (meia-noite)
