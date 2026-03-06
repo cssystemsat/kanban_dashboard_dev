@@ -68,3 +68,4 @@
 - [x] Atualizar Configurações: seleção de abas permitidas por usuário
 - [x] Atualizar SideMenu: aba Ferramentas, restrição de abas por usuário
 - [x] Implementar reset diário automático dos checklists (meia-noite)
+- [x] Corrigir erro de query: aplicar coluna allowedPages ao banco de produção
