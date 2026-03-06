@@ -9,6 +9,7 @@ import Ongoing from "./pages/Ongoing";
 import Churns from './pages/Churns';
 import Configuracoes from './pages/Configuracoes';
 import Ferramentas from './pages/Ferramentas';
+import ChecklistPanel from './components/ChecklistPanel';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -85,6 +86,7 @@ function App() {
           <Toaster />
           <SideMenu currentPage={currentPage} onPageChange={setCurrentPage} />
           {renderPage()}
+          <ChecklistPanel />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

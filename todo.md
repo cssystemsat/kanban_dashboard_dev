@@ -69,3 +69,4 @@
 - [x] Atualizar SideMenu: aba Ferramentas, restrição de abas por usuário
 - [x] Implementar reset diário automático dos checklists (meia-noite)
 - [x] Corrigir erro de query: aplicar coluna allowedPages ao banco de produção
+- [x] Criar botão flutuante de checklist com painel lateral deslizante para preenchimento rápido
