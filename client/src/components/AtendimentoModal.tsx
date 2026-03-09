@@ -47,7 +47,7 @@ const DURACOES = [
 ];
 
 const INITIAL_FORM = {
-  tipo: '',
+  tipo: 'Whatsapp grupo',
   situacao: '',
   topico: '',
   resumo: '',
@@ -57,6 +57,20 @@ const INITIAL_FORM = {
 export default function AtendimentoModal({ client, onClose }: AtendimentoModalProps) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [enviado, setEnviado] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState(1);
+  const isCustom = form.duracao === '__custom__';
+
+  const adjustMinutes = (delta: number) => {
+    setCustomMinutes(prev => {
+      const next = Math.max(1, prev + delta);
+      setForm(f => ({ ...f, duracao: `${next} minuto${next === 1 ? '' : 's'}` }));
+      return next;
+    });
+  };
+
+  const handleSelectCustom = () => {
+    setForm(f => ({ ...f, duracao: `${customMinutes} minuto${customMinutes === 1 ? '' : 's'}` }));
+  };
 
   const { data: permission, isLoading: permLoading } = trpc.atendimento.checkPermission.useQuery();
 
@@ -301,7 +315,45 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
                     {d}
                   </button>
                 ))}
+                {/* Botão Personalizado */}
+                <button
+                  onClick={() => { setForm(f => ({ ...f, duracao: '__custom__' })); }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: isCustom ? '#1D4ED8' : '#F3F4F6',
+                    color: isCustom ? '#FFFFFF' : '#374151',
+                    border: isCustom ? '1.5px solid #1D4ED8' : '1.5px solid #E5E7EB',
+                  }}
+                >
+                  Personalizado
+                </button>
               </div>
+
+              {/* Seletor de minutos personalizado */}
+              {isCustom && (
+                <div className="flex items-center gap-3 mt-2">
+                  <button
+                    onClick={() => adjustMinutes(-1)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80"
+                    style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
+                  >
+                    −
+                  </button>
+                  <div
+                    className="flex-1 text-center text-sm font-semibold rounded-lg py-1.5"
+                    style={{ backgroundColor: '#EFF6FF', color: '#1D4ED8', border: '1.5px solid #BFDBFE' }}
+                  >
+                    {customMinutes} {customMinutes === 1 ? 'minuto' : 'minutos'}
+                  </div>
+                  <button
+                    onClick={() => adjustMinutes(1)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80"
+                    style={{ backgroundColor: '#1D4ED8', color: '#FFFFFF' }}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

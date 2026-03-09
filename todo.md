@@ -70,3 +70,5 @@
 - [x] Implementar reset diário automático dos checklists (meia-noite)
 - [x] Corrigir erro de query: aplicar coluna allowedPages ao banco de produção
 - [x] Criar botão flutuante de checklist com painel lateral deslizante para preenchimento rápido
+- [x] Pré-definir Origem do atendimento como "Whatsapp grupo" no AtendimentoModal
+- [x] Adicionar opção "Personalizado" na duração com seletor de minutos (+/−) no AtendimentoModal
