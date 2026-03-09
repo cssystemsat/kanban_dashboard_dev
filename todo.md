@@ -72,3 +72,4 @@
 - [x] Criar botão flutuante de checklist com painel lateral deslizante para preenchimento rápido
 - [x] Pré-definir Origem do atendimento como "Whatsapp grupo" no AtendimentoModal
 - [x] Adicionar opção "Personalizado" na duração com seletor de minutos (+/−) no AtendimentoModal
+- [x] Remover botão "Personalizado" e exibir seletor +/− de minutos sempre visível no AtendimentoModal
