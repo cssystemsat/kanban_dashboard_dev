@@ -24,6 +24,16 @@ import {
   deleteChecklistItem,
   getCompletionsForUser,
   toggleCompletion,
+  createSession,
+  closeSession,
+  heartbeatSession,
+  recordPageView,
+  recordUserAction,
+  getStatsOverview,
+  getUserStatsList,
+  getRecentSessions,
+  getRecentActions,
+  getMostVisitedPages,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 
@@ -260,6 +270,83 @@ export const appRouter = router({
         await toggleCompletion(input.itemId, ctx.user.email, today, input.completed);
         return { success: true };
       }),
+  }),
+  // ---- Tracking procedures ----
+  tracking: router({
+    startSession: publicProcedure
+      .input(z.object({ userAgent: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) return { sessionId: null };
+        const ip = (ctx.req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || ctx.req.socket?.remoteAddress || null;
+        const sessionId = await createSession({
+          userEmail: ctx.user.email,
+          userName: ctx.user.name ?? null,
+          ipAddress: ip,
+          userAgent: input.userAgent ?? null,
+        });
+        return { sessionId };
+      }),
+    endSession: publicProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) return { success: false };
+        await closeSession(input.sessionId, new Date());
+        return { success: true };
+      }),
+    heartbeat: publicProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) return { success: false };
+        await heartbeatSession(input.sessionId);
+        return { success: true };
+      }),
+    trackPage: publicProcedure
+      .input(z.object({ page: z.string(), sessionId: z.number().nullable().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) return { success: false };
+        await recordPageView({ userEmail: ctx.user.email, page: input.page, sessionId: input.sessionId ?? null });
+        return { success: true };
+      }),
+    trackAction: publicProcedure
+      .input(z.object({ actionType: z.string(), description: z.string().optional(), metadata: z.string().optional(), sessionId: z.number().nullable().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) return { success: false };
+        await recordUserAction({ userEmail: ctx.user.email, actionType: input.actionType, description: input.description ?? null, metadata: input.metadata ?? null, sessionId: input.sessionId ?? null });
+        return { success: true };
+      }),
+  }),
+  // ---- Statistics procedures (admin only) ----
+  stats: router({
+    overview: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const admin = await isEmailAdmin(ctx.user.email);
+      if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
+      return getStatsOverview();
+    }),
+    userList: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const admin = await isEmailAdmin(ctx.user.email);
+      if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
+      return getUserStatsList();
+    }),
+    recentSessions: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const admin = await isEmailAdmin(ctx.user.email);
+      if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
+      return getRecentSessions(50);
+    }),
+    recentActions: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const admin = await isEmailAdmin(ctx.user.email);
+      if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
+      return getRecentActions(100);
+    }),
+    topPages: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const admin = await isEmailAdmin(ctx.user.email);
+      if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
+      return getMostVisitedPages();
+    }),
   }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

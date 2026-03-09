@@ -79,3 +79,44 @@ export const checklistCompletions = mysqlTable("checklist_completions", {
 
 export type ChecklistCompletion = typeof checklistCompletions.$inferSelect;
 export type InsertChecklistCompletion = typeof checklistCompletions.$inferInsert;
+
+// Sessões de usuário: login/logout e tempo ativo
+export const userSessions = mysqlTable("user_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userEmail: varchar("userEmail", { length: 320 }).notNull(),
+  userName: text("userName"),
+  loginAt: timestamp("loginAt").defaultNow().notNull(),
+  logoutAt: timestamp("logoutAt"),
+  durationSeconds: int("durationSeconds"), // preenchido ao fazer logout ou heartbeat
+  ipAddress: varchar("ipAddress", { length: 64 }),
+  userAgent: text("userAgent"),
+});
+
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = typeof userSessions.$inferInsert;
+
+// Visualizações de página por usuário
+export const pageViews = mysqlTable("page_views", {
+  id: int("id").autoincrement().primaryKey(),
+  userEmail: varchar("userEmail", { length: 320 }).notNull(),
+  page: varchar("page", { length: 128 }).notNull(), // ex: "marcos", "ongoing", "dashboard"
+  viewedAt: timestamp("viewedAt").defaultNow().notNull(),
+  sessionId: int("sessionId"), // FK para user_sessions
+});
+
+export type PageView = typeof pageViews.$inferSelect;
+export type InsertPageView = typeof pageViews.$inferInsert;
+
+// Ações realizadas por usuário (atendimentos lançados, checklists completados, etc.)
+export const userActions = mysqlTable("user_actions", {
+  id: int("id").autoincrement().primaryKey(),
+  userEmail: varchar("userEmail", { length: 320 }).notNull(),
+  actionType: varchar("actionType", { length: 64 }).notNull(), // ex: "atendimento_gravado", "checklist_item_completed"
+  description: text("description"), // detalhes da ação
+  metadata: text("metadata"), // JSON com dados extras
+  performedAt: timestamp("performedAt").defaultNow().notNull(),
+  sessionId: int("sessionId"),
+});
+
+export type UserAction = typeof userActions.$inferSelect;
+export type InsertUserAction = typeof userActions.$inferInsert;

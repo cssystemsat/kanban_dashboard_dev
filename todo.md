@@ -73,3 +73,9 @@
 - [x] Pré-definir Origem do atendimento como "Whatsapp grupo" no AtendimentoModal
 - [x] Adicionar opção "Personalizado" na duração com seletor de minutos (+/−) no AtendimentoModal
 - [x] Remover botão "Personalizado" e exibir seletor +/− de minutos sempre visível no AtendimentoModal
+- [x] Criar tabelas de rastreamento no banco: user_sessions, page_views, user_actions
+- [x] Criar procedures tRPC para rastreamento e consulta de estatísticas
+- [x] Criar página Painel (pública, em construção)
+- [x] Criar página Estatísticas com dashboard completo de uso por usuário
+- [x] Atualizar SideMenu: Painel público, Estatísticas só admins, restrição sem login
+- [x] Integrar rastreamento automático de sessão e navegação no App.tsx

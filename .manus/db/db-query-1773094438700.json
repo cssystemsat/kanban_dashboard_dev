@@ -1,0 +1,31 @@
+{
+  "query": "SHOW TABLES LIKE '%session%'; SHOW TABLES LIKE '%page%'; SHOW TABLES LIKE '%action%'; SHOW TABLES LIKE '%user_action%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute SHOW TABLES LIKE '%session%'; SHOW TABLES LIKE '%page%'; SHOW TABLES LIKE '%action%'; SHOW TABLES LIKE '%user_action%';",
+  "rows": [
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "user_sessions"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%page%)"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "page_views"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%action%)"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "user_actions"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%user_action%)"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)": "user_actions"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_m4JthXh6fRtQzx9KxAa8P4 (%session%)\nuser_sessions\nTables_in_m4JthXh6fRtQzx9KxAa8P4 (%page%)\npage_views\nTables_in_m4JthXh6fRtQzx9KxAa8P4 (%action%)\nuser_actions\nTables_in_m4JthXh6fRtQzx9KxAa8P4 (%user_action%)\nuser_actions\n",
+  "stderr": "",
+  "execution_time_ms": 129
+}

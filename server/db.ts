@@ -1,9 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, desc, gte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, InsertAllowedEmail, allowedEmails, users,
   checklists, checklistItems, checklistCompletions,
   InsertChecklist, InsertChecklistItem,
+  userSessions, pageViews, userActions,
+  InsertUserSession, InsertPageView, InsertUserAction,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -225,7 +227,6 @@ export async function toggleCompletion(itemId: number, userEmail: string, date: 
   const db = await getDb();
   if (!db) throw new Error('DB not available');
   if (completed) {
-    // Inserir se não existir
     const existing = await db.select().from(checklistCompletions)
       .where(and(
         eq(checklistCompletions.itemId, itemId),
@@ -243,4 +244,135 @@ export async function toggleCompletion(itemId: number, userEmail: string, date: 
         eq(checklistCompletions.completedDate, date)
       ));
   }
+}
+
+// ---- Tracking helpers ----
+
+export async function createSession(data: InsertUserSession) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(userSessions).values(data);
+  return result[0].insertId as number;
+}
+
+export async function closeSession(sessionId: number, logoutAt: Date) {
+  const db = await getDb();
+  if (!db) return;
+  const session = await db.select().from(userSessions).where(eq(userSessions.id, sessionId)).limit(1);
+  if (session.length > 0) {
+    const loginAt = session[0].loginAt;
+    const durationSeconds = Math.floor((logoutAt.getTime() - loginAt.getTime()) / 1000);
+    await db.update(userSessions).set({ logoutAt, durationSeconds }).where(eq(userSessions.id, sessionId));
+  }
+}
+
+export async function heartbeatSession(sessionId: number) {
+  const db = await getDb();
+  if (!db) return;
+  const now = new Date();
+  const session = await db.select().from(userSessions).where(eq(userSessions.id, sessionId)).limit(1);
+  if (session.length > 0) {
+    const durationSeconds = Math.floor((now.getTime() - session[0].loginAt.getTime()) / 1000);
+    await db.update(userSessions).set({ durationSeconds }).where(eq(userSessions.id, sessionId));
+  }
+}
+
+export async function recordPageView(data: InsertPageView) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(pageViews).values(data);
+}
+
+export async function recordUserAction(data: InsertUserAction) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(userActions).values(data);
+}
+
+// ---- Statistics queries ----
+
+export async function getStatsOverview() {
+  const db = await getDb();
+  if (!db) return null;
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const [totalSessions] = await db.select({ count: sql<number>`count(*)` }).from(userSessions);
+  const [activeLast30] = await db.select({ count: sql<number>`count(distinct ${userSessions.userEmail})` })
+    .from(userSessions).where(gte(userSessions.loginAt, thirtyDaysAgo));
+  const [totalActions] = await db.select({ count: sql<number>`count(*)` }).from(userActions);
+  const [totalPageViews] = await db.select({ count: sql<number>`count(*)` }).from(pageViews);
+
+  return {
+    totalSessions: totalSessions.count,
+    activeUsersLast30Days: activeLast30.count,
+    totalActions: totalActions.count,
+    totalPageViews: totalPageViews.count,
+  };
+}
+
+export async function getUserStatsList() {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Buscar todos os e-mails únicos com sessão
+  const sessionRows = await db.select().from(userSessions).orderBy(desc(userSessions.loginAt));
+  const actionRows = await db.select().from(userActions);
+  const pageViewRows = await db.select().from(pageViews);
+
+  // Agrupar por e-mail
+  const map = new Map<string, {
+    email: string; name: string | null;
+    totalSessions: number; totalDurationSeconds: number;
+    lastLogin: Date | null; totalActions: number; totalPageViews: number;
+    pageBreakdown: Record<string, number>; actionBreakdown: Record<string, number>;
+  }>();
+
+  for (const s of sessionRows) {
+    const e = s.userEmail;
+    if (!map.has(e)) map.set(e, { email: e, name: s.userName ?? null, totalSessions: 0, totalDurationSeconds: 0, lastLogin: null, totalActions: 0, totalPageViews: 0, pageBreakdown: {}, actionBreakdown: {} });
+    const u = map.get(e)!;
+    u.totalSessions++;
+    u.totalDurationSeconds += s.durationSeconds ?? 0;
+    if (!u.lastLogin || s.loginAt > u.lastLogin) u.lastLogin = s.loginAt;
+  }
+
+  for (const a of actionRows) {
+    const e = a.userEmail;
+    if (!map.has(e)) map.set(e, { email: e, name: null, totalSessions: 0, totalDurationSeconds: 0, lastLogin: null, totalActions: 0, totalPageViews: 0, pageBreakdown: {}, actionBreakdown: {} });
+    const u = map.get(e)!;
+    u.totalActions++;
+    u.actionBreakdown[a.actionType] = (u.actionBreakdown[a.actionType] ?? 0) + 1;
+  }
+
+  for (const p of pageViewRows) {
+    const e = p.userEmail;
+    if (!map.has(e)) map.set(e, { email: e, name: null, totalSessions: 0, totalDurationSeconds: 0, lastLogin: null, totalActions: 0, totalPageViews: 0, pageBreakdown: {}, actionBreakdown: {} });
+    const u = map.get(e)!;
+    u.totalPageViews++;
+    u.pageBreakdown[p.page] = (u.pageBreakdown[p.page] ?? 0) + 1;
+  }
+
+  return Array.from(map.values()).sort((a, b) => (b.lastLogin?.getTime() ?? 0) - (a.lastLogin?.getTime() ?? 0));
+}
+
+export async function getRecentSessions(limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userSessions).orderBy(desc(userSessions.loginAt)).limit(limit);
+}
+
+export async function getRecentActions(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userActions).orderBy(desc(userActions.performedAt)).limit(limit);
+}
+
+export async function getMostVisitedPages() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select({
+    page: pageViews.page,
+    count: sql<number>`count(*) as count`,
+  }).from(pageViews).groupBy(pageViews.page);
+  return rows.sort((a, b) => b.count - a.count);
 }
