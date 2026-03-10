@@ -87,3 +87,4 @@
 - [x] Adicionar tooltip nos contatos do Painel com lista de clientes coloridos por flag
 - [x] Adicionar acumulado mensal (clientes únicos no mês) por CSM no hook usePainelData
 - [x] Aumentar fonte das tabelas e adicionar coluna Acumulado Mês no Painel
+- [x] Ajustar tabelas do Painel: números maiores, cabeçalhos compactos, sem "(hover)", acumulado em %, sem overflow

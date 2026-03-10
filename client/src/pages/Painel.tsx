@@ -11,11 +11,11 @@ function pct(v: number) {
 
 function StatusIcon({ bateu }: { bateu: boolean }) {
   return bateu ? (
-    <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
+    <span className="inline-flex items-center gap-1 text-green-600 font-bold text-sm">
       <CheckCircle2 className="w-4 h-4" /> Atingiu
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-red-500 font-semibold text-sm">
+    <span className="inline-flex items-center gap-1 text-red-500 font-bold text-sm">
       <XCircle className="w-4 h-4" /> Abaixo
     </span>
   );
@@ -74,11 +74,10 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
   return (
     <div ref={ref} className="relative inline-block">
       <button
-        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-base"
+        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-xl"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onClick={() => setOpen(v => !v)}
-        title="Ver lista de clientes contatados"
       >
         {row.contatosSemana}
       </button>
@@ -130,78 +129,82 @@ function TabelaCobertura({
   cor,
   dados,
   total,
-  mesLabel,
 }: {
   titulo: string;
   cor: string;
   dados: CoberturaCSM[];
   total: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
-  mesLabel: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-visible" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-5 py-3 rounded-t-xl" style={{ backgroundColor: cor }}>
-        <h3 className="text-base font-bold text-white tracking-wide">{titulo}</h3>
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
+      <div className="px-4 py-2.5 rounded-t-xl" style={{ backgroundColor: cor }}>
+        <h3 className="text-sm font-bold text-white tracking-wide">{titulo}</h3>
       </div>
 
-      <table className="w-full">
+      <table className="w-full table-fixed">
+        <colgroup>
+          <col style={{ width: '22%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '14%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '16%' }} />
+        </colgroup>
         <thead>
           <tr className="border-b" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">CSM</th>
-            <th className="text-center px-3 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">
-              Contatos
-              <span className="ml-1 text-gray-400 font-normal normal-case text-xs">(hover)</span>
-            </th>
-            <th className="text-center px-3 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Total</th>
-            <th className="text-center px-3 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">% Semanal</th>
-            <th className="text-center px-3 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Meta 25%</th>
-            <th className="text-center px-3 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">
-              Acum. {mesLabel.split('/')[0]}
-            </th>
+            <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">CSM</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contatos</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Semana</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Meta 25%</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Mês</th>
           </tr>
         </thead>
         <tbody>
-          {dados.map((row, idx) => (
-            <tr
-              key={row.csm}
-              className="border-b transition-colors hover:bg-blue-50/30"
-              style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
-            >
-              <td className="px-4 py-3 font-semibold text-gray-800 text-base">{row.csm}</td>
-              <td className="px-3 py-3 text-center">
-                <ContatosCell row={row} />
-              </td>
-              <td className="px-3 py-3 text-center text-gray-600 text-base">{row.totalClientes}</td>
-              <td className="px-3 py-3 text-center">
-                <span
-                  className="inline-block px-2.5 py-1 rounded-full text-sm font-bold"
-                  style={{
-                    backgroundColor: row.bateuMeta ? '#DCFCE7' : '#FEE2E2',
-                    color: row.bateuMeta ? '#166534' : '#991B1B',
-                  }}
-                >
-                  {pct(row.percentual)}
-                </span>
-              </td>
-              <td className="px-3 py-3 text-center">
-                <StatusIcon bateu={row.bateuMeta} />
-              </td>
-              <td className="px-3 py-3 text-center">
-                <span className="inline-block px-2.5 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700">
-                  {row.acumuladoMes}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {dados.map((row, idx) => {
+            const pctMes = row.totalClientes > 0 ? (row.acumuladoMes / row.totalClientes) * 100 : 0;
+            return (
+              <tr
+                key={row.csm}
+                className="border-b transition-colors hover:bg-blue-50/30"
+                style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
+              >
+                <td className="px-3 py-2.5 font-semibold text-gray-800 text-base truncate">{row.csm}</td>
+                <td className="px-2 py-2.5 text-center">
+                  <ContatosCell row={row} />
+                </td>
+                <td className="px-2 py-2.5 text-center text-xl font-bold text-gray-700">{row.totalClientes}</td>
+                <td className="px-2 py-2.5 text-center">
+                  <span
+                    className="inline-block px-2 py-0.5 rounded-full text-base font-bold"
+                    style={{
+                      backgroundColor: row.bateuMeta ? '#DCFCE7' : '#FEE2E2',
+                      color: row.bateuMeta ? '#166534' : '#991B1B',
+                    }}
+                  >
+                    {pct(row.percentual)}
+                  </span>
+                </td>
+                <td className="px-2 py-2.5 text-center">
+                  <StatusIcon bateu={row.bateuMeta} />
+                </td>
+                <td className="px-2 py-2.5 text-center">
+                  <span className="inline-block px-2 py-0.5 rounded-full text-base font-bold bg-indigo-50 text-indigo-700">
+                    {pctMes.toFixed(0)}%
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
         <tfoot>
           <tr style={{ backgroundColor: '#F1F5F9' }}>
-            <td className="px-4 py-3 font-bold text-gray-800 text-sm uppercase tracking-wide">Total</td>
-            <td className="px-3 py-3 text-center font-bold text-gray-800 text-base">{total.contatos}</td>
-            <td className="px-3 py-3 text-center font-bold text-gray-800 text-base">{total.total}</td>
-            <td className="px-3 py-3 text-center">
+            <td className="px-3 py-2.5 font-bold text-gray-700 text-xs uppercase tracking-wide">Total</td>
+            <td className="px-2 py-2.5 text-center font-bold text-gray-800 text-xl">{total.contatos}</td>
+            <td className="px-2 py-2.5 text-center font-bold text-gray-800 text-xl">{total.total}</td>
+            <td className="px-2 py-2.5 text-center">
               <span
-                className="inline-block px-2.5 py-1 rounded-full text-sm font-bold"
+                className="inline-block px-2 py-0.5 rounded-full text-base font-bold"
                 style={{
                   backgroundColor: total.bateuMeta ? '#DCFCE7' : '#FEE2E2',
                   color: total.bateuMeta ? '#166534' : '#991B1B',
@@ -210,13 +213,18 @@ function TabelaCobertura({
                 {pct(total.percentual)}
               </span>
             </td>
-            <td className="px-3 py-3 text-center">
+            <td className="px-2 py-2.5 text-center">
               <StatusIcon bateu={total.bateuMeta} />
             </td>
-            <td className="px-3 py-3 text-center">
-              <span className="inline-block px-2.5 py-1 rounded-full text-sm font-bold bg-indigo-100 text-indigo-800">
-                {total.acumuladoMes}
-              </span>
+            <td className="px-2 py-2.5 text-center">
+              {(() => {
+                const pctMes = total.total > 0 ? (total.acumuladoMes / total.total) * 100 : 0;
+                return (
+                  <span className="inline-block px-2 py-0.5 rounded-full text-base font-bold bg-indigo-100 text-indigo-800">
+                    {pctMes.toFixed(0)}%
+                  </span>
+                );
+              })()}
             </td>
           </tr>
         </tfoot>
@@ -259,7 +267,7 @@ export default function Painel() {
         </Button>
       </header>
 
-      <main className="px-4 pt-4 pb-8 max-w-7xl mx-auto space-y-6">
+      <main className="px-4 pt-4 pb-8 max-w-7xl mx-auto space-y-5">
         {loading && (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
@@ -279,69 +287,50 @@ export default function Painel() {
           <>
             {/* Cards de resumo geral */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-1" style={{ borderColor: '#E0E8F0', borderLeft: '4px solid #2563EB' }}>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">Onboarding</p>
-                <p className="text-3xl font-bold text-gray-800">{pct(data.totalOnboarding.percentual)}</p>
-                <p className="text-sm text-gray-500">{data.totalOnboarding.contatos} de {data.totalOnboarding.total} clientes na semana</p>
-                <p className="text-sm text-indigo-600 font-semibold">{data.totalOnboarding.acumuladoMes} acumulados no mês</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {data.totalOnboarding.bateuMeta ? (
-                    <><TrendingUp className="w-4 h-4 text-green-500" /><span className="text-sm text-green-600 font-semibold">Meta atingida</span></>
-                  ) : (
-                    <><TrendingDown className="w-4 h-4 text-red-500" /><span className="text-sm text-red-500 font-semibold">Abaixo da meta</span></>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-1" style={{ borderColor: '#E0E8F0', borderLeft: '4px solid #7C3AED' }}>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">Ongoing</p>
-                <p className="text-3xl font-bold text-gray-800">{pct(data.totalOngoing.percentual)}</p>
-                <p className="text-sm text-gray-500">{data.totalOngoing.contatos} de {data.totalOngoing.total} clientes na semana</p>
-                <p className="text-sm text-indigo-600 font-semibold">{data.totalOngoing.acumuladoMes} acumulados no mês</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {data.totalOngoing.bateuMeta ? (
-                    <><TrendingUp className="w-4 h-4 text-green-500" /><span className="text-sm text-green-600 font-semibold">Meta atingida</span></>
-                  ) : (
-                    <><TrendingDown className="w-4 h-4 text-red-500" /><span className="text-sm text-red-500 font-semibold">Abaixo da meta</span></>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-1" style={{ borderColor: '#E0E8F0', borderLeft: '4px solid #059669' }}>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">Geral</p>
-                <p className="text-3xl font-bold text-gray-800">{pct(data.totalGeral.percentual)}</p>
-                <p className="text-sm text-gray-500">{data.totalGeral.contatos} de {data.totalGeral.total} clientes na semana</p>
-                <p className="text-sm text-indigo-600 font-semibold">{data.totalGeral.acumuladoMes} acumulados no mês</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {data.totalGeral.bateuMeta ? (
-                    <><TrendingUp className="w-4 h-4 text-green-500" /><span className="text-sm text-green-600 font-semibold">Meta atingida</span></>
-                  ) : (
-                    <><TrendingDown className="w-4 h-4 text-red-500" /><span className="text-sm text-red-500 font-semibold">Abaixo da meta</span></>
-                  )}
-                </div>
-              </div>
+              {[
+                { label: 'Onboarding', color: '#2563EB', t: data.totalOnboarding },
+                { label: 'Ongoing',    color: '#7C3AED', t: data.totalOngoing },
+                { label: 'Geral',      color: '#059669', t: data.totalGeral },
+              ].map(({ label, color, t }) => {
+                const pctMes = t.total > 0 ? (t.acumuladoMes / t.total) * 100 : 0;
+                return (
+                  <div key={label} className="bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-1" style={{ borderColor: '#E0E8F0', borderLeft: `4px solid ${color}` }}>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">{label}</p>
+                    <p className="text-4xl font-bold text-gray-800">{pct(t.percentual)}</p>
+                    <p className="text-sm text-gray-500">{t.contatos} de {t.total} clientes na semana</p>
+                    <p className="text-sm font-semibold" style={{ color }}>
+                      {pctMes.toFixed(0)}% acumulado no mês ({t.acumuladoMes} clientes)
+                    </p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {t.bateuMeta ? (
+                        <><TrendingUp className="w-4 h-4 text-green-500" /><span className="text-sm text-green-600 font-semibold">Meta atingida</span></>
+                      ) : (
+                        <><TrendingDown className="w-4 h-4 text-red-500" /><span className="text-sm text-red-500 font-semibold">Abaixo da meta</span></>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Tabelas por analista */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Tabelas por analista lado a lado */}
+            <div className="grid grid-cols-2 gap-4">
               <TabelaCobertura
-                titulo="Cobertura de Base Semanal — Onboarding"
+                titulo="Cobertura Semanal — Onboarding"
                 cor="#2563EB"
                 dados={data.onboarding}
                 total={data.totalOnboarding}
-                mesLabel={data.mesAtual}
               />
               <TabelaCobertura
-                titulo="Cobertura de Base Semanal — Ongoing"
+                titulo="Cobertura Semanal — Ongoing"
                 cor="#7C3AED"
                 dados={data.ongoing}
                 total={data.totalOngoing}
-                mesLabel={data.mesAtual}
               />
             </div>
 
-            <p className="text-sm text-gray-400 text-center">
-              Meta semanal: {META}% de cobertura da base por analista (segunda a domingo) · Passe o mouse nos contatos para ver a lista
+            <p className="text-xs text-gray-400 text-center">
+              Meta semanal: {META}% de cobertura da base (segunda a domingo) · Passe o mouse nos contatos para ver a lista de clientes
             </p>
           </>
         )}
