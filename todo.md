@@ -91,3 +91,6 @@
 - [x] Corrigir z-index do tooltip de clientes no Painel (aparece por baixo dos painéis)
 - [x] Corrigir tooltip para aparecer abaixo quando perto do topo da tela
 - [x] Adicionar tabela de clientes por Marco (1-5, até 90 dias) no lado direito do Painel
+- [x] Otimizar layout horizontal do Painel (tabelas mais largas, sem overflow, melhor uso da tela)
+- [x] Adicionar card "Migrados no ano" ao lado do Painel Geral (placeholder)
+- [x] Adicionar tabela de Migração no Painel (Qtd em migração, Qtd migrado no dia, Qtd migrado no mês, Migrações finalizadas)

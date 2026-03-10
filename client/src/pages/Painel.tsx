@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
-import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag } from 'lucide-react';
+import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
 
@@ -79,11 +79,9 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
   function handleMouseEnter() {
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      const TOOLTIP_HEIGHT = 340; // altura estimada do tooltip
+      const TOOLTIP_HEIGHT = 340;
       const TOOLTIP_WIDTH = 320;
-      // Mostrar abaixo se não há espaço acima, ou se estiver perto do topo da viewport
       const showBelow = rect.top < TOOLTIP_HEIGHT + 40;
-      // Calcular left garantindo que não saia da tela
       const centerX = rect.left + rect.width / 2;
       const minLeft = TOOLTIP_WIDTH / 2 + 8;
       const maxLeft = window.innerWidth - TOOLTIP_WIDTH / 2 - 8;
@@ -151,7 +149,6 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
             <TooltipClientes clientes={row.clientesContatados} />
           </div>
 
-          {/* Seta: aparece no topo do tooltip quando está abaixo, no rodapé quando está acima */}
           {pos.below ? (
             <div
               className="absolute left-1/2 -translate-x-1/2 -top-1.5 w-0 h-0"
@@ -173,21 +170,21 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
 function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) {
   const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626'];
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden h-full flex flex-col" style={{ borderColor: '#E0E8F0' }}>
       <div className="px-4 py-2.5 rounded-t-xl" style={{ backgroundColor: '#0F4C81' }}>
         <h3 className="text-sm font-bold text-white tracking-wide">Clientes até 90 dias — por Marco</h3>
       </div>
-      <table className="w-full table-fixed">
+      <table className="w-full table-fixed flex-1">
         <colgroup>
-          <col style={{ width: '30%' }} />
-          <col style={{ width: '35%' }} />
-          <col style={{ width: '35%' }} />
+          <col style={{ width: '34%' }} />
+          <col style={{ width: '33%' }} />
+          <col style={{ width: '33%' }} />
         </colgroup>
         <thead>
           <tr className="border-b" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Marco</th>
             <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Qtd</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% do Total</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Total</th>
           </tr>
         </thead>
         <tbody>
@@ -229,8 +226,46 @@ function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) 
           </tr>
         </tfoot>
       </table>
+      <div className="px-4 py-2 border-t mt-auto" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
+        <p className="text-xs text-gray-400">Clientes com entrada há até 90 dias, agrupados pelo marco atual</p>
+      </div>
+    </div>
+  );
+}
+
+// Tabela de Migração — dados placeholder até integração real
+function TabelaMigracao() {
+  const itens = [
+    { label: 'Empresas em migração', valor: '—', cor: '#2563EB', bg: '#EFF6FF' },
+    { label: 'Migrado no dia',        valor: '—', cor: '#059669', bg: '#ECFDF5' },
+    { label: 'Migrado no mês',        valor: '—', cor: '#7C3AED', bg: '#F5F3FF' },
+    { label: 'Migrações finalizadas', valor: '—', cor: '#D97706', bg: '#FFFBEB' },
+  ];
+  return (
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden h-full flex flex-col" style={{ borderColor: '#E0E8F0' }}>
+      <div className="px-4 py-2.5 rounded-t-xl flex items-center gap-2" style={{ backgroundColor: '#1E3A5F' }}>
+        <Truck className="w-4 h-4 text-white opacity-80" />
+        <h3 className="text-sm font-bold text-white tracking-wide">Migração</h3>
+        <span className="ml-auto text-xs text-white/50 font-medium">Em breve</span>
+      </div>
+      <div className="flex-1 divide-y" style={{ borderColor: '#F0F4F8' }}>
+        {itens.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/60 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-600">{item.label}</span>
+            <span
+              className="text-2xl font-bold px-3 py-0.5 rounded-lg min-w-[3rem] text-center"
+              style={{ color: item.cor, backgroundColor: item.bg }}
+            >
+              {item.valor}
+            </span>
+          </div>
+        ))}
+      </div>
       <div className="px-4 py-2 border-t" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
-        <p className="text-xs text-gray-400">Clientes com entrada há até 90 dias, agrupados pelo marco atual em andamento</p>
+        <p className="text-xs text-gray-400">Dados serão integrados em breve</p>
       </div>
     </div>
   );
@@ -248,28 +283,28 @@ function TabelaCobertura({
   total: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
 }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden h-full flex flex-col" style={{ borderColor: '#E0E8F0' }}>
       <div className="px-4 py-2.5 rounded-t-xl" style={{ backgroundColor: cor }}>
         <h3 className="text-sm font-bold text-white tracking-wide">{titulo}</h3>
       </div>
 
-      <table className="w-full table-fixed">
+      <table className="w-full table-fixed flex-1">
         <colgroup>
-          <col style={{ width: '22%' }} />
-          <col style={{ width: '16%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '16%' }} />
-          <col style={{ width: '16%' }} />
-          <col style={{ width: '16%' }} />
+          <col style={{ width: '20%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '13%' }} />
+          <col style={{ width: '17%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '17%' }} />
         </colgroup>
         <thead>
           <tr className="border-b" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">CSM</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contatos</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Semana</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Meta 25%</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Mês</th>
+            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cont.</th>
+            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Sem.</th>
+            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Meta 25%</th>
+            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Mês</th>
           </tr>
         </thead>
         <tbody>
@@ -281,14 +316,14 @@ function TabelaCobertura({
                 className="border-b transition-colors hover:bg-blue-50/30"
                 style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
               >
-                <td className="px-3 py-2.5 font-semibold text-gray-800 text-base truncate">{row.csm}</td>
-                <td className="px-2 py-2.5 text-center">
+                <td className="px-3 py-2.5 font-semibold text-gray-800 text-sm truncate">{row.csm}</td>
+                <td className="px-1 py-2.5 text-center">
                   <ContatosCell row={row} />
                 </td>
-                <td className="px-2 py-2.5 text-center text-xl font-bold text-gray-700">{row.totalClientes}</td>
-                <td className="px-2 py-2.5 text-center">
+                <td className="px-1 py-2.5 text-center text-xl font-bold text-gray-700">{row.totalClientes}</td>
+                <td className="px-1 py-2.5 text-center">
                   <span
-                    className="inline-block px-2 py-0.5 rounded-full text-base font-bold"
+                    className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold"
                     style={{
                       backgroundColor: row.bateuMeta ? '#DCFCE7' : '#FEE2E2',
                       color: row.bateuMeta ? '#166534' : '#991B1B',
@@ -297,11 +332,11 @@ function TabelaCobertura({
                     {pct(row.percentual)}
                   </span>
                 </td>
-                <td className="px-2 py-2.5 text-center">
+                <td className="px-1 py-2.5 text-center">
                   <StatusIcon bateu={row.bateuMeta} />
                 </td>
-                <td className="px-2 py-2.5 text-center">
-                  <span className="inline-block px-2 py-0.5 rounded-full text-base font-bold bg-indigo-50 text-indigo-700">
+                <td className="px-1 py-2.5 text-center">
+                  <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700">
                     {pctMes.toFixed(0)}%
                   </span>
                 </td>
@@ -312,11 +347,11 @@ function TabelaCobertura({
         <tfoot>
           <tr style={{ backgroundColor: '#F1F5F9' }}>
             <td className="px-3 py-2.5 font-bold text-gray-700 text-xs uppercase tracking-wide">Total</td>
-            <td className="px-2 py-2.5 text-center font-bold text-gray-800 text-xl">{total.contatos}</td>
-            <td className="px-2 py-2.5 text-center font-bold text-gray-800 text-xl">{total.total}</td>
-            <td className="px-2 py-2.5 text-center">
+            <td className="px-1 py-2.5 text-center font-bold text-gray-800 text-xl">{total.contatos}</td>
+            <td className="px-1 py-2.5 text-center font-bold text-gray-800 text-xl">{total.total}</td>
+            <td className="px-1 py-2.5 text-center">
               <span
-                className="inline-block px-2 py-0.5 rounded-full text-base font-bold"
+                className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold"
                 style={{
                   backgroundColor: total.bateuMeta ? '#DCFCE7' : '#FEE2E2',
                   color: total.bateuMeta ? '#166534' : '#991B1B',
@@ -325,14 +360,14 @@ function TabelaCobertura({
                 {pct(total.percentual)}
               </span>
             </td>
-            <td className="px-2 py-2.5 text-center">
+            <td className="px-1 py-2.5 text-center">
               <StatusIcon bateu={total.bateuMeta} />
             </td>
-            <td className="px-2 py-2.5 text-center">
+            <td className="px-1 py-2.5 text-center">
               {(() => {
                 const pctMes = total.total > 0 ? (total.acumuladoMes / total.total) * 100 : 0;
                 return (
-                  <span className="inline-block px-2 py-0.5 rounded-full text-base font-bold bg-indigo-100 text-indigo-800">
+                  <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold bg-indigo-100 text-indigo-800">
                     {pctMes.toFixed(0)}%
                   </span>
                 );
@@ -379,7 +414,8 @@ export default function Painel() {
         </Button>
       </header>
 
-      <main className="px-4 pt-4 pb-8 max-w-7xl mx-auto space-y-5">
+      {/* Conteúdo ocupa toda a largura disponível */}
+      <main className="px-4 pt-4 pb-8 w-full space-y-4">
         {loading && (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
@@ -397,8 +433,8 @@ export default function Painel() {
 
         {data && !loading && (
           <>
-            {/* Cards de resumo geral */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Cards de resumo — 4 colunas: Onboarding | Ongoing | Geral | Migrados no Ano */}
+            <div className="grid grid-cols-4 gap-3">
               {[
                 { label: 'Onboarding', color: '#2563EB', t: data.totalOnboarding },
                 { label: 'Ongoing',    color: '#7C3AED', t: data.totalOngoing },
@@ -411,7 +447,7 @@ export default function Painel() {
                     <p className="text-4xl font-bold text-gray-800">{pct(t.percentual)}</p>
                     <p className="text-sm text-gray-500">{t.contatos} de {t.total} clientes na semana</p>
                     <p className="text-sm font-semibold" style={{ color }}>
-                      {pctMes.toFixed(0)}% acumulado no mês ({t.acumuladoMes} clientes)
+                      {pctMes.toFixed(0)}% acumulado no mês ({t.acumuladoMes})
                     </p>
                     <div className="flex items-center gap-1 mt-0.5">
                       {t.bateuMeta ? (
@@ -423,10 +459,23 @@ export default function Painel() {
                   </div>
                 );
               })}
+
+              {/* Card Migrados no Ano — placeholder */}
+              <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-1" style={{ borderColor: '#E0E8F0', borderLeft: '4px solid #0EA5E9' }}>
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-sky-500" /> Migrados no Ano
+                </p>
+                <p className="text-4xl font-bold text-sky-600">—</p>
+                <p className="text-sm text-gray-400 italic">Dados em breve</p>
+                <p className="text-sm text-gray-400">—</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-xs text-gray-400">Aguardando integração</span>
+                </div>
+              </div>
             </div>
 
-            {/* Tabelas por analista e marcos */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Linha 1: Onboarding + Ongoing (lado a lado, 50/50) */}
+            <div className="grid grid-cols-2 gap-3">
               <TabelaCobertura
                 titulo="Cobertura Semanal — Onboarding"
                 cor="#2563EB"
@@ -439,10 +488,15 @@ export default function Painel() {
                 dados={data.ongoing}
                 total={data.totalOngoing}
               />
+            </div>
+
+            {/* Linha 2: Marcos + Migração (lado a lado, 50/50) */}
+            <div className="grid grid-cols-2 gap-3">
               <TabelaMarcos
                 dados={data.clientesPorMarco}
                 total={data.totalClientesMarco}
               />
+              <TabelaMigracao />
             </div>
 
             <p className="text-xs text-gray-400 text-center">
