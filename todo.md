@@ -88,3 +88,4 @@
 - [x] Adicionar acumulado mensal (clientes únicos no mês) por CSM no hook usePainelData
 - [x] Aumentar fonte das tabelas e adicionar coluna Acumulado Mês no Painel
 - [x] Ajustar tabelas do Painel: números maiores, cabeçalhos compactos, sem "(hover)", acumulado em %, sem overflow
+- [x] Corrigir z-index do tooltip de clientes no Painel (aparece por baixo dos painéis)

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo } from '@/hooks/usePainelData';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { createPortal } from 'react-dom';
 
 const META = 25; // 25%
 
@@ -60,32 +61,57 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
 
 function ContatosCell({ row }: { row: CoberturaCSM }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const inBtn = btnRef.current?.contains(e.target as Node);
+      const inTip = tooltipRef.current?.contains(e.target as Node);
+      if (!inBtn && !inTip) setOpen(false);
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  function handleMouseEnter() {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.top + window.scrollY - 8,
+        left: rect.left + rect.width / 2 + window.scrollX,
+      });
+    }
+    setOpen(true);
+  }
+
   return (
-    <div ref={ref} className="relative inline-block">
+    <div className="relative inline-block">
       <button
+        ref={btnRef}
         className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-xl"
-        onMouseEnter={() => setOpen(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setOpen(false)}
         onClick={() => setOpen(v => !v)}
       >
         {row.contatosSemana}
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
-          className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 bg-white rounded-xl shadow-2xl border"
-          style={{ borderColor: '#E0E8F0' }}
+          ref={tooltipRef}
+          className="w-80 bg-white rounded-xl shadow-2xl border"
+          style={{
+            position: 'absolute',
+            zIndex: 99999,
+            borderColor: '#E0E8F0',
+            top: pos.top,
+            left: pos.left,
+            transform: 'translate(-50%, -100%)',
+            marginTop: '-8px',
+          }}
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
         >
@@ -118,7 +144,8 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
             className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
             style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #E0E8F0' }}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
