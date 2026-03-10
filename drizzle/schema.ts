@@ -31,6 +31,7 @@ export const allowedEmails = mysqlTable("allowed_emails", {
   email: varchar("email", { length: 320 }).notNull().unique(),
   label: text("label"), // nome/descrição opcional
   isAdmin: int("isAdmin").default(0).notNull(), // 1 = pode acessar Configurações
+  canLaunch: int("canLaunch").default(1).notNull(), // 1 = pode lançar atendimentos
   // JSON array de IDs de abas permitidas, ex: ["dashboard","marcos","ongoing"]
   // null = acesso a todas as abas (comportamento padrão para admins)
   allowedPages: text("allowedPages"),

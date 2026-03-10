@@ -30,6 +30,7 @@ type EmailEntry = {
   email: string;
   label: string | null;
   isAdmin: number;
+  canLaunch: number;
   allowedPages: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -51,6 +52,7 @@ export default function Configuracoes() {
       setNewEmail("");
       setNewLabel("");
       setNewIsAdmin(false);
+      setNewCanLaunch(true);
       setNewAllowedPages(null);
     },
     onError: (e) => toast("Erro: " + e.message),
@@ -78,6 +80,7 @@ export default function Configuracoes() {
   const [newEmail, setNewEmail] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [newIsAdmin, setNewIsAdmin] = useState(false);
+  const [newCanLaunch, setNewCanLaunch] = useState(true);
   const [newAllowedPages, setNewAllowedPages] = useState<string[] | null>(null); // null = todas
 
   const [editOpen, setEditOpen] = useState(false);
@@ -85,6 +88,7 @@ export default function Configuracoes() {
   const [editEmail, setEditEmail] = useState("");
   const [editLabel, setEditLabel] = useState("");
   const [editIsAdmin, setEditIsAdmin] = useState(false);
+  const [editCanLaunch, setEditCanLaunch] = useState(true);
   const [editAllowedPages, setEditAllowedPages] = useState<string[] | null>(null);
 
   const openEdit = (entry: EmailEntry) => {
@@ -92,6 +96,7 @@ export default function Configuracoes() {
     setEditEmail(entry.email);
     setEditLabel(entry.label ?? "");
     setEditIsAdmin(entry.isAdmin === 1);
+    setEditCanLaunch(entry.canLaunch === 1);
     setEditAllowedPages(entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null);
     setEditOpen(true);
   };
@@ -181,6 +186,15 @@ export default function Configuracoes() {
                             Admin
                           </Badge>
                         )}
+                        {(entry as EmailEntry).canLaunch === 1 ? (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 border-green-200">
+                            Lança atend.
+                          </Badge>
+                        ) : (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-gray-100 text-gray-500 border-gray-200">
+                            Só visualiza
+                          </Badge>
+                        )}
                       </div>
                       {entry.label && (
                         <p className="text-xs text-gray-400 mt-0.5">{entry.label}</p>
@@ -263,6 +277,15 @@ export default function Configuracoes() {
               />
               <span className="text-sm text-gray-700">Permissão de administrador (acesso às Configurações)</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newCanLaunch}
+                onChange={(e) => setNewCanLaunch(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">Pode lançar atendimentos</span>
+            </label>
 
             {/* Seleção de abas */}
             <div>
@@ -307,7 +330,7 @@ export default function Configuracoes() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
             <Button
-              onClick={() => addMutation.mutate({ email: newEmail, label: newLabel || undefined, isAdmin: newIsAdmin })}
+              onClick={() => addMutation.mutate({ email: newEmail, label: newLabel || undefined, isAdmin: newIsAdmin, canLaunch: newCanLaunch })}
               disabled={!newEmail || addMutation.isPending}
             >
               {addMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
@@ -346,6 +369,15 @@ export default function Configuracoes() {
                 className="w-4 h-4 rounded"
               />
               <span className="text-sm text-gray-700">Permissão de administrador</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editCanLaunch}
+                onChange={(e) => setEditCanLaunch(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">Pode lançar atendimentos</span>
             </label>
 
             {/* Seleção de abas */}
@@ -396,6 +428,7 @@ export default function Configuracoes() {
                 email: editEmail,
                 label: editLabel || undefined,
                 isAdmin: editIsAdmin,
+                canLaunch: editCanLaunch,
                 allowedPages: editAllowedPages,
               })}
               disabled={!editEmail || updateMutation.isPending}

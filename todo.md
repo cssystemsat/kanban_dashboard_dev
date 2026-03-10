@@ -79,3 +79,5 @@
 - [x] Criar página Estatísticas com dashboard completo de uso por usuário
 - [x] Atualizar SideMenu: Painel público, Estatísticas só admins, restrição sem login
 - [x] Integrar rastreamento automático de sessão e navegação no App.tsx
+- [x] Adicionar coluna canLaunch na tabela allowed_emails e atualizar permissão de lançamento de atendimento
+- [x] Atualizar Configurações com checkbox de permissão de lançamento por usuário

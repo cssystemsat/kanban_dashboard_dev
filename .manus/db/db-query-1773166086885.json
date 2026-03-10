@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE allowed_emails ADD COLUMN canLaunch INT NOT NULL DEFAULT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute ALTER TABLE allowed_emails ADD COLUMN canLaunch INT NOT NULL DEFAULT 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 966
+}

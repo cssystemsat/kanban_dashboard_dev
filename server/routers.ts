@@ -76,9 +76,12 @@ export const appRouter = router({
         if (!ctx.user || !ctx.user.email) {
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado para lançar atendimentos.' });
         }
-        const allowed = await isEmailAllowed(ctx.user.email);
-        if (!allowed) {
+        const entry = await getEmailEntry(ctx.user.email);
+        if (!entry) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado. Seu e-mail não está na lista de usuários autorizados.' });
+        }
+        if (entry.canLaunch !== 1) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado. Você não tem permissão para lançar atendimentos.' });
         }
         const agora = new Date();
         const dataFormatada = agora.toLocaleDateString("pt-BR", {
@@ -98,12 +101,14 @@ export const appRouter = router({
         return { success: true, row: result.row, sheetName: result.sheetName };
       }),
     checkPermission: publicProcedure.query(async ({ ctx }) => {
-      if (!ctx.user || !ctx.user.email) return { allowed: false, isAdmin: false };
-      const [allowed, admin] = await Promise.all([
+      if (!ctx.user || !ctx.user.email) return { allowed: false, isAdmin: false, canLaunch: false };
+      const [allowed, admin, entry] = await Promise.all([
         isEmailAllowed(ctx.user.email),
         isEmailAdmin(ctx.user.email),
+        getEmailEntry(ctx.user.email),
       ]);
-      return { allowed, isAdmin: admin };
+      const canLaunch = entry ? entry.canLaunch === 1 : false;
+      return { allowed, isAdmin: admin, canLaunch };
     }),
   }),
   config: router({
@@ -114,16 +119,16 @@ export const appRouter = router({
       return getAllowedEmails();
     }),
     addEmail: publicProcedure
-      .input(z.object({ email: z.string().email(), label: z.string().optional(), isAdmin: z.boolean().default(false) }))
+      .input(z.object({ email: z.string().email(), label: z.string().optional(), isAdmin: z.boolean().default(false), canLaunch: z.boolean().default(true) }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
         const admin = await isEmailAdmin(ctx.user.email);
         if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
-        await addAllowedEmail({ email: input.email, label: input.label ?? null, isAdmin: input.isAdmin ? 1 : 0 });
+        await addAllowedEmail({ email: input.email, label: input.label ?? null, isAdmin: input.isAdmin ? 1 : 0, canLaunch: input.canLaunch ? 1 : 0 });
         return { success: true };
       }),
     updateEmail: publicProcedure
-      .input(z.object({ id: z.number(), email: z.string().email().optional(), label: z.string().optional(), isAdmin: z.boolean().optional(), allowedPages: z.array(z.string()).nullable().optional() }))
+      .input(z.object({ id: z.number(), email: z.string().email().optional(), label: z.string().optional(), isAdmin: z.boolean().optional(), canLaunch: z.boolean().optional(), allowedPages: z.array(z.string()).nullable().optional() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
         const admin = await isEmailAdmin(ctx.user.email);
@@ -133,6 +138,7 @@ export const appRouter = router({
         if (data.email !== undefined) updateData.email = data.email.toLowerCase();
         if (data.label !== undefined) updateData.label = data.label;
         if (data.isAdmin !== undefined) updateData.isAdmin = data.isAdmin ? 1 : 0;
+        if (data.canLaunch !== undefined) updateData.canLaunch = data.canLaunch ? 1 : 0;
         if (data.allowedPages !== undefined) updateData.allowedPages = data.allowedPages === null ? null : JSON.stringify(data.allowedPages);
         await updateAllowedEmail(id, updateData as Parameters<typeof updateAllowedEmail>[1]);
         return { success: true };
