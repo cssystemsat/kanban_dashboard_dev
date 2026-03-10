@@ -21,16 +21,18 @@ export interface CoberturaCSM {
   totalClientes: number;
   percentual: number;
   bateuMeta: boolean;
-  clientesContatados: ClienteContato[]; // lista para tooltip
+  clientesContatados: ClienteContato[]; // lista para tooltip da semana
+  acumuladoMes: number; // clientes únicos contatados no mês atual
 }
 
 export interface PainelData {
   onboarding: CoberturaCSM[];
   ongoing: CoberturaCSM[];
-  totalOnboarding: { contatos: number; total: number; percentual: number; bateuMeta: boolean };
-  totalOngoing: { contatos: number; total: number; percentual: number; bateuMeta: boolean };
-  totalGeral: { contatos: number; total: number; percentual: number; bateuMeta: boolean };
+  totalOnboarding: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
+  totalOngoing: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
+  totalGeral: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
   semanaAtual: { inicio: string; fim: string };
+  mesAtual: string; // ex: "Março/2026"
 }
 
 const META_SEMANAL = 0.25; // 25%
@@ -90,6 +92,16 @@ function getSemanaAtual(): { inicio: Date; fim: Date } {
   return { inicio: segunda, fim: domingo };
 }
 
+function getMesAtual(): { inicio: Date; fim: Date; label: string } {
+  const hoje = new Date();
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  inicio.setHours(0, 0, 0, 0);
+  const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+  fim.setHours(23, 59, 59, 999);
+  const label = hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return { inicio, fim, label: label.charAt(0).toUpperCase() + label.slice(1) };
+}
+
 function formatDate(date: Date): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
@@ -104,22 +116,26 @@ function normalizeFlag(raw: string): FlagTipo {
 
 function calcularCobertura(
   rows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo }[],
-  semana: { inicio: Date; fim: Date }
+  semana: { inicio: Date; fim: Date },
+  mes: { inicio: Date; fim: Date }
 ): CoberturaCSM[] {
   const mapa: Record<string, {
     contatos: number;
     total: number;
     clientesContatados: ClienteContato[];
+    nomesNoMes: Set<string>; // para deduplicar por nome no mês
   }> = {};
 
   for (const row of rows) {
     const csm = row.csm.trim();
     if (!csm) continue;
 
-    if (!mapa[csm]) mapa[csm] = { contatos: 0, total: 0, clientesContatados: [] };
+    if (!mapa[csm]) mapa[csm] = { contatos: 0, total: 0, clientesContatados: [], nomesNoMes: new Set() };
     mapa[csm].total++;
 
     const data = parseDate(row.ultimoContato);
+
+    // Contato na semana atual
     if (data && data >= semana.inicio && data <= semana.fim) {
       mapa[csm].contatos++;
       mapa[csm].clientesContatados.push({
@@ -128,12 +144,16 @@ function calcularCobertura(
         ultimoContato: row.ultimoContato,
       });
     }
+
+    // Acumulado do mês (cliente único por nome)
+    if (data && data >= mes.inicio && data <= mes.fim) {
+      mapa[csm].nomesNoMes.add(row.nome.trim());
+    }
   }
 
   return Object.entries(mapa)
-    .map(([csm, { contatos, total, clientesContatados }]) => {
+    .map(([csm, { contatos, total, clientesContatados, nomesNoMes }]) => {
       const percentual = total > 0 ? contatos / total : 0;
-      // Ordenar: flags primeiro (Red > Yellow > Black > sem flag), depois nome
       const flagOrder: Record<FlagTipo, number> = { 'Red Flag': 0, 'Yellow Flag': 1, 'Black Flag': 2, '': 3 };
       clientesContatados.sort((a, b) => {
         const fo = flagOrder[a.flag] - flagOrder[b.flag];
@@ -147,16 +167,18 @@ function calcularCobertura(
         percentual,
         bateuMeta: percentual >= META_SEMANAL,
         clientesContatados,
+        acumuladoMes: nomesNoMes.size,
       };
     })
     .sort((a, b) => a.csm.localeCompare(b.csm));
 }
 
-function somarTotal(lista: CoberturaCSM[]): { contatos: number; total: number; percentual: number; bateuMeta: boolean } {
+function somarTotal(lista: CoberturaCSM[]): { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number } {
   const contatos = lista.reduce((s, c) => s + c.contatosSemana, 0);
   const total = lista.reduce((s, c) => s + c.totalClientes, 0);
+  const acumuladoMes = lista.reduce((s, c) => s + c.acumuladoMes, 0);
   const percentual = total > 0 ? contatos / total : 0;
-  return { contatos, total, percentual, bateuMeta: percentual >= META_SEMANAL };
+  return { contatos, total, percentual, bateuMeta: percentual >= META_SEMANAL, acumuladoMes };
 }
 
 export function usePainelData() {
@@ -170,6 +192,7 @@ export function usePainelData() {
 
     try {
       const semana = getSemanaAtual();
+      const mes = getMesAtual();
 
       const [marcosRes, ongoingRes] = await Promise.all([
         fetch(MARCOS_URL),
@@ -218,14 +241,15 @@ export function usePainelData() {
         if (csm) ongoingRows.push({ nome, csm, ultimoContato, flag });
       }
 
-      const onboarding = calcularCobertura(marcosRows, semana);
-      const ongoing = calcularCobertura(ongoingRows, semana);
+      const onboarding = calcularCobertura(marcosRows, semana, mes);
+      const ongoing = calcularCobertura(ongoingRows, semana, mes);
 
       const totalOnboarding = somarTotal(onboarding);
       const totalOngoing = somarTotal(ongoing);
       const totalGeral = {
         contatos: totalOnboarding.contatos + totalOngoing.contatos,
         total: totalOnboarding.total + totalOngoing.total,
+        acumuladoMes: totalOnboarding.acumuladoMes + totalOngoing.acumuladoMes,
         percentual: 0,
         bateuMeta: false,
       };
@@ -242,6 +266,7 @@ export function usePainelData() {
           inicio: formatDate(semana.inicio),
           fim: formatDate(semana.fim),
         },
+        mesAtual: mes.label,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');

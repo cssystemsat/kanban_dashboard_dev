@@ -85,3 +85,5 @@
 - [x] Construir página Painel com tabela de cobertura por analista (Onboarding + Ongoing + totais + meta 25%)
 - [x] Atualizar hook usePainelData para incluir lista de clientes contatados com nome e flag
 - [x] Adicionar tooltip nos contatos do Painel com lista de clientes coloridos por flag
+- [x] Adicionar acumulado mensal (clientes únicos no mês) por CSM no hook usePainelData
+- [x] Aumentar fonte das tabelas e adicionar coluna Acumulado Mês no Painel
