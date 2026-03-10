@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo } from '@/hooks/usePainelData';
+import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
@@ -61,7 +61,7 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
 
 function ContatosCell({ row }: { row: CoberturaCSM }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [pos, setPos] = useState({ top: 0, left: 0, below: false });
   const btnRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -79,10 +79,22 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
   function handleMouseEnter() {
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
+      const TOOLTIP_HEIGHT = 340; // altura estimada do tooltip
+      const TOOLTIP_WIDTH = 320;
+      // Mostrar abaixo se não há espaço acima, ou se estiver perto do topo da viewport
+      const showBelow = rect.top < TOOLTIP_HEIGHT + 40;
+      // Calcular left garantindo que não saia da tela
+      const centerX = rect.left + rect.width / 2;
+      const minLeft = TOOLTIP_WIDTH / 2 + 8;
+      const maxLeft = window.innerWidth - TOOLTIP_WIDTH / 2 - 8;
+      const safeLeft = Math.max(minLeft, Math.min(maxLeft, centerX));
       setPos({
-        top: rect.top + window.scrollY - 8,
-        left: rect.left + rect.width / 2 + window.scrollX,
-      });
+        top: showBelow
+          ? rect.bottom + window.scrollY + 8
+          : rect.top + window.scrollY - 8,
+        left: safeLeft + window.scrollX,
+        below: showBelow,
+      } as any);
     }
     setOpen(true);
   }
@@ -109,8 +121,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
             borderColor: '#E0E8F0',
             top: pos.top,
             left: pos.left,
-            transform: 'translate(-50%, -100%)',
-            marginTop: '-8px',
+            transform: pos.below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
           }}
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
@@ -140,13 +151,87 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
             <TooltipClientes clientes={row.clientesContatados} />
           </div>
 
-          <div
-            className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
-            style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #E0E8F0' }}
-          />
+          {/* Seta: aparece no topo do tooltip quando está abaixo, no rodapé quando está acima */}
+          {pos.below ? (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 -top-1.5 w-0 h-0"
+              style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #E0E8F0' }}
+            />
+          ) : (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+              style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #E0E8F0' }}
+            />
+          )}
         </div>,
         document.body
       )}
+    </div>
+  );
+}
+
+function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) {
+  const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626'];
+  return (
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
+      <div className="px-4 py-2.5 rounded-t-xl" style={{ backgroundColor: '#0F4C81' }}>
+        <h3 className="text-sm font-bold text-white tracking-wide">Clientes até 90 dias — por Marco</h3>
+      </div>
+      <table className="w-full table-fixed">
+        <colgroup>
+          <col style={{ width: '30%' }} />
+          <col style={{ width: '35%' }} />
+          <col style={{ width: '35%' }} />
+        </colgroup>
+        <thead>
+          <tr className="border-b" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
+            <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Marco</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Qtd</th>
+            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% do Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dados.map((row, idx) => (
+            <tr
+              key={row.marco}
+              className="border-b transition-colors hover:bg-blue-50/30"
+              style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
+            >
+              <td className="px-3 py-2.5">
+                <span
+                  className="inline-flex items-center gap-1.5 font-bold text-sm px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: colors[idx] + '20', color: colors[idx] }}
+                >
+                  Marco {row.marco}
+                </span>
+              </td>
+              <td className="px-2 py-2.5 text-center text-2xl font-bold" style={{ color: colors[idx] }}>
+                {row.quantidade}
+              </td>
+              <td className="px-2 py-2.5 text-center">
+                <span
+                  className="inline-block px-2 py-0.5 rounded-full text-base font-bold"
+                  style={{ backgroundColor: colors[idx] + '15', color: colors[idx] }}
+                >
+                  {total > 0 ? ((row.quantidade / total) * 100).toFixed(0) : 0}%
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr style={{ backgroundColor: '#F1F5F9' }}>
+            <td className="px-3 py-2.5 font-bold text-gray-700 text-xs uppercase tracking-wide">Total</td>
+            <td className="px-2 py-2.5 text-center font-bold text-gray-800 text-2xl">{total}</td>
+            <td className="px-2 py-2.5 text-center">
+              <span className="inline-block px-2 py-0.5 rounded-full text-base font-bold bg-gray-100 text-gray-700">100%</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <div className="px-4 py-2 border-t" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
+        <p className="text-xs text-gray-400">Clientes com entrada há até 90 dias, agrupados pelo marco atual em andamento</p>
+      </div>
     </div>
   );
 }
@@ -340,8 +425,8 @@ export default function Painel() {
               })}
             </div>
 
-            {/* Tabelas por analista lado a lado */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Tabelas por analista e marcos */}
+            <div className="grid grid-cols-3 gap-4">
               <TabelaCobertura
                 titulo="Cobertura Semanal — Onboarding"
                 cor="#2563EB"
@@ -353,6 +438,10 @@ export default function Painel() {
                 cor="#7C3AED"
                 dados={data.ongoing}
                 total={data.totalOngoing}
+              />
+              <TabelaMarcos
+                dados={data.clientesPorMarco}
+                total={data.totalClientesMarco}
               />
             </div>
 

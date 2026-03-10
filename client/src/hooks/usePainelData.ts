@@ -25,6 +25,12 @@ export interface CoberturaCSM {
   acumuladoMes: number; // clientes únicos contatados no mês atual
 }
 
+export interface MarcoStats {
+  marco: number;
+  quantidade: number;
+  percentual: number; // % do total de clientes
+}
+
 export interface PainelData {
   onboarding: CoberturaCSM[];
   ongoing: CoberturaCSM[];
@@ -33,6 +39,8 @@ export interface PainelData {
   totalGeral: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
   semanaAtual: { inicio: string; fim: string };
   mesAtual: string; // ex: "Março/2026"
+  clientesPorMarco: MarcoStats[]; // clientes até 90 dias por marco
+  totalClientesMarco: number;
 }
 
 const META_SEMANAL = 0.25; // 25%
@@ -209,8 +217,11 @@ export function usePainelData() {
       ]);
 
       // Processar Marcos (Onboarding)
-      // Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
+      // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col D (idx 3) = Entrada
+      // Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
+      // Marcos: AK(36), AL(37), AM(38), AN(39), AO(40)
       const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo }[] = [];
+      const marcosRowsMarco: { nome: string; entrada: string; marcos: string[] }[] = [];
       const marcosLines = marcosCsv.split('\n');
       for (let i = 1; i < marcosLines.length; i++) {
         const line = marcosLines[i].trim();
@@ -221,8 +232,41 @@ export function usePainelData() {
         const csm = row[2]?.trim() || '';
         const ultimoContato = row[11]?.trim() || '';
         const flag = normalizeFlag(row[14] || '');
+        const entrada = row[3]?.trim() || '';
+        const marcos = [row[36]?.trim() || '', row[37]?.trim() || '', row[38]?.trim() || '', row[39]?.trim() || '', row[40]?.trim() || ''];
         if (csm) marcosRows.push({ nome, csm, ultimoContato, flag });
+        if (entrada) marcosRowsMarco.push({ nome, entrada, marcos });
       }
+
+      // Calcular clientes até 90 dias por Marco
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const marcoContagem: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      for (const r of marcosRowsMarco) {
+        const entradaDate = parseDate(r.entrada);
+        if (!entradaDate) continue;
+        const dias = Math.floor((hoje.getTime() - entradaDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (dias > 90) continue; // só até 90 dias
+        // Determinar marco atual (primeiro não-OK)
+        let marcoAtual = 1;
+        for (let m = 0; m < r.marcos.length; m++) {
+          const v = r.marcos[m].trim();
+          if (v.toUpperCase() === 'OK') {
+            marcoAtual = m + 2; // próximo marco
+          } else {
+            marcoAtual = m + 1;
+            break;
+          }
+        }
+        if (marcoAtual > 5) marcoAtual = 5;
+        marcoContagem[marcoAtual] = (marcoContagem[marcoAtual] || 0) + 1;
+      }
+      const totalClientesMarco = Object.values(marcoContagem).reduce((s, v) => s + v, 0);
+      const clientesPorMarco: MarcoStats[] = [1, 2, 3, 4, 5].map(m => ({
+        marco: m,
+        quantidade: marcoContagem[m] || 0,
+        percentual: totalClientesMarco > 0 ? (marcoContagem[m] || 0) / totalClientesMarco : 0,
+      }));
 
       // Processar Ongoing
       // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
@@ -267,6 +311,8 @@ export function usePainelData() {
           fim: formatDate(semana.fim),
         },
         mesAtual: mes.label,
+        clientesPorMarco,
+        totalClientesMarco,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');

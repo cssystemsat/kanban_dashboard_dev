@@ -89,3 +89,5 @@
 - [x] Aumentar fonte das tabelas e adicionar coluna Acumulado Mês no Painel
 - [x] Ajustar tabelas do Painel: números maiores, cabeçalhos compactos, sem "(hover)", acumulado em %, sem overflow
 - [x] Corrigir z-index do tooltip de clientes no Painel (aparece por baixo dos painéis)
+- [x] Corrigir tooltip para aparecer abaixo quando perto do topo da tela
+- [x] Adicionar tabela de clientes por Marco (1-5, até 90 dias) no lado direito do Painel
