@@ -171,63 +171,29 @@ function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) 
   const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626'];
   return (
     <div className="bg-white rounded-xl border shadow-sm overflow-hidden h-full flex flex-col" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-4 py-2.5 rounded-t-xl" style={{ backgroundColor: '#0F4C81' }}>
-        <h3 className="text-sm font-bold text-white tracking-wide">Clientes até 90 dias — por Marco</h3>
+      <div className="px-3 py-2 rounded-t-xl" style={{ backgroundColor: '#0F4C81' }}>
+        <h3 className="text-xs font-bold text-white tracking-wide">Marcos ≤ 90 dias</h3>
       </div>
-      <table className="w-full table-fixed flex-1">
-        <colgroup>
-          <col style={{ width: '34%' }} />
-          <col style={{ width: '33%' }} />
-          <col style={{ width: '33%' }} />
-        </colgroup>
-        <thead>
-          <tr className="border-b" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
-            <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Marco</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Qtd</th>
-            <th className="text-center px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {dados.map((row, idx) => (
-            <tr
-              key={row.marco}
-              className="border-b transition-colors hover:bg-blue-50/30"
-              style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
+      <div className="flex-1 divide-y" style={{ borderColor: '#F0F4F8' }}>
+        {dados.map((row, idx) => (
+          <div
+            key={row.marco}
+            className="flex items-center justify-between px-3 py-2 hover:bg-blue-50/30 transition-colors"
+            style={{ backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
+          >
+            <span
+              className="inline-flex items-center font-bold text-xs px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: colors[idx] + '20', color: colors[idx] }}
             >
-              <td className="px-3 py-2.5">
-                <span
-                  className="inline-flex items-center gap-1.5 font-bold text-sm px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: colors[idx] + '20', color: colors[idx] }}
-                >
-                  Marco {row.marco}
-                </span>
-              </td>
-              <td className="px-2 py-2.5 text-center text-2xl font-bold" style={{ color: colors[idx] }}>
-                {row.quantidade}
-              </td>
-              <td className="px-2 py-2.5 text-center">
-                <span
-                  className="inline-block px-2 py-0.5 rounded-full text-base font-bold"
-                  style={{ backgroundColor: colors[idx] + '15', color: colors[idx] }}
-                >
-                  {total > 0 ? ((row.quantidade / total) * 100).toFixed(0) : 0}%
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr style={{ backgroundColor: '#F1F5F9' }}>
-            <td className="px-3 py-2.5 font-bold text-gray-700 text-xs uppercase tracking-wide">Total</td>
-            <td className="px-2 py-2.5 text-center font-bold text-gray-800 text-2xl">{total}</td>
-            <td className="px-2 py-2.5 text-center">
-              <span className="inline-block px-2 py-0.5 rounded-full text-base font-bold bg-gray-100 text-gray-700">100%</span>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-      <div className="px-4 py-2 border-t mt-auto" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
-        <p className="text-xs text-gray-400">Clientes com entrada há até 90 dias, agrupados pelo marco atual</p>
+              M{row.marco}
+            </span>
+            <span className="text-2xl font-bold" style={{ color: colors[idx] }}>{row.quantidade}</span>
+          </div>
+        ))}
+      </div>
+      <div className="px-3 py-1.5 border-t flex items-center justify-between" style={{ borderColor: '#E0E8F0', backgroundColor: '#F1F5F9' }}>
+        <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">Total</span>
+        <span className="text-xl font-bold text-gray-800">{total}</span>
       </div>
     </div>
   );
@@ -236,36 +202,34 @@ function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) 
 // Tabela de Migração — dados placeholder até integração real
 function TabelaMigracao() {
   const itens = [
-    { label: 'Empresas em migração', valor: '—', cor: '#2563EB', bg: '#EFF6FF' },
-    { label: 'Migrado no dia',        valor: '—', cor: '#059669', bg: '#ECFDF5' },
-    { label: 'Migrado no mês',        valor: '—', cor: '#7C3AED', bg: '#F5F3FF' },
-    { label: 'Migrações finalizadas', valor: '—', cor: '#D97706', bg: '#FFFBEB' },
+    { label: 'Em migração', valor: '—', cor: '#2563EB', bg: '#EFF6FF' },
+    { label: 'Migrado hoje', valor: '—', cor: '#059669', bg: '#ECFDF5' },
+    { label: 'Migrado no mês', valor: '—', cor: '#7C3AED', bg: '#F5F3FF' },
+    { label: 'Finalizadas',   valor: '—', cor: '#D97706', bg: '#FFFBEB' },
   ];
   return (
     <div className="bg-white rounded-xl border shadow-sm overflow-hidden h-full flex flex-col" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-4 py-2.5 rounded-t-xl flex items-center gap-2" style={{ backgroundColor: '#1E3A5F' }}>
-        <Truck className="w-4 h-4 text-white opacity-80" />
-        <h3 className="text-sm font-bold text-white tracking-wide">Migração</h3>
-        <span className="ml-auto text-xs text-white/50 font-medium">Em breve</span>
+      <div className="px-3 py-2 rounded-t-xl flex items-center gap-2" style={{ backgroundColor: '#1E3A5F' }}>
+        <Truck className="w-3.5 h-3.5 text-white opacity-80" />
+        <h3 className="text-xs font-bold text-white tracking-wide">Migração</h3>
+        <span className="ml-auto text-xs text-white/50">Em breve</span>
       </div>
       <div className="flex-1 divide-y" style={{ borderColor: '#F0F4F8' }}>
-        {itens.map((item) => (
+        {itens.map((item, idx) => (
           <div
             key={item.label}
-            className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/60 transition-colors"
+            className="flex items-center justify-between px-3 py-2 hover:bg-gray-50/60 transition-colors"
+            style={{ backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}
           >
-            <span className="text-sm font-medium text-gray-600">{item.label}</span>
+            <span className="text-xs font-medium text-gray-600">{item.label}</span>
             <span
-              className="text-2xl font-bold px-3 py-0.5 rounded-lg min-w-[3rem] text-center"
+              className="text-2xl font-bold px-2 py-0.5 rounded-lg min-w-[2.5rem] text-center"
               style={{ color: item.cor, backgroundColor: item.bg }}
             >
               {item.valor}
             </span>
           </div>
         ))}
-      </div>
-      <div className="px-4 py-2 border-t" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
-        <p className="text-xs text-gray-400">Dados serão integrados em breve</p>
       </div>
     </div>
   );
@@ -474,8 +438,8 @@ export default function Painel() {
               </div>
             </div>
 
-            {/* Linha 1: Onboarding + Ongoing (lado a lado, 50/50) */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* 4 tabelas em linha única: Onboarding (35%) | Ongoing (35%) | Marcos (15%) | Migração (15%) */}
+            <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr 160px 160px' }}>
               <TabelaCobertura
                 titulo="Cobertura Semanal — Onboarding"
                 cor="#2563EB"
@@ -488,10 +452,6 @@ export default function Painel() {
                 dados={data.ongoing}
                 total={data.totalOngoing}
               />
-            </div>
-
-            {/* Linha 2: Marcos + Migração (lado a lado, 50/50) */}
-            <div className="grid grid-cols-2 gap-3">
               <TabelaMarcos
                 dados={data.clientesPorMarco}
                 total={data.totalClientesMarco}

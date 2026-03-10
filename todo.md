@@ -94,3 +94,4 @@
 - [x] Otimizar layout horizontal do Painel (tabelas mais largas, sem overflow, melhor uso da tela)
 - [x] Adicionar card "Migrados no ano" ao lado do Painel Geral (placeholder)
 - [x] Adicionar tabela de Migração no Painel (Qtd em migração, Qtd migrado no dia, Qtd migrado no mês, Migrações finalizadas)
+- [x] Colocar 4 tabelas (Onboarding, Ongoing, Marcos, Migração) em uma única linha horizontal no Painel
