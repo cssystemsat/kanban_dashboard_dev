@@ -7,12 +7,21 @@ const MARCOS_URL =
 const ONGOING_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC/pub?gid=1152476970&single=true&output=csv';
 
+export type FlagTipo = 'Red Flag' | 'Yellow Flag' | 'Black Flag' | '';
+
+export interface ClienteContato {
+  nome: string;
+  flag: FlagTipo;
+  ultimoContato: string;
+}
+
 export interface CoberturaCSM {
   csm: string;
   contatosSemana: number;
   totalClientes: number;
   percentual: number;
-  bateuMeta: boolean; // meta = 25%
+  bateuMeta: boolean;
+  clientesContatados: ClienteContato[]; // lista para tooltip
 }
 
 export interface PainelData {
@@ -68,11 +77,10 @@ function parseDate(dateStr: string): Date | null {
   return null;
 }
 
-/** Retorna segunda-feira e domingo da semana atual */
 function getSemanaAtual(): { inicio: Date; fim: Date } {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
-  const diaSemana = hoje.getDay(); // 0=dom, 1=seg, ..., 6=sab
+  const diaSemana = hoje.getDay();
   const diffParaSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
   const segunda = new Date(hoje);
   segunda.setDate(hoje.getDate() + diffParaSegunda);
@@ -86,34 +94,59 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function normalizeFlag(raw: string): FlagTipo {
+  const v = raw.trim();
+  if (v === 'Red Flag') return 'Red Flag';
+  if (v === 'Yellow Flag') return 'Yellow Flag';
+  if (v === 'Black Flag') return 'Black Flag';
+  return '';
+}
+
 function calcularCobertura(
-  rows: { csm: string; ultimoContato: string }[],
+  rows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo }[],
   semana: { inicio: Date; fim: Date }
 ): CoberturaCSM[] {
-  const mapa: Record<string, { contatos: number; total: number }> = {};
+  const mapa: Record<string, {
+    contatos: number;
+    total: number;
+    clientesContatados: ClienteContato[];
+  }> = {};
 
   for (const row of rows) {
     const csm = row.csm.trim();
     if (!csm) continue;
 
-    if (!mapa[csm]) mapa[csm] = { contatos: 0, total: 0 };
+    if (!mapa[csm]) mapa[csm] = { contatos: 0, total: 0, clientesContatados: [] };
     mapa[csm].total++;
 
     const data = parseDate(row.ultimoContato);
     if (data && data >= semana.inicio && data <= semana.fim) {
       mapa[csm].contatos++;
+      mapa[csm].clientesContatados.push({
+        nome: row.nome,
+        flag: row.flag,
+        ultimoContato: row.ultimoContato,
+      });
     }
   }
 
   return Object.entries(mapa)
-    .map(([csm, { contatos, total }]) => {
+    .map(([csm, { contatos, total, clientesContatados }]) => {
       const percentual = total > 0 ? contatos / total : 0;
+      // Ordenar: flags primeiro (Red > Yellow > Black > sem flag), depois nome
+      const flagOrder: Record<FlagTipo, number> = { 'Red Flag': 0, 'Yellow Flag': 1, 'Black Flag': 2, '': 3 };
+      clientesContatados.sort((a, b) => {
+        const fo = flagOrder[a.flag] - flagOrder[b.flag];
+        if (fo !== 0) return fo;
+        return a.nome.localeCompare(b.nome);
+      });
       return {
         csm,
         contatosSemana: contatos,
         totalClientes: total,
         percentual,
         bateuMeta: percentual >= META_SEMANAL,
+        clientesContatados,
       };
     })
     .sort((a, b) => a.csm.localeCompare(b.csm));
@@ -138,7 +171,6 @@ export function usePainelData() {
     try {
       const semana = getSemanaAtual();
 
-      // Buscar as duas planilhas em paralelo
       const [marcosRes, ongoingRes] = await Promise.all([
         fetch(MARCOS_URL),
         fetch(ONGOING_URL),
@@ -154,8 +186,8 @@ export function usePainelData() {
       ]);
 
       // Processar Marcos (Onboarding)
-      // Col C (idx 2) = CSM/Atendente, Col L (idx 11) = Último Contato
-      const marcosRows: { csm: string; ultimoContato: string }[] = [];
+      // Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
+      const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo }[] = [];
       const marcosLines = marcosCsv.split('\n');
       for (let i = 1; i < marcosLines.length; i++) {
         const line = marcosLines[i].trim();
@@ -164,13 +196,14 @@ export function usePainelData() {
         const nome = row[1]?.trim() || '';
         if (!nome) continue;
         const csm = row[2]?.trim() || '';
-        const ultimoContato = row[11]?.trim() || ''; // Coluna L (idx 11)
-        if (csm) marcosRows.push({ csm, ultimoContato });
+        const ultimoContato = row[11]?.trim() || '';
+        const flag = normalizeFlag(row[14] || '');
+        if (csm) marcosRows.push({ nome, csm, ultimoContato, flag });
       }
 
       // Processar Ongoing
-      // Col C (idx 2) = CSM, Col L (idx 11) = Último Contato
-      const ongoingRows: { csm: string; ultimoContato: string }[] = [];
+      // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
+      const ongoingRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo }[] = [];
       const ongoingLines = ongoingCsv.split('\n');
       for (let i = 1; i < ongoingLines.length; i++) {
         const line = ongoingLines[i].trim();
@@ -178,9 +211,11 @@ export function usePainelData() {
         const row = parseCSVLine(line);
         const codigoCliente = row[0]?.trim() || '';
         if (!codigoCliente) continue;
+        const nome = row[1]?.trim() || '';
         const csm = row[2]?.trim() || '';
-        const ultimoContato = row[11]?.trim() || ''; // Coluna L (idx 11)
-        if (csm) ongoingRows.push({ csm, ultimoContato });
+        const ultimoContato = row[11]?.trim() || '';
+        const flag = normalizeFlag(row[14] || '');
+        if (csm) ongoingRows.push({ nome, csm, ultimoContato, flag });
       }
 
       const onboarding = calcularCobertura(marcosRows, semana);
