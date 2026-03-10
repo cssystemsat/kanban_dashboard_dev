@@ -81,3 +81,5 @@
 - [x] Integrar rastreamento automático de sessão e navegação no App.tsx
 - [x] Adicionar coluna canLaunch na tabela allowed_emails e atualizar permissão de lançamento de atendimento
 - [x] Atualizar Configurações com checkbox de permissão de lançamento por usuário
+- [x] Criar hook usePainelData para cobertura semanal por CSM (col C=CSM, col L=último contato)
+- [x] Construir página Painel com tabela de cobertura por analista (Onboarding + Ongoing + totais + meta 25%)
