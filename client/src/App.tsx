@@ -147,7 +147,7 @@ function AppInner() {
       <Toaster />
       <SideMenu currentPage={currentPage} onPageChange={handlePageChange} />
       {renderPage()}
-      {user && <ChecklistPanel />}
+      {user && currentPage !== 'painel' && <ChecklistPanel />}
     </>
   );
 }

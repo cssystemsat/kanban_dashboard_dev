@@ -96,3 +96,4 @@
 - [x] Adicionar tabela de Migração no Painel (Qtd em migração, Qtd migrado no dia, Qtd migrado no mês, Migrações finalizadas)
 - [x] Colocar 4 tabelas (Onboarding, Ongoing, Marcos, Migração) em uma única linha horizontal no Painel
 - [x] Reequilibrar proporções das 4 tabelas do Painel e aumentar tamanho dos números
+- [x] Remover ícone de checklist flutuante apenas da página Painel
