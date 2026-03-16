@@ -16,7 +16,7 @@ export interface OngoingClientData {
   situacao: string; // Coluna V - Situação
   comercial: string; // Coluna X - Comercial
   decisor: string; // Coluna AE - Decisor
-  numeroDecissor: number; // Coluna AF - Número do Decisor
+  contatoDecissor: string; // Coluna AF - Contato do Decisor
   deltaConsumo: number; // Coluna BK (36) - Delta Consumo
   entrada: string; // Coluna D - Data de Entrada
 }
@@ -109,7 +109,7 @@ export function useOngoingData() {
             const situacao = String(row[21] || '').trim(); // Coluna V (21)
             const comercial = String(row[23] || '').trim(); // Coluna X (23)
             const decisor = String(row[30] || '').trim(); // Coluna AE (30)
-            const numeroDecissor = parseInt(row[31] || '0'); // Coluna AF (31)
+            const contatoDecissor = String(row[31] || '').trim(); // Coluna AF (31) - Contato do Decisor
             const deltaConsumo = extractNumber(row[36] || ''); // Coluna BK (36) - Delta Consumo
 
             if (codigoCliente && nome) {
@@ -130,7 +130,7 @@ export function useOngoingData() {
                 situacao,
                 comercial,
                 decisor,
-                numeroDecissor,
+                contatoDecissor,
                 deltaConsumo,
               });
             }

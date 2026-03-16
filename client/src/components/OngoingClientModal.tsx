@@ -69,6 +69,9 @@ export default function OngoingClientModal({
               <p className="font-semibold text-sm" style={{ color: '#001F3F' }}>
                 {client.decisor || '-'}
               </p>
+              {client.contatoDecissor && (
+                <p className="text-xs text-blue-600 font-medium mt-1">{client.contatoDecissor}</p>
+              )}
             </div>
 
             {/* Comercial */}

@@ -99,3 +99,4 @@
 - [x] Remover ícone de checklist flutuante apenas da página Painel
 - [ ] Adicionar coluna de data de entrada (coluna D, gid=1152476970) na página Ongoing
 - [x] Adicionar coluna de data de entrada (coluna D, gid=1152476970) na página Ongoing
+- [x] Corrigir mapeamento Decisor (col AE=30) e Contato do Decisor (col AF=31) no Ongoing e exibir no card

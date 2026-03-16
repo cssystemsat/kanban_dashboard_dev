@@ -103,6 +103,9 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
         <div>
           <p className="text-gray-600">Decisor</p>
           <p className="font-semibold" style={{ color: '#001F3F' }}>{client.decisor || '-'}</p>
+          {client.contatoDecissor && (
+            <p className="text-[10px] text-blue-600 font-medium mt-0.5 truncate">{client.contatoDecissor}</p>
+          )}
         </div>
         <div>
           <p className="text-gray-600">Comercial</p>
