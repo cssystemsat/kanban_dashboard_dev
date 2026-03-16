@@ -18,7 +18,7 @@ export interface OngoingClientData {
   decisor: string; // Coluna AE - Decisor
   numeroDecissor: number; // Coluna AF - Número do Decisor
   deltaConsumo: number; // Coluna BK (36) - Delta Consumo
-  entrada?: string; // Data de entrada
+  entrada: string; // Coluna D - Data de Entrada
 }
 
 const SHEET_URL =
@@ -85,6 +85,7 @@ export function useOngoingData() {
 
             const nome = String(row[1] || '').trim(); // Coluna B (1)
             const csm = String(row[2] || '').trim(); // Coluna C (2)
+            const entrada = String(row[3] || '').trim(); // Coluna D (3) - Data de Entrada
             
             // Extrair valor numérico do formato "R$ XXXX,XX"
             const extractNumber = (str: string): number => {
@@ -117,6 +118,7 @@ export function useOngoingData() {
                 codigoCliente,
                 nome,
                 csm,
+                entrada,
                 placas,
                 ultimoBoleto,
                 valorMedioPorPlaca,

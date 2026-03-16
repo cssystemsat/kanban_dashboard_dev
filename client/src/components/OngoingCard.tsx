@@ -39,6 +39,11 @@ export default function OngoingCard({ client, onAtendimento }: OngoingCardProps)
           {client.nome}
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">{client.codigoCliente}</p>
+        {client.entrada && (
+          <p className="text-xs text-gray-400 mt-0.5">
+            <span className="font-medium text-gray-500">Entrada:</span> {client.entrada}
+          </p>
+        )}
 
         {/* Bandeira + nome da flag + estrela */}
         {hasFlag && (
