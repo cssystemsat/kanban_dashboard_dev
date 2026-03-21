@@ -26,6 +26,7 @@ export default function Ongoing() {
   const [ultimoBoletoMin, setUltimoBoletoMin] = useState<number | null>(null);
   const [ultimoBoletoMax, setUltimoBoletoMax] = useState<number | null>(null);
   const [selectedSituacao, setSelectedSituacao] = useState<string | null>(null);
+  const [deltaMaxInput, setDeltaMaxInput] = useState<string>('');
 
   // Filtrar dados
   let filteredData = flagFilter ? data.filter(client => client.flag === flagFilter) : data;
@@ -47,6 +48,11 @@ export default function Ongoing() {
   if (selectedSituacao) {
     filteredData = filteredData.filter(client => client.situacao === selectedSituacao);
   }
+  // Filtro de Delta Consumo: mostra quem tem delta <= -threshold (paga mais do que usa)
+  const deltaThreshold = deltaMaxInput !== '' ? parseFloat(deltaMaxInput) : null;
+  if (deltaThreshold !== null && !isNaN(deltaThreshold)) {
+    filteredData = filteredData.filter(client => client.deltaConsumo <= -deltaThreshold);
+  }
 
   // Contagens base (sem filtro de flag, mas com filtro de CSM)
   let baseDataForCounts = data;
@@ -65,7 +71,8 @@ export default function Ongoing() {
   const situacoes = Array.from(new Set(data.map(c => c.situacao).filter(Boolean))).sort();
 
   const sortedData = [...filteredData];
-  const hasActiveFilter = !!(ultimoBoletoMin !== null || ultimoBoletoMax !== null || searchCliente || flagFilter || selectedAtendente || selectedSituacao);
+  const deltaActive = deltaMaxInput !== '' && !isNaN(parseFloat(deltaMaxInput));
+  const hasActiveFilter = !!(ultimoBoletoMin !== null || ultimoBoletoMax !== null || searchCliente || flagFilter || selectedAtendente || selectedSituacao || deltaActive);
 
   return (
     <div className="md:ml-20 p-4 md:p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
@@ -169,6 +176,20 @@ export default function Ongoing() {
               ))}
             </select>
 
+            {/* Filtro Delta Consumo */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold" style={{ color: '#DC2626' }}>Delta ≤ -R$</label>
+              <input
+                type="number"
+                placeholder="Ex: 1000"
+                value={deltaMaxInput}
+                onChange={(e) => setDeltaMaxInput(e.target.value)}
+                className="px-3 py-2 border rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-300"
+                style={{ borderColor: '#FCA5A5', width: '110px' }}
+                min="0"
+              />
+            </div>
+
             {/* Limpar */}
             <button
               onClick={() => {
@@ -178,6 +199,7 @@ export default function Ongoing() {
                 setUltimoBoletoMin(null);
                 setUltimoBoletoMax(null);
                 setSelectedSituacao(null);
+                setDeltaMaxInput('');
               }}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
@@ -197,6 +219,7 @@ export default function Ongoing() {
               {flagFilter && ` | ${flagFilter}`}
               {selectedAtendente && ` | CSM: ${selectedAtendente}`}
               {selectedSituacao && ` | Situação: ${selectedSituacao}`}
+              {deltaActive && ` | Delta ≤ -R$ ${parseFloat(deltaMaxInput).toFixed(2)}`}
             </p>
           </div>
         )}

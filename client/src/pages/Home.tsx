@@ -29,7 +29,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] = useState<number | null>(null);
-  // selectedObjetivo removido
+  const [diferencaMaxInput, setDiferencaMaxInput] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -61,6 +61,15 @@ export default function Home() {
     filteredData = filteredData.filter(client =>
       client.percentualDesatualizado !== undefined && client.percentualDesatualizado >= percentualDesatualizadoFilter
     );
+  }
+  // Filtro de Diferença: mostra quem tem delta <= -threshold (paga mais do que usa)
+  const diferencaThreshold = diferencaMaxInput !== '' ? parseFloat(diferencaMaxInput) : null;
+  if (diferencaThreshold !== null && !isNaN(diferencaThreshold)) {
+    filteredData = filteredData.filter(client => {
+      if (!client.deltaConsumo) return false;
+      const val = parseFloat(String(client.deltaConsumo).replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.'));
+      return !isNaN(val) && val <= -diferencaThreshold;
+    });
   }
 
 
@@ -114,7 +123,8 @@ export default function Home() {
   ];
 
   const totalClientes = filteredData.length;
-  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null);
+  const diferencaActive = diferencaMaxInput !== '' && !isNaN(parseFloat(diferencaMaxInput));
+  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null || diferencaActive);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
@@ -166,6 +176,20 @@ export default function Home() {
               }}
             />
 
+            {/* Filtro Diferença */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] font-bold leading-none" style={{ color: '#FCA5A5' }}>Diferença ≤ -R$</span>
+              <input
+                type="number"
+                placeholder="Ex: 1000"
+                value={diferencaMaxInput}
+                onChange={(e) => setDiferencaMaxInput(e.target.value)}
+                className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-300"
+                style={{ borderColor: '#FCA5A5', border: '1px solid #FCA5A5', width: '110px' }}
+                min="0"
+              />
+            </div>
+
             {/* Botão Atualizar — canto direito */}
             <div className="ml-auto">
               <Button
@@ -193,6 +217,7 @@ export default function Home() {
             {flagFilter && ` | ${flagFilter}`}
             {selectedAtendente && ` | CSM: ${selectedAtendente}`}
             {percentualDesatualizadoFilter !== null && ` | % Desatualizado >= ${percentualDesatualizadoFilter}%`}
+            {diferencaActive && ` | Diferença ≤ -R$ ${parseFloat(diferencaMaxInput).toFixed(2)}`}
           </p>
         </div>
       )}
