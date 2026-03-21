@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
+import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
@@ -248,18 +249,27 @@ function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) 
 
 /* ─── Tabela de Migração ──────────────────────────────────────────────── */
 function TabelaMigracao() {
+  const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
+
+  useEffect(() => { fetchMig(); }, [fetchMig]);
+
+  const fmt = (val: number | null) => {
+    if (migLoading) return <Loader2 className="w-5 h-5 animate-spin inline" />;
+    if (val === null) return <span className="text-gray-300">—</span>;
+    return val.toLocaleString('pt-BR');
+  };
+
   const itens = [
-    { label: 'Em migração',   valor: '—', cor: '#2563EB', bg: '#EFF6FF' },
-    { label: 'Migrado hoje',  valor: '—', cor: '#059669', bg: '#ECFDF5' },
-    { label: 'No mês',        valor: '—', cor: '#7C3AED', bg: '#F5F3FF' },
-    { label: 'Finalizadas',   valor: '—', cor: '#D97706', bg: '#FFFBEB' },
+    { label: 'Em migração',  valor: fmt(mig.emMigracao),   cor: '#2563EB', bg: '#EFF6FF' },
+    { label: 'Migrado hoje', valor: fmt(mig.migradoHoje),  cor: '#059669', bg: '#ECFDF5' },
+    { label: 'No mês',       valor: fmt(mig.migradoMes),   cor: '#7C3AED', bg: '#F5F3FF' },
+    { label: 'Finalizadas',  valor: fmt(mig.finalizadas),  cor: '#D97706', bg: '#FFFBEB' },
   ];
   return (
     <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-full" style={{ borderColor: '#E0E8F0' }}>
       <div className="px-3 py-2.5 shrink-0 flex items-center gap-2" style={{ backgroundColor: '#1E3A5F' }}>
         <Truck className="w-4 h-4 text-white opacity-80 shrink-0" />
         <h3 className="text-sm font-bold text-white tracking-wide">Migração</h3>
-        <span className="ml-auto text-xs text-white/50">Em breve</span>
       </div>
       <div className="flex-1 flex flex-col divide-y" style={{ borderColor: '#F0F4F8' }}>
         {itens.map((item, idx) => (

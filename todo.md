@@ -103,3 +103,4 @@
 - [x] Tooltip na coluna Motivo da aba Churn: exibir motivo declarado (col P) e análise interna (col Q) do gid=1060737054
 - [x] Filtro de Delta Consumo negativo na aba Ongoing (≤ valor informado pelo usuário)
 - [x] Filtro de Diferença negativa na aba Marcos (≤ valor informado pelo usuário)
+- [x] Integrar dados reais de migração no Painel: G4=Migrado hoje, I4=No mês (gid=1590626518)
