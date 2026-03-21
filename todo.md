@@ -100,3 +100,4 @@
 - [ ] Adicionar coluna de data de entrada (coluna D, gid=1152476970) na página Ongoing
 - [x] Adicionar coluna de data de entrada (coluna D, gid=1152476970) na página Ongoing
 - [x] Corrigir mapeamento Decisor (col AE=30) e Contato do Decisor (col AF=31) no Ongoing e exibir no card
+- [x] Tooltip na coluna Motivo da aba Churn: exibir motivo declarado (col P) e análise interna (col Q) do gid=1060737054

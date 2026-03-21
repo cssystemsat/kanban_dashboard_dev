@@ -13,6 +13,8 @@ export interface ChurnData {
   vendedor: string;
   farm: string;
   motivoCancelamento: string;
+  motivoDeclarado: string;   // Coluna P - Motivo declarado pelo cliente
+  analiseInterna: string;    // Coluna Q - Análise interna do caso
 }
 
 export const useChurnsData = () => {
@@ -67,7 +69,9 @@ export const useChurnsData = () => {
       const atendenteIdx = 11; // Coluna L
       const vendedorIdx = 12; // Coluna M
       const farmIdx = 13; // Coluna N
-      const motivoIdx = 14; // Coluna O
+      const motivoIdx = 14;          // Coluna O
+      const motivoDeclaradoIdx = 15;  // Coluna P - Motivo declarado pelo cliente
+      const analiseInternaIdx = 16;   // Coluna Q - Análise interna
 
       const churns: ChurnData[] = [];
 
@@ -100,7 +104,9 @@ export const useChurnsData = () => {
           atendente: row[atendenteIdx]?.trim() || '',
           vendedor: row[vendedorIdx]?.trim() || '',
           farm: row[farmIdx]?.trim() || '',
-          motivoCancelamento: row[motivoIdx]?.trim() || ''
+          motivoCancelamento: row[motivoIdx]?.trim() || '',
+          motivoDeclarado: row[motivoDeclaradoIdx]?.trim() || '',
+          analiseInterna: row[analiseInternaIdx]?.trim() || ''
         });
       }
 

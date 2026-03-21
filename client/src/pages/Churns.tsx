@@ -472,7 +472,32 @@ export default function Churns() {
                               {churn.mesesCasa}m
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{churn.motivoCancelamento}</td>
+                          <td className="px-4 py-3 text-gray-600 max-w-xs">
+                            <div className="relative group inline-block w-full">
+                              <span className="truncate block cursor-help underline decoration-dotted decoration-gray-400 underline-offset-2">
+                                {churn.motivoCancelamento || '-'}
+                              </span>
+                              {(churn.motivoDeclarado || churn.analiseInterna) && (
+                                <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block text-left">
+                                  {churn.motivoDeclarado && (
+                                    <div className="mb-2">
+                                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Motivo Declarado pelo Cliente</p>
+                                      <p className="text-sm text-gray-800 leading-snug">{churn.motivoDeclarado}</p>
+                                    </div>
+                                  )}
+                                  {churn.motivoDeclarado && churn.analiseInterna && (
+                                    <hr className="my-2 border-gray-200" />
+                                  )}
+                                  {churn.analiseInterna && (
+                                    <div>
+                                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Análise Interna</p>
+                                      <p className="text-sm text-gray-800 leading-snug">{churn.analiseInterna}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-4 py-3 text-gray-600">{churn.atendente}</td>
                         </tr>
                       ))
