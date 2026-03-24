@@ -251,10 +251,9 @@ function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) 
 function TabelaMigracao() {
   const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
 
-  useEffect(() => { fetchMig(); }, [fetchMig]);
+  useEffect(() => { fetchMig(); }, []);
 
   const fmt = (val: number | null) => {
-    if (migLoading) return <Loader2 className="w-5 h-5 animate-spin inline" />;
     if (val === null) return <span className="text-gray-300">—</span>;
     return val.toLocaleString('pt-BR');
   };
@@ -293,7 +292,7 @@ export default function Painel() {
   const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
 
   useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { fetchMig(); }, [fetchMig]);
+  useEffect(() => { fetchMig(); }, []);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F0F4F8' }}>

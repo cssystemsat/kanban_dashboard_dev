@@ -5,8 +5,8 @@ export interface MigracaoData {
   migradoMes: number | null;    // I4 = Placas migradas no mês
   migradosAno: number | null;   // G5 = Migrados no ano
   // Campos futuros (a definir):
-  emMigracao: number | null;
-  finalizadas: number | null;
+  emMigracao: number | null;   // G6 = Migrações em andamento
+  finalizadas: number | null;   // I3 = Migrações concluídas no mês
 }
 
 const SHEET_URL =
@@ -60,21 +60,25 @@ export const useMigracaoData = () => {
         return result;
       };
 
-      // Linha 4 = índice 3, Linha 5 = índice 4 (0-based)
+      // Linhas 0-based: linha 3=idx3, linha 4=idx4, linha 5=idx5, linha 2=idx2
+      const row3 = lines[2] ? parseCSVLine(lines[2].replace(/\r$/, '')) : [];
       const row4 = lines[3] ? parseCSVLine(lines[3].replace(/\r$/, '')) : [];
       const row5 = lines[4] ? parseCSVLine(lines[4].replace(/\r$/, '')) : [];
+      const row6 = lines[5] ? parseCSVLine(lines[5].replace(/\r$/, '')) : [];
 
-      // G4 = índice 6, I4 = índice 8, G5 = índice 6 da linha 5
-      const migradoHoje = parseNum(row4[6]);
-      const migradoMes = parseNum(row4[8]);
-      const migradosAno = parseNum(row5[6]);
+      // G4=idx6, I4=idx8, G5=idx6, G6=idx6, I3=idx8
+      const migradoHoje = parseNum(row4[6]);   // G4 = Placas migradas no dia
+      const migradoMes  = parseNum(row4[8]);   // I4 = Placas migradas no mês
+      const migradosAno = parseNum(row5[6]);   // G5 = Migrados no ano
+      const emMigracao  = parseNum(row6[6]);   // G6 = Migrações em andamento
+      const finalizadas = parseNum(row3[8]);   // I3 = Migrações concluídas no mês
 
       setData({
         migradoHoje,
         migradoMes,
         migradosAno,
-        emMigracao: null,   // a definir
-        finalizadas: null,  // a definir
+        emMigracao,
+        finalizadas,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
