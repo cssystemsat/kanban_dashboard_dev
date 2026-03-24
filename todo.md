@@ -107,3 +107,4 @@
 - [x] Card "Migrados no Ano" no Painel: integrar célula G5 da aba gid=1590626518
 - [x] Gravar usuário Google logado na coluna I ao lançar atendimento (Marcos e Ongoing)
 - [x] Ajustar timer do modal de atendimento de 1 em 1 min para 5 em 5 minutos
+- [x] Corrigir Ongoing: incluir todos os clientes da planilha, excluindo apenas os com "Churn" na coluna V (gid=1152476970)

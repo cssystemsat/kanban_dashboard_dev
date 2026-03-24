@@ -81,9 +81,10 @@ export function useOngoingData() {
 
             // Mapeamento de colunas (0-indexed)
             const codigoCliente = String(row[0] || '').trim(); // Coluna A (0)
-            if (!codigoCliente) continue;
-
             const nome = String(row[1] || '').trim(); // Coluna B (1)
+
+            // Pular linhas sem nome
+            if (!nome) continue;
             const csm = String(row[2] || '').trim(); // Coluna C (2)
             const entrada = String(row[3] || '').trim(); // Coluna D (3) - Data de Entrada
             
@@ -112,7 +113,10 @@ export function useOngoingData() {
             const contatoDecissor = String(row[31] || '').trim(); // Coluna AF (31) - Contato do Decisor
             const deltaConsumo = extractNumber(row[36] || ''); // Coluna BK (36) - Delta Consumo
 
-            if (codigoCliente && nome) {
+            // Excluir apenas clientes com situação 'Churn'
+            if (situacao === 'Churn') continue;
+
+            if (nome) {
               clients.push({
                 id: codigoCliente,
                 codigoCliente,
