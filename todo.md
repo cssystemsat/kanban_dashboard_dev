@@ -104,3 +104,4 @@
 - [x] Filtro de Delta Consumo negativo na aba Ongoing (≤ valor informado pelo usuário)
 - [x] Filtro de Diferença negativa na aba Marcos (≤ valor informado pelo usuário)
 - [x] Integrar dados reais de migração no Painel: G4=Migrado hoje, I4=No mês (gid=1590626518)
+- [x] Card "Migrados no Ano" no Painel: integrar célula G5 da aba gid=1590626518
