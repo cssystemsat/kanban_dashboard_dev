@@ -57,17 +57,17 @@ const INITIAL_FORM = {
 export default function AtendimentoModal({ client, onClose }: AtendimentoModalProps) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [enviado, setEnviado] = useState(false);
-  const [customMinutes, setCustomMinutes] = useState(1);
+  const [customMinutes, setCustomMinutes] = useState(5);
 
   const adjustMinutes = (delta: number) => {
     setCustomMinutes(prev => {
-      const next = Math.max(1, prev + delta);
+      const next = Math.max(5, prev + delta);
       return next;
     });
   };
 
   // Verifica se a duração selecionada é o valor personalizado atual
-  const customLabel = `${customMinutes} minuto${customMinutes === 1 ? '' : 's'}`;
+  const customLabel = `${customMinutes} minutos`;
   const isCustomSelected = form.duracao === customLabel;
 
   const { data: permission, isLoading: permLoading } = trpc.atendimento.checkPermission.useQuery();
@@ -318,7 +318,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
               {/* Seletor de minutos — sempre visível */}
               <div className="flex items-center gap-2 mt-2">
                 <button
-                  onClick={() => adjustMinutes(-1)}
+                  onClick={() => adjustMinutes(-5)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80 shrink-0"
                   style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
                 >
@@ -336,7 +336,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
                   {customLabel}
                 </button>
                 <button
-                  onClick={() => adjustMinutes(1)}
+                  onClick={() => adjustMinutes(5)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80 shrink-0"
                   style={{ backgroundColor: '#1D4ED8', color: '#FFFFFF' }}
                 >

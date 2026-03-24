@@ -105,3 +105,5 @@
 - [x] Filtro de Diferença negativa na aba Marcos (≤ valor informado pelo usuário)
 - [x] Integrar dados reais de migração no Painel: G4=Migrado hoje, I4=No mês (gid=1590626518)
 - [x] Card "Migrados no Ano" no Painel: integrar célula G5 da aba gid=1590626518
+- [x] Gravar usuário Google logado na coluna I ao lançar atendimento (Marcos e Ongoing)
+- [x] Ajustar timer do modal de atendimento de 1 em 1 min para 5 em 5 minutos

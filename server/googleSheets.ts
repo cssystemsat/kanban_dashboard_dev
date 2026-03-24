@@ -58,6 +58,7 @@ export async function appendAtendimento(data: {
   razao: string;
   resumo: string;
   duracao: string;
+  usuario?: string;
 }): Promise<{ row: number; sheetName: string }> {
   const AGENDAS_GID = 1655169262;
 
@@ -67,7 +68,7 @@ export async function appendAtendimento(data: {
   }
 
   const nextRow = await getNextEmptyRow(sheetName);
-  const range = `${sheetName}!A${nextRow}:G${nextRow}`;
+  const range = `${sheetName}!A${nextRow}:I${nextRow}`;
 
   const sheets = getSheetsClient();
   await sheets.spreadsheets.values.update({
@@ -77,13 +78,15 @@ export async function appendAtendimento(data: {
     requestBody: {
       values: [
         [
-          data.data,
-          data.cliente,
-          data.tipo,
-          data.situacao,
-          data.resumo,
-          data.duracao,
-          data.razao,
+          data.data,     // A
+          data.cliente,  // B
+          data.tipo,     // C
+          data.situacao, // D
+          data.resumo,   // E
+          data.duracao,  // F
+          data.razao,    // G
+          '',            // H (vazio)
+          data.usuario ?? '', // I - usuário logado
         ],
       ],
     },

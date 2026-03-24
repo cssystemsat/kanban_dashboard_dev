@@ -97,6 +97,7 @@ export const appRouter = router({
           razao: input.razao,
           resumo: input.resumo,
           duracao: input.duracao,
+          usuario: ctx.user.name ?? ctx.user.email,
         });
         return { success: true, row: result.row, sheetName: result.sheetName };
       }),
