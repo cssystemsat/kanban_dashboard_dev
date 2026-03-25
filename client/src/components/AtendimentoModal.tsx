@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Headphones, CheckCircle, Loader2, ShieldX, LogIn } from 'lucide-react';
+import { X, Headphones, CheckCircle, Loader2, ShieldX, LogIn, Minus, Plus } from 'lucide-react';
 import { ClientData } from '@/hooks/useKanbanData';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
@@ -319,10 +319,10 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
               <div className="flex items-center gap-2 mt-2">
                 <button
                   onClick={() => adjustMinutes(-5)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80 shrink-0"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:opacity-80 shrink-0"
                   style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
                 >
-                  −
+                  <Minus className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setForm(f => ({ ...f, duracao: customLabel }))}
@@ -337,10 +337,10 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
                 </button>
                 <button
                   onClick={() => adjustMinutes(5)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors hover:opacity-80 shrink-0"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:opacity-80 shrink-0"
                   style={{ backgroundColor: '#1D4ED8', color: '#FFFFFF' }}
                 >
-                  +
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>

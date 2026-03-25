@@ -97,7 +97,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
         {row.contatosSemana}
       </button>
 
-      {open && createPortal(
+      {open && (
         <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border"
           style={{ position: 'absolute', zIndex: 99999, borderColor: '#E0E8F0', top: pos.top, left: pos.left,
             transform: pos.below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)' }}
@@ -129,8 +129,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
                 style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #E0E8F0' }} />
             : <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
                 style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #E0E8F0' }} />}
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );
