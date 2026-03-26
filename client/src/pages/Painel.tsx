@@ -55,7 +55,7 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
 
 function ContatosCell({ row }: { row: CoberturaCSM }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [selectedFlag, setSelectedFlag] = useState<FlagTipo | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,7 +66,6 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
       const inBtn = btnRef.current?.contains(e.target as Node);
       const inTip = tooltipRef.current?.contains(e.target as Node);
       if (!inBtn && !inTip) {
-        // Delay de 200ms antes de fechar para permitir scroll
         closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
       }
     }
@@ -77,9 +76,9 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
     };
   }, [open]);
 
-  // Removido: handleMouseMove (apenas click agora)
-
-  // Removido: handlers de mouse (apenas click agora)
+  const clientesFiltrados = selectedFlag
+    ? row.clientesContatados.filter(c => c.flag === selectedFlag)
+    : row.clientesContatados;
 
   return (
     <div className="relative inline-block">
@@ -94,31 +93,52 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
       {open && (
         <>
           <div className="fixed inset-0 bg-black/30 z-50" onClick={() => setOpen(false)} />
-          <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+          <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col max-h-96"
             style={{ zIndex: 99999, borderColor: '#E0E8F0' }}
             >
-          <div className="px-3 py-2 border-b flex items-center justify-between"
+          <div className="px-3 py-2 border-b flex items-center justify-between shrink-0"
             style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <span className="text-sm font-bold text-gray-700">{row.csm}</span>
-            <span className="text-xs text-gray-500">{row.contatosSemana} contato{row.contatosSemana !== 1 ? 's' : ''} na semana</span>
+            <span className="text-xs text-gray-500">{clientesFiltrados.length} contato{clientesFiltrados.length !== 1 ? 's' : ''}</span>
           </div>
           {row.clientesContatados.some(c => c.flag) && (
-            <div className="px-3 py-1.5 border-b flex items-center gap-3 flex-wrap"
+            <div className="px-3 py-1.5 border-b flex items-center gap-2 flex-wrap shrink-0"
               style={{ borderColor: '#F0F4F8', backgroundColor: '#FAFBFC' }}>
+              <button
+                onClick={() => setSelectedFlag(null)}
+                className="px-2 py-1 rounded text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: selectedFlag === null ? '#E0E7FF' : '#F3F4F6',
+                  color: selectedFlag === null ? '#4F46E5' : '#6B7280',
+                  border: selectedFlag === null ? '1px solid #C7D2FE' : '1px solid #D1D5DB',
+                  cursor: 'pointer'
+                }}
+              >
+                Todos
+              </button>
               {(['Red Flag', 'Yellow Flag', 'Black Flag'] as FlagTipo[]).map(f => {
                 const count = row.clientesContatados.filter(c => c.flag === f).length;
                 if (count === 0) return null;
                 const colors = FLAG_COLORS[f];
                 return (
-                  <span key={f} className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: colors.text }}>
+                  <button
+                    key={f}
+                    onClick={() => setSelectedFlag(f)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: selectedFlag === f ? colors.bg : '#F3F4F6',
+                      color: selectedFlag === f ? colors.text : '#6B7280',
+                      border: selectedFlag === f ? `1px solid ${colors.dot}` : '1px solid #D1D5DB'
+                    }}
+                  >
                     <Flag className="w-2.5 h-2.5" fill={colors.dot} style={{ color: colors.dot }} />
-                    {count} {f}
-                  </span>
+                    {count}
+                  </button>
                 );
               })}
             </div>
           )}
-          <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesContatados} /></div>
+          <div className="px-2 py-1.5 overflow-y-auto flex-1"><TooltipClientes clientes={clientesFiltrados} /></div>
           </div>
         </>
       )}
@@ -130,7 +150,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
 
 function SemContatoCell({ row }: { row: CoberturaCSM }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [selectedFlag, setSelectedFlag] = useState<FlagTipo | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -151,7 +171,9 @@ function SemContatoCell({ row }: { row: CoberturaCSM }) {
     };
   }, [open]);
 
-  // Removido: handlers de mouse (apenas click agora)
+  const clientesFiltrados = selectedFlag
+    ? row.clientesSemContato.filter(c => c.flag === selectedFlag)
+    : row.clientesSemContato;
 
   return (
     <div className="relative inline-block">
@@ -166,31 +188,52 @@ function SemContatoCell({ row }: { row: CoberturaCSM }) {
       {open && (
         <>
           <div className="fixed inset-0 bg-black/30 z-50" onClick={() => setOpen(false)} />
-          <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+          <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col max-h-96"
             style={{ zIndex: 99999, borderColor: '#E0E8F0' }}
             >
-          <div className="px-3 py-2 border-b flex items-center justify-between"
+          <div className="px-3 py-2 border-b flex items-center justify-between shrink-0"
             style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <span className="text-sm font-bold text-gray-700">{row.csm}</span>
-            <span className="text-xs text-gray-500">{row.clientesSemContato.length} sem contato</span>
+            <span className="text-xs text-gray-500">{clientesFiltrados.length} sem contato</span>
           </div>
           {row.clientesSemContato.some(c => c.flag) && (
-            <div className="px-3 py-1.5 border-b flex items-center gap-3 flex-wrap"
+            <div className="px-3 py-1.5 border-b flex items-center gap-2 flex-wrap shrink-0"
               style={{ borderColor: '#F0F4F8', backgroundColor: '#FAFBFC' }}>
+              <button
+                onClick={() => setSelectedFlag(null)}
+                className="px-2 py-1 rounded text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: selectedFlag === null ? '#E0E7FF' : '#F3F4F6',
+                  color: selectedFlag === null ? '#4F46E5' : '#6B7280',
+                  border: selectedFlag === null ? '1px solid #C7D2FE' : '1px solid #D1D5DB',
+                  cursor: 'pointer'
+                }}
+              >
+                Todos
+              </button>
               {(['Red Flag', 'Yellow Flag', 'Black Flag'] as FlagTipo[]).map(f => {
                 const count = row.clientesSemContato.filter(c => c.flag === f).length;
                 if (count === 0) return null;
                 const colors = FLAG_COLORS[f];
                 return (
-                  <span key={f} className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: colors.text }}>
+                  <button
+                    key={f}
+                    onClick={() => setSelectedFlag(f)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: selectedFlag === f ? colors.bg : '#F3F4F6',
+                      color: selectedFlag === f ? colors.text : '#6B7280',
+                      border: selectedFlag === f ? `1px solid ${colors.dot}` : '1px solid #D1D5DB'
+                    }}
+                  >
                     <Flag className="w-2.5 h-2.5" fill={colors.dot} style={{ color: colors.dot }} />
-                    {count} {f}
-                  </span>
+                    {count}
+                  </button>
                 );
               })}
             </div>
           )}
-          <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesSemContato} /></div>
+          <div className="px-2 py-1.5 overflow-y-auto flex-1"><TooltipClientes clientes={clientesFiltrados} /></div>
           </div>
         </>
       )}

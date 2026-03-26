@@ -116,3 +116,5 @@
 - [x] Melhorar tooltip: não desaparecer ao scrollar (adicionar delay ou hover area maior)
 - [x] Popup ao clicar em CONT. TOTAL: mostrar clientes sem contato na semana com data do último contato (col L, ordem decrescente)
 - [x] Remover tooltip ao passar o mouse do ContatosCell e SemContatoCell (apenas popup ao clicar)
+- [x] Adicionar filtro por flags nos popups de ContatosCell e SemContatoCell
+- [x] Remover scroll duplo dos popups (deixar apenas um)
