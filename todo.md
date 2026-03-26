@@ -118,3 +118,4 @@
 - [x] Remover tooltip ao passar o mouse do ContatosCell e SemContatoCell (apenas popup ao clicar)
 - [x] Adicionar filtro por flags nos popups de ContatosCell e SemContatoCell
 - [x] Remover scroll duplo dos popups (deixar apenas um)
+- [x] Corrigir valor de Migrados no Ano (G5) que estava exibindo -11921 (corrigido índice de coluna para [6])

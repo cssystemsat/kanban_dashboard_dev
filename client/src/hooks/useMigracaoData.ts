@@ -66,12 +66,16 @@ export const useMigracaoData = () => {
       const row5 = lines[4] ? parseCSVLine(lines[4].replace(/\r$/, '')) : [];
       const row6 = lines[5] ? parseCSVLine(lines[5].replace(/\r$/, '')) : [];
 
-      // G4=idx6, I4=idx8, G5=idx6, G6=idx6, I3=idx8
-      const migradoHoje = parseNum(row4[6]);   // G4 = Placas migradas no dia
-      const migradoMes  = parseNum(row4[8]);   // I4 = Placas migradas no mês
-      const migradosAno = parseNum(row5[6]);   // G5 = Migrados no ano
-      const emMigracao  = parseNum(row6[6]);   // G6 = Migrações em andamento
-      const finalizadas = parseNum(row3[8]);   // I3 = Migrações concluídas no mês
+      // Mapeamento de colunas (0-indexed):
+      // Linha 4 (Placas migradas): Col 7 (idx 6) = 327, Col 9 (idx 8) = 2000
+      // Linha 5 (Migrados no ano): Col 7 (idx 6) = 7029
+      // Linha 6 (Migrações em andamento): Col 7 (idx 6) = 43
+      // Linha 3 (Migrações concluidas): Col 10 (idx 9) = 3
+      const migradoHoje = parseNum(row4[6]);   // G4 = Placas migradas no dia (327)
+      const migradoMes  = parseNum(row4[8]);   // I4 = Placas migradas no mês (2000)
+      const migradosAno = parseNum(row5[6]);   // G5 = Migrados no ano (7029)
+      const emMigracao  = parseNum(row6[6]);   // G6 = Migrações em andamento (43)
+      const finalizadas = parseNum(row3[9]);   // I3 = Migrações concluídas no mês (3)
 
       setData({
         migradoHoje,
