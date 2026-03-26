@@ -115,3 +115,4 @@
 - [x] Ajustar tooltip de clientes para fixed positioning próximo do mouse (em vez de absolute distante)
 - [x] Melhorar tooltip: não desaparecer ao scrollar (adicionar delay ou hover area maior)
 - [x] Aumentar delay do tooltip para 500ms e remover scroll duplicado
+- [x] Transformar tooltip em modal ao clicar no número de contatos (Ongoing e Onboarding no Painel)
