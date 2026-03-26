@@ -77,58 +77,26 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
     };
   }, [open]);
 
-  function handleMouseMove(e: React.MouseEvent) {
-    // Cancelar timeout se o mouse voltar
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    
-    const TW = 320;
-    let left = e.clientX + 12;
-    let top = e.clientY + 12;
-    
-    // Ajustar se sair da tela
-    if (left + TW > window.innerWidth) {
-      left = window.innerWidth - TW - 8;
-    }
-    if (top + 340 > window.innerHeight) {
-      top = e.clientY - 340 - 8;
-    }
-    
-    setPos({ top, left });
-  }
+  // Removido: handleMouseMove (apenas click agora)
 
-  function handleMouseEnter() {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    setOpen(true);
-  }
-
-  function handleMouseLeave() {
-    // Delay antes de fechar
-    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
-  }
+  // Removido: handlers de mouse (apenas click agora)
 
   return (
-    <div className="relative inline-block" onMouseLeave={handleMouseLeave}>
+    <div className="relative inline-block">
       <button
         ref={btnRef}
         className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-2xl leading-none"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         onClick={() => setOpen(v => !v)}
-        onMouseMove={handleMouseMove}
       >
         {row.contatosSemana}
       </button>
 
       {open && (
-        <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed"
-          style={{ zIndex: 99999, borderColor: '#E0E8F0', top: `${pos.top}px`, left: `${pos.left}px` }}
-          onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onMouseMove={handleMouseMove}>
+        <>
+          <div className="fixed inset-0 bg-black/30 z-50" onClick={() => setOpen(false)} />
+          <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            style={{ zIndex: 99999, borderColor: '#E0E8F0' }}
+            >
           <div className="px-3 py-2 border-b flex items-center justify-between"
             style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <span className="text-sm font-bold text-gray-700">{row.csm}</span>
@@ -151,7 +119,8 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
             </div>
           )}
           <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesContatados} /></div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -182,55 +151,24 @@ function SemContatoCell({ row }: { row: CoberturaCSM }) {
     };
   }, [open]);
 
-  function handleMouseMove(e: React.MouseEvent) {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    
-    const TW = 320;
-    let left = e.clientX + 12;
-    let top = e.clientY + 12;
-    
-    if (left + TW > window.innerWidth) {
-      left = window.innerWidth - TW - 8;
-    }
-    if (top + 340 > window.innerHeight) {
-      top = e.clientY - 340 - 8;
-    }
-    
-    setPos({ top, left });
-  }
-
-  function handleMouseEnter() {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    setOpen(true);
-  }
-
-  function handleMouseLeave() {
-    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
-  }
+  // Removido: handlers de mouse (apenas click agora)
 
   return (
-    <div className="relative inline-block" onMouseLeave={handleMouseLeave}>
+    <div className="relative inline-block">
       <button
         ref={btnRef}
         className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-2xl leading-none"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         onClick={() => setOpen(v => !v)}
-        onMouseMove={handleMouseMove}
       >
         {row.totalClientes}
       </button>
 
       {open && (
-        <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed"
-          style={{ zIndex: 99999, borderColor: '#E0E8F0', top: `${pos.top}px`, left: `${pos.left}px` }}
-          onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onMouseMove={handleMouseMove}>
+        <>
+          <div className="fixed inset-0 bg-black/30 z-50" onClick={() => setOpen(false)} />
+          <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            style={{ zIndex: 99999, borderColor: '#E0E8F0' }}
+            >
           <div className="px-3 py-2 border-b flex items-center justify-between"
             style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <span className="text-sm font-bold text-gray-700">{row.csm}</span>
@@ -253,7 +191,8 @@ function SemContatoCell({ row }: { row: CoberturaCSM }) {
             </div>
           )}
           <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesSemContato} /></div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
