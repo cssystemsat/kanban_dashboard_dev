@@ -114,3 +114,4 @@
 - [x] Corrigir z-index e overflow do menu suspenso de clientes no Painel para aparecer por cima
 - [x] Ajustar tooltip de clientes para fixed positioning próximo do mouse (em vez de absolute distante)
 - [x] Melhorar tooltip: não desaparecer ao scrollar (adicionar delay ou hover area maior)
+- [x] Aumentar delay do tooltip para 500ms e remover scroll duplicado

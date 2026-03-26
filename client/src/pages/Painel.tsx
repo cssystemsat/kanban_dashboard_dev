@@ -66,8 +66,8 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
       const inBtn = btnRef.current?.contains(e.target as Node);
       const inTip = tooltipRef.current?.contains(e.target as Node);
       if (!inBtn && !inTip) {
-        // Delay de 200ms antes de fechar para permitir scroll
-        closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+        // Delay de 500ms antes de fechar para permitir scroll
+        closeTimeoutRef.current = setTimeout(() => setOpen(false), 500);
       }
     }
     document.addEventListener('mousedown', handler);
@@ -109,7 +109,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
 
   function handleMouseLeave() {
     // Delay antes de fechar
-    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), 500);
   }
 
   return (
@@ -151,6 +151,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
             </div>
           )}
           <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesContatados} /></div>
+          {/* Removido scroll duplicado - TooltipClientes já tem seu próprio overflow */}
         </div>
       )}
     </div>
