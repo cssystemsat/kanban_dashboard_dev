@@ -58,19 +58,32 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!open) return;
     function handler(e: MouseEvent) {
       const inBtn = btnRef.current?.contains(e.target as Node);
       const inTip = tooltipRef.current?.contains(e.target as Node);
-      if (!inBtn && !inTip) setOpen(false);
+      if (!inBtn && !inTip) {
+        // Delay de 200ms antes de fechar para permitir scroll
+        closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+      }
     }
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
   }, [open]);
 
   function handleMouseMove(e: React.MouseEvent) {
+    // Cancelar timeout se o mouse voltar
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    
     const TW = 320;
     let left = e.clientX + 12;
     let top = e.clientY + 12;
@@ -87,16 +100,25 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
   }
 
   function handleMouseEnter() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
     setOpen(true);
   }
 
+  function handleMouseLeave() {
+    // Delay antes de fechar
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+  }
+
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block" onMouseLeave={handleMouseLeave}>
       <button
         ref={btnRef}
         className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-2xl leading-none"
         onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setOpen(false)}
+        onMouseLeave={handleMouseLeave}
         onClick={() => setOpen(v => !v)}
         onMouseMove={handleMouseMove}
       >
@@ -106,7 +128,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
       {open && (
         <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed"
           style={{ zIndex: 99999, borderColor: '#E0E8F0', top: `${pos.top}px`, left: `${pos.left}px` }}
-          onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onMouseMove={handleMouseMove}>
+          onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onMouseMove={handleMouseMove}>
           <div className="px-3 py-2 border-b flex items-center justify-between"
             style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <span className="text-sm font-bold text-gray-700">{row.csm}</span>
