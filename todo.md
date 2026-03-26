@@ -112,3 +112,4 @@
 - [x] Corrigir erro NotFoundError no modal de atendimento (problema com createPortal e container DOM)
 - [x] Trocar ícone lucide por caractere ASCII simples (-/+) no modal de atendimento para compatibilidade com todas as fontes
 - [x] Corrigir z-index e overflow do menu suspenso de clientes no Painel para aparecer por cima
+- [x] Ajustar tooltip de clientes para fixed positioning próximo do mouse (em vez de absolute distante)

@@ -55,7 +55,7 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
 
 function ContatosCell({ row }: { row: CoberturaCSM }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0, below: false });
+  const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -70,18 +70,23 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  function handleMouseMove(e: React.MouseEvent) {
+    const TW = 320;
+    let left = e.clientX + 12;
+    let top = e.clientY + 12;
+    
+    // Ajustar se sair da tela
+    if (left + TW > window.innerWidth) {
+      left = window.innerWidth - TW - 8;
+    }
+    if (top + 340 > window.innerHeight) {
+      top = e.clientY - 340 - 8;
+    }
+    
+    setPos({ top, left });
+  }
+
   function handleMouseEnter() {
-    if (!btnRef.current) return;
-    const rect = btnRef.current.getBoundingClientRect();
-    const TH = 340, TW = 320;
-    const showBelow = rect.top < TH + 40;
-    const cx = rect.left + rect.width / 2;
-    const safeLeft = Math.max(TW / 2 + 8, Math.min(window.innerWidth - TW / 2 - 8, cx));
-    setPos({
-      top: showBelow ? rect.bottom + window.scrollY + 8 : rect.top + window.scrollY - 8,
-      left: safeLeft + window.scrollX,
-      below: showBelow,
-    } as any);
     setOpen(true);
   }
 
@@ -93,15 +98,15 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setOpen(false)}
         onClick={() => setOpen(v => !v)}
+        onMouseMove={handleMouseMove}
       >
         {row.contatosSemana}
       </button>
 
       {open && (
-        <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border"
-          style={{ position: 'absolute', zIndex: 99999, borderColor: '#E0E8F0', top: pos.top, left: pos.left,
-            transform: pos.below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)' }}
-          onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+        <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed"
+          style={{ zIndex: 99999, borderColor: '#E0E8F0', top: `${pos.top}px`, left: `${pos.left}px` }}
+          onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onMouseMove={handleMouseMove}>
           <div className="px-3 py-2 border-b flex items-center justify-between"
             style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
             <span className="text-sm font-bold text-gray-700">{row.csm}</span>
@@ -123,12 +128,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
               })}
             </div>
           )}
-          <div className="px-2 py-1.5"><TooltipClientes clientes={row.clientesContatados} /></div>
-          {pos.below
-            ? <div className="absolute left-1/2 -translate-x-1/2 -top-1.5 w-0 h-0"
-                style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #E0E8F0' }} />
-            : <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
-                style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #E0E8F0' }} />}
+          <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesContatados} /></div>
         </div>
       )}
     </div>
