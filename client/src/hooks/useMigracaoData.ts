@@ -19,6 +19,46 @@ function parseNum(val: string | undefined): number | null {
   return isNaN(n) ? null : n;
 }
 
+// Parser CSV robusto usando Papa Parse (alternativa: usar regex)
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let insideQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      if (insideQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"';
+        i++;
+      } else {
+        // Toggle quote state
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === ',' && !insideQuotes) {
+      // Field separator
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  // Add last field
+  result.push(current);
+  
+  // Remove surrounding quotes from all fields
+  return result.map(v => {
+    const trimmed = v.trim();
+    if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+      return trimmed.slice(1, -1);
+    }
+    return trimmed;
+  });
+}
+
 export const useMigracaoData = () => {
   const [data, setData] = useState<MigracaoData>({
     migradoHoje: null,
@@ -40,28 +80,7 @@ export const useMigracaoData = () => {
       const csv = await response.text();
       const lines = csv.split('\n');
 
-      // Parsear CSV respeitando campos entre aspas
-      const parseCSVLine = (line: string): string[] => {
-        const result: string[] = [];
-        let current = '';
-        let insideQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          if (char === '"') {
-            if (insideQuotes && line[i + 1] === '"') { current += '"'; i++; }
-            else insideQuotes = !insideQuotes;
-          } else if (char === ',' && !insideQuotes) {
-            result.push(current); current = '';
-          } else {
-            current += char;
-          }
-        }
-        result.push(current);
-        // Remove aspas dos valores
-        return result.map(v => v.replace(/^"|"$/g, ''));
-      };
-
-      // Linhas 0-based: linha 3=idx3, linha 4=idx4, linha 5=idx5, linha 2=idx2
+      // Linhas 0-based: linha 3=idx2, linha 4=idx3, linha 5=idx4, linha 6=idx5
       const row3 = lines[2] ? parseCSVLine(lines[2].replace(/\r$/, '')) : [];
       const row4 = lines[3] ? parseCSVLine(lines[3].replace(/\r$/, '')) : [];
       const row5 = lines[4] ? parseCSVLine(lines[4].replace(/\r$/, '')) : [];
@@ -72,11 +91,11 @@ export const useMigracaoData = () => {
       // Linha 5 (Migrados no ano): Col 7 (idx 6) = 7029
       // Linha 6 (Migrações em andamento): Col 7 (idx 6) = 43
       // Linha 3 (Migrações concluidas): Col 10 (idx 9) = 3
-      const migradoHoje = parseNum(row4[6]);   // G4 = Placas migradas no dia (327)
-      const migradoMes  = parseNum(row4[8]);   // I4 = Placas migradas no mês (2000)
-      const migradosAno = parseNum(row5[6]);   // G5 = Migrados no ano (7029)
-      const emMigracao  = parseNum(row6[6]);   // G6 = Migrações em andamento (43)
-      const finalizadas = parseNum(row3[9]);   // I3 = Migrações concluídas no mês (3)
+      const migradoHoje = parseNum(row4[6]);   // G4 = Placas migradas no dia
+      const migradoMes  = parseNum(row4[8]);   // I4 = Placas migradas no mês
+      const migradosAno = parseNum(row5[6]);   // G5 = Migrados no ano
+      const emMigracao  = parseNum(row6[6]);   // G6 = Migrações em andamento
+      const finalizadas = parseNum(row3[9]);   // I3 = Migrações concluídas no mês
 
       setData({
         migradoHoje,
