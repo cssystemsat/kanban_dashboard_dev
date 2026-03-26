@@ -110,3 +110,5 @@
 - [x] Corrigir Ongoing: incluir todos os clientes da planilha, excluindo apenas os com "Churn" na coluna V (gid=1152476970)
 - [x] Integrar G6=Em migração e I3=Finalizadas da aba gid=1590626518 na tabela de Migração do Painel
 - [x] Corrigir erro NotFoundError no modal de atendimento (problema com createPortal e container DOM)
+- [x] Trocar ícone lucide por caractere ASCII simples (-/+) no modal de atendimento para compatibilidade com todas as fontes
+- [x] Corrigir z-index e overflow do menu suspenso de clientes no Painel para aparecer por cima

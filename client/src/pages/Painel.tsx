@@ -142,7 +142,7 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
   total: { contatos: number; total: number; percentual: number; bateuMeta: boolean; acumuladoMes: number };
 }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-full" style={{ borderColor: '#E0E8F0' }}>
+    <div className="bg-white rounded-xl border shadow-sm flex flex-col h-full" style={{ borderColor: '#E0E8F0', overflow: 'visible' }}>
       <div className="px-4 py-2.5 shrink-0" style={{ backgroundColor: cor }}>
         <h3 className="text-sm font-bold text-white tracking-wide">{titulo}</h3>
       </div>
@@ -219,7 +219,7 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
 function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) {
   const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626'];
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-full" style={{ borderColor: '#E0E8F0' }}>
+    <div className="bg-white rounded-xl border shadow-sm flex flex-col h-full" style={{ borderColor: '#E0E8F0', overflow: 'visible' }}>
       <div className="px-3 py-2.5 shrink-0" style={{ backgroundColor: '#0F4C81' }}>
         <h3 className="text-sm font-bold text-white tracking-wide">Marcos ≤ 90 dias</h3>
       </div>
@@ -264,7 +264,7 @@ function TabelaMigracao() {
     { label: 'Finalizadas',  valor: fmt(mig.finalizadas),  cor: '#D97706', bg: '#FFFBEB' },
   ];
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-full" style={{ borderColor: '#E0E8F0' }}>
+    <div className="bg-white rounded-xl border shadow-sm flex flex-col h-full" style={{ borderColor: '#E0E8F0', overflow: 'visible' }}>
       <div className="px-3 py-2.5 shrink-0 flex items-center gap-2" style={{ backgroundColor: '#1E3A5F' }}>
         <Truck className="w-4 h-4 text-white opacity-80 shrink-0" />
         <h3 className="text-sm font-bold text-white tracking-wide">Migração</h3>
