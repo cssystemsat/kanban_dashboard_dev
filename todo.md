@@ -114,3 +114,4 @@
 - [x] Corrigir z-index e overflow do menu suspenso de clientes no Painel para aparecer por cima
 - [x] Ajustar tooltip de clientes para fixed positioning próximo do mouse (em vez de absolute distante)
 - [x] Melhorar tooltip: não desaparecer ao scrollar (adicionar delay ou hover area maior)
+- [x] Popup ao clicar em CONT. TOTAL: mostrar clientes sem contato na semana com data do último contato (col L, ordem decrescente)

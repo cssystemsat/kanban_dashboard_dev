@@ -157,6 +157,108 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
   );
 }
 
+/* ─── SemContatoCell (Clientes sem contato na semana) ────────────────── */
+
+function SemContatoCell({ row }: { row: CoberturaCSM }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      const inBtn = btnRef.current?.contains(e.target as Node);
+      const inTip = tooltipRef.current?.contains(e.target as Node);
+      if (!inBtn && !inTip) {
+        closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, [open]);
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    
+    const TW = 320;
+    let left = e.clientX + 12;
+    let top = e.clientY + 12;
+    
+    if (left + TW > window.innerWidth) {
+      left = window.innerWidth - TW - 8;
+    }
+    if (top + 340 > window.innerHeight) {
+      top = e.clientY - 340 - 8;
+    }
+    
+    setPos({ top, left });
+  }
+
+  function handleMouseEnter() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setOpen(true);
+  }
+
+  function handleMouseLeave() {
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+  }
+
+  return (
+    <div className="relative inline-block" onMouseLeave={handleMouseLeave}>
+      <button
+        ref={btnRef}
+        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-2xl leading-none"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={() => setOpen(v => !v)}
+        onMouseMove={handleMouseMove}
+      >
+        {row.totalClientes}
+      </button>
+
+      {open && (
+        <div ref={tooltipRef} className="w-80 bg-white rounded-xl shadow-2xl border fixed"
+          style={{ zIndex: 99999, borderColor: '#E0E8F0', top: `${pos.top}px`, left: `${pos.left}px` }}
+          onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onMouseMove={handleMouseMove}>
+          <div className="px-3 py-2 border-b flex items-center justify-between"
+            style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
+            <span className="text-sm font-bold text-gray-700">{row.csm}</span>
+            <span className="text-xs text-gray-500">{row.clientesSemContato.length} sem contato</span>
+          </div>
+          {row.clientesSemContato.some(c => c.flag) && (
+            <div className="px-3 py-1.5 border-b flex items-center gap-3 flex-wrap"
+              style={{ borderColor: '#F0F4F8', backgroundColor: '#FAFBFC' }}>
+              {(['Red Flag', 'Yellow Flag', 'Black Flag'] as FlagTipo[]).map(f => {
+                const count = row.clientesSemContato.filter(c => c.flag === f).length;
+                if (count === 0) return null;
+                const colors = FLAG_COLORS[f];
+                return (
+                  <span key={f} className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: colors.text }}>
+                    <Flag className="w-2.5 h-2.5" fill={colors.dot} style={{ color: colors.dot }} />
+                    {count} {f}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          <div className="px-2 py-1.5 max-h-64 overflow-y-auto"><TooltipClientes clientes={row.clientesSemContato} /></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Tabela de Cobertura ─────────────────────────────────────────────── */
 function TabelaCobertura({ titulo, cor, dados, total }: {
   titulo: string; cor: string;
@@ -195,7 +297,7 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
                 style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#fff' : '#FAFBFC' }}>
                 <td className="px-2 py-2.5 font-semibold text-gray-800 text-sm truncate">{row.csm}</td>
                 <td className="px-1 py-2.5 text-center"><ContatosCell row={row} /></td>
-                <td className="px-1 py-2.5 text-center text-2xl font-bold text-gray-700">{row.totalClientes}</td>
+                <td className="px-1 py-2.5 text-center"><SemContatoCell row={row} /></td>
                 <td className="px-1 py-2.5 text-center">
                   <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold"
                     style={{ backgroundColor: row.bateuMeta ? '#DCFCE7' : '#FEE2E2', color: row.bateuMeta ? '#166534' : '#991B1B' }}>

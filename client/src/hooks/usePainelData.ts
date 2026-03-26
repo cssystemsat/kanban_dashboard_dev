@@ -22,6 +22,7 @@ export interface CoberturaCSM {
   percentual: number;
   bateuMeta: boolean;
   clientesContatados: ClienteContato[]; // lista para tooltip da semana
+  clientesSemContato: ClienteContato[]; // lista de clientes SEM contato na semana
   acumuladoMes: number; // clientes únicos contatados no mês atual
 }
 
@@ -131,6 +132,7 @@ function calcularCobertura(
     contatos: number;
     total: number;
     clientesContatados: ClienteContato[];
+    clientesSemContato: ClienteContato[];
     nomesNoMes: Set<string>; // para deduplicar por nome no mês
   }> = {};
 
@@ -138,7 +140,7 @@ function calcularCobertura(
     const csm = row.csm.trim();
     if (!csm) continue;
 
-    if (!mapa[csm]) mapa[csm] = { contatos: 0, total: 0, clientesContatados: [], nomesNoMes: new Set() };
+    if (!mapa[csm]) mapa[csm] = { contatos: 0, total: 0, clientesContatados: [], clientesSemContato: [], nomesNoMes: new Set() };
     mapa[csm].total++;
 
     const data = parseDate(row.ultimoContato);
@@ -147,6 +149,13 @@ function calcularCobertura(
     if (data && data >= semana.inicio && data <= semana.fim) {
       mapa[csm].contatos++;
       mapa[csm].clientesContatados.push({
+        nome: row.nome,
+        flag: row.flag,
+        ultimoContato: row.ultimoContato,
+      });
+    } else {
+      // Clientes SEM contato na semana
+      mapa[csm].clientesSemContato.push({
         nome: row.nome,
         flag: row.flag,
         ultimoContato: row.ultimoContato,
@@ -160,13 +169,22 @@ function calcularCobertura(
   }
 
   return Object.entries(mapa)
-    .map(([csm, { contatos, total, clientesContatados, nomesNoMes }]) => {
+    .map(([csm, { contatos, total, clientesContatados, clientesSemContato, nomesNoMes }]) => {
       const percentual = total > 0 ? contatos / total : 0;
       const flagOrder: Record<FlagTipo, number> = { 'Red Flag': 0, 'Yellow Flag': 1, 'Black Flag': 2, '': 3 };
       clientesContatados.sort((a, b) => {
         const fo = flagOrder[a.flag] - flagOrder[b.flag];
         if (fo !== 0) return fo;
         return a.nome.localeCompare(b.nome);
+      });
+      // Ordenar clientes sem contato por data (mais antigo primeiro)
+      clientesSemContato.sort((a, b) => {
+        const dataA = parseDate(a.ultimoContato);
+        const dataB = parseDate(b.ultimoContato);
+        if (!dataA && !dataB) return a.nome.localeCompare(b.nome);
+        if (!dataA) return 1; // sem data vai para o final
+        if (!dataB) return -1;
+        return dataA.getTime() - dataB.getTime(); // mais antigo primeiro
       });
       return {
         csm,
@@ -175,6 +193,7 @@ function calcularCobertura(
         percentual,
         bateuMeta: percentual >= META_SEMANAL,
         clientesContatados,
+        clientesSemContato,
         acumuladoMes: nomesNoMes.size,
       };
     })
