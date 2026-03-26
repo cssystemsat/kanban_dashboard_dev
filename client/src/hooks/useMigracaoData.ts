@@ -57,7 +57,8 @@ export const useMigracaoData = () => {
           }
         }
         result.push(current);
-        return result;
+        // Remove aspas dos valores
+        return result.map(v => v.replace(/^"|"$/g, ''));
       };
 
       // Linhas 0-based: linha 3=idx3, linha 4=idx4, linha 5=idx5, linha 2=idx2
