@@ -127,7 +127,11 @@
 - [x] Implementar filtros: por atendente, por plataforma de origem, por tempo de migração
 - [x] Estilizar cards com: nome da empresa, data de início, duração, plataforma, migrados/total
 - [x] Integrar aba Migração no App.tsx
-- [ ] Testar funcionalidade completa e fazer ajustes visuais se necessário
+- [x] Testar funcionalidade completa e fazer ajustes visuais se necessário
+- [x] Adicionar botão de atualizar dados
+- [x] Adicionar pesquisa por cliente
+- [x] Corrigir lógica do Kanban com condições exatas (L, P, T)
+- [ ] Adicionar menus suspensos para colunas L, P, T (para editar na planilha)
 - [x] Mudar ícone da aba Migração no SideMenu para ArrowRight
 - [x] Reorganizar colunas Kanban por etapas (Não iniciado, Levantamento, Envio, Cancelada, Paralisada, Finalizada)
 - [x] Adicionar modal ao clicar no card para mostrar Status (coluna H)

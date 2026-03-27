@@ -3,9 +3,9 @@ import { useMigracaoListData, MigracaoCard } from '@/hooks/useMigracaoListData';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, RefreshCw, Search } from 'lucide-react';
 
-type FilterType = 'atendente' | 'plataforma' | 'tempo';
+type FilterType = 'atendente' | 'plataforma' | 'tempo' | 'cliente';
 
 type EtapaType = 'nao-iniciado' | 'levantamento' | 'envio' | 'cancelada' | 'paralisada' | 'finalizada';
 
@@ -15,8 +15,10 @@ export function Migracao() {
     atendente: '',
     plataforma: '',
     tempo: '',
+    cliente: '',
   });
   const [selectedCard, setSelectedCard] = useState<MigracaoCard | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -26,20 +28,27 @@ export function Migracao() {
   const atendentes = useMemo(() => Array.from(new Set(data.map(m => m.responsavel).filter(Boolean))), [data]);
   const plataformas = useMemo(() => Array.from(new Set(data.map(m => m.plataforma).filter(Boolean))), [data]);
 
-  // Função para determinar etapa
+  // Função para determinar etapa com lógica correta
   const getEtapa = (migr: MigracaoCard): EtapaType => {
+    // Cancelada: T = "Cancelado"
     if (migr.situacao?.toLowerCase() === 'cancelado') return 'cancelada';
+    
+    // Paralisada: T = "Paralisado"
     if (migr.situacao?.toLowerCase() === 'paralisado') return 'paralisada';
+    
+    // Finalizada: T = "Finalizada"
     if (migr.situacao?.toLowerCase() === 'finalizada') return 'finalizada';
     
-    // Não iniciado: L vazio
-    if (!migr.levantamentoDados) return 'nao-iniciado';
+    // Não iniciou: L vazia
+    if (!migr.levantamentoDados || migr.levantamentoDados.trim() === '') return 'nao-iniciado';
     
-    // Levantamento: L com info, P vazio
-    if (migr.levantamentoDados && !migr.envioDados) return 'levantamento';
+    // Levantamento: L com info e P vazia
+    if (migr.levantamentoDados && (!migr.envioDados || migr.envioDados.trim() === '')) {
+      return 'levantamento';
+    }
     
-    // Envio: L e P com info, T = "Em andamento"
-    if (migr.levantamentoDados && migr.envioDados && migr.status?.toLowerCase() === 'em andamento') {
+    // Envio: P com alguma informação
+    if (migr.envioDados && migr.envioDados.trim() !== '') {
       return 'envio';
     }
     
@@ -51,6 +60,7 @@ export function Migracao() {
     return data.filter(migr => {
       if (filters.atendente && migr.responsavel !== filters.atendente) return false;
       if (filters.plataforma && migr.plataforma !== filters.plataforma) return false;
+      if (filters.cliente && !migr.empresa.toLowerCase().includes(filters.cliente.toLowerCase())) return false;
       
       if (filters.tempo) {
         const duracao = migr.duracao || 0;
@@ -86,9 +96,15 @@ export function Migracao() {
     setFilters(prev => ({ ...prev, [type]: value }));
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  };
+
   const etapaLabels: Record<EtapaType, string> = {
-    'nao-iniciado': 'Não Iniciado',
-    'levantamento': 'Levantamento e Importação',
+    'nao-iniciado': 'Não Iniciou',
+    'levantamento': 'Levantamento de Organização de Dados',
     'envio': 'Envio de Comandos',
     'cancelada': 'Cancelada',
     'paralisada': 'Paralisada',
@@ -104,7 +120,7 @@ export function Migracao() {
     'finalizada': 'bg-green-50 border-green-300',
   };
 
-  if (loading) {
+  if (loading && !data.length) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="w-8 h-8 animate-spin" />
@@ -122,13 +138,38 @@ export function Migracao() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Migração</h1>
-        <p className="text-gray-600 mt-1">Dashboard de migrações por etapa</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Migração</h1>
+          <p className="text-gray-600 mt-1">Dashboard de migrações por etapa</p>
+        </div>
+        <Button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Atualizar
+        </Button>
       </div>
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-4 bg-white p-4 rounded-lg border border-gray-200">
+        {/* Pesquisa por Cliente */}
+        <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+          <label className="text-sm font-medium flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            Pesquisar Cliente
+          </label>
+          <input
+            type="text"
+            placeholder="Digite o nome da empresa..."
+            value={filters.cliente}
+            onChange={(e) => handleFilterChange('cliente', e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+          />
+        </div>
+
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Atendente</label>
           <select
@@ -174,7 +215,7 @@ export function Migracao() {
         <div className="flex items-end">
           <Button
             variant="outline"
-            onClick={() => setFilters({ atendente: '', plataforma: '', tempo: '' })}
+            onClick={() => setFilters({ atendente: '', plataforma: '', tempo: '', cliente: '' })}
             className="text-sm"
           >
             Limpar Filtros
@@ -212,7 +253,7 @@ export function Migracao() {
       {/* Modal de Detalhes */}
       {selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md bg-white p-6 relative">
+          <Card className="w-full max-w-md bg-white p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedCard(null)}
               className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded"
@@ -252,6 +293,21 @@ export function Migracao() {
                     <p className="text-sm text-gray-600">Responsável</p>
                     <p className="font-semibold">{selectedCard.responsavel || '-'}</p>
                   </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600">Levantamento de Dados (L)</p>
+                  <p className="font-semibold">{selectedCard.levantamentoDados || 'Vazio'}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600">Envio de Comandos (P)</p>
+                  <p className="font-semibold">{selectedCard.envioDados || 'Vazio'}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600">Situação Atual (T)</p>
+                  <p className="font-semibold">{selectedCard.situacao || 'Não informado'}</p>
                 </div>
 
                 <div>
