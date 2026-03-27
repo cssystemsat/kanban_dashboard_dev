@@ -136,3 +136,4 @@
 - [x] Mudar ícone da aba Migração no SideMenu para ArrowRight
 - [x] Reorganizar colunas Kanban por etapas (Não iniciado, Levantamento, Envio, Cancelada, Paralisada, Finalizada)
 - [x] Adicionar modal ao clicar no card para mostrar Status (coluna H)
+- [x] Mudar fundo do modal de preto para transparente
