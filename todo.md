@@ -119,3 +119,12 @@
 - [x] Adicionar filtro por flags nos popups de ContatosCell e SemContatoCell
 - [x] Remover scroll duplo dos popups (deixar apenas um)
 - [x] Corrigir valor de Migrados no Ano (G5) que estava exibindo -11921 (corrigido índice de coluna para [6])
+
+## Aba Migração (em desenvolvimento)
+
+- [x] Criar hook useMigracaoListData para buscar dados da aba Migração (gid=146618493)
+- [x] Criar componente Kanban com colunas por status (Em andamento, Finalizada, etc.)
+- [x] Implementar filtros: por atendente, por plataforma de origem, por tempo de migração
+- [x] Estilizar cards com: nome da empresa, data de início, duração, plataforma, migrados/total
+- [x] Integrar aba Migração no App.tsx
+- [ ] Testar funcionalidade completa e fazer ajustes visuais se necessário
