@@ -137,3 +137,4 @@
 - [x] Reorganizar colunas Kanban por etapas (Não iniciado, Levantamento, Envio, Cancelada, Paralisada, Finalizada)
 - [x] Adicionar modal ao clicar no card para mostrar Status (coluna H)
 - [x] Mudar fundo do modal de preto para transparente
+- [x] Adicionar responsável e status da etapa no card compacto

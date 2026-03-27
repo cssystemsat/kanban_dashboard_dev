@@ -365,22 +365,50 @@ function MigracaoCardCompactComponent({ migr, onClick }: MigracaoCardCompactComp
     return 'bg-red-500';
   };
 
+  const getStatusInfo = () => {
+    // Retorna o status baseado na etapa
+    if (!migr.levantamentoDados || migr.levantamentoDados.trim() === '') {
+      return null; // Não iniciado
+    }
+    if (migr.levantamentoDados && (!migr.envioDados || migr.envioDados.trim() === '')) {
+      return migr.levantamentoDados; // Levantamento
+    }
+    if (migr.envioDados && migr.envioDados.trim() !== '') {
+      return migr.envioDados; // Envio de Comandos
+    }
+    return null;
+  };
+
   return (
     <Card
       className={`p-2 cursor-pointer hover:shadow-md transition-shadow ${getTypeColor(migr.tipo)} border text-xs`}
       onClick={onClick}
     >
       <div className="space-y-1">
-        {/* Empresa */}
-        <h3 className="font-bold text-xs line-clamp-2 leading-tight">{migr.empresa}</h3>
+        {/* Empresa e Tipo lado a lado */}
+        <div className="flex items-start justify-between gap-1">
+          <h3 className="font-bold text-xs line-clamp-2 leading-tight flex-1">{migr.empresa}</h3>
+          <Badge variant="outline" className="text-xs whitespace-nowrap h-5 flex-shrink-0">
+            {migr.tipo.substring(0, 3).toUpperCase()}
+          </Badge>
+        </div>
 
-        {/* Tipo */}
-        <Badge variant="outline" className="text-xs whitespace-nowrap h-5 inline-block">
-          {migr.tipo.substring(0, 3).toUpperCase()}
-        </Badge>
+        {/* Responsável */}
+        {migr.responsavel && (
+          <div className="text-xs text-gray-700 font-medium leading-tight">
+            {migr.responsavel}
+          </div>
+        )}
+
+        {/* Status da Etapa */}
+        {getStatusInfo() && (
+          <div className="text-xs text-gray-600 leading-tight line-clamp-1">
+            {getStatusInfo()}
+          </div>
+        )}
 
         {/* Progresso compacto */}
-        <div className="flex items-center justify-between text-xs gap-1">
+        <div className="flex items-center justify-between text-xs gap-1 pt-1">
           <span className="font-bold">{migr.percentual.toFixed(0)}%</span>
           <div className="flex-1 bg-gray-200 rounded-full h-1">
             <div
