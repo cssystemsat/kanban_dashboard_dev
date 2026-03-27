@@ -132,6 +132,7 @@
 - [x] Adicionar pesquisa por cliente
 - [x] Corrigir lógica do Kanban com condições exatas (L, P, T)
 - [ ] Adicionar menus suspensos para colunas L, P, T (para editar na planilha)
+- [x] Compactar cards do Kanban para aparecer todos os status na tela de uma vez
 - [x] Mudar ícone da aba Migração no SideMenu para ArrowRight
 - [x] Reorganizar colunas Kanban por etapas (Não iniciado, Levantamento, Envio, Cancelada, Paralisada, Finalizada)
 - [x] Adicionar modal ao clicar no card para mostrar Status (coluna H)

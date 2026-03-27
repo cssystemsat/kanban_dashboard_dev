@@ -137,16 +137,17 @@ export function Migracao() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Migração</h1>
-          <p className="text-gray-600 mt-1">Dashboard de migrações por etapa</p>
+          <h1 className="text-2xl font-bold">Migração</h1>
+          <p className="text-gray-600 text-sm mt-1">Dashboard de migrações por etapa</p>
         </div>
         <Button
           onClick={handleRefresh}
           disabled={isRefreshing}
           className="flex items-center gap-2"
+          size="sm"
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           Atualizar
@@ -154,28 +155,28 @@ export function Migracao() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-4 bg-white p-4 rounded-lg border border-gray-200">
+      <div className="flex flex-wrap gap-2 bg-white p-3 rounded-lg border border-gray-200">
         {/* Pesquisa por Cliente */}
-        <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <Search className="w-4 h-4" />
-            Pesquisar Cliente
+        <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
+          <label className="text-xs font-medium flex items-center gap-1">
+            <Search className="w-3 h-3" />
+            Cliente
           </label>
           <input
             type="text"
-            placeholder="Digite o nome da empresa..."
+            placeholder="Empresa..."
             value={filters.cliente}
             onChange={(e) => handleFilterChange('cliente', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Atendente</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium">Atendente</label>
           <select
             value={filters.atendente}
             onChange={(e) => handleFilterChange('atendente', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
           >
             <option value="">Todos</option>
             {atendentes.map(at => (
@@ -184,12 +185,12 @@ export function Migracao() {
           </select>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Plataforma</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium">Plataforma</label>
           <select
             value={filters.plataforma}
             onChange={(e) => handleFilterChange('plataforma', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
           >
             <option value="">Todas</option>
             {plataformas.map(plat => (
@@ -198,12 +199,12 @@ export function Migracao() {
           </select>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Tempo de Migração</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium">Tempo</label>
           <select
             value={filters.tempo}
             onChange={(e) => handleFilterChange('tempo', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
           >
             <option value="">Todos</option>
             <option value="curto">&lt; 30 dias</option>
@@ -216,29 +217,30 @@ export function Migracao() {
           <Button
             variant="outline"
             onClick={() => setFilters({ atendente: '', plataforma: '', tempo: '', cliente: '' })}
-            className="text-sm"
+            className="text-xs h-8"
+            size="sm"
           >
-            Limpar Filtros
+            Limpar
           </Button>
         </div>
       </div>
 
-      {/* Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Kanban Board - Compacto */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
         {Object.entries(etapaLabels).map(([etapa, label]) => {
           const cards = groupedByEtapa[etapa as EtapaType];
           const colors = etapaColors[etapa as EtapaType];
           
           return (
-            <div key={etapa} className="flex flex-col gap-4">
-              <div className={`sticky top-0 p-3 rounded-lg border-2 ${colors}`}>
-                <h2 className="font-bold text-lg">{label}</h2>
-                <p className="text-sm text-gray-600">{cards.length} migrações</p>
+            <div key={etapa} className="flex flex-col gap-1">
+              <div className={`sticky top-0 p-2 rounded-lg border-2 ${colors}`}>
+                <h2 className="font-bold text-xs leading-tight">{label}</h2>
+                <p className="text-xs text-gray-600">{cards.length}</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1 overflow-y-auto max-h-[calc(100vh-280px)]">
                 {cards.map(migr => (
-                  <MigracaoCardComponent
+                  <MigracaoCardCompactComponent
                     key={migr.id}
                     migr={migr}
                     onClick={() => setSelectedCard(migr)}
@@ -344,12 +346,12 @@ export function Migracao() {
   );
 }
 
-interface MigracaoCardComponentProps {
+interface MigracaoCardCompactComponentProps {
   migr: MigracaoCard;
   onClick: () => void;
 }
 
-function MigracaoCardComponent({ migr, onClick }: MigracaoCardComponentProps) {
+function MigracaoCardCompactComponent({ migr, onClick }: MigracaoCardCompactComponentProps) {
   const getTypeColor = (tipo: string) => {
     if (tipo.toLowerCase().includes('ongoing')) return 'bg-blue-50 border-blue-200';
     if (tipo.toLowerCase().includes('onboarding')) return 'bg-purple-50 border-purple-200';
@@ -365,62 +367,33 @@ function MigracaoCardComponent({ migr, onClick }: MigracaoCardComponentProps) {
 
   return (
     <Card
-      className={`p-4 cursor-pointer hover:shadow-lg transition-shadow ${getTypeColor(migr.tipo)} border`}
+      className={`p-2 cursor-pointer hover:shadow-md transition-shadow ${getTypeColor(migr.tipo)} border text-xs`}
       onClick={onClick}
     >
-      <div className="space-y-3">
-        {/* Empresa e Tipo */}
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-sm line-clamp-2">{migr.empresa}</h3>
-          <Badge variant="outline" className="text-xs whitespace-nowrap">
-            {migr.tipo}
-          </Badge>
-        </div>
+      <div className="space-y-1">
+        {/* Empresa */}
+        <h3 className="font-bold text-xs line-clamp-2 leading-tight">{migr.empresa}</h3>
 
-        {/* Data de Início */}
-        {migr.dataInicio && (
-          <div className="text-xs text-gray-600">
-            <span className="font-medium">Início:</span> {migr.dataInicio}
-          </div>
-        )}
+        {/* Tipo */}
+        <Badge variant="outline" className="text-xs whitespace-nowrap h-5 inline-block">
+          {migr.tipo.substring(0, 3).toUpperCase()}
+        </Badge>
 
-        {/* Duração */}
-        {migr.duracao && (
-          <div className="text-xs text-gray-600">
-            <span className="font-medium">Duração:</span> {migr.duracao} dias
-          </div>
-        )}
-
-        {/* Plataforma */}
-        {migr.plataforma && (
-          <div className="text-xs text-gray-600">
-            <span className="font-medium">Plataforma:</span> {migr.plataforma}
-          </div>
-        )}
-
-        {/* Progresso */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-medium">Progresso</span>
-            <span className="font-bold">{migr.percentual.toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+        {/* Progresso compacto */}
+        <div className="flex items-center justify-between text-xs gap-1">
+          <span className="font-bold">{migr.percentual.toFixed(0)}%</span>
+          <div className="flex-1 bg-gray-200 rounded-full h-1">
             <div
-              className={`h-2 rounded-full transition-all ${getProgressColor(migr.percentual)}`}
+              className={`h-1 rounded-full transition-all ${getProgressColor(migr.percentual)}`}
               style={{ width: `${Math.min(migr.percentual, 100)}%` }}
             />
           </div>
-          <div className="text-xs text-gray-600 text-center">
-            {migr.migrados} / {migr.total} placas
-          </div>
         </div>
 
-        {/* Responsável */}
-        {migr.responsavel && (
-          <div className="text-xs text-gray-600 pt-2 border-t border-gray-200">
-            <span className="font-medium">Responsável:</span> {migr.responsavel}
-          </div>
-        )}
+        {/* Placas */}
+        <div className="text-xs text-gray-600 text-center leading-tight">
+          {migr.migrados}/{migr.total}
+        </div>
       </div>
     </Card>
   );
