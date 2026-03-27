@@ -128,3 +128,6 @@
 - [x] Estilizar cards com: nome da empresa, data de início, duração, plataforma, migrados/total
 - [x] Integrar aba Migração no App.tsx
 - [ ] Testar funcionalidade completa e fazer ajustes visuais se necessário
+- [x] Mudar ícone da aba Migração no SideMenu para ArrowRight
+- [x] Reorganizar colunas Kanban por etapas (Não iniciado, Levantamento, Envio, Cancelada, Paralisada, Finalizada)
+- [x] Adicionar modal ao clicar no card para mostrar Status (coluna H)

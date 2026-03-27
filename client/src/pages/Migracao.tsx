@@ -3,9 +3,11 @@ import { useMigracaoListData, MigracaoCard } from '@/hooks/useMigracaoListData';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 type FilterType = 'atendente' | 'plataforma' | 'tempo';
+
+type EtapaType = 'nao-iniciado' | 'levantamento' | 'envio' | 'cancelada' | 'paralisada' | 'finalizada';
 
 export function Migracao() {
   const { data, loading, error, fetchData } = useMigracaoListData();
@@ -14,6 +16,7 @@ export function Migracao() {
     plataforma: '',
     tempo: '',
   });
+  const [selectedCard, setSelectedCard] = useState<MigracaoCard | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -22,6 +25,26 @@ export function Migracao() {
   // Extrair valores únicos para filtros
   const atendentes = useMemo(() => Array.from(new Set(data.map(m => m.responsavel).filter(Boolean))), [data]);
   const plataformas = useMemo(() => Array.from(new Set(data.map(m => m.plataforma).filter(Boolean))), [data]);
+
+  // Função para determinar etapa
+  const getEtapa = (migr: MigracaoCard): EtapaType => {
+    if (migr.situacao?.toLowerCase() === 'cancelado') return 'cancelada';
+    if (migr.situacao?.toLowerCase() === 'paralisado') return 'paralisada';
+    if (migr.situacao?.toLowerCase() === 'finalizada') return 'finalizada';
+    
+    // Não iniciado: L vazio
+    if (!migr.levantamentoDados) return 'nao-iniciado';
+    
+    // Levantamento: L com info, P vazio
+    if (migr.levantamentoDados && !migr.envioDados) return 'levantamento';
+    
+    // Envio: L e P com info, T = "Em andamento"
+    if (migr.levantamentoDados && migr.envioDados && migr.status?.toLowerCase() === 'em andamento') {
+      return 'envio';
+    }
+    
+    return 'nao-iniciado';
+  };
 
   // Aplicar filtros
   const filteredData = useMemo(() => {
@@ -40,14 +63,20 @@ export function Migracao() {
     });
   }, [data, filters]);
 
-  // Agrupar por status
-  const groupedByStatus = useMemo(() => {
-    const groups: Record<string, MigracaoCard[]> = {};
+  // Agrupar por etapa
+  const groupedByEtapa = useMemo(() => {
+    const groups: Record<EtapaType, MigracaoCard[]> = {
+      'nao-iniciado': [],
+      'levantamento': [],
+      'envio': [],
+      'cancelada': [],
+      'paralisada': [],
+      'finalizada': [],
+    };
     
     filteredData.forEach(migr => {
-      const status = migr.status || 'Sem status';
-      if (!groups[status]) groups[status] = [];
-      groups[status].push(migr);
+      const etapa = getEtapa(migr);
+      groups[etapa].push(migr);
     });
     
     return groups;
@@ -55,6 +84,24 @@ export function Migracao() {
 
   const handleFilterChange = (type: FilterType, value: string) => {
     setFilters(prev => ({ ...prev, [type]: value }));
+  };
+
+  const etapaLabels: Record<EtapaType, string> = {
+    'nao-iniciado': 'Não Iniciado',
+    'levantamento': 'Levantamento e Importação',
+    'envio': 'Envio de Comandos',
+    'cancelada': 'Cancelada',
+    'paralisada': 'Paralisada',
+    'finalizada': 'Finalizada',
+  };
+
+  const etapaColors: Record<EtapaType, string> = {
+    'nao-iniciado': 'bg-gray-50 border-gray-300',
+    'levantamento': 'bg-blue-50 border-blue-300',
+    'envio': 'bg-purple-50 border-purple-300',
+    'cancelada': 'bg-red-50 border-red-300',
+    'paralisada': 'bg-yellow-50 border-yellow-300',
+    'finalizada': 'bg-green-50 border-green-300',
   };
 
   if (loading) {
@@ -77,7 +124,7 @@ export function Migracao() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Migração</h1>
-        <p className="text-gray-600 mt-1">Dashboard de migrações em progresso</p>
+        <p className="text-gray-600 mt-1">Dashboard de migrações por etapa</p>
       </div>
 
       {/* Filtros */}
@@ -137,23 +184,102 @@ export function Migracao() {
 
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Object.entries(groupedByStatus).map(([status, cards]) => (
-          <div key={status} className="flex flex-col gap-4">
-            <div className="sticky top-0 bg-white p-3 rounded-lg border-2 border-gray-300">
-              <h2 className="font-bold text-lg">{status}</h2>
-              <p className="text-sm text-gray-600">{cards.length} migrações</p>
-            </div>
+        {Object.entries(etapaLabels).map(([etapa, label]) => {
+          const cards = groupedByEtapa[etapa as EtapaType];
+          const colors = etapaColors[etapa as EtapaType];
+          
+          return (
+            <div key={etapa} className="flex flex-col gap-4">
+              <div className={`sticky top-0 p-3 rounded-lg border-2 ${colors}`}>
+                <h2 className="font-bold text-lg">{label}</h2>
+                <p className="text-sm text-gray-600">{cards.length} migrações</p>
+              </div>
 
-            <div className="space-y-3">
-              {cards.map(migr => (
-                <MigracaoCardComponent key={migr.id} migr={migr} />
-              ))}
+              <div className="space-y-3">
+                {cards.map(migr => (
+                  <MigracaoCardComponent
+                    key={migr.id}
+                    migr={migr}
+                    onClick={() => setSelectedCard(migr)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {Object.keys(groupedByStatus).length === 0 && (
+      {/* Modal de Detalhes */}
+      {selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-white p-6 relative">
+            <button
+              onClick={() => setSelectedCard(null)}
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-2xl font-bold">{selectedCard.empresa}</h2>
+                <Badge className="mt-2">{selectedCard.tipo}</Badge>
+              </div>
+
+              <div className="border-t pt-4 space-y-3">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Status (Coluna H)</p>
+                  <p className="text-lg font-semibold mt-1">{selectedCard.status || 'Não informado'}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Data Início</p>
+                    <p className="font-semibold">{selectedCard.dataInicio}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Duração</p>
+                    <p className="font-semibold">{selectedCard.duracao || '-'} dias</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Plataforma</p>
+                    <p className="font-semibold">{selectedCard.plataforma || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Responsável</p>
+                    <p className="font-semibold">{selectedCard.responsavel || '-'}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600">Progresso</p>
+                  <p className="font-semibold text-lg mt-1">
+                    {selectedCard.migrados} / {selectedCard.total} ({selectedCard.percentual.toFixed(1)}%)
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                    <div
+                      className="h-3 rounded-full bg-blue-500"
+                      style={{ width: `${Math.min(selectedCard.percentual, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setSelectedCard(null)}
+                className="w-full"
+              >
+                Fechar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {Object.values(groupedByEtapa).every(cards => cards.length === 0) && (
         <div className="text-center py-12">
           <p className="text-gray-500">Nenhuma migração encontrada com os filtros selecionados</p>
         </div>
@@ -164,9 +290,10 @@ export function Migracao() {
 
 interface MigracaoCardComponentProps {
   migr: MigracaoCard;
+  onClick: () => void;
 }
 
-function MigracaoCardComponent({ migr }: MigracaoCardComponentProps) {
+function MigracaoCardComponent({ migr, onClick }: MigracaoCardComponentProps) {
   const getTypeColor = (tipo: string) => {
     if (tipo.toLowerCase().includes('ongoing')) return 'bg-blue-50 border-blue-200';
     if (tipo.toLowerCase().includes('onboarding')) return 'bg-purple-50 border-purple-200';
@@ -181,7 +308,10 @@ function MigracaoCardComponent({ migr }: MigracaoCardComponentProps) {
   };
 
   return (
-    <Card className={`p-4 cursor-pointer hover:shadow-lg transition-shadow ${getTypeColor(migr.tipo)} border`}>
+    <Card
+      className={`p-4 cursor-pointer hover:shadow-lg transition-shadow ${getTypeColor(migr.tipo)} border`}
+      onClick={onClick}
+    >
       <div className="space-y-3">
         {/* Empresa e Tipo */}
         <div className="flex items-start justify-between gap-2">
