@@ -39,11 +39,11 @@ const TOPICOS = [
 ];
 
 const DURACOES = [
-  '5 minutos',
-  '10 minutos',
-  '30 minutos',
-  '1 hora',
-  '+1 hora',
+  '5',
+  '10',
+  '30',
+  '60',
+  '90',
 ];
 
 const INITIAL_FORM = {
@@ -57,17 +57,18 @@ const INITIAL_FORM = {
 export default function AtendimentoModal({ client, onClose }: AtendimentoModalProps) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [enviado, setEnviado] = useState(false);
-  const [customMinutes, setCustomMinutes] = useState(5);
+  const [customMinutes, setCustomMinutes] = useState('5');
 
   const adjustMinutes = (delta: number) => {
     setCustomMinutes(prev => {
-      const next = Math.max(5, prev + delta);
-      return next;
+      const num = parseInt(prev) || 5;
+      const next = Math.max(5, num + delta);
+      return String(next);
     });
   };
 
   // Verifica se a duração selecionada é o valor personalizado atual
-  const customLabel = `${customMinutes} minutos`;
+  const customLabel = customMinutes;
   const isCustomSelected = form.duracao === customLabel;
 
   const { data: permission, isLoading: permLoading } = trpc.atendimento.checkPermission.useQuery();
@@ -310,7 +311,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
                       border: form.duracao === d ? '1.5px solid #1D4ED8' : '1.5px solid #E5E7EB',
                     }}
                   >
-                    {d}
+                    {d} min
                   </button>
                 ))}
               </div>
@@ -333,7 +334,7 @@ export default function AtendimentoModal({ client, onClose }: AtendimentoModalPr
                     border: isCustomSelected ? '1.5px solid #1D4ED8' : '1.5px solid #BFDBFE',
                   }}
                 >
-                  {customLabel}
+                  {customLabel} min
                 </button>
                 <button
                   onClick={() => adjustMinutes(5)}
