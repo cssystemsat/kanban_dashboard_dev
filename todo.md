@@ -151,3 +151,6 @@
 - [x] Criar tabela interativa de atendimentos com hover detalhado
 - [x] Adicionar filtros na aba Atendimentos (cliente, origem, tipo, assunto, atendente)
 - [x] Adicionar ordenação por colunas na tabela
+- [x] Remover botão de atualizar duplicado do componente Atendimentos
+- [x] Mostrar todos os atendentes em vez de top 5
+- [x] Adicionar modal com fundo transparente para clientes e assuntos únicos
