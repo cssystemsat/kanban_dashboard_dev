@@ -13,16 +13,20 @@ const PUBLIC_ITEMS = [
   { id: 'painel', label: 'Painel', icon: LayoutGrid },
 ];
 
-// Abas que requerem login e permissão
+// Abas que requerem login e permissao
 const PROTECTED_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'marcos', label: 'Marcos', icon: CheckSquare },
   { id: 'ongoing', label: 'Ongoing', icon: Users },
   { id: 'churns', label: 'CHURNs', icon: TrendingDown },
-  { id: 'migracao', label: 'Migração', icon: ArrowRight },
-  { id: 'atendimentos', label: 'Atendimentos', icon: Phone },
+  { id: 'migracao', label: 'Migracao', icon: ArrowRight },
   { id: 'redflags', label: 'Red Flags', icon: AlertCircle },
   { id: 'ferramentas', label: 'Ferramentas', icon: Wrench },
+];
+
+// Abas apenas para admin
+const ADMIN_ONLY_ITEMS = [
+  { id: 'atendimentos', label: 'Atendimentos', icon: Phone },
 ];
 
 function getTodayBRT(): string {
@@ -66,12 +70,17 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
     }, 60_000);
     return () => clearInterval(interval);
   }, [user, utils]);
-
   // Abas protegidas visíveis para o usuário logado
   const visibleProtectedItems = (() => {
     if (!isLoggedIn || !isAllowed) return [];
     if (myPerms?.allowedPages === null) return PROTECTED_ITEMS; // acesso total
     return PROTECTED_ITEMS.filter(item => myPerms?.allowedPages?.includes(item.id));
+  })();
+
+  // Abas apenas para admin
+  const visibleAdminItems = (() => {
+    if (!isAdmin) return [];
+    return ADMIN_ONLY_ITEMS;
   })();
 
   const renderItem = (item: { id: string; label: string; icon: React.ElementType }) => {
@@ -133,11 +142,16 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
         {visibleProtectedItems.map(renderItem)}
 
         {/* Separador + abas admin */}
-        {isAdmin && (
+        {(isAdmin || visibleAdminItems.length > 0) && (
           <>
             <div className="my-1 border-t" style={{ borderColor: '#1a3a5c' }} />
-            {renderItem({ id: 'estatisticas', label: 'Estatísticas', icon: BarChart2 })}
-            {renderItem({ id: 'configuracoes', label: 'Configurações', icon: Settings })}
+            {visibleAdminItems.map(renderItem)}
+            {isAdmin && (
+              <>
+                {renderItem({ id: 'estatisticas', label: 'Estatísticas', icon: BarChart2 })}
+                {renderItem({ id: 'configuracoes', label: 'Configurações', icon: Settings })}
+              </>
+            )}
           </>
         )}
       </nav>
