@@ -143,6 +143,7 @@
 
 - [x] Criar hook useAtendimentosData para buscar dados da aba Atendimentos (gid=1655169262)
 - [x] Criar componente Atendimentos com estatísticas (clientes mais atendidos, assuntos, origem, tipo, tempo médio)
-- [x] Integrar Atendimentos abaixo da Estatística na Home
+- [x] Criar página AtendimentosPage.tsx como aba separada
+- [x] Adicionar rota e ícone (Phone) no SideMenu
 - [x] Adicionar botão de atualizar dados
 - [ ] Corrigir formato de tempo na planilha para sempre ser em minutos (números apenas)
