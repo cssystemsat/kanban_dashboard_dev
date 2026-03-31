@@ -4,6 +4,7 @@ import DateFilterCompact from "@/components/DateFilterCompact";
 import ClientDetailsModal from "@/components/ClientDetailsModal";
 import AtendimentoModal from "@/components/AtendimentoModal";
 import AISearchBox from "@/components/AISearchBox";
+import { Atendimentos } from "@/components/Atendimentos";
 import { useKanbanData, ClientData } from "@/hooks/useKanbanData";
 import { Flag, RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -319,6 +320,11 @@ export default function Home() {
                   onAtendimento={(client) => setAtendimentoClient(client)}
                 />
               ))}
+            </div>
+
+            {/* Atendimentos */}
+            <div className="mt-8 px-6 py-6 bg-white rounded-lg border" style={{ borderColor: '#E0E8F0' }}>
+              <Atendimentos />
             </div>
           </>
         )}

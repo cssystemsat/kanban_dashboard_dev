@@ -138,3 +138,11 @@
 - [x] Adicionar modal ao clicar no card para mostrar Status (coluna H)
 - [x] Mudar fundo do modal de preto para transparente
 - [x] Adicionar responsável e status da etapa no card compacto
+
+## Tela Atendimentos (em desenvolvimento)
+
+- [x] Criar hook useAtendimentosData para buscar dados da aba Atendimentos (gid=1655169262)
+- [x] Criar componente Atendimentos com estatísticas (clientes mais atendidos, assuntos, origem, tipo, tempo médio)
+- [x] Integrar Atendimentos abaixo da Estatística na Home
+- [x] Adicionar botão de atualizar dados
+- [ ] Corrigir formato de tempo na planilha para sempre ser em minutos (números apenas)
