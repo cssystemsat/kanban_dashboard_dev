@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Atendimentos } from '@/components/Atendimentos';
+import { AtendimentosTable } from '@/components/AtendimentosTable';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useAtendimentosData } from '@/hooks/useAtendimentosData';
 
 export default function AtendimentosPage() {
-  const { fetchData, loading } = useAtendimentosData();
+  const { fetchData, data, loading } = useAtendimentosData();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -40,9 +41,22 @@ export default function AtendimentosPage() {
       </header>
 
       {/* Conteúdo */}
-      <main className="px-6 py-6">
+      <main className="px-6 py-6 space-y-6">
+        {/* Estatísticas */}
         <div className="bg-white rounded-lg border p-6" style={{ borderColor: '#E0E8F0' }}>
           <Atendimentos />
+        </div>
+
+        {/* Tabela de Atendimentos */}
+        <div className="bg-white rounded-lg border p-6" style={{ borderColor: '#E0E8F0' }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#001F3F' }}>Detalhes dos Atendimentos</h2>
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Carregando atendimentos...</div>
+          ) : data.length > 0 ? (
+            <AtendimentosTable data={data} />
+          ) : (
+            <div className="text-center py-8 text-gray-500">Nenhum atendimento registrado</div>
+          )}
         </div>
       </main>
     </div>
