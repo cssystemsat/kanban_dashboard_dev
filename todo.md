@@ -155,3 +155,4 @@
 - [x] Mostrar todos os atendentes em vez de top 5
 - [x] Adicionar modal com fundo transparente para clientes e assuntos únicos
 - [x] Adicionar restrição de acesso à aba Atendimentos (apenas admin)
+- [x] Adicionar coluna Faturamento (F) nos modais de contatos da Cobertura Semanal (Onboarding e Ongoing)

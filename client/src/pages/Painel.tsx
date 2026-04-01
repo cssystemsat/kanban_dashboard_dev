@@ -39,13 +39,21 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
       {clientes.map((c, i) => {
         const colors = FLAG_COLORS[c.flag];
         return (
-          <div key={i} className="flex items-center gap-2 px-2 py-1 rounded text-sm"
+          <div key={i} className="flex flex-col gap-0.5 px-2 py-1 rounded text-sm"
             style={{ backgroundColor: c.flag ? colors.bg : 'transparent' }}>
-            {c.flag
-              ? <Flag className="w-3 h-3 shrink-0" style={{ color: colors.dot }} fill={colors.dot} />
-              : <span className="w-3 h-3 shrink-0 inline-block rounded-full bg-gray-200" />}
-            <span className="font-medium leading-tight" style={{ color: c.flag ? colors.text : '#374151' }}>{c.nome}</span>
-            <span className="ml-auto text-gray-400 shrink-0 text-xs">{c.ultimoContato}</span>
+            <div className="flex items-center gap-2">
+              {c.flag
+                ? <Flag className="w-3 h-3 shrink-0" style={{ color: colors.dot }} fill={colors.dot} />
+                : <span className="w-3 h-3 shrink-0 inline-block rounded-full bg-gray-200" />}
+              <span className="font-medium leading-tight" style={{ color: c.flag ? colors.text : '#374151' }}>{c.nome}</span>
+              <span className="ml-auto text-gray-400 shrink-0 text-xs">{c.ultimoContato}</span>
+            </div>
+            {c.faturamento && (
+              <div className="flex items-center gap-2 pl-5 text-xs text-gray-600">
+                <span className="font-semibold">Fat:</span>
+                <span>{c.faturamento}</span>
+              </div>
+            )}
           </div>
         );
       })}
