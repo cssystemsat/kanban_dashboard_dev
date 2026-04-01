@@ -159,3 +159,10 @@
 - [x] Remover Cidade/Estado dos modais da Cobertura Semanal
 - [x] Adicionar Cidade/Estado nos cards da aba Marcos (pequeno em baixo do nome)
 - [x] Adicionar Cidade/Estado nos cards da aba Ongoing (pequeno em baixo do nome)
+
+## Mapas do Brasil no Painel
+
+- [x] Criar componente BrazilMapPainel com SVG interativo dos estados
+- [x] Criar hook useEstadosData para buscar dados de clientes por estado (Onboarding gid=0, Ongoing gid=1152476970, coluna AJ)
+- [x] Integrar 3 mapas na aba Painel (Onboarding, Ongoing, Geral)
+- [x] Adicionar modal com fundo transparente ao clicar no número (Nome, Faturamento, Atendente)

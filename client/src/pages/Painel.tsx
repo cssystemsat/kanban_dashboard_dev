@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
+import { useEstadosData } from '@/hooks/useEstadosData';
+import BrazilMapPainel from '@/components/BrazilMapPainel';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
@@ -403,9 +405,13 @@ function TabelaMigracao() {
 export default function Painel() {
   const { data, loading, error, fetchData } = usePainelData();
   const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
+  const estadosData = useEstadosData();
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMig(); }, []);
+  useEffect(() => { 
+    if (fetchData) fetchData(); 
+  }, []);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F0F4F8' }}>
@@ -498,6 +504,15 @@ export default function Painel() {
               <TabelaMarcos dados={data.clientesPorMarco} total={data.totalClientesMarco} />
               <TabelaMigracao />
             </div>
+
+            {/* Mapas do Brasil por Estado */}
+            {!estadosData.loading && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+                <BrazilMapPainel title="Distribuição - Onboarding" clients={estadosData.onboarding} />
+                <BrazilMapPainel title="Distribuição - Ongoing" clients={estadosData.ongoing} />
+                <BrazilMapPainel title="Distribuição - Geral" clients={estadosData.geral} />
+              </div>
+            )}
 
             <p className="text-xs text-gray-400 text-center">
               Meta semanal: {META}% de cobertura da base (segunda a domingo) · Passe o mouse nos contatos para ver a lista de clientes
