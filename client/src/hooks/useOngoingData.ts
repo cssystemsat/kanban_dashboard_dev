@@ -19,6 +19,8 @@ export interface OngoingClientData {
   contatoDecissor: string; // Coluna AF - Contato do Decisor
   deltaConsumo: number; // Coluna BK (36) - Delta Consumo
   entrada: string; // Coluna D - Data de Entrada
+  cidade: string; // Coluna AI - Cidade
+  estado: string; // Coluna AJ - Estado
 }
 
 const SHEET_URL =
@@ -112,6 +114,8 @@ export function useOngoingData() {
             const decisor = String(row[30] || '').trim(); // Coluna AE (30)
             const contatoDecissor = String(row[31] || '').trim(); // Coluna AF (31) - Contato do Decisor
             const deltaConsumo = extractNumber(row[36] || ''); // Coluna BK (36) - Delta Consumo
+            const cidade = String(row[34] || '').trim(); // Coluna AI (34) - Cidade
+            const estado = String(row[35] || '').trim(); // Coluna AJ (35) - Estado
 
             // Excluir apenas clientes com situação 'Churn'
             if (situacao === 'Churn') continue;
@@ -136,6 +140,8 @@ export function useOngoingData() {
                 decisor,
                 contatoDecissor,
                 deltaConsumo,
+                cidade,
+                estado,
               });
             }
           } catch (err) {

@@ -156,4 +156,6 @@
 - [x] Adicionar modal com fundo transparente para clientes e assuntos únicos
 - [x] Adicionar restrição de acesso à aba Atendimentos (apenas admin)
 - [x] Adicionar coluna Faturamento (F) nos modais de contatos da Cobertura Semanal (Onboarding e Ongoing)
-- [x] Adicionar Cidade/Estado (colunas AI e AJ) aos cards de Ongoing e Marcos
+- [x] Remover Cidade/Estado dos modais da Cobertura Semanal
+- [x] Adicionar Cidade/Estado nos cards da aba Marcos (pequeno em baixo do nome)
+- [x] Adicionar Cidade/Estado nos cards da aba Ongoing (pequeno em baixo do nome)

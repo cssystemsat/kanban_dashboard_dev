@@ -138,6 +138,13 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           </span>
         </div>
 
+        {/* Cidade/Estado */}
+        {(client.cidade || client.estado) && (
+          <div className="text-xs" style={{ color: '#9CA3AF' }}>
+            {client.cidade}{client.cidade && client.estado ? '/' : ''}{client.estado}
+          </div>
+        )}
+
         {/* Quantidade de placas */}
         <div className="flex items-center gap-2 text-xs">
           <Truck className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
