@@ -14,6 +14,8 @@ export interface ClienteContato {
   flag: FlagTipo;
   ultimoContato: string;
   faturamento: string; // coluna F
+  cidade: string; // coluna AI
+  estado: string; // coluna AJ
 }
 
 export interface CoberturaCSM {
@@ -125,7 +127,7 @@ function normalizeFlag(raw: string): FlagTipo {
 }
 
 function calcularCobertura(
-  rows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string }[],
+  rows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[],
   semana: { inicio: Date; fim: Date },
   mes: { inicio: Date; fim: Date }
 ): CoberturaCSM[] {
@@ -154,6 +156,8 @@ function calcularCobertura(
         flag: row.flag,
         ultimoContato: row.ultimoContato,
         faturamento: row.faturamento,
+        cidade: row.cidade,
+        estado: row.estado,
       });
     } else {
       // Clientes SEM contato na semana
@@ -162,6 +166,8 @@ function calcularCobertura(
         flag: row.flag,
         ultimoContato: row.ultimoContato,
         faturamento: row.faturamento,
+        cidade: row.cidade,
+        estado: row.estado,
       });
     }
 
@@ -242,7 +248,7 @@ export function usePainelData() {
       // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col D (idx 3) = Entrada
       // Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
       // Marcos: AK(36), AL(37), AM(38), AN(39), AO(40)
-      const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string }[] = [];
+      const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[] = [];
       const marcosRowsMarco: { nome: string; entrada: string; marcos: string[] }[] = [];
       const marcosLines = marcosCsv.split('\n');
       for (let i = 1; i < marcosLines.length; i++) {
@@ -255,9 +261,11 @@ export function usePainelData() {
         const ultimoContato = row[11]?.trim() || '';
         const flag = normalizeFlag(row[14] || '');
         const faturamento = row[5]?.trim() || '';
+        const cidade = row[34]?.trim() || ''; // AI (índice 34)
+        const estado = row[35]?.trim() || ''; // AJ (índice 35)
         const entrada = row[3]?.trim() || '';
         const marcos = [row[36]?.trim() || '', row[37]?.trim() || '', row[38]?.trim() || '', row[39]?.trim() || '', row[40]?.trim() || ''];
-        if (csm) marcosRows.push({ nome, csm, ultimoContato, flag, faturamento });
+        if (csm) marcosRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado });
         if (entrada) marcosRowsMarco.push({ nome, entrada, marcos });
       }
 
@@ -292,8 +300,8 @@ export function usePainelData() {
       }));
 
       // Processar Ongoing
-      // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col F (idx 5) = Faturamento, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
-      const ongoingRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string }[] = [];
+      // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col F (idx 5) = Faturamento, Col AI (idx 34) = Cidade, Col AJ (idx 35) = Estado, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
+      const ongoingRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[] = [];
       const ongoingLines = ongoingCsv.split('\n');
       for (let i = 1; i < ongoingLines.length; i++) {
         const line = ongoingLines[i].trim();
@@ -306,7 +314,9 @@ export function usePainelData() {
         const ultimoContato = row[11]?.trim() || '';
         const flag = normalizeFlag(row[14] || '');
         const faturamento = row[5]?.trim() || '';
-        if (csm) ongoingRows.push({ nome, csm, ultimoContato, flag, faturamento });
+        const cidade = row[34]?.trim() || ''; // AI (índice 34)
+        const estado = row[35]?.trim() || ''; // AJ (índice 35)
+        if (csm) ongoingRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado });
       }
 
       const onboarding = calcularCobertura(marcosRows, semana, mes);

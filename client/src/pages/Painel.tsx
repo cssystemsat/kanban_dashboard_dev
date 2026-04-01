@@ -54,6 +54,12 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
                 <span>{c.faturamento}</span>
               </div>
             )}
+            {(c.cidade || c.estado) && (
+              <div className="flex items-center gap-2 pl-5 text-xs text-gray-600">
+                <span className="font-semibold">Local:</span>
+                <span>{c.cidade}{c.cidade && c.estado ? '/' : ''}{c.estado}</span>
+              </div>
+            )}
           </div>
         );
       })}
