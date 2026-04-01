@@ -74,7 +74,7 @@ export function useEstadosData(): EstadosData {
           if (!line) continue;
           const row = parseCSVLine(line);
           const nome = row[1]?.trim() || '';
-          const estado = row[36]?.trim() || '';
+          const estado = row[35]?.trim() || '';
           const faturamento = row[5]?.trim() || '—';
           const atendente = row[2]?.trim() || '—';
 
@@ -95,7 +95,7 @@ export function useEstadosData(): EstadosData {
           if (churn.toLowerCase() === 'churn') continue; // Excluir Churn
 
           const nome = row[1]?.trim() || '';
-          const estado = row[36]?.trim() || '';
+          const estado = row[35]?.trim() || '';
           const faturamento = row[5]?.trim() || '—';
           const atendente = row[2]?.trim() || '—';
 
