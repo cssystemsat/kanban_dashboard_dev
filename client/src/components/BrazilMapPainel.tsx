@@ -14,35 +14,35 @@ interface BrazilMapPainelProps {
   clients: ClienteEstado[];
 }
 
-// Coordenadas dos centros dos estados para posicionar números no mapa
+// Coordenadas dos centros dos estados para posicionar números no mapa (em %)
 const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
-  'AC': { x: 165, y: 365 },
-  'AL': { x: 760, y: 210 },
-  'AP': { x: 215, y: 115 },
-  'AM': { x: 140, y: 200 },
-  'BA': { x: 750, y: 375 },
-  'CE': { x: 685, y: 240 },
-  'DF': { x: 560, y: 360 },
-  'ES': { x: 765, y: 400 },
-  'GO': { x: 530, y: 385 },
-  'MA': { x: 640, y: 240 },
-  'MT': { x: 450, y: 330 },
-  'MS': { x: 490, y: 460 },
-  'MG': { x: 700, y: 400 },
-  'PA': { x: 315, y: 215 },
-  'PB': { x: 765, y: 195 },
-  'PR': { x: 700, y: 490 },
-  'PE': { x: 740, y: 230 },
-  'PI': { x: 640, y: 290 },
-  'RJ': { x: 775, y: 440 },
-  'RN': { x: 750, y: 170 },
-  'RS': { x: 615, y: 540 },
-  'RO': { x: 140, y: 340 },
-  'RR': { x: 185, y: 115 },
-  'SC': { x: 700, y: 550 },
-  'SP': { x: 700, y: 485 },
-  'SE': { x: 775, y: 290 },
-  'TO': { x: 500, y: 300 },
+  'AC': { x: 15, y: 65 },
+  'AL': { x: 82, y: 35 },
+  'AP': { x: 25, y: 18 },
+  'AM': { x: 18, y: 32 },
+  'BA': { x: 78, y: 62 },
+  'CE': { x: 72, y: 38 },
+  'DF': { x: 58, y: 60 },
+  'ES': { x: 80, y: 67 },
+  'GO': { x: 55, y: 64 },
+  'MA': { x: 68, y: 40 },
+  'MT': { x: 48, y: 55 },
+  'MS': { x: 52, y: 77 },
+  'MG': { x: 73, y: 67 },
+  'PA': { x: 35, y: 36 },
+  'PB': { x: 82, y: 32 },
+  'PR': { x: 73, y: 82 },
+  'PE': { x: 78, y: 38 },
+  'PI': { x: 68, y: 48 },
+  'RJ': { x: 81, y: 73 },
+  'RN': { x: 78, y: 28 },
+  'RS': { x: 65, y: 90 },
+  'RO': { x: 18, y: 57 },
+  'RR': { x: 22, y: 19 },
+  'SC': { x: 73, y: 92 },
+  'SP': { x: 73, y: 81 },
+  'SE': { x: 81, y: 48 },
+  'TO': { x: 53, y: 50 },
 };
 
 export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps) {
@@ -81,6 +81,16 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
     }
   };
 
+  // Calcular cor baseada na quantidade de clientes
+  const getStateColor = (state: string) => {
+    const count = clientsByState[state]?.length || 0;
+    if (count === 0) return '#f0f4f8';
+    if (count <= 5) return '#dbeafe';
+    if (count <= 10) return '#93c5fd';
+    if (count <= 20) return '#3b82f6';
+    return '#1d4ed8';
+  };
+
   return (
     <div className="w-full flex flex-col gap-4 bg-white rounded-lg p-6 border" style={{ borderColor: '#E0E8F0' }}>
       <h2 className="text-lg font-bold" style={{ color: '#001F3F' }}>{title}</h2>
@@ -103,42 +113,66 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
         </div>
       </div>
 
-      {/* Mapa do Brasil com números interativos */}
+      {/* Mapa do Brasil com overlay interativo */}
       <div className="flex justify-center bg-gray-50 rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-        <div className="relative w-full max-w-2xl" style={{ aspectRatio: '960/600' }}>
-          <svg 
-            viewBox="0 0 960 600" 
-            className="w-full h-full"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <style>{`
-              .state-circle { fill: #f0f4f8; stroke: #ccc; stroke-width: 2; cursor: pointer; transition: fill 0.2s; }
-              .state-circle:hover { fill: #e0e8f0; }
-              .state-circle.active { fill: #dbeafe; stroke: #0052CC; stroke-width: 3; }
-              .state-text { font-size: 14px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; pointer-events: none; fill: #001F3F; }
-            `}</style>
-            
-            {/* Estados como círculos com números */}
-            {Object.entries(STATE_POSITIONS).map(([state, pos]) => (
-              <g key={state}>
-                <circle
-                  cx={pos.x}
-                  cy={pos.y}
-                  r="25"
-                  className={`state-circle ${selectedState === state ? 'active' : ''}`}
+        <div className="relative w-full max-w-2xl" style={{ aspectRatio: '16/10' }}>
+          {/* Imagem do mapa do Brasil */}
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Map_of_Brazil_with_state_labels_pt.svg/1200px-Map_of_Brazil_with_state_labels_pt.svg.png"
+            alt="Mapa do Brasil"
+            className="w-full h-full object-contain rounded"
+          />
+          
+          {/* Overlay com números clicáveis */}
+          <div className="absolute inset-0 pointer-events-none">
+            {Object.entries(STATE_POSITIONS).map(([state, pos]) => {
+              const count = clientsByState[state]?.length || 0;
+              return (
+                <div
+                  key={state}
+                  className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: `${pos.x}%`,
+                    top: `${pos.y}%`,
+                  }}
                   onClick={() => handleStateClick(state)}
-                />
-                <text
-                  x={pos.x}
-                  y={pos.y}
-                  className="state-text"
-                  onClick={() => handleStateClick(state)}
+                  title={`${state}: ${count} cliente(s)`}
                 >
-                  {clientsByState[state]?.length || 0}
-                </text>
-              </g>
-            ))}
-          </svg>
+                  <div 
+                    className="flex items-center justify-center rounded-full font-bold text-sm text-white shadow-lg hover:shadow-xl transition-shadow"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: getStateColor(state),
+                      border: selectedState === state ? '3px solid #0052CC' : '2px solid #ccc',
+                    }}
+                  >
+                    {count}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Legenda de cores */}
+      <div className="flex flex-wrap gap-4 justify-center text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#dbeafe' }}></div>
+          <span>1-5</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#93c5fd' }}></div>
+          <span>6-10</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#3b82f6' }}></div>
+          <span>11-20</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#1d4ed8' }}></div>
+          <span>20+</span>
         </div>
       </div>
 
@@ -176,7 +210,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
       {selectedState && selectedStateClients.length > 0 && (
         <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50" onClick={() => setSelectedState(null)}>
           <div 
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto"
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto shadow-lg"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
