@@ -81,15 +81,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
     }
   };
 
-  // Calcular cor baseada na quantidade de clientes
-  const getStateColor = (state: string) => {
-    const count = clientsByState[state]?.length || 0;
-    if (count === 0) return '#f0f4f8';
-    if (count <= 5) return '#dbeafe';
-    if (count <= 10) return '#93c5fd';
-    if (count <= 20) return '#3b82f6';
-    return '#1d4ed8';
-  };
+
 
   return (
     <div className="w-full flex flex-col gap-4 bg-white rounded-lg p-6 border" style={{ borderColor: '#E0E8F0' }}>
@@ -127,6 +119,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
           <div className="absolute inset-0 pointer-events-none">
             {Object.entries(STATE_POSITIONS).map(([state, pos]) => {
               const count = clientsByState[state]?.length || 0;
+              if (count === 0) return null;
               return (
                 <div
                   key={state}
@@ -138,17 +131,16 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
                   onClick={() => handleStateClick(state)}
                   title={`${state}: ${count} cliente(s)`}
                 >
-                  <div 
-                    className="flex items-center justify-center rounded-full font-bold text-sm text-white shadow-lg hover:shadow-xl transition-shadow"
+                  <span 
+                    className="font-bold text-sm hover:font-black transition-all"
                     style={{
-                      width: '40px',
-                      height: '40px',
-                      backgroundColor: getStateColor(state),
-                      border: selectedState === state ? '3px solid #0052CC' : '2px solid #ccc',
+                      color: '#0052CC',
+                      textShadow: '0 0 3px rgba(255,255,255,0.8)',
+                      fontSize: count > 9 ? '14px' : '12px',
                     }}
                   >
                     {count}
-                  </div>
+                  </span>
                 </div>
               );
             })}
@@ -156,25 +148,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
         </div>
       </div>
 
-      {/* Legenda de cores */}
-      <div className="flex flex-wrap gap-4 justify-center text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#dbeafe' }}></div>
-          <span>1-5</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#93c5fd' }}></div>
-          <span>6-10</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#3b82f6' }}></div>
-          <span>11-20</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#1d4ed8' }}></div>
-          <span>20+</span>
-        </div>
-      </div>
+
 
       {/* Ranking de Estados - Clicável */}
       <div className="overflow-x-auto">
