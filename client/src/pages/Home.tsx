@@ -131,84 +131,70 @@ export default function Home() {
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
       {/* Header compacto */}
       <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: '#001F3F', borderColor: '#1a3a5c' }}>
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold text-white leading-none">Dashboard do CS</h1>
-            <Button
-              onClick={fetchData}
-              disabled={loading}
-              size="sm"
-              className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap"
-            >
-              <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Atualizando...' : 'Atualizar'}
-            </Button>
-          </div>
+        <div className="px-4 py-2.5">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-bold text-white leading-none whitespace-nowrap">Dashboard do CS</h1>
 
-          {/* Filtros */}
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Cliente</label>
+            {/* Filtros na mesma linha */}
+            <div className="flex flex-wrap items-center gap-2 flex-1">
               <input
                 type="text"
                 placeholder="Buscar cliente..."
                 value={searchCliente}
                 onChange={(e) => setSearchCliente(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                style={{ width: '150px' }}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                style={{ width: '130px' }}
               />
-            </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">CSM</label>
               <select
                 value={selectedAtendente || ''}
                 onChange={(e) => setSelectedAtendente(e.target.value || null)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
               >
-                <option value="">Todos</option>
+                <option value="">CSM: Todos</option>
                 {csms.map(csm => (
                   <option key={csm} value={csm}>{csm}</option>
                 ))}
               </select>
-            </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">% Desatualizado</label>
               <input
                 type="number"
                 min="0"
                 max="100"
-                placeholder="Min %"
+                placeholder="% Desatualiz."
                 value={percentualDesatualizadoFilter !== null ? percentualDesatualizadoFilter : ''}
                 onChange={(e) => setPercentualDesatualizadoFilter(e.target.value ? parseFloat(e.target.value) : null)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
                 style={{ width: '100px' }}
               />
-            </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Período</label>
               <DateFilterCompact
                 onDateChange={(start, end) => {
                   setDateFilterStart(start);
                   setDateFilterEnd(end);
                 }}
               />
-            </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#FCA5A5' }}>Diferença ≤ -R$</label>
               <input
                 type="number"
-                placeholder="Ex: 1000"
+                placeholder="Dif ≤ -R$"
                 value={diferencaMaxInput}
                 onChange={(e) => setDiferencaMaxInput(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border focus:outline-none focus:ring-2 focus:ring-red-300"
-                style={{ borderColor: '#FCA5A5', width: '110px' }}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border focus:outline-none focus:ring-1 focus:ring-red-300"
+                style={{ borderColor: '#FCA5A5', width: '95px' }}
                 min="0"
               />
             </div>
+
+            <Button
+              onClick={fetchData}
+              disabled={loading}
+              size="sm"
+              className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap h-7 text-xs"
+            >
+              <RotateCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Atualizando...' : 'Atualizar'}
+            </Button>
           </div>
         </div>
       </header>

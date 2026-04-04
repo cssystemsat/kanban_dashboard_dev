@@ -170,3 +170,4 @@
 ## Melhoria de Filtros
 
 - [x] Melhorar estética e alinhamento dos filtros em todas as abas (Marcos, Dashboard, Ongoing, Migração, Churns)
+- [x] Mover filtros da aba Marcos para a mesma linha do título (à direita de "Dashboard do CS")
