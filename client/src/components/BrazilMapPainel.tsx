@@ -14,36 +14,35 @@ interface BrazilMapPainelProps {
   clients: ClienteEstado[];
 }
 
-// Coordenadas dos centros dos estados (em % relativo à imagem)
-// Imagem: 390x377px, aspect ratio ~1:1
+// Coordenadas dos centros dos estados (em % relativo à imagem 390x377px)
 const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
-  'AC': { x: 8.2, y: 38.5 },
-  'AL': { x: 85.1, y: 34.0 },
-  'AM': { x: 21.8, y: 27.9 },
-  'AP': { x: 42.3, y: 8.0 },
-  'BA': { x: 71.8, y: 42.4 },
-  'CE': { x: 71.8, y: 21.8 },
-  'DF': { x: 56.9, y: 50.9 },
-  'ES': { x: 78.2, y: 58.4 },
-  'GO': { x: 53.8, y: 55.7 },
-  'MA': { x: 59.0, y: 25.2 },
-  'MG': { x: 66.7, y: 58.4 },
-  'MS': { x: 37.2, y: 63.7 },
-  'MT': { x: 39.7, y: 49.1 },
-  'PA': { x: 42.3, y: 25.2 },
-  'PB': { x: 83.3, y: 26.5 },
-  'PE': { x: 82.1, y: 29.7 },
-  'PI': { x: 63.6, y: 32.4 },
-  'PR': { x: 47.4, y: 72.9 },
-  'RJ': { x: 70.5, y: 66.3 },
-  'RN': { x: 82.1, y: 19.9 },
-  'RO': { x: 22.6, y: 42.4 },
-  'RR': { x: 29.5, y: 10.1 },
-  'RS': { x: 39.7, y: 87.5 },
-  'SC': { x: 48.7, y: 79.6 },
-  'SE': { x: 80.0, y: 37.7 },
-  'SP': { x: 52.6, y: 66.8 },
-  'TO': { x: 56.4, y: 40.3 },
+  'AC': { x: 7.7, y: 37.7 },
+  'AL': { x: 85.9, y: 33.2 },
+  'AM': { x: 21.0, y: 26.5 },
+  'AP': { x: 43.1, y: 7.4 },
+  'BA': { x: 72.3, y: 41.1 },
+  'CE': { x: 72.3, y: 20.7 },
+  'DF': { x: 57.7, y: 49.9 },
+  'ES': { x: 79.0, y: 57.8 },
+  'GO': { x: 54.4, y: 55.2 },
+  'MA': { x: 59.5, y: 23.3 },
+  'MG': { x: 67.2, y: 57.8 },
+  'MS': { x: 37.9, y: 63.1 },
+  'MT': { x: 40.5, y: 48.3 },
+  'PA': { x: 43.1, y: 23.9 },
+  'PB': { x: 84.1, y: 25.2 },
+  'PE': { x: 82.6, y: 28.6 },
+  'PI': { x: 64.1, y: 31.3 },
+  'PR': { x: 48.2, y: 72.1 },
+  'RJ': { x: 71.3, y: 65.8 },
+  'RN': { x: 82.6, y: 19.1 },
+  'RO': { x: 23.1, y: 41.9 },
+  'RR': { x: 28.7, y: 9.3 },
+  'RS': { x: 40.5, y: 87.0 },
+  'SC': { x: 49.2, y: 79.0 },
+  'SE': { x: 80.8, y: 37.1 },
+  'SP': { x: 53.3, y: 66.3 },
+  'TO': { x: 56.9, y: 39.3 },
 };
 
 export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps) {
@@ -113,7 +112,8 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
           <img 
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/mapa-brasil-estados_b1dab211.png"
             alt="Mapa do Brasil"
-            className="w-full h-full object-contain rounded"
+            className="w-full h-full rounded"
+            style={{ objectFit: 'fill' }}
           />
           
           {/* Overlay com números clicáveis */}
