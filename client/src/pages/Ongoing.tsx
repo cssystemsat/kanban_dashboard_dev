@@ -93,104 +93,110 @@ export default function Ongoing() {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-          <div className="flex flex-wrap gap-3 items-center">
-            {/* Busca */}
-            <input
-              type="text"
-              placeholder="Buscar cliente..."
-              value={searchCliente}
-              onChange={(e) => setSearchCliente(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-              style={{ borderColor: '#E0E8F0', minWidth: '150px' }}
-            />
-
-            {/* Botões de Flag — 3 níveis */}
-            {FLAG_LEVELS.map((level) => {
-              const s = FLAG_STYLES[level];
-              const isActive = flagFilter === level;
-              return (
-                <button
-                  key={level}
-                  onClick={() => setFlagFilter(isActive ? null : level)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap"
-                  style={{
-                    backgroundColor: isActive ? s.activeBg : s.bg,
-                    color: isActive ? s.activeText : s.color,
-                    border: `1.5px solid ${s.border}`,
-                  }}
-                >
-                  <Flag size={14} />
-                  {level} {flagCounts[level] > 0 && `(${flagCounts[level]})`}
-                </button>
-              );
-            })}
-
-            {/* Filtro de CSM */}
-            <select
-              value={selectedAtendente || 'todos'}
-              onChange={(e) => setSelectedAtendente(e.target.value === 'todos' ? null : e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-              style={{ borderColor: '#E0E8F0' }}
-            >
-              <option value="todos">Todos os CSMs</option>
-              {csms.map(csm => (
-                <option key={csm} value={csm}>{csm}</option>
-              ))}
-            </select>
-
-            {/* Filtro de Último Boleto */}
+        <div className="bg-white rounded-xl p-4 border shadow-sm" style={{ borderColor: '#E0E8F0' }}>
+          <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">Boleto Mín</label>
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Cliente</label>
+              <input
+                type="text"
+                placeholder="Buscar cliente..."
+                value={searchCliente}
+                onChange={(e) => setSearchCliente(e.target.value)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                style={{ width: '150px' }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Flags</label>
+              <div className="flex gap-1">
+                {FLAG_LEVELS.map((level) => {
+                  const s = FLAG_STYLES[level];
+                  const isActive = flagFilter === level;
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => setFlagFilter(isActive ? null : level)}
+                      className="flex items-center gap-1 h-8 px-2 rounded-md text-xs font-semibold transition-all whitespace-nowrap"
+                      style={{
+                        backgroundColor: isActive ? s.activeBg : '#F9FAFB',
+                        color: isActive ? s.activeText : s.color,
+                        border: `1px solid ${isActive ? s.border : '#E5E7EB'}`,
+                      }}
+                    >
+                      <Flag size={12} />
+                      {level.replace(' Flag', '')} {flagCounts[level] > 0 && `(${flagCounts[level]})`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">CSM</label>
+              <select
+                value={selectedAtendente || 'todos'}
+                onChange={(e) => setSelectedAtendente(e.target.value === 'todos' ? null : e.target.value)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              >
+                <option value="todos">Todos</option>
+                {csms.map(csm => (
+                  <option key={csm} value={csm}>{csm}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Boleto Mín</label>
               <input
                 type="number"
-                placeholder="Mínimo"
+                placeholder="R$ Mín"
                 value={ultimoBoletoMin ?? ''}
                 onChange={(e) => setUltimoBoletoMin(e.target.value ? parseFloat(e.target.value) : null)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', width: '110px' }}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                style={{ width: '100px' }}
               />
             </div>
+
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">Boleto Máx</label>
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Boleto Máx</label>
               <input
                 type="number"
-                placeholder="Máximo"
+                placeholder="R$ Máx"
                 value={ultimoBoletoMax ?? ''}
                 onChange={(e) => setUltimoBoletoMax(e.target.value ? parseFloat(e.target.value) : null)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-                style={{ borderColor: '#E0E8F0', width: '110px' }}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                style={{ width: '100px' }}
               />
             </div>
 
-            {/* Filtro de Situação */}
-            <select
-              value={selectedSituacao || 'todos'}
-              onChange={(e) => setSelectedSituacao(e.target.value === 'todos' ? null : e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-              style={{ borderColor: '#E0E8F0' }}
-            >
-              <option value="todos">Todas as Situações</option>
-              {situacoes.map(situacao => (
-                <option key={situacao} value={situacao}>{situacao}</option>
-              ))}
-            </select>
-
-            {/* Filtro Delta Consumo */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold" style={{ color: '#DC2626' }}>Delta ≤ -R$</label>
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Situação</label>
+              <select
+                value={selectedSituacao || 'todos'}
+                onChange={(e) => setSelectedSituacao(e.target.value === 'todos' ? null : e.target.value)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              >
+                <option value="todos">Todas</option>
+                {situacoes.map(situacao => (
+                  <option key={situacao} value={situacao}>{situacao}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#DC2626' }}>Delta ≤ -R$</label>
               <input
                 type="number"
                 placeholder="Ex: 1000"
                 value={deltaMaxInput}
                 onChange={(e) => setDeltaMaxInput(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-300"
-                style={{ borderColor: '#FCA5A5', width: '110px' }}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-red-300 focus:bg-white"
+                style={{ borderColor: '#FCA5A5', width: '100px' }}
                 min="0"
               />
             </div>
 
-            {/* Limpar */}
             <button
               onClick={() => {
                 setSearchCliente('');
@@ -201,7 +207,7 @@ export default function Ongoing() {
                 setSelectedSituacao(null);
                 setDeltaMaxInput('');
               }}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
             >
               Limpar
             </button>
@@ -210,17 +216,15 @@ export default function Ongoing() {
 
         {/* Resumo de Filtros Ativos */}
         {hasActiveFilter && (
-          <div className="px-6 py-3 bg-blue-50 border-b border-blue-200 mt-4 rounded-lg">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold" style={{ color: '#001F3F' }}>Filtros Ativos:</span>
-              {ultimoBoletoMin !== null && ` Boleto Mín: R$ ${ultimoBoletoMin.toFixed(2)}`}
-              {ultimoBoletoMax !== null && ` | Máx: R$ ${ultimoBoletoMax.toFixed(2)}`}
-              {searchCliente && ` | Cliente: ${searchCliente}`}
-              {flagFilter && ` | ${flagFilter}`}
-              {selectedAtendente && ` | CSM: ${selectedAtendente}`}
-              {selectedSituacao && ` | Situação: ${selectedSituacao}`}
-              {deltaActive && ` | Delta ≤ -R$ ${parseFloat(deltaMaxInput).toFixed(2)}`}
-            </p>
+          <div className="px-4 py-2 bg-blue-50 border border-blue-200 mt-3 rounded-lg flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold" style={{ color: '#001F3F' }}>Filtros:</span>
+            {ultimoBoletoMin !== null && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Boleto Mín: R$ {ultimoBoletoMin.toFixed(2)}</span>}
+            {ultimoBoletoMax !== null && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Máx: R$ {ultimoBoletoMax.toFixed(2)}</span>}
+            {searchCliente && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Cliente: {searchCliente}</span>}
+            {flagFilter && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">{flagFilter}</span>}
+            {selectedAtendente && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">CSM: {selectedAtendente}</span>}
+            {selectedSituacao && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Situação: {selectedSituacao}</span>}
+            {deltaActive && <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">Delta &le; -R$ {parseFloat(deltaMaxInput).toFixed(2)}</span>}
           </div>
         )}
       </header>

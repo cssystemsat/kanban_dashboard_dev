@@ -166,3 +166,7 @@
 - [x] Criar hook useEstadosData para buscar dados de clientes por estado (Onboarding gid=0, Ongoing gid=1152476970, coluna AJ)
 - [x] Integrar 3 mapas na aba Painel (Onboarding, Ongoing, Geral)
 - [x] Adicionar modal com fundo transparente ao clicar no número (Nome, Faturamento, Atendente)
+
+## Melhoria de Filtros
+
+- [x] Melhorar estética e alinhamento dos filtros em todas as abas (Marcos, Dashboard, Ongoing, Migração, Churns)

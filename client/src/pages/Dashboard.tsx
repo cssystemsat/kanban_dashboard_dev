@@ -99,82 +99,61 @@ export default function Dashboard() {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white rounded-lg p-6 border shadow-sm mb-8" style={{ borderColor: '#E0E8F0' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5" style={{ color: '#00DD00' }} />
-            <h2 className="text-lg font-bold" style={{ color: '#001F3F' }}>Filtros</h2>
-          </div>
-          
-          <div className="grid grid-cols-4 gap-4">
-            {/* Filtro por Marco */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">Marco</label>
+        <div className="bg-white rounded-xl p-4 border shadow-sm mb-8" style={{ borderColor: '#E0E8F0' }}>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Marco</label>
               <select
                 value={selectedMarco || ''}
                 onChange={(e) => setSelectedMarco(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                style={{ borderColor: '#E0E8F0', color: '#001F3F' }}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
               >
-                <option value="">Todos os Marcos</option>
+                <option value="">Todos</option>
                 {[1, 2, 3, 4, 5].map(m => (
                   <option key={m} value={m}>Marco {m}</option>
                 ))}
               </select>
             </div>
 
-            {/* Filtro por CSM */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">CSM</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">CSM</label>
               <select
                 value={selectedCSM}
                 onChange={(e) => setSelectedCSM(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                style={{ borderColor: '#E0E8F0', color: '#001F3F' }}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
               >
-                <option value="">Todos os CSMs</option>
+                <option value="">Todos</option>
                 {csms.map(csm => (
                   <option key={csm} value={csm}>{csm}</option>
                 ))}
               </select>
             </div>
 
-            {/* Filtro Red Flags */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">Status</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Status</label>
               <button
                 onClick={() => setShowRedFlagsOnly(!showRedFlagsOnly)}
-                className="w-full px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                className="h-8 px-3 rounded-md text-sm font-semibold transition-all whitespace-nowrap"
                 style={{
-                  backgroundColor: showRedFlagsOnly ? '#FF6B6B' : '#E0E8F0',
+                  backgroundColor: showRedFlagsOnly ? '#DC2626' : '#F9FAFB',
                   color: showRedFlagsOnly ? '#FFFFFF' : '#001F3F',
-                  borderColor: '#FF6B6B',
-                  border: '1px solid'
+                  border: `1px solid ${showRedFlagsOnly ? '#DC2626' : '#E5E7EB'}`,
                 }}
               >
                 {showRedFlagsOnly ? 'Red Flags' : 'Todos'}
               </button>
             </div>
 
-            {/* Limpar Filtros */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">&nbsp;</label>
-              <button
-                onClick={() => {
-                  setSelectedMarco(null);
-                  setSelectedCSM('');
-                  setShowRedFlagsOnly(false);
-                }}
-                className="w-full px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                style={{
-                  backgroundColor: '#F5F7FA',
-                  color: '#001F3F',
-                  borderColor: '#E0E8F0',
-                  border: '1px solid'
-                }}
-              >
-                Limpar
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                setSelectedMarco(null);
+                setSelectedCSM('');
+                setShowRedFlagsOnly(false);
+              }}
+              className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
+            >
+              Limpar
+            </button>
           </div>
         </div>
 

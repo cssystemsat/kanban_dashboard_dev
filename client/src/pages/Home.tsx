@@ -131,77 +131,83 @@ export default function Home() {
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
       {/* Header compacto */}
       <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: '#001F3F', borderColor: '#1a3a5c' }}>
-        <div className="px-4 py-2">
-          <div className="flex items-center gap-2">
-            {/* Título */}
-            <div className="mr-2">
-              <h1 className="text-lg font-bold text-white leading-none">Dashboard do CS</h1>
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-lg font-bold text-white leading-none">Dashboard do CS</h1>
+            <Button
+              onClick={fetchData}
+              disabled={loading}
+              size="sm"
+              className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Atualizando...' : 'Atualizar'}
+            </Button>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Cliente</label>
+              <input
+                type="text"
+                placeholder="Buscar cliente..."
+                value={searchCliente}
+                onChange={(e) => setSearchCliente(e.target.value)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                style={{ width: '150px' }}
+              />
             </div>
 
-            {/* Filtros em linha */}
-            <input
-              type="text"
-              placeholder="Buscar cliente..."
-              value={searchCliente}
-              onChange={(e) => setSearchCliente(e.target.value)}
-              className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2"
-              style={{ minWidth: '140px' }}
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">CSM</label>
+              <select
+                value={selectedAtendente || ''}
+                onChange={(e) => setSelectedAtendente(e.target.value || null)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="">Todos</option>
+                {csms.map(csm => (
+                  <option key={csm} value={csm}>{csm}</option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              value={selectedAtendente || ''}
-              onChange={(e) => setSelectedAtendente(e.target.value || null)}
-              className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
-            >
-              <option value="">Todos os CSMs</option>
-              {csms.map(csm => (
-                <option key={csm} value={csm}>{csm}</option>
-              ))}
-            </select>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">% Desatualizado</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                placeholder="Min %"
+                value={percentualDesatualizadoFilter !== null ? percentualDesatualizadoFilter : ''}
+                onChange={(e) => setPercentualDesatualizadoFilter(e.target.value ? parseFloat(e.target.value) : null)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                style={{ width: '100px' }}
+              />
+            </div>
 
-            <input
-              type="number"
-              min="0"
-              max="100"
-              placeholder="% Desatualizado"
-              value={percentualDesatualizadoFilter !== null ? percentualDesatualizadoFilter : ''}
-              onChange={(e) => setPercentualDesatualizadoFilter(e.target.value ? parseFloat(e.target.value) : null)}
-              className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white focus:outline-none"
-              style={{ minWidth: '120px' }}
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Período</label>
+              <DateFilterCompact
+                onDateChange={(start, end) => {
+                  setDateFilterStart(start);
+                  setDateFilterEnd(end);
+                }}
+              />
+            </div>
 
-            <DateFilterCompact
-              onDateChange={(start, end) => {
-                setDateFilterStart(start);
-                setDateFilterEnd(end);
-              }}
-            />
-
-            {/* Filtro Diferença */}
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] font-bold leading-none" style={{ color: '#FCA5A5' }}>Diferença ≤ -R$</span>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#FCA5A5' }}>Diferença ≤ -R$</label>
               <input
                 type="number"
                 placeholder="Ex: 1000"
                 value={diferencaMaxInput}
                 onChange={(e) => setDiferencaMaxInput(e.target.value)}
-                className="px-2 py-1.5 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-300"
-                style={{ borderColor: '#FCA5A5', border: '1px solid #FCA5A5', width: '110px' }}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border focus:outline-none focus:ring-2 focus:ring-red-300"
+                style={{ borderColor: '#FCA5A5', width: '110px' }}
                 min="0"
               />
-            </div>
-
-            {/* Botão Atualizar — canto direito */}
-            <div className="ml-auto">
-              <Button
-                onClick={fetchData}
-                disabled={loading}
-                size="sm"
-                className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap"
-              >
-                <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? 'Atualizando...' : 'Atualizar'}
-              </Button>
             </div>
           </div>
         </div>
@@ -209,17 +215,15 @@ export default function Home() {
 
       {/* Resumo de Filtros Ativos */}
       {hasActiveFilter && (
-        <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
-          <p className="text-sm text-gray-700">
-            <span className="font-semibold" style={{ color: '#001F3F' }}>Filtros Ativos:</span>
-            {dateFilterStart && dateFilterEnd && ` Data: ${dateFilterStart.toLocaleDateString('pt-BR')} - ${dateFilterEnd.toLocaleDateString('pt-BR')}`}
-            {searchCliente && ` | Cliente: ${searchCliente}`}
-            {statusFilter !== 'all' && ` | Status: ${statusFilter === 'ok' ? 'No Prazo' : 'Atrasado'}`}
-            {flagFilter && ` | ${flagFilter}`}
-            {selectedAtendente && ` | CSM: ${selectedAtendente}`}
-            {percentualDesatualizadoFilter !== null && ` | % Desatualizado >= ${percentualDesatualizadoFilter}%`}
-            {diferencaActive && ` | Diferença ≤ -R$ ${parseFloat(diferencaMaxInput).toFixed(2)}`}
-          </p>
+        <div className="px-4 py-2 bg-blue-50 border-b border-blue-200 flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold" style={{ color: '#001F3F' }}>Filtros:</span>
+          {dateFilterStart && dateFilterEnd && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Data: {dateFilterStart.toLocaleDateString('pt-BR')} - {dateFilterEnd.toLocaleDateString('pt-BR')}</span>}
+          {searchCliente && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Cliente: {searchCliente}</span>}
+          {statusFilter !== 'all' && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Status: {statusFilter === 'ok' ? 'No Prazo' : 'Atrasado'}</span>}
+          {flagFilter && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">{flagFilter}</span>}
+          {selectedAtendente && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">CSM: {selectedAtendente}</span>}
+          {percentualDesatualizadoFilter !== null && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">% Desatualizado &ge; {percentualDesatualizadoFilter}%</span>}
+          {diferencaActive && <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">Diferença &le; -R$ {parseFloat(diferencaMaxInput).toFixed(2)}</span>}
         </div>
       )}
 

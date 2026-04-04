@@ -155,73 +155,67 @@ export function Migracao() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-2 bg-white p-3 rounded-lg border border-gray-200">
-        {/* Pesquisa por Cliente */}
-        <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
-          <label className="text-xs font-medium flex items-center gap-1">
-            <Search className="w-3 h-3" />
-            Cliente
-          </label>
-          <input
-            type="text"
-            placeholder="Empresa..."
-            value={filters.cliente}
-            onChange={(e) => handleFilterChange('cliente', e.target.value)}
-            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
-          />
-        </div>
+      <div className="bg-white rounded-xl p-4 border shadow-sm" style={{ borderColor: '#E0E8F0' }}>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1 flex-1 min-w-[150px]">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Cliente</label>
+            <input
+              type="text"
+              placeholder="Buscar empresa..."
+              value={filters.cliente}
+              onChange={(e) => handleFilterChange('cliente', e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            />
+          </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium">Atendente</label>
-          <select
-            value={filters.atendente}
-            onChange={(e) => handleFilterChange('atendente', e.target.value)}
-            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
-          >
-            <option value="">Todos</option>
-            {atendentes.map(at => (
-              <option key={at} value={at}>{at}</option>
-            ))}
-          </select>
-        </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Atendente</label>
+            <select
+              value={filters.atendente}
+              onChange={(e) => handleFilterChange('atendente', e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="">Todos</option>
+              {atendentes.map(at => (
+                <option key={at} value={at}>{at}</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium">Plataforma</label>
-          <select
-            value={filters.plataforma}
-            onChange={(e) => handleFilterChange('plataforma', e.target.value)}
-            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
-          >
-            <option value="">Todas</option>
-            {plataformas.map(plat => (
-              <option key={plat} value={plat}>{plat || 'Sem plataforma'}</option>
-            ))}
-          </select>
-        </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Plataforma</label>
+            <select
+              value={filters.plataforma}
+              onChange={(e) => handleFilterChange('plataforma', e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="">Todas</option>
+              {plataformas.map(plat => (
+                <option key={plat} value={plat}>{plat || 'Sem plataforma'}</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium">Tempo</label>
-          <select
-            value={filters.tempo}
-            onChange={(e) => handleFilterChange('tempo', e.target.value)}
-            className="px-2 py-1 border border-gray-300 rounded-md text-xs"
-          >
-            <option value="">Todos</option>
-            <option value="curto">&lt; 30 dias</option>
-            <option value="medio">30-90 dias</option>
-            <option value="longo">&gt; 90 dias</option>
-          </select>
-        </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tempo</label>
+            <select
+              value={filters.tempo}
+              onChange={(e) => handleFilterChange('tempo', e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="">Todos</option>
+              <option value="curto">&lt; 30 dias</option>
+              <option value="medio">30-90 dias</option>
+              <option value="longo">&gt; 90 dias</option>
+            </select>
+          </div>
 
-        <div className="flex items-end">
-          <Button
-            variant="outline"
+          <button
             onClick={() => setFilters({ atendente: '', plataforma: '', tempo: '', cliente: '' })}
-            className="text-xs h-8"
-            size="sm"
+            className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
           >
             Limpar
-          </Button>
+          </button>
         </div>
       </div>
 
