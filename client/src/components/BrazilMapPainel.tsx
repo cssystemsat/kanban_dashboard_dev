@@ -110,7 +110,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
         <div className="relative w-full max-w-2xl" style={{ aspectRatio: '16/10' }}>
           {/* Imagem do mapa do Brasil */}
           <img 
-            src="https://private-us-east-1.manuscdn.com/sessionFile/qIN3XO1hRZMZhD9fFDUrap/sandbox/FSTgVDKw1fLp01jau3dbcD-img-1_1772152530000_na1fn_bWFwYS1icmFzaWwtY2xpZW50ZXM.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvcUlOM1hPMWhSWk1aaEQ5ZkZEVXJhcC9zYW5kYm94L0ZTVGdWREt3MWZMcDAxamF1M2RiY0QtaW1nLTFfMTc3MjE1MjUzMDAwMF9uYTFmbl9iV0Z3WVMxaWNtRnphV3d0WTJ4cFpXNTBaWE0ucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=GulO6xkO3I75YDFU1qWNxfsizzFKNM5u0cxy~m66pwrWpuYaQmmINsrd~YJ-2yP1hkA3O7W1pt3vAalFXF7DCqzNUFx1zbzP6WP4mtEDJ-BS-GwXSgPwqLDW3T86RyfNT7Xeefhh4NwO4cc034R6ai0aFmeeOlvC2PlEwHW4oOJKzUfLchcE0UZLRoqMPUg~qI39b~JD0kiisqlB8KfQu6QDaljgrfuNfNVkzW47-R~DXx2sDtfL1iJIK8T8r3PTCIcQXnS0ssOsxcXnj2k2yXaZI4-sBfOR8cm2Vn~ND9B5fqFzqpioEaK8pHVqKRz30QwDaZOzS5iZHcPpaXvP1w__"
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/mapa-brasil-estados_b1dab211.png"
             alt="Mapa do Brasil"
             className="w-full h-full object-contain rounded"
           />
