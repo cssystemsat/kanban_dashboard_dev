@@ -14,35 +14,36 @@ interface BrazilMapPainelProps {
   clients: ClienteEstado[];
 }
 
-// Coordenadas dos centros dos estados para posicionar números no mapa (em %)
+// Coordenadas dos centros dos estados (em % relativo à imagem)
+// Imagem: 390x377px, aspect ratio ~1:1
 const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
-  'AC': { x: 12, y: 72 },
-  'AL': { x: 88, y: 28 },
-  'AP': { x: 22, y: 12 },
-  'AM': { x: 15, y: 35 },
-  'BA': { x: 75, y: 58 },
-  'CE': { x: 70, y: 32 },
-  'DF': { x: 56, y: 58 },
-  'ES': { x: 82, y: 65 },
-  'GO': { x: 52, y: 60 },
-  'MA': { x: 65, y: 35 },
-  'MT': { x: 45, y: 50 },
-  'MS': { x: 50, y: 72 },
-  'MG': { x: 70, y: 62 },
-  'PA': { x: 32, y: 32 },
-  'PB': { x: 85, y: 25 },
-  'PR': { x: 70, y: 78 },
-  'PE': { x: 80, y: 32 },
-  'PI': { x: 65, y: 42 },
-  'RJ': { x: 80, y: 70 },
-  'RN': { x: 82, y: 22 },
-  'RS': { x: 62, y: 88 },
-  'RO': { x: 15, y: 62 },
-  'RR': { x: 20, y: 15 },
-  'SC': { x: 70, y: 85 },
-  'SP': { x: 70, y: 75 },
-  'SE': { x: 82, y: 42 },
-  'TO': { x: 50, y: 45 },
+  'AC': { x: 8.2, y: 38.5 },
+  'AL': { x: 85.1, y: 34.0 },
+  'AM': { x: 21.8, y: 27.9 },
+  'AP': { x: 42.3, y: 8.0 },
+  'BA': { x: 71.8, y: 42.4 },
+  'CE': { x: 71.8, y: 21.8 },
+  'DF': { x: 56.9, y: 50.9 },
+  'ES': { x: 78.2, y: 58.4 },
+  'GO': { x: 53.8, y: 55.7 },
+  'MA': { x: 59.0, y: 25.2 },
+  'MG': { x: 66.7, y: 58.4 },
+  'MS': { x: 37.2, y: 63.7 },
+  'MT': { x: 39.7, y: 49.1 },
+  'PA': { x: 42.3, y: 25.2 },
+  'PB': { x: 83.3, y: 26.5 },
+  'PE': { x: 82.1, y: 29.7 },
+  'PI': { x: 63.6, y: 32.4 },
+  'PR': { x: 47.4, y: 72.9 },
+  'RJ': { x: 70.5, y: 66.3 },
+  'RN': { x: 82.1, y: 19.9 },
+  'RO': { x: 22.6, y: 42.4 },
+  'RR': { x: 29.5, y: 10.1 },
+  'RS': { x: 39.7, y: 87.5 },
+  'SC': { x: 48.7, y: 79.6 },
+  'SE': { x: 80.0, y: 37.7 },
+  'SP': { x: 52.6, y: 66.8 },
+  'TO': { x: 56.4, y: 40.3 },
 };
 
 export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps) {
@@ -107,7 +108,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
 
       {/* Mapa do Brasil com overlay interativo */}
       <div className="flex justify-center bg-gray-50 rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-        <div className="relative w-full max-w-2xl" style={{ aspectRatio: '16/10' }}>
+        <div className="relative w-full max-w-2xl" style={{ aspectRatio: '390/377' }}>
           {/* Imagem do mapa do Brasil */}
           <img 
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/mapa-brasil-estados_b1dab211.png"
