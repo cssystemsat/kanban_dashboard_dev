@@ -105,9 +105,9 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
         </div>
       </div>
 
-      {/* Mapa do Brasil com overlay interativo */}
-      <div className="flex justify-center bg-gray-50 rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
-        <div className="relative w-full max-w-2xl" style={{ aspectRatio: '390/377' }}>
+      {/* Mapa do Brasil com overlay interativo - Maior */}
+      <div className="flex justify-center bg-white rounded-lg p-6 border" style={{ borderColor: '#E0E8F0' }}>
+        <div className="relative w-full" style={{ maxWidth: '900px', aspectRatio: '390/377' }}>
           {/* Imagem do mapa do Brasil */}
           <img 
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/mapa-brasil-estados_b1dab211.png"

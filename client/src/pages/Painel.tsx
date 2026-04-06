@@ -401,6 +401,46 @@ function TabelaMigracao() {
   );
 }
 
+/* ─── Componente de Mapas com Seletor de Abas ──────────────────────────────────────────────── */
+function MapasComAbas({ data }: { data: ReturnType<typeof useEstadosData> }) {
+  const [abaAtiva, setAbaAtiva] = useState<'onboarding' | 'ongoing' | 'geral'>('onboarding');
+
+  const abas = [
+    { id: 'onboarding', label: 'Onboarding', cor: '#2563EB', clients: data.onboarding },
+    { id: 'ongoing', label: 'Ongoing', cor: '#7C3AED', clients: data.ongoing },
+    { id: 'geral', label: 'Geral', cor: '#059669', clients: data.geral },
+  ] as const;
+
+  const abaAtualData = abas.find(a => a.id === abaAtiva)!;
+
+  return (
+    <div className="bg-white rounded-xl border shadow-sm p-4" style={{ borderColor: '#E0E8F0' }}>
+      {/* Seletor de Abas */}
+      <div className="flex gap-2 mb-4 border-b pb-3" style={{ borderColor: '#E0E8F0' }}>
+        {abas.map(aba => (
+          <button
+            key={aba.id}
+            onClick={() => setAbaAtiva(aba.id)}
+            className="px-4 py-2 rounded-t-lg font-medium text-sm transition-all"
+            style={{
+              backgroundColor: abaAtiva === aba.id ? aba.cor : '#F3F4F6',
+              color: abaAtiva === aba.id ? '#FFFFFF' : '#6B7280',
+              borderBottom: abaAtiva === aba.id ? `3px solid ${aba.cor}` : 'none',
+            }}
+          >
+            {aba.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mapa Único Maior */}
+      <div className="flex justify-center">
+        <BrazilMapPainel title={`Distribuição - ${abaAtualData.label}`} clients={abaAtualData.clients} />
+      </div>
+    </div>
+  );
+}
+
 /* ─── Página principal ──────────────────────────────────────────────── */
 export default function Painel() {
   const { data, loading, error, fetchData } = usePainelData();
@@ -505,13 +545,9 @@ export default function Painel() {
               <TabelaMigracao />
             </div>
 
-            {/* Mapas do Brasil por Estado */}
+            {/* Mapas do Brasil por Estado - Seletor de Abas */}
             {!estadosData.loading && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-                <BrazilMapPainel title="Distribuição - Onboarding" clients={estadosData.onboarding} />
-                <BrazilMapPainel title="Distribuição - Ongoing" clients={estadosData.ongoing} />
-                <BrazilMapPainel title="Distribuição - Geral" clients={estadosData.geral} />
-              </div>
+              <MapasComAbas data={estadosData} />
             )}
 
             <p className="text-xs text-gray-400 text-center">
