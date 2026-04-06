@@ -410,19 +410,19 @@ export default function Churns() {
               <div className="bg-white rounded-lg p-4 border shadow-sm" style={{ borderColor: '#E0E8F0' }}>
                 <h3 className="font-bold mb-4" style={{ color: '#001F3F' }}>Top Motivos de Cancelamento</h3>
                 {churnsPorMotivo.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {churnsPorMotivo.map((motivo, index) => {
                       const maxValue = churnsPorMotivo[0].value;
                       const percentage = (motivo.value / maxValue) * 100;
                       return (
                         <div key={motivo.name} className="group relative">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-gray-600 min-w-max text-right pr-2" title={motivo.name}>
+                          <div className="flex items-center gap-4">
+                            <span className="text-xs font-medium text-gray-700 w-40 flex-shrink-0" title={motivo.name}>
                               {motivo.name}
                             </span>
-                            <div className="flex-1 h-8 bg-gray-100 rounded-md overflow-hidden relative cursor-pointer">
+                            <div className="flex-1 h-7 bg-gray-200 rounded-sm overflow-hidden relative cursor-pointer">
                               <div
-                                className="h-full rounded-md flex items-center justify-end pr-2 transition-all duration-300"
+                                className="h-full flex items-center justify-end pr-2 transition-all duration-300"
                                 style={{ width: `${Math.max(percentage, 8)}%`, backgroundColor: COLORS[index % COLORS.length] }}
                               >
                                 <span className="text-xs font-bold text-white drop-shadow-sm">{motivo.value}</span>
@@ -430,7 +430,7 @@ export default function Churns() {
                             </div>
                           </div>
                           {/* Tooltip com lista de clientes */}
-                          <div className="absolute z-50 left-36 top-full mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block">
+                          <div className="absolute z-50 left-44 top-full mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block">
                             <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: COLORS[index % COLORS.length] }}>
                               {motivo.name} ({motivo.value})
                             </p>
