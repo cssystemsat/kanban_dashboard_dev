@@ -416,8 +416,8 @@ export default function Churns() {
                       const percentage = (motivo.value / maxValue) * 100;
                       return (
                         <div key={motivo.name} className="group relative">
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-medium text-gray-600 w-32 truncate text-right" title={motivo.name}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-600 min-w-max text-right pr-2" title={motivo.name}>
                               {motivo.name}
                             </span>
                             <div className="flex-1 h-8 bg-gray-100 rounded-md overflow-hidden relative cursor-pointer">
