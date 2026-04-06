@@ -123,26 +123,31 @@ export default function Churns() {
     })).filter(item => item.quantidade > 0);
   }, [filteredData]);
 
-  // Dados para gráfico de motivos de cancelamento
+  // Dados para gráfico de motivos de cancelamento (com lista de clientes)
   const churnsPorMotivo = useMemo(() => {
-    const motivoCount: { [key: string]: number } = {};
+    const motivoMap: { [key: string]: { count: number; clientes: string[] } } = {};
     filteredData.forEach(churn => {
       if (churn.motivoCancelamento) {
-        motivoCount[churn.motivoCancelamento] = (motivoCount[churn.motivoCancelamento] || 0) + 1;
+        if (!motivoMap[churn.motivoCancelamento]) {
+          motivoMap[churn.motivoCancelamento] = { count: 0, clientes: [] };
+        }
+        motivoMap[churn.motivoCancelamento].count++;
+        motivoMap[churn.motivoCancelamento].clientes.push(churn.nome);
       }
     });
 
-    return Object.entries(motivoCount)
-      .map(([motivo, count]) => ({
+    return Object.entries(motivoMap)
+      .map(([motivo, data]) => ({
         name: motivo,
-        value: count
+        value: data.count,
+        clientes: data.clientes
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
   }, [filteredData]);
 
-  // Cores para gráficos
-  const COLORS = ['#FF6B6B', '#FF8E72', '#FFA07A', '#FFB88C', '#FFD4A3', '#FFE5B4', '#FFF5E1', '#FFFACD'];
+  // Cores vivas e contrastantes para gráficos
+  const COLORS = ['#E53E3E', '#DD6B20', '#D69E2E', '#38A169', '#3182CE', '#805AD5', '#D53F8C', '#319795'];
 
   // Formatar nome do mês
   const getMonthName = (month: number) => {
@@ -401,29 +406,47 @@ export default function Churns() {
                 )}
               </div>
 
-              {/* Gráfico de Motivos de Cancelamento */}
+              {/* Gráfico de Motivos de Cancelamento - Barras Horizontais */}
               <div className="bg-white rounded-lg p-4 border shadow-sm" style={{ borderColor: '#E0E8F0' }}>
                 <h3 className="font-bold mb-4" style={{ color: '#001F3F' }}>Top Motivos de Cancelamento</h3>
                 {churnsPorMotivo.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={churnsPorMotivo}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value }) => `${name}: ${value}`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {churnsPorMotivo.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-2">
+                    {churnsPorMotivo.map((motivo, index) => {
+                      const maxValue = churnsPorMotivo[0].value;
+                      const percentage = (motivo.value / maxValue) * 100;
+                      return (
+                        <div key={motivo.name} className="group relative">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-gray-600 w-32 truncate text-right" title={motivo.name}>
+                              {motivo.name}
+                            </span>
+                            <div className="flex-1 h-8 bg-gray-100 rounded-md overflow-hidden relative cursor-pointer">
+                              <div
+                                className="h-full rounded-md flex items-center justify-end pr-2 transition-all duration-300"
+                                style={{ width: `${Math.max(percentage, 8)}%`, backgroundColor: COLORS[index % COLORS.length] }}
+                              >
+                                <span className="text-xs font-bold text-white drop-shadow-sm">{motivo.value}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Tooltip com lista de clientes */}
+                          <div className="absolute z-50 left-36 top-full mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block">
+                            <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: COLORS[index % COLORS.length] }}>
+                              {motivo.name} ({motivo.value})
+                            </p>
+                            <div className="max-h-40 overflow-y-auto space-y-1">
+                              {motivo.clientes.map((cliente, ci) => (
+                                <div key={ci} className="text-xs text-gray-700 py-0.5 px-2 rounded hover:bg-gray-50 flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                                  {cliente}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <p className="text-center text-gray-500 py-8">Sem dados para este período</p>
                 )}
