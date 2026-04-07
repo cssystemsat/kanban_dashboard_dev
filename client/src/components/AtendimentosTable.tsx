@@ -202,13 +202,11 @@ export function AtendimentosTable({ data }: { data: Atendimento[] }) {
                   <td className="px-4 py-3 text-gray-700">{item.dia}</td>
                   <td className="px-4 py-3">
                     <div className="text-gray-700 font-medium">{item.cliente}</div>
-                    <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-                      <div><span className="font-semibold">Origem:</span> {item.origem}</div>
-                      <div><span className="font-semibold">Tipo:</span> {item.tipo}</div>
-                      <div><span className="font-semibold">Assunto:</span> {item.assunto}</div>
-                      <div><span className="font-semibold">Atendente:</span> {item.atendente}</div>
-                      {item.detalhes && <div><span className="font-semibold">Detalhes:</span> {item.detalhes}</div>}
-                    </div>
+                    {item.detalhes && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        <span className="font-semibold">Detalhes:</span> {item.detalhes}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-700">{item.origem}</td>
                   <td className="px-4 py-3 text-gray-700">{item.tipo}</td>
