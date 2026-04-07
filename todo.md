@@ -174,3 +174,4 @@
 - [x] Melhorar cores do gráfico Top Motivos de Cancelamento (cores vivas com bom contraste)
 - [x] Adicionar tooltip com lista de clientes ao hover no gráfico de motivos de cancelamento
 - [x] Reformular aba Atendimentos para exibir detalhes inline na tabela, logo abaixo do nome do cliente
+- [x] Melhorar mapa na aba Painel: aumentar números, adicionar círculos com gradiente de cores por densidade, ajustar posicionamento

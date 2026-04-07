@@ -116,28 +116,49 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
             style={{ objectFit: 'fill' }}
           />
           
-          {/* Overlay com números clicáveis */}
+          {/* Overlay com números em círculos com gradiente de cores */}
           <div className="absolute inset-0 pointer-events-none">
             {Object.entries(STATE_POSITIONS).map(([state, pos]) => {
               const count = clientsByState[state]?.length || 0;
               if (count === 0) return null;
+              
+              // Calcular cor baseada na densidade
+              const maxCount = Math.max(...Object.values(clientsByState).map(c => c.length));
+              const intensity = Math.min(count / maxCount, 1);
+              
+              // Gradiente: azul claro (poucos) -> azul escuro (muitos)
+              const colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6', '#42A5F5', '#2196F3', '#1E88E5', '#1565C0', '#0D47A1'];
+              const colorIndex = Math.floor(intensity * (colors.length - 1));
+              const bgColor = colors[colorIndex];
+              const borderColor = colors[Math.min(colorIndex + 2, colors.length - 1)];
+              
+              // Tamanho do círculo baseado na quantidade
+              const baseSize = 45;
+              const circleSize = Math.max(baseSize, Math.min(baseSize + count * 2.5, 90));
+              
               return (
                 <div
                   key={state}
-                  className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2"
+                  className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all hover:scale-110"
                   style={{
                     left: `${pos.x}%`,
                     top: `${pos.y}%`,
+                    width: `${circleSize}px`,
+                    height: `${circleSize}px`,
+                    backgroundColor: bgColor,
+                    borderRadius: '50%',
+                    border: `2px solid ${borderColor}`,
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                   }}
                   onClick={() => handleStateClick(state)}
                   title={`${state}: ${count} cliente(s)`}
                 >
                   <span 
-                    className="font-bold text-sm hover:font-black transition-all"
+                    className="font-bold hover:font-black transition-all"
                     style={{
-                      color: '#0052CC',
-                      textShadow: '0 0 3px rgba(255,255,255,0.8)',
-                      fontSize: count > 9 ? '14px' : '12px',
+                      color: intensity > 0.5 ? '#FFFFFF' : '#0D47A1',
+                      textShadow: intensity > 0.5 ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                      fontSize: count > 99 ? '18px' : count > 9 ? '16px' : '14px',
                     }}
                   >
                     {count}
