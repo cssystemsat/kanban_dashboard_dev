@@ -14,7 +14,7 @@ export function AtendimentosTable({ data }: { data: Atendimento[] }) {
   const [filterTipo, setFilterTipo] = useState('');
   const [filterAssunto, setFilterAssunto] = useState('');
   const [filterAtendente, setFilterAtendente] = useState('');
-  const [selectedRow, setSelectedRow] = useState<string | null>(null);
+
 
   // Filtrar dados
   const filteredData = useMemo(() => {
@@ -197,11 +197,19 @@ export function AtendimentosTable({ data }: { data: Atendimento[] }) {
               {sortedData.map((item) => (
                 <tr
                   key={item.id}
-                  className="border-b hover:bg-blue-50 transition-colors cursor-pointer"
-                  onClick={() => setSelectedRow(selectedRow === item.id ? null : item.id)}
+                  className="border-b hover:bg-blue-50 transition-colors"
                 >
                   <td className="px-4 py-3 text-gray-700">{item.dia}</td>
-                  <td className="px-4 py-3 text-gray-700 font-medium">{item.cliente}</td>
+                  <td className="px-4 py-3">
+                    <div className="text-gray-700 font-medium">{item.cliente}</div>
+                    <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                      <div><span className="font-semibold">Origem:</span> {item.origem}</div>
+                      <div><span className="font-semibold">Tipo:</span> {item.tipo}</div>
+                      <div><span className="font-semibold">Assunto:</span> {item.assunto}</div>
+                      <div><span className="font-semibold">Atendente:</span> {item.atendente}</div>
+                      {item.detalhes && <div><span className="font-semibold">Detalhes:</span> {item.detalhes}</div>}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-gray-700">{item.origem}</td>
                   <td className="px-4 py-3 text-gray-700">{item.tipo}</td>
                   <td className="px-4 py-3 text-gray-700">{item.assunto}</td>
@@ -214,57 +222,7 @@ export function AtendimentosTable({ data }: { data: Atendimento[] }) {
         </div>
       </Card>
 
-      {/* Detalhes do Atendimento Selecionado */}
-      {selectedRow && (
-        <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-          {sortedData.find(item => item.id === selectedRow) && (
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-3">Detalhes do Atendimento</h3>
-              {(() => {
-                const item = sortedData.find(i => i.id === selectedRow)!;
-                return (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600 font-semibold">Data</p>
-                      <p className="text-gray-800">{item.dia}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 font-semibold">Cliente</p>
-                      <p className="text-gray-800">{item.cliente}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 font-semibold">Origem</p>
-                      <p className="text-gray-800">{item.origem}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 font-semibold">Tipo</p>
-                      <p className="text-gray-800">{item.tipo}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 font-semibold">Assunto</p>
-                      <p className="text-gray-800">{item.assunto}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 font-semibold">Tempo (min)</p>
-                      <p className="text-blue-600 font-semibold">{item.tempo}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 font-semibold">Atendente</p>
-                      <p className="text-gray-800">{item.atendente}</p>
-                    </div>
-                    {item.detalhes && (
-                      <div className="col-span-2 md:col-span-3 lg:col-span-4">
-                        <p className="text-gray-600 font-semibold">Detalhes Adicionais</p>
-                        <p className="text-gray-800">{item.detalhes}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      )}
+
 
       {/* Resumo */}
       <div className="text-sm text-gray-600">
