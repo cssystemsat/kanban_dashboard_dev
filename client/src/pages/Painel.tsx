@@ -403,7 +403,7 @@ function TabelaMigracao() {
 
 /* ─── Componente de Mapas com Seletor de Abas ──────────────────────────────────────────────── */
 function MapasComAbas({ data }: { data: ReturnType<typeof useEstadosData> }) {
-  const [abaAtiva, setAbaAtiva] = useState<'onboarding' | 'ongoing' | 'geral'>('onboarding');
+  const [abaAtiva, setAbaAtiva] = useState<'onboarding' | 'ongoing' | 'geral'>('geral');
 
   const abas = [
     { id: 'onboarding', label: 'Onboarding', cor: '#2563EB', clients: data.onboarding },

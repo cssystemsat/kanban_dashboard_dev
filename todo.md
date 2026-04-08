@@ -176,3 +176,6 @@
 - [x] Reformular aba Atendimentos para exibir detalhes inline na tabela, logo abaixo do nome do cliente
 - [x] Melhorar mapa na aba Painel: aumentar números, adicionar círculos com gradiente de cores por densidade, ajustar posicionamento
 - [x] Ajustar posicionamento dos círculos dentro de cada estado, com setas para estados pequenos (RN, PB, PE, AL, SE)
+- [x] Mapa abre no "Geral" por padrão (em vez de Onboarding)
+- [x] Corrigir posicionamento de SC, CE e MA
+- [x] Remover setas e deixar círculos dos estados pequenos fora do mapa com setas vermelhas apontando

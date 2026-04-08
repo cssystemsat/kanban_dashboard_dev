@@ -15,36 +15,38 @@ interface BrazilMapPainelProps {
 }
 
 // Coordenadas dos centros dos estados (em % relativo à imagem 390x377px)
-// Estados pequenos (RN, PB, PE, AL, SE) têm setas apontando para círculos próximos
-const STATE_POSITIONS: Record<string, { x: number; y: number; hasArrow?: boolean; arrowX?: number; arrowY?: number }> = {
+const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
   'AC': { x: 10, y: 40 },
-  'AL': { x: 80, y: 36, hasArrow: true, arrowX: 90, arrowY: 36 },
+  'AL': { x: 82, y: 37 },
   'AM': { x: 22, y: 28 },
   'AP': { x: 45, y: 10 },
   'BA': { x: 72, y: 44 },
-  'CE': { x: 74, y: 22 },
+  'CE': { x: 70, y: 20 },
   'DF': { x: 58, y: 51 },
-  'ES': { x: 80, y: 60 },
+  'ES': { x: 78, y: 62 },
   'GO': { x: 55, y: 56 },
-  'MA': { x: 60, y: 25 },
+  'MA': { x: 58, y: 24 },
   'MG': { x: 68, y: 60 },
   'MS': { x: 39, y: 64 },
   'MT': { x: 42, y: 50 },
   'PA': { x: 45, y: 26 },
-  'PB': { x: 80, y: 27, hasArrow: true, arrowX: 90, arrowY: 27 },
-  'PE': { x: 80, y: 31, hasArrow: true, arrowX: 90, arrowY: 31 },
+  'PB': { x: 82, y: 28 },
+  'PE': { x: 82, y: 33 },
   'PI': { x: 66, y: 33 },
   'PR': { x: 50, y: 73 },
   'RJ': { x: 72, y: 67 },
-  'RN': { x: 80, y: 21, hasArrow: true, arrowX: 90, arrowY: 21 },
+  'RN': { x: 82, y: 22 },
   'RO': { x: 25, y: 44 },
   'RR': { x: 30, y: 11 },
   'RS': { x: 42, y: 88 },
-  'SC': { x: 51, y: 80 },
-  'SE': { x: 80, y: 39, hasArrow: true, arrowX: 90, arrowY: 39 },
+  'SC': { x: 48, y: 82 },
+  'SE': { x: 82, y: 40 },
   'SP': { x: 55, y: 68 },
   'TO': { x: 58, y: 41 },
 };
+
+// Estados pequenos que precisam de setas
+const SMALL_STATES = ['RN', 'PB', 'PE', 'AL', 'SE'];
 
 export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps) {
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -81,8 +83,6 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
       setSelectedState(state);
     }
   };
-
-
 
   return (
     <div className="w-full flex flex-col gap-4 bg-white rounded-lg p-6 border" style={{ borderColor: '#E0E8F0' }}>
@@ -137,22 +137,24 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
               const baseSize = 45;
               const circleSize = Math.max(baseSize, Math.min(baseSize + count * 2.5, 90));
               
+              const isSmallState = SMALL_STATES.includes(state);
+              
               return (
                 <div key={state}>
-                  {/* Seta para estados pequenos */}
-                  {pos.hasArrow && (
+                  {/* Seta vermelha para estados pequenos */}
+                  {isSmallState && (
                     <svg
                       className="absolute pointer-events-none"
                       style={{
                         left: `${pos.x}%`,
                         top: `${pos.y}%`,
-                        width: '60px',
-                        height: '30px',
+                        width: '80px',
+                        height: '40px',
                         transform: 'translate(-50%, -50%)',
                       }}
                     >
-                      <line x1="0" y1="15" x2="40" y2="15" stroke="#666" strokeWidth="2" />
-                      <polygon points="40,15 35,10 35,20" fill="#666" />
+                      <line x1="0" y1="20" x2="50" y2="20" stroke="#EF4444" strokeWidth="2.5" />
+                      <polygon points="50,20 40,14 40,26" fill="#EF4444" />
                     </svg>
                   )}
                   
@@ -160,8 +162,8 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
                   <div
                     className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all hover:scale-110"
                     style={{
-                      left: `${pos.arrowX || pos.x}%`,
-                      top: `${pos.arrowY || pos.y}%`,
+                      left: isSmallState ? `${pos.x + 15}%` : `${pos.x}%`,
+                      top: `${pos.y}%`,
                       width: `${circleSize}px`,
                       height: `${circleSize}px`,
                       backgroundColor: bgColor,
@@ -189,8 +191,6 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
           </div>
         </div>
       </div>
-
-
 
       {/* Ranking de Estados - Clicável */}
       <div className="overflow-x-auto">
