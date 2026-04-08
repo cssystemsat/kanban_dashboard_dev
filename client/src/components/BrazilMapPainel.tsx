@@ -15,34 +15,35 @@ interface BrazilMapPainelProps {
 }
 
 // Coordenadas dos centros dos estados (em % relativo à imagem 390x377px)
-const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
-  'AC': { x: 7.7, y: 37.7 },
-  'AL': { x: 85.9, y: 33.2 },
-  'AM': { x: 21.0, y: 26.5 },
-  'AP': { x: 43.1, y: 7.4 },
-  'BA': { x: 72.3, y: 41.1 },
-  'CE': { x: 72.3, y: 20.7 },
-  'DF': { x: 57.7, y: 49.9 },
-  'ES': { x: 79.0, y: 57.8 },
-  'GO': { x: 54.4, y: 55.2 },
-  'MA': { x: 59.5, y: 23.3 },
-  'MG': { x: 67.2, y: 57.8 },
-  'MS': { x: 37.9, y: 63.1 },
-  'MT': { x: 40.5, y: 48.3 },
-  'PA': { x: 43.1, y: 23.9 },
-  'PB': { x: 84.1, y: 25.2 },
-  'PE': { x: 82.6, y: 28.6 },
-  'PI': { x: 64.1, y: 31.3 },
-  'PR': { x: 48.2, y: 72.1 },
-  'RJ': { x: 71.3, y: 65.8 },
-  'RN': { x: 82.6, y: 19.1 },
-  'RO': { x: 23.1, y: 41.9 },
-  'RR': { x: 28.7, y: 9.3 },
-  'RS': { x: 40.5, y: 87.0 },
-  'SC': { x: 49.2, y: 79.0 },
-  'SE': { x: 80.8, y: 37.1 },
-  'SP': { x: 53.3, y: 66.3 },
-  'TO': { x: 56.9, y: 39.3 },
+// Estados pequenos (RN, PB, PE, AL, SE) têm setas apontando para círculos próximos
+const STATE_POSITIONS: Record<string, { x: number; y: number; hasArrow?: boolean; arrowX?: number; arrowY?: number }> = {
+  'AC': { x: 10, y: 40 },
+  'AL': { x: 80, y: 36, hasArrow: true, arrowX: 90, arrowY: 36 },
+  'AM': { x: 22, y: 28 },
+  'AP': { x: 45, y: 10 },
+  'BA': { x: 72, y: 44 },
+  'CE': { x: 74, y: 22 },
+  'DF': { x: 58, y: 51 },
+  'ES': { x: 80, y: 60 },
+  'GO': { x: 55, y: 56 },
+  'MA': { x: 60, y: 25 },
+  'MG': { x: 68, y: 60 },
+  'MS': { x: 39, y: 64 },
+  'MT': { x: 42, y: 50 },
+  'PA': { x: 45, y: 26 },
+  'PB': { x: 80, y: 27, hasArrow: true, arrowX: 90, arrowY: 27 },
+  'PE': { x: 80, y: 31, hasArrow: true, arrowX: 90, arrowY: 31 },
+  'PI': { x: 66, y: 33 },
+  'PR': { x: 50, y: 73 },
+  'RJ': { x: 72, y: 67 },
+  'RN': { x: 80, y: 21, hasArrow: true, arrowX: 90, arrowY: 21 },
+  'RO': { x: 25, y: 44 },
+  'RR': { x: 30, y: 11 },
+  'RS': { x: 42, y: 88 },
+  'SC': { x: 51, y: 80 },
+  'SE': { x: 80, y: 39, hasArrow: true, arrowX: 90, arrowY: 39 },
+  'SP': { x: 55, y: 68 },
+  'TO': { x: 58, y: 41 },
 };
 
 export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps) {
@@ -116,7 +117,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
             style={{ objectFit: 'fill' }}
           />
           
-          {/* Overlay com números em círculos com gradiente de cores */}
+          {/* Overlay com números em círculos com gradiente de cores + setas para estados pequenos */}
           <div className="absolute inset-0 pointer-events-none">
             {Object.entries(STATE_POSITIONS).map(([state, pos]) => {
               const count = clientsByState[state]?.length || 0;
@@ -137,32 +138,51 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
               const circleSize = Math.max(baseSize, Math.min(baseSize + count * 2.5, 90));
               
               return (
-                <div
-                  key={state}
-                  className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all hover:scale-110"
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y}%`,
-                    width: `${circleSize}px`,
-                    height: `${circleSize}px`,
-                    backgroundColor: bgColor,
-                    borderRadius: '50%',
-                    border: `2px solid ${borderColor}`,
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                  }}
-                  onClick={() => handleStateClick(state)}
-                  title={`${state}: ${count} cliente(s)`}
-                >
-                  <span 
-                    className="font-bold hover:font-black transition-all"
+                <div key={state}>
+                  {/* Seta para estados pequenos */}
+                  {pos.hasArrow && (
+                    <svg
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: `${pos.x}%`,
+                        top: `${pos.y}%`,
+                        width: '60px',
+                        height: '30px',
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                    >
+                      <line x1="0" y1="15" x2="40" y2="15" stroke="#666" strokeWidth="2" />
+                      <polygon points="40,15 35,10 35,20" fill="#666" />
+                    </svg>
+                  )}
+                  
+                  {/* Círculo com número */}
+                  <div
+                    className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all hover:scale-110"
                     style={{
-                      color: intensity > 0.5 ? '#FFFFFF' : '#0D47A1',
-                      textShadow: intensity > 0.5 ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
-                      fontSize: count > 99 ? '18px' : count > 9 ? '16px' : '14px',
+                      left: `${pos.arrowX || pos.x}%`,
+                      top: `${pos.arrowY || pos.y}%`,
+                      width: `${circleSize}px`,
+                      height: `${circleSize}px`,
+                      backgroundColor: bgColor,
+                      borderRadius: '50%',
+                      border: `2px solid ${borderColor}`,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                     }}
+                    onClick={() => handleStateClick(state)}
+                    title={`${state}: ${count} cliente(s)`}
                   >
-                    {count}
-                  </span>
+                    <span 
+                      className="font-bold hover:font-black transition-all"
+                      style={{
+                        color: intensity > 0.5 ? '#FFFFFF' : '#0D47A1',
+                        textShadow: intensity > 0.5 ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                        fontSize: count > 99 ? '18px' : count > 9 ? '16px' : '14px',
+                      }}
+                    >
+                      {count}
+                    </span>
+                  </div>
                 </div>
               );
             })}

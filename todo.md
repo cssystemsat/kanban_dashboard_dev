@@ -175,3 +175,4 @@
 - [x] Adicionar tooltip com lista de clientes ao hover no gráfico de motivos de cancelamento
 - [x] Reformular aba Atendimentos para exibir detalhes inline na tabela, logo abaixo do nome do cliente
 - [x] Melhorar mapa na aba Painel: aumentar números, adicionar círculos com gradiente de cores por densidade, ajustar posicionamento
+- [x] Ajustar posicionamento dos círculos dentro de cada estado, com setas para estados pequenos (RN, PB, PE, AL, SE)
