@@ -7,7 +7,7 @@ interface BrazilMapProps {
 
 // Coordenadas aproximadas dos estados do Brasil (para posicionamento)
 const stateCoordinates: Record<string, { x: number; y: number }> = {
-  'AC': { x: 10, y: 65 }, // Acre
+  'AC': { x: 1, y: 65 }, // Acre
   'AL': { x: 75, y: 10 }, // Alagoas
   'AP': { x: 50, y: 5 }, // Amapá
   'AM': { x: 30, y: 20 }, // Amazonas
