@@ -179,3 +179,4 @@
 - [x] Mapa abre no "Geral" por padrão (em vez de Onboarding)
 - [x] Corrigir posicionamento de SC, CE e MA
 - [x] Remover setas e deixar círculos dos estados pequenos fora do mapa com setas vermelhas apontando
+- [x] Adicionar auto-refresh a cada 10 minutos na aba Painel (mantendo botão manual)

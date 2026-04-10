@@ -13,6 +13,13 @@ function pct(v: number) {
   return (v * 100).toFixed(0) + '%';
 }
 
+function useAutoRefresh(callback: () => void, intervalMs: number = 600000) {
+  useEffect(() => {
+    const interval = setInterval(callback, intervalMs);
+    return () => clearInterval(interval);
+  }, [callback, intervalMs]);
+}
+
 function StatusBadge({ bateu }: { bateu: boolean }) {
   return bateu ? (
     <span className="inline-flex items-center gap-1 text-green-600 font-bold text-xs whitespace-nowrap">
@@ -446,12 +453,20 @@ export default function Painel() {
   const { data, loading, error, fetchData } = usePainelData();
   const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
   const estadosData = useEstadosData();
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMig(); }, []);
   useEffect(() => { 
     if (fetchData) fetchData(); 
   }, []);
+
+  // Auto-refresh a cada 10 minutos (600000ms)
+  useAutoRefresh(() => {
+    fetchData();
+    fetchMig();
+    setLastRefreshTime(new Date());
+  }, 600000);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F0F4F8' }}>
@@ -465,11 +480,18 @@ export default function Painel() {
             </p>
           )}
         </div>
-        <Button size="sm" variant="outline" onClick={fetchData} disabled={loading}
-          className="gap-1.5 border-white/30 text-white hover:bg-white/10 bg-transparent">
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-3">
+          {lastRefreshTime && (
+            <span className="text-xs text-gray-400">
+              Atualizado às {lastRefreshTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          <Button size="sm" variant="outline" onClick={() => { fetchData(); fetchMig(); setLastRefreshTime(new Date()); }} disabled={loading}
+            className="gap-1.5 border-white/30 text-white hover:bg-white/10 bg-transparent">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
       </header>
 
       <main className="px-4 pt-4 pb-8 w-full space-y-4">

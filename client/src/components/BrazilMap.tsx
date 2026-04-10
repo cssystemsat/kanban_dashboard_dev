@@ -10,7 +10,7 @@ const stateCoordinates: Record<string, { x: number; y: number }> = {
   'AC': { x: 1, y: 65 }, // Acre
   'AL': { x: 75, y: 10 }, // Alagoas
   'AP': { x: 50, y: 5 }, // Amapá
-  'AM': { x: 15, y: 20 }, // Amazonas
+  'AM': { x: 25, y: 20 }, // Amazonas
   'BA': { x: 70, y: 35 }, // Bahia
   'CE': { x: 65, y: 15 }, // Ceará
   'DF': { x: 55, y: 50 }, // Distrito Federal
