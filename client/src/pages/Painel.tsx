@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { useEstadosData } from '@/hooks/useEstadosData';
@@ -23,31 +23,30 @@ function useAutoRefresh(callback: () => void, intervalMs: number = 600000) {
 function useCountdown(initialSeconds: number, onComplete: () => void) {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasCompletedRef = useRef(false);
 
-  const resetCountdown = () => {
+  const resetCountdown = useCallback(() => {
     setTimeLeft(initialSeconds);
-  };
+    hasCompletedRef.current = false;
+  }, [initialSeconds]);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onComplete();
-      resetCountdown();
-      return;
-    }
-
     intervalRef.current = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
+        const newTime = prev - 1;
+        if (newTime <= 0 && !hasCompletedRef.current) {
+          hasCompletedRef.current = true;
+          onComplete();
           return initialSeconds;
         }
-        return prev - 1;
+        return newTime;
       });
     }, 1000);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [timeLeft, initialSeconds, onComplete]);
+  }, [initialSeconds, onComplete]);
 
   return { timeLeft, resetCountdown };
 }
