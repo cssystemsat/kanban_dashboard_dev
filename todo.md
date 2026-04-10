@@ -180,3 +180,4 @@
 - [x] Corrigir posicionamento de SC, CE e MA
 - [x] Remover setas e deixar círculos dos estados pequenos fora do mapa com setas vermelhas apontando
 - [x] Adicionar auto-refresh a cada 10 minutos na aba Painel (mantendo botão manual)
+- [x] Adicionar cronômetro regressivo sutil ao lado do botão Atualizar (conta de 10 min até 0)

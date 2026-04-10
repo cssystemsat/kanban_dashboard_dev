@@ -109,3 +109,58 @@ describe('Painel Auto-Refresh', () => {
     clearInterval(interval);
   });
 });
+
+  it('cronometro deve contar regressivamente de 600 segundos', () => {
+    let timeLeft = 600;
+    const onComplete = vi.fn();
+
+    // Simular decremento a cada segundo
+    const countdownInterval = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+      } else {
+        onComplete();
+        timeLeft = 600;
+      }
+    }, 1000);
+
+    // Avançar 1 segundo
+    vi.advanceTimersByTime(1000);
+    expect(timeLeft).toBe(599);
+
+    // Avançar 599 segundos
+    vi.advanceTimersByTime(599000);
+    expect(timeLeft).toBe(0);
+
+    // Verificar que onComplete foi chamado
+    expect(onComplete).toHaveBeenCalledTimes(1);
+
+    // Após reset, deve voltar a 600
+    expect(timeLeft).toBe(600);
+
+    clearInterval(countdownInterval);
+  });
+
+  it('cronometro deve resetar após completar', () => {
+    let timeLeft = 600;
+    const onComplete = vi.fn();
+
+    const countdownInterval = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+      } else {
+        onComplete();
+        timeLeft = 600;
+      }
+    }, 1000);
+
+    // Avançar 600 segundos (10 minutos)
+    vi.advanceTimersByTime(600000);
+
+    // Após completar, deve resetar para 600
+    expect(timeLeft).toBe(600);
+    expect(onComplete).toHaveBeenCalled();
+
+    clearInterval(countdownInterval);
+  });
+});

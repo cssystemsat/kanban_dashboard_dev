@@ -20,6 +20,38 @@ function useAutoRefresh(callback: () => void, intervalMs: number = 600000) {
   }, [callback, intervalMs]);
 }
 
+function useCountdown(initialSeconds: number, onComplete: () => void) {
+  const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetCountdown = () => {
+    setTimeLeft(initialSeconds);
+  };
+
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      onComplete();
+      resetCountdown();
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          return initialSeconds;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [timeLeft, initialSeconds, onComplete]);
+
+  return { timeLeft, resetCountdown };
+}
+
 function StatusBadge({ bateu }: { bateu: boolean }) {
   return bateu ? (
     <span className="inline-flex items-center gap-1 text-green-600 font-bold text-xs whitespace-nowrap">
@@ -461,11 +493,19 @@ export default function Painel() {
     if (fetchData) fetchData(); 
   }, []);
 
+  // Cronômetro regressivo (10 minutos = 600 segundos)
+  const { timeLeft, resetCountdown } = useCountdown(600, () => {
+    fetchData();
+    fetchMig();
+    setLastRefreshTime(new Date());
+  });
+
   // Auto-refresh a cada 10 minutos (600000ms)
   useAutoRefresh(() => {
     fetchData();
     fetchMig();
     setLastRefreshTime(new Date());
+    resetCountdown();
   }, 600000);
 
   return (
@@ -481,12 +521,18 @@ export default function Painel() {
           )}
         </div>
         <div className="flex items-center gap-3">
+          <div className="text-xs text-gray-400 flex items-center gap-2">
+            <span className="text-gray-500">Próx.:</span>
+            <span className="font-mono text-gray-300 w-8 text-right">
+              {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+            </span>
+          </div>
           {lastRefreshTime && (
             <span className="text-xs text-gray-400">
               Atualizado às {lastRefreshTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
-          <Button size="sm" variant="outline" onClick={() => { fetchData(); fetchMig(); setLastRefreshTime(new Date()); }} disabled={loading}
+          <Button size="sm" variant="outline" onClick={() => { fetchData(); fetchMig(); setLastRefreshTime(new Date()); resetCountdown(); }} disabled={loading}
             className="gap-1.5 border-white/30 text-white hover:bg-white/10 bg-transparent">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
