@@ -181,3 +181,5 @@
 - [x] Remover setas e deixar círculos dos estados pequenos fora do mapa com setas vermelhas apontando
 - [x] Adicionar auto-refresh a cada 10 minutos na aba Painel (mantendo botão manual)
 - [x] Adicionar cronômetro regressivo sutil ao lado do botão Atualizar (conta de 10 min até 0)
+- [x] Exibir todos os estados na aba Painel (remover limitação dos 10 maiores)
+- [x] Adicionar botão para exportar tabela de estados (CSV/Excel)

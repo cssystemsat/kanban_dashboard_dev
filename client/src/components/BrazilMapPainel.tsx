@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { Download } from 'lucide-react';
 import { X } from 'lucide-react';
 
 interface ClienteEstado {
@@ -68,13 +69,36 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
   const totalClients = clients.length;
   const statesWithClients = Object.keys(clientsByState).length;
 
-  // Ranking de estados
+  // Ranking de estados - TODOS os estados (sem limitação de 10)
   const stateRanking = useMemo(() => {
     return Object.entries(clientsByState)
       .map(([state, clientes]) => ({ state, count: clientes.length }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      .sort((a, b) => b.count - a.count);
   }, [clientsByState]);
+
+  // Função para exportar tabela como CSV
+  const exportToCSV = () => {
+    const headers = ['Estado', 'Quantidade', 'Percentual'];
+    const rows = stateRanking.map(({ state, count }) => {
+      const percentage = ((count / totalClients) * 100).toFixed(1);
+      return [state, count.toString(), `${percentage}%`];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `estados_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const selectedStateClients = selectedState ? clientsByState[selectedState] || [] : [];
 
@@ -193,10 +217,23 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
       </div>
 
       {/* Ranking de Estados - Clicável */}
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-sm font-semibold" style={{ color: '#001F3F' }}>Todos os Estados ({stateRanking.length})</p>
+        <button
+          onClick={exportToCSV}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+          style={{ backgroundColor: '#E0E8F0', color: '#001F3F' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#D0D8E0')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E0E8F0')}
+        >
+          <Download className="w-4 h-4" />
+          Exportar CSV
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ borderBottom: '2px solid #E0E8F0' }}>
+            <tr style={{ backgroundColor: '#F3F4F6', borderBottom: '2px solid #E0E8F0' }}>
               <th className="text-left py-2 px-2 font-semibold text-xs" style={{ color: '#001F3F' }}>Estado</th>
               <th className="text-right py-2 px-2 font-semibold text-xs" style={{ color: '#001F3F' }}>Qtd</th>
               <th className="text-right py-2 px-2 font-semibold text-xs" style={{ color: '#001F3F' }}>%</th>
