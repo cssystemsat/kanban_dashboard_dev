@@ -8,6 +8,7 @@ interface ClienteEstado {
   estado?: string;
   faturamento?: string;
   atendente?: string;
+  comercial?: string;
 }
 
 interface BrazilMapPainelProps {
@@ -76,24 +77,36 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
       .sort((a, b) => b.count - a.count);
   }, [clientsByState]);
 
-  // Função para exportar tabela como CSV
+  // Função para exportar tabela como CSV com clientes
   const exportToCSV = () => {
-    const headers = ['Estado', 'Quantidade', 'Percentual'];
-    const rows = stateRanking.map(({ state, count }) => {
-      const percentage = ((count / totalClients) * 100).toFixed(1);
-      return [state, count.toString(), `${percentage}%`];
+    const headers = ['Estado', 'Cliente', 'Faturamento', 'Atendente', 'Comercial'];
+    const rows: string[][] = [];
+
+    // Agrupar clientes por estado
+    stateRanking.forEach(({ state }) => {
+      const stateClients = clientsByState[state] || [];
+      stateClients.forEach(client => {
+        rows.push([
+          state,
+          client.nome,
+          client.faturamento || '—',
+          client.atendente || '—',
+          client.comercial || '—'
+        ]);
+      });
     });
 
+    // Escapar aspas duplas e envolver campos em aspas
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.join(','))
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `estados_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `clientes_por_estado_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -281,6 +294,7 @@ export default function BrazilMapPainel({ title, clients }: BrazilMapPainelProps
                   <p className="font-semibold text-sm" style={{ color: '#001F3F' }}>{client.nome}</p>
                   <p className="text-xs text-gray-600">Fat: {client.faturamento || '—'}</p>
                   <p className="text-xs text-gray-600">Atend: {client.atendente || '—'}</p>
+                  <p className="text-xs text-gray-600">Com: {client.comercial || '—'}</p>
                 </div>
               ))}
             </div>

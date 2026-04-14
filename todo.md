@@ -183,3 +183,5 @@
 - [x] Adicionar cronômetro regressivo sutil ao lado do botão Atualizar (conta de 10 min até 0)
 - [x] Exibir todos os estados na aba Painel (remover limitação dos 10 maiores)
 - [x] Adicionar botão para exportar tabela de estados (CSV/Excel)
+- [x] Adicionar campo "Comercial" (coluna X) no modal de clientes por região
+- [x] Incluir clientes no arquivo CSV exportado com todas as informações

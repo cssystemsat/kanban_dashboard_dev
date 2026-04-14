@@ -5,6 +5,7 @@ interface ClienteEstado {
   estado?: string;
   faturamento?: string;
   atendente?: string;
+  comercial?: string;
 }
 
 interface EstadosData {
@@ -66,7 +67,7 @@ export function useEstadosData(): EstadosData {
         const ongoingCsv = await ongoingRes.text();
 
         // Processar Onboarding
-        // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado
+        // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col X (idx 23) = Comercial
         const onboardingClientes: ClienteEstado[] = [];
         const onboardingLines = onboardingCsv.split('\n');
         for (let i = 1; i < onboardingLines.length; i++) {
@@ -77,14 +78,15 @@ export function useEstadosData(): EstadosData {
           const estado = row[35]?.trim() || '';
           const faturamento = row[5]?.trim() || '—';
           const atendente = row[2]?.trim() || '—';
+          const comercial = row[23]?.trim() || '—';
 
           if (nome && estado) {
-            onboardingClientes.push({ nome, estado, faturamento, atendente });
+            onboardingClientes.push({ nome, estado, faturamento, atendente, comercial });
           }
         }
 
         // Processar Ongoing
-        // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col V (idx 21) = Churn
+        // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col V (idx 21) = Churn, Col X (idx 23) = Comercial
         const ongoingClientes: ClienteEstado[] = [];
         const ongoingLines = ongoingCsv.split('\n');
         for (let i = 1; i < ongoingLines.length; i++) {
@@ -98,9 +100,10 @@ export function useEstadosData(): EstadosData {
           const estado = row[35]?.trim() || '';
           const faturamento = row[5]?.trim() || '—';
           const atendente = row[2]?.trim() || '—';
+          const comercial = row[23]?.trim() || '—';
 
           if (nome && estado) {
-            ongoingClientes.push({ nome, estado, faturamento, atendente });
+            ongoingClientes.push({ nome, estado, faturamento, atendente, comercial });
           }
         }
 
