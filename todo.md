@@ -185,3 +185,4 @@
 - [x] Adicionar botão para exportar tabela de estados (CSV/Excel)
 - [x] Adicionar campo "Comercial" (coluna X) no modal de clientes por região
 - [x] Incluir clientes no arquivo CSV exportado com todas as informações
+- [x] Mostrar seção de mapas apenas quando usuário está logado na aba Painel

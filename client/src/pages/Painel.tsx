@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { useEstadosData } from '@/hooks/useEstadosData';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { getLoginUrl } from '@/const';
 import BrazilMapPainel from '@/components/BrazilMapPainel';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -485,6 +487,7 @@ export default function Painel() {
   const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
   const estadosData = useEstadosData();
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMig(); }, []);
@@ -612,9 +615,25 @@ export default function Painel() {
               <TabelaMigracao />
             </div>
 
-            {/* Mapas do Brasil por Estado - Seletor de Abas */}
-            {!estadosData.loading && (
+            {/* Mapas do Brasil por Estado - Seletor de Abas - Apenas para usuários logados */}
+            {!estadosData.loading && user && (
               <MapasComAbas data={estadosData} />
+            )}
+            
+            {/* Mensagem para usuários não logados */}
+            {!authLoading && !user && (
+              <div className="bg-white rounded-xl border shadow-sm p-8 text-center" style={{ borderColor: '#E0E8F0' }}>
+                <p className="text-gray-600 mb-4">Para visualizar os mapas de distribuição por estado, você precisa fazer login.</p>
+                <button
+                  onClick={() => window.location.href = getLoginUrl()}
+                  className="px-6 py-2 rounded-lg font-medium text-white transition-all"
+                  style={{ backgroundColor: '#2563EB' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2563EB')}
+                >
+                  Fazer Login
+                </button>
+              </div>
             )}
 
             <p className="text-xs text-gray-400 text-center">
