@@ -35,8 +35,12 @@ function useCountdown(initialSeconds: number, onComplete: () => void) {
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setTimeLeft(prev => {
+        if (hasCompletedRef.current) {
+          return initialSeconds;
+        }
+        
         const newTime = prev - 1;
-        if (newTime <= 0 && !hasCompletedRef.current) {
+        if (newTime <= 0) {
           hasCompletedRef.current = true;
           onComplete();
           return initialSeconds;

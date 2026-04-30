@@ -186,3 +186,4 @@
 - [x] Adicionar campo "Comercial" (coluna X) no modal de clientes por região
 - [x] Incluir clientes no arquivo CSV exportado com todas as informações
 - [x] Mostrar seção de mapas apenas quando usuário está logado na aba Painel
+- [x] BUG: Cronômetro na aba Painel conta negativamente após chegar a zero (deveria reiniciar em 10 min)
