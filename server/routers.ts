@@ -34,6 +34,9 @@ import {
   getRecentSessions,
   getRecentActions,
   getMostVisitedPages,
+  getClientComments,
+  upsertClientComment,
+  deleteClientComment,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 
@@ -354,6 +357,36 @@ export const appRouter = router({
       if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
       return getMostVisitedPages();
     }),
+  }),
+  clientComments: router({
+    list: publicProcedure
+      .input(z.object({ monthYear: z.string() }))
+      .query(async ({ input }) => {
+        return getClientComments(input.monthYear);
+      }),
+    upsert: publicProcedure
+      .input(z.object({
+        clientName: z.string(),
+        comment: z.string(),
+        monthYear: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return upsertClientComment({
+          clientName: input.clientName,
+          comment: input.comment,
+          monthYear: input.monthYear,
+          authorEmail: ctx.user?.email || undefined,
+          authorName: ctx.user?.name || undefined,
+        });
+      }),
+    delete: publicProcedure
+      .input(z.object({
+        clientName: z.string(),
+        monthYear: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        return deleteClientComment(input.clientName, input.monthYear);
+      }),
   }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

@@ -29,6 +29,13 @@
       "when": 1773094433041,
       "tag": "0003_demonic_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1778014809111,
+      "tag": "0004_bright_lorna_dane",
+      "breakpoints": true
     }
   ]
 }

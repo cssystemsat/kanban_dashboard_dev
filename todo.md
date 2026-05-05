@@ -194,3 +194,7 @@
 - [x] Tabela "Câmeras cadastradas no mês" (coluna AP + AQ, exceto AirTag PB703 e webtag)
 - [x] Tabela "Tags cadastradas no mês" (coluna AP + AQ, apenas AirTag PB703 e webtag)
 - [x] Atualizar navegação para "Evolução de UR's" no menu lateral
+- [x] Botões de ordenação (Qtd e %) nas tabelas de piores/melhores clientes
+- [x] Botão de comentário em cada cliente (piores/melhores) com persistência no banco
+- [x] Clientes com comentários ficam com nome sublinhado
+- [x] Ao clicar no cliente com comentário, exibir o comentário

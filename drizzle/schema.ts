@@ -121,3 +121,17 @@ export const userActions = mysqlTable("user_actions", {
 
 export type UserAction = typeof userActions.$inferSelect;
 export type InsertUserAction = typeof userActions.$inferInsert;
+// Comentários sobre clientes no painel de Evolução de UR's
+export const clientComments = mysqlTable("client_comments", {
+  id: int("id").autoincrement().primaryKey(),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  comment: text("comment").notNull(),
+  monthYear: varchar("monthYear", { length: 7 }).notNull(), // "YYYY-MM" para separar por mês
+  authorEmail: varchar("authorEmail", { length: 320 }),
+  authorName: text("authorName"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClientComment = typeof clientComments.$inferSelect;
+export type InsertClientComment = typeof clientComments.$inferInsert;

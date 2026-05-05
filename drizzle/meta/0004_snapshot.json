@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "e821176e-0a2d-477c-8126-f15461c4ab6a",
-  "prevId": "17a84cc8-70f5-4457-9e76-c466c1421b80",
+  "id": "919db615-ed68-410b-9c95-cc3cce849ab9",
+  "prevId": "e821176e-0a2d-477c-8126-f15461c4ab6a",
   "tables": {
     "allowed_emails": {
       "name": "allowed_emails",
@@ -35,6 +35,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "canLaunch": {
+          "name": "canLaunch",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
         },
         "allowedPages": {
           "name": "allowedPages",
@@ -258,6 +266,82 @@
       "compositePrimaryKeys": {
         "checklists_id": {
           "name": "checklists_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "client_comments": {
+      "name": "client_comments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "clientName": {
+          "name": "clientName",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "monthYear": {
+          "name": "monthYear",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "authorEmail": {
+          "name": "authorEmail",
+          "type": "varchar(320)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "authorName": {
+          "name": "authorName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "client_comments_id": {
+          "name": "client_comments_id",
           "columns": [
             "id"
           ]

@@ -6,6 +6,7 @@ import {
   InsertChecklist, InsertChecklistItem,
   userSessions, pageViews, userActions,
   InsertUserSession, InsertPageView, InsertUserAction,
+  clientComments, InsertClientComment,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -375,4 +376,60 @@ export async function getMostVisitedPages() {
     count: sql<number>`count(*) as count`,
   }).from(pageViews).groupBy(pageViews.page);
   return rows.sort((a, b) => b.count - a.count);
+}
+
+// ─── Client Comments (Evolução de UR's) ───
+
+export async function getClientComments(monthYear: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(clientComments).where(eq(clientComments.monthYear, monthYear));
+}
+
+export async function upsertClientComment(data: {
+  clientName: string;
+  comment: string;
+  monthYear: string;
+  authorEmail?: string;
+  authorName?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Check if comment exists for this client+month
+  const existing = await db.select().from(clientComments)
+    .where(and(
+      eq(clientComments.clientName, data.clientName),
+      eq(clientComments.monthYear, data.monthYear)
+    ));
+
+  if (existing.length > 0) {
+    // Update existing
+    await db.update(clientComments)
+      .set({ comment: data.comment, authorEmail: data.authorEmail, authorName: data.authorName })
+      .where(eq(clientComments.id, existing[0].id));
+    return { ...existing[0], comment: data.comment };
+  } else {
+    // Insert new
+    const result = await db.insert(clientComments).values({
+      clientName: data.clientName,
+      comment: data.comment,
+      monthYear: data.monthYear,
+      authorEmail: data.authorEmail || null,
+      authorName: data.authorName || null,
+    });
+    return { id: result[0].insertId, ...data };
+  }
+}
+
+export async function deleteClientComment(clientName: string, monthYear: string) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(clientComments).where(
+    and(
+      eq(clientComments.clientName, clientName),
+      eq(clientComments.monthYear, monthYear)
+    )
+  );
+  return true;
 }
