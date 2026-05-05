@@ -508,6 +508,32 @@ export default function Dashboard() {
     setCommentModal(null);
   };
 
+  const handleCopyComments = async () => {
+    const commentLines = Object.entries(comments)
+      .filter(([_, comment]) => comment && comment.trim())
+      .map(([clientName, comment]) => `${clientName} -> ${comment}`)
+      .join('\n');
+    
+    if (!commentLines) {
+      alert('Nenhum comentário para copiar');
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(commentLines);
+      alert('Comentários copiados para a área de transferência!');
+    } catch {
+      // Fallback: criar um textarea temporário
+      const textarea = document.createElement('textarea');
+      textarea.value = commentLines;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      alert('Comentários copiados para a área de transferência!');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen md:ml-20 flex flex-col items-center justify-center" style={{ backgroundColor: '#F0F4F8' }}>
@@ -540,14 +566,24 @@ export default function Dashboard() {
             Controle de UR's, Câmeras e Tags no mês de {new Date().toLocaleString('pt-BR', { month: 'long' }).replace(/^\w/, c => c.toUpperCase())}
           </h1>
         </div>
-        <button
-          onClick={handleScreenshot}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/20"
-          title="Capturar tela e copiar"
-        >
-          <CameraIcon className="w-3.5 h-3.5" />
-          Print
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleScreenshot}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/20"
+            title="Capturar tela e copiar"
+          >
+            <CameraIcon className="w-3.5 h-3.5" />
+            Print
+          </button>
+          <button
+            onClick={handleCopyComments}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/20"
+            title="Copiar comentários estruturados"
+          >
+            <MessageSquarePlus className="w-3.5 h-3.5" />
+            Copiar Comentários
+          </button>
+        </div>
       </header>
 
       <main ref={contentRef} className="px-4 pt-4 pb-8 w-full space-y-4">

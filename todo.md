@@ -208,3 +208,4 @@
 - [x] BUG: Screenshot falha com erro oklch - substituir html2canvas por modern-screenshot
 - [x] Otimizar tabelas para evitar scroll horizontal (reduzir padding, fontes, espaçamento)
 - [x] Reduzir altura do gráfico um pouco mais verticalmente
+- [x] Adicionar botão para copiar comentários em formato "Empresa -> comentário"
