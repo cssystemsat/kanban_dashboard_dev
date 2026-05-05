@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
-import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
+import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import html2canvas from 'html2canvas';
 
 /* ─── Gráfico de linha simples com SVG ─── */
 function EvolutionChart({ data }: { data: DailyUR[] }) {
@@ -308,11 +309,9 @@ function BestClientsTable({
           </thead>
           <tbody>
             {sorted.map((c, i) => {
-              const intensity = Math.min(Math.abs(c.deltaPercent) / 30, 1);
-              const bgColor = `rgba(34, 197, 94, ${intensity * 0.15})`;
               const hasComment = !!comments[c.clientName];
               return (
-                <tr key={i} className="border-t border-gray-100 relative" style={{ backgroundColor: bgColor }}
+                <tr key={i} className="border-t border-gray-100 hover:bg-green-50/50 relative"
                   onMouseEnter={() => hasComment && setHoveredClient(c.clientName)}
                   onMouseLeave={() => setHoveredClient(null)}
                 >
@@ -354,7 +353,7 @@ function CamerasTable({ data }: { data: EquipmentCount[] }) {
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
       <div className="px-4 py-2 border-b" style={{ backgroundColor: '#1E40AF', borderColor: '#1E3A8A' }}>
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <Camera className="w-4 h-4" />
+          <CameraIcon className="w-4 h-4" />
           Câmeras cadastradas no mês
         </h3>
       </div>
@@ -423,6 +422,39 @@ export default function Dashboard() {
   const { data, loading, error, fetchData } = useURsDashboard();
   const [commentModal, setCommentModal] = useState<{ clientName: string; comment: string } | null>(null);
   const [comments, setComments] = useState<Record<string, string>>({});
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleScreenshot = async () => {
+    if (!contentRef.current) return;
+    try {
+      const canvas = await html2canvas(contentRef.current, {
+        backgroundColor: '#F0F4F8',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            alert('Screenshot copiado para a área de transferência!');
+          } catch {
+            // Fallback: download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `controle-urs-${new Date().toISOString().slice(0, 10)}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        }
+      }, 'image/png');
+    } catch (err) {
+      console.error('Erro ao capturar screenshot:', err);
+    }
+  };
 
   // Mês atual no formato YYYY-MM
   const currentMonth = useMemo(() => {
@@ -507,11 +539,21 @@ export default function Dashboard() {
       <header className="sticky top-0 z-40 border-b px-5 py-3 flex items-center justify-between"
         style={{ backgroundColor: '#001F3F', borderColor: '#1a3a5c' }}>
         <div>
-          <h1 className="text-lg font-bold text-white">Evolução de UR's REAIS no SSX dos últimos 30 dias</h1>
+          <h1 className="text-lg font-bold text-white">
+            Controle de UR's, Câmeras e Tags no mês de {new Date().toLocaleString('pt-BR', { month: 'long' }).replace(/^\w/, c => c.toUpperCase())}
+          </h1>
         </div>
+        <button
+          onClick={handleScreenshot}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/20"
+          title="Capturar tela e copiar"
+        >
+          <CameraIcon className="w-3.5 h-3.5" />
+          Print
+        </button>
       </header>
 
-      <main className="px-4 pt-4 pb-8 w-full space-y-4">
+      <main ref={contentRef} className="px-4 pt-4 pb-8 w-full space-y-4">
         {/* Gráfico de evolução */}
         <div className="bg-gray-900 rounded-xl p-4 shadow-lg">
           <EvolutionChart data={data.evolution} />

@@ -202,3 +202,6 @@
 - [x] Corrigir cálculo de delta: soma de todos valores da coluna G por cliente no mês
 - [x] Filtrar câmeras/tags por mês usando coluna AU (formato dd/mm/aaaa)
 - [x] Corrigir piores/melhores clientes: usar colunas AA (cliente), AD (delta mês) e AE (%) diretamente
+- [x] Remover fundo colorido de ambas as tabelas piores/melhores
+- [x] Título da aba: "Controle de UR's, Câmeras e Tags no mês de [Mês]" (dinâmico)
+- [x] Botão de screenshot que captura a tela e copia para clipboard
