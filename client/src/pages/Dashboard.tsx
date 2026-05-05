@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
 import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
-import html2canvas from 'html2canvas';
+import { domToPng } from 'modern-screenshot';
 
 /* ─── Gráfico de linha simples com SVG ─── */
 function EvolutionChart({ data }: { data: DailyUR[] }) {
@@ -427,30 +427,27 @@ export default function Dashboard() {
   const handleScreenshot = async () => {
     if (!contentRef.current) return;
     try {
-      const canvas = await html2canvas(contentRef.current, {
+      const dataUrl = await domToPng(contentRef.current, {
         backgroundColor: '#F0F4F8',
         scale: 2,
-        useCORS: true,
-        logging: false,
       });
-      canvas.toBlob(async (blob) => {
-        if (blob) {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            alert('Screenshot copiado para a área de transferência!');
-          } catch {
-            // Fallback: download
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `controle-urs-${new Date().toISOString().slice(0, 10)}.png`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        }
-      }, 'image/png');
+      // Converter data URL para blob
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        alert('Screenshot copiado para a área de transferência!');
+      } catch {
+        // Fallback: download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `controle-urs-${new Date().toISOString().slice(0, 10)}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
     } catch (err) {
       console.error('Erro ao capturar screenshot:', err);
     }
