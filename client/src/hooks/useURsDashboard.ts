@@ -68,6 +68,26 @@ function parseCSVLine(line: string): string[] {
   return result;
 }
 
+/**
+ * Verifica se uma data no formato dd/mm/aaaa pertence ao mês/ano atual
+ */
+function isDateInCurrentMonth(dateStr: string, currentMonth: number, currentYear: number): boolean {
+  if (!dateStr) return false;
+  const trimmed = dateStr.trim();
+  
+  // Formato dd/mm/aaaa
+  const parts = trimmed.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      return (month - 1 === currentMonth && year === currentYear);
+    }
+  }
+  return false;
+}
+
 export function useURsDashboard() {
   const [data, setData] = useState<URsDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,23 +118,25 @@ export function useURsDashboard() {
       // A (0) = nome do cliente
       // E (4) = total (primeiro valor encontrado de cima para baixo por cliente)
       // G (6) = variação no dia
-      // X (23) = data (yyyy-mm-dd)
+      // X (23) = data (yyyy-mm-dd) para evolução geral
       // Y (24) = quantidade de placa (evolução geral)
       // AP (41) = cliente (equipamentos)
       // AQ (42) = modelo (equipamentos)
+      // AU (46) = data do equipamento (dd/mm/aaaa)
 
       const now = new Date();
-      const currentMonth = now.getMonth();
+      const currentMonth = now.getMonth(); // 0-indexed
       const currentYear = now.getFullYear();
 
       // Dados para evolução (últimos 30 dias)
       const evolutionMap = new Map<string, number>();
 
       // Dados para delta por cliente (mês atual)
+      // Soma de TODOS os valores da coluna G para cada cliente no mês
       const clientDeltaMap = new Map<string, number>();
       const clientFirstTotal = new Map<string, number>();
 
-      // Dados para equipamentos (mês atual)
+      // Dados para equipamentos (filtrado por mês usando coluna AU)
       const cameraMap = new Map<string, number>();
       const tagMap = new Map<string, number>();
 
@@ -131,7 +153,6 @@ export function useURsDashboard() {
         if (dateStr && quantityStr) {
           const quantity = parseInt(quantityStr.replace(/\./g, '').replace(/,/g, ''), 10);
           if (!isNaN(quantity) && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            // Guardar último valor para cada data
             evolutionMap.set(dateStr, quantity);
           }
         }
@@ -142,52 +163,44 @@ export function useURsDashboard() {
         const variacaoStr = parts[6]?.trim() || '';
 
         if (clientName && variacaoStr) {
-          const variacao = parseInt(variacaoStr.replace(/\./g, '').replace(/,/g, ''), 10);
+          const variacao = parseFloat(variacaoStr.replace(/\./g, '').replace(',', '.'));
           if (!isNaN(variacao)) {
-            // Verificar se é do mês atual usando coluna K (10) que tem data DD/MM/YYYY
-            // Ou simplesmente somar todas as variações (o usuário disse "todas as linhas do mês atual")
-            // Vamos usar a data da coluna X para filtrar mês atual
+            // Filtrar pelo mês atual usando a data da coluna X (formato yyyy-mm-dd)
             const rowDate = parts[23]?.trim() || '';
-            let isCurrentMonth = false;
+            let isCurrentMonthRow = false;
 
             if (rowDate && rowDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
               const [y, m] = rowDate.split('-').map(Number);
-              isCurrentMonth = (m - 1 === currentMonth && y === currentYear);
-            } else {
-              // Se não tem data na coluna X, tentar coluna K (formato DD/MM/YYYY)
-              const altDate = parts[10]?.trim() || '';
-              if (altDate) {
-                const dateParts = altDate.split('/');
-                if (dateParts.length === 3) {
-                  const [, m, y] = dateParts.map(Number);
-                  isCurrentMonth = (m - 1 === currentMonth && y === currentYear);
-                }
-              }
+              isCurrentMonthRow = (m - 1 === currentMonth && y === currentYear);
             }
 
-            if (isCurrentMonth) {
+            if (isCurrentMonthRow) {
               clientDeltaMap.set(clientName, (clientDeltaMap.get(clientName) || 0) + variacao);
             }
           }
         }
 
-        // Primeiro total encontrado por cliente (coluna E)
+        // Primeiro total encontrado por cliente (coluna E) - de cima para baixo
         if (clientName && totalStr && !clientFirstTotal.has(clientName)) {
-          const total = parseInt(totalStr.replace(/\./g, '').replace(/,/g, ''), 10);
+          const total = parseFloat(totalStr.replace(/\./g, '').replace(',', '.'));
           if (!isNaN(total) && total > 0) {
             clientFirstTotal.set(clientName, total);
           }
         }
 
-        // --- Equipamentos (colunas AP=41 e AQ=42) ---
+        // --- Equipamentos (colunas AP=41, AQ=42, AU=46) ---
         const equipClient = parts[41]?.trim() || '';
         const equipModel = parts[42]?.trim() || '';
+        const equipDate = parts[46]?.trim() || ''; // coluna AU - dd/mm/aaaa
 
         if (equipClient && equipModel) {
-          if (isTag(equipModel)) {
-            tagMap.set(equipClient, (tagMap.get(equipClient) || 0) + 1);
-          } else {
-            cameraMap.set(equipClient, (cameraMap.get(equipClient) || 0) + 1);
+          // Filtrar apenas equipamentos do mês atual usando coluna AU
+          if (isDateInCurrentMonth(equipDate, currentMonth, currentYear)) {
+            if (isTag(equipModel)) {
+              tagMap.set(equipClient, (tagMap.get(equipClient) || 0) + 1);
+            } else {
+              cameraMap.set(equipClient, (cameraMap.get(equipClient) || 0) + 1);
+            }
           }
         }
       }
@@ -202,9 +215,10 @@ export function useURsDashboard() {
       // Processar piores e melhores clientes
       const allDeltas: ClientDelta[] = [];
       clientDeltaMap.forEach((delta, clientName) => {
+        if (delta === 0) return; // ignorar clientes sem variação
         const firstTotal = clientFirstTotal.get(clientName) || 1;
         const deltaPercent = (delta / firstTotal) * 100;
-        allDeltas.push({ clientName, delta, deltaPercent });
+        allDeltas.push({ clientName, delta: Math.round(delta), deltaPercent });
       });
 
       const worstClients = allDeltas

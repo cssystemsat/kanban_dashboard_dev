@@ -8,8 +8,8 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
   if (data.length === 0) return null;
 
   const width = 1100;
-  const height = 280;
-  const padding = { top: 20, right: 20, bottom: 40, left: 70 };
+  const height = 200;
+  const padding = { top: 15, right: 20, bottom: 35, left: 70 };
 
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;

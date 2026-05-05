@@ -198,3 +198,6 @@
 - [x] Botão de comentário em cada cliente (piores/melhores) com persistência no banco
 - [x] Clientes com comentários ficam com nome sublinhado
 - [x] Ao clicar no cliente com comentário, exibir o comentário
+- [x] Reduzir altura do gráfico de evolução (mais compacto verticalmente)
+- [x] Corrigir cálculo de delta: soma de todos valores da coluna G por cliente no mês
+- [x] Filtrar câmeras/tags por mês usando coluna AU (formato dd/mm/aaaa)

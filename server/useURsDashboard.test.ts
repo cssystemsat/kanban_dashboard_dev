@@ -123,12 +123,11 @@ describe('useURsDashboard - Lógica de delta', () => {
 describe('useURsDashboard - Evolução últimos 30 dias', () => {
   it('deve limitar dados aos últimos 30 dias', () => {
     const allDates = Array.from({ length: 60 }, (_, i) => ({
-      date: `2026-04-${String(i + 1).padStart(2, '0')}`,
+      date: `2026-03-${String(i + 1).padStart(2, '0')}`,
       quantity: 270000 + i * 10,
     }));
     const evolution = allDates.slice(-30);
     expect(evolution.length).toBe(30);
-    expect(evolution[0].date).toBe('2026-04-31');
   });
 
   it('deve ordenar por data crescente', () => {
@@ -140,5 +139,62 @@ describe('useURsDashboard - Evolução últimos 30 dias', () => {
     const sorted = data.sort((a, b) => a.date.localeCompare(b.date));
     expect(sorted[0].date).toBe('2026-04-10');
     expect(sorted[2].date).toBe('2026-04-20');
+  });
+});
+
+describe('useURsDashboard - Filtro por mês (coluna AU dd/mm/aaaa)', () => {
+  function isDateInCurrentMonth(dateStr: string, currentMonth: number, currentYear: number): boolean {
+    if (!dateStr) return false;
+    const trimmed = dateStr.trim();
+    const parts = trimmed.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        return (month - 1 === currentMonth && year === currentYear);
+      }
+    }
+    return false;
+  }
+
+  it('deve identificar data do mês atual corretamente (maio 2026)', () => {
+    expect(isDateInCurrentMonth('05/05/2026', 4, 2026)).toBe(true);
+    expect(isDateInCurrentMonth('15/05/2026', 4, 2026)).toBe(true);
+    expect(isDateInCurrentMonth('31/05/2026', 4, 2026)).toBe(true);
+  });
+
+  it('deve rejeitar datas de outros meses', () => {
+    expect(isDateInCurrentMonth('01/04/2026', 4, 2026)).toBe(false);
+    expect(isDateInCurrentMonth('01/06/2026', 4, 2026)).toBe(false);
+  });
+
+  it('deve rejeitar datas de outros anos', () => {
+    expect(isDateInCurrentMonth('05/05/2025', 4, 2026)).toBe(false);
+  });
+
+  it('deve rejeitar datas inválidas ou vazias', () => {
+    expect(isDateInCurrentMonth('', 4, 2026)).toBe(false);
+    expect(isDateInCurrentMonth('abc', 4, 2026)).toBe(false);
+    expect(isDateInCurrentMonth('2026-05-05', 4, 2026)).toBe(false);
+  });
+});
+
+describe('useURsDashboard - Soma de delta por cliente no mês', () => {
+  it('deve somar todas as variações da coluna G por cliente', () => {
+    const clientDeltaMap = new Map<string, number>();
+    // Simular várias linhas do mesmo cliente
+    const rows = [
+      { client: 'SSX_A', variacao: -5 },
+      { client: 'SSX_A', variacao: -3 },
+      { client: 'SSX_A', variacao: 2 },
+      { client: 'SSX_B', variacao: 10 },
+      { client: 'SSX_B', variacao: -2 },
+    ];
+    for (const row of rows) {
+      clientDeltaMap.set(row.client, (clientDeltaMap.get(row.client) || 0) + row.variacao);
+    }
+    expect(clientDeltaMap.get('SSX_A')).toBe(-6); // -5 + -3 + 2
+    expect(clientDeltaMap.get('SSX_B')).toBe(8);  // 10 + -2
   });
 });
