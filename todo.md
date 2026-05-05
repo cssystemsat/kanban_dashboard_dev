@@ -201,3 +201,4 @@
 - [x] Reduzir altura do gráfico de evolução (mais compacto verticalmente)
 - [x] Corrigir cálculo de delta: soma de todos valores da coluna G por cliente no mês
 - [x] Filtrar câmeras/tags por mês usando coluna AU (formato dd/mm/aaaa)
+- [x] Corrigir piores/melhores clientes: usar colunas AA (cliente), AD (delta mês) e AE (%) diretamente

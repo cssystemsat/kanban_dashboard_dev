@@ -115,11 +115,11 @@ export function useURsDashboard() {
       const lines = csv.split('\n');
 
       // Colunas relevantes (0-indexed):
-      // A (0) = nome do cliente
-      // E (4) = total (primeiro valor encontrado de cima para baixo por cliente)
-      // G (6) = variação no dia
       // X (23) = data (yyyy-mm-dd) para evolução geral
       // Y (24) = quantidade de placa (evolução geral)
+      // AA (26) = nome do cliente (piores/melhores)
+      // AD (29) = delta do mês (já calculado)
+      // AE (30) = percentual (já calculado, negativo para piores)
       // AP (41) = cliente (equipamentos)
       // AQ (42) = modelo (equipamentos)
       // AU (46) = data do equipamento (dd/mm/aaaa)
@@ -131,10 +131,8 @@ export function useURsDashboard() {
       // Dados para evolução (últimos 30 dias)
       const evolutionMap = new Map<string, number>();
 
-      // Dados para delta por cliente (mês atual)
-      // Soma de TODOS os valores da coluna G para cada cliente no mês
-      const clientDeltaMap = new Map<string, number>();
-      const clientFirstTotal = new Map<string, number>();
+      // Dados para piores/melhores clientes (colunas AA, AD, AE)
+      const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>();
 
       // Dados para equipamentos (filtrado por mês usando coluna AU)
       const cameraMap = new Map<string, number>();
@@ -157,34 +155,19 @@ export function useURsDashboard() {
           }
         }
 
-        // --- Delta por cliente (colunas A=0, E=4, G=6) ---
-        const clientName = parts[0]?.trim() || '';
-        const totalStr = parts[4]?.trim() || '';
-        const variacaoStr = parts[6]?.trim() || '';
+        // --- Piores/Melhores clientes (colunas AA=26, AD=29, AE=30) ---
+        const clientNameAA = parts[26]?.trim() || '';
+        const deltaStr = parts[29]?.trim() || '';
+        const deltaPercentStr = parts[30]?.trim() || '';
 
-        if (clientName && variacaoStr) {
-          const variacao = parseFloat(variacaoStr.replace(/\./g, '').replace(',', '.'));
-          if (!isNaN(variacao)) {
-            // Filtrar pelo mês atual usando a data da coluna X (formato yyyy-mm-dd)
-            const rowDate = parts[23]?.trim() || '';
-            let isCurrentMonthRow = false;
+        if (clientNameAA && deltaStr) {
+          const delta = parseFloat(deltaStr.replace(/\./g, '').replace(',', '.'));
+          const deltaPercent = deltaPercentStr
+            ? parseFloat(deltaPercentStr.replace(/\./g, '').replace(',', '.').replace('%', ''))
+            : 0;
 
-            if (rowDate && rowDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-              const [y, m] = rowDate.split('-').map(Number);
-              isCurrentMonthRow = (m - 1 === currentMonth && y === currentYear);
-            }
-
-            if (isCurrentMonthRow) {
-              clientDeltaMap.set(clientName, (clientDeltaMap.get(clientName) || 0) + variacao);
-            }
-          }
-        }
-
-        // Primeiro total encontrado por cliente (coluna E) - de cima para baixo
-        if (clientName && totalStr && !clientFirstTotal.has(clientName)) {
-          const total = parseFloat(totalStr.replace(/\./g, '').replace(',', '.'));
-          if (!isNaN(total) && total > 0) {
-            clientFirstTotal.set(clientName, total);
+          if (!isNaN(delta) && delta !== 0 && !clientDeltaSet.has(clientNameAA)) {
+            clientDeltaSet.set(clientNameAA, { delta, deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent });
           }
         }
 
@@ -212,12 +195,9 @@ export function useURsDashboard() {
 
       const evolution = allDates.slice(-30);
 
-      // Processar piores e melhores clientes
+      // Processar piores e melhores clientes (dados já prontos das colunas AA, AD, AE)
       const allDeltas: ClientDelta[] = [];
-      clientDeltaMap.forEach((delta, clientName) => {
-        if (delta === 0) return; // ignorar clientes sem variação
-        const firstTotal = clientFirstTotal.get(clientName) || 1;
-        const deltaPercent = (delta / firstTotal) * 100;
+      clientDeltaSet.forEach(({ delta, deltaPercent }, clientName) => {
         allDeltas.push({ clientName, delta: Math.round(delta), deltaPercent });
       });
 

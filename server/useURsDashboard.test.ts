@@ -87,12 +87,29 @@ describe('useURsDashboard - Parser CSV', () => {
   });
 });
 
-describe('useURsDashboard - Lógica de delta', () => {
-  it('deve calcular delta percentual corretamente', () => {
-    const delta = -131;
-    const firstTotal = 879;
-    const deltaPercent = (delta / firstTotal) * 100;
-    expect(deltaPercent).toBeCloseTo(-14.90, 1);
+describe('useURsDashboard - Lógica de delta (colunas AA, AD, AE)', () => {
+  it('deve usar delta já pronto da coluna AD e % da coluna AE', () => {
+    // Simula leitura direta das colunas AA, AD, AE
+    const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>();
+    
+    // Dados como viriam da planilha
+    const rows = [
+      { clientName: 'SSX_CONTROLRISC', deltaStr: '-131', percentStr: '-14.90' },
+      { clientName: 'SSX_GLOBALMOVE', deltaStr: '105', percentStr: '7.13' },
+      { clientName: 'SSX_KHRONOS', deltaStr: '-45', percentStr: '-0.30' },
+    ];
+
+    for (const row of rows) {
+      const delta = parseFloat(row.deltaStr);
+      const deltaPercent = parseFloat(row.percentStr);
+      if (!isNaN(delta) && delta !== 0) {
+        clientDeltaSet.set(row.clientName, { delta, deltaPercent });
+      }
+    }
+
+    expect(clientDeltaSet.get('SSX_CONTROLRISC')?.delta).toBe(-131);
+    expect(clientDeltaSet.get('SSX_CONTROLRISC')?.deltaPercent).toBe(-14.90);
+    expect(clientDeltaSet.get('SSX_GLOBALMOVE')?.delta).toBe(105);
   });
 
   it('deve classificar deltas negativos como piores clientes', () => {
@@ -117,6 +134,15 @@ describe('useURsDashboard - Lógica de delta', () => {
     expect(best[0].clientName).toBe('C');
     expect(best[1].clientName).toBe('B');
     expect(best.length).toBe(2);
+  });
+
+  it('deve ignorar clientes com delta zero', () => {
+    const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>();
+    const delta = parseFloat('0');
+    if (!isNaN(delta) && delta !== 0) {
+      clientDeltaSet.set('SSX_ZERO', { delta, deltaPercent: 0 });
+    }
+    expect(clientDeltaSet.has('SSX_ZERO')).toBe(false);
   });
 });
 
@@ -180,21 +206,24 @@ describe('useURsDashboard - Filtro por mês (coluna AU dd/mm/aaaa)', () => {
   });
 });
 
-describe('useURsDashboard - Soma de delta por cliente no mês', () => {
-  it('deve somar todas as variações da coluna G por cliente', () => {
-    const clientDeltaMap = new Map<string, number>();
-    // Simular várias linhas do mesmo cliente
+describe('useURsDashboard - Deduplicação de clientes', () => {
+  it('deve manter apenas primeira ocorrência de cada cliente (colunas AA/AD/AE)', () => {
+    const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>();
+    
+    // Simular múltiplas linhas do mesmo cliente - só primeira deve contar
     const rows = [
-      { client: 'SSX_A', variacao: -5 },
-      { client: 'SSX_A', variacao: -3 },
-      { client: 'SSX_A', variacao: 2 },
-      { client: 'SSX_B', variacao: 10 },
-      { client: 'SSX_B', variacao: -2 },
+      { clientName: 'SSX_A', delta: -10, deltaPercent: -2 },
+      { clientName: 'SSX_A', delta: -5, deltaPercent: -1 }, // duplicata
+      { clientName: 'SSX_B', delta: 15, deltaPercent: 3 },
     ];
+
     for (const row of rows) {
-      clientDeltaMap.set(row.client, (clientDeltaMap.get(row.client) || 0) + row.variacao);
+      if (row.delta !== 0 && !clientDeltaSet.has(row.clientName)) {
+        clientDeltaSet.set(row.clientName, { delta: row.delta, deltaPercent: row.deltaPercent });
+      }
     }
-    expect(clientDeltaMap.get('SSX_A')).toBe(-6); // -5 + -3 + 2
-    expect(clientDeltaMap.get('SSX_B')).toBe(8);  // 10 + -2
+
+    expect(clientDeltaSet.size).toBe(2);
+    expect(clientDeltaSet.get('SSX_A')?.delta).toBe(-10); // primeira ocorrência
   });
 });
