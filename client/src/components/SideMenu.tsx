@@ -15,7 +15,7 @@ const PUBLIC_ITEMS = [
 
 // Abas que requerem login e permissao
 const PROTECTED_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', label: "Evolução de UR's", icon: BarChart2 },
   { id: 'marcos', label: 'Marcos', icon: CheckSquare },
   { id: 'ongoing', label: 'Ongoing', icon: Users },
   { id: 'churns', label: 'CHURNs', icon: TrendingDown },

@@ -187,3 +187,10 @@
 - [x] Incluir clientes no arquivo CSV exportado com todas as informações
 - [x] Mostrar seção de mapas apenas quando usuário está logado na aba Painel
 - [x] BUG: Cronômetro na aba Painel conta negativamente após chegar a zero (deveria reiniciar em 10 min)
+- [x] Criar painel de Evolução de UR's (substituir conteúdo da aba Dashboard)
+- [x] Gráfico de evolução de UR's nos últimos 30 dias (colunas X e Y da aba D)
+- [x] Tabela "Piores clientes no Mês" (coluna A + G negativos, Delta % relativo coluna E)
+- [x] Tabela "Melhores clientes no Mês" (coluna A + G positivos, Delta % relativo coluna E)
+- [x] Tabela "Câmeras cadastradas no mês" (coluna AP + AQ, exceto AirTag PB703 e webtag)
+- [x] Tabela "Tags cadastradas no mês" (coluna AP + AQ, apenas AirTag PB703 e webtag)
+- [x] Atualizar navegação para "Evolução de UR's" no menu lateral
