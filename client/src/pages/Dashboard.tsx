@@ -593,11 +593,11 @@ export default function Dashboard() {
         </div>
 
         {/* 4 tabelas em grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="md:col-span-1 lg:col-span-1.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="md:col-span-1 lg:col-span-2">
             <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
           </div>
-          <div className="md:col-span-1 lg:col-span-1.5">
+          <div className="md:col-span-1 lg:col-span-2">
             <BestClientsTable clients={data.bestClients} comments={comments} onAddComment={handleAddComment} />
           </div>
           <div className="md:col-span-1 lg:col-span-0.5">
