@@ -209,3 +209,6 @@
 - [x] Otimizar tabelas para evitar scroll horizontal (reduzir padding, fontes, espaçamento)
 - [x] Reduzir altura do gráfico um pouco mais verticalmente
 - [x] Adicionar botão para copiar comentários em formato "Empresa -> comentário"
+- [ ] BUG: Clarice (clarice.pereira@systemsat.com.br) não consegue logar - erro "acesso negado" intermitente
+- [ ] Aba Churn: Adicionar tooltip com nomes de clientes no gráfico "Cancelamentos por Tempo de Casa"
+- [ ] Aba Churn: Implementar filtro/ordenação por coluna "Tempo" na tabela

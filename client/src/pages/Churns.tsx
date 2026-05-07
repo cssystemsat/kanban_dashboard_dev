@@ -13,6 +13,7 @@ export default function Churns() {
   const [searchCliente, setSearchCliente] = useState<string>('');
   const [selectedTipo, setSelectedTipo] = useState<string | null>(null);
   const [selectedMotivo, setSelectedMotivo] = useState<string | null>(null);
+  const [sortTempo, setSortTempo] = useState<'asc' | 'desc' | null>(null);
   
   // Filtro por mês e ano
   const [selectedMonths, setSelectedMonths] = useState<Set<number>>(new Set([new Date().getMonth() + 1]));
@@ -107,7 +108,7 @@ export default function Churns() {
     ? filteredData.reduce((max, c) => c.mesesCasa > max.mesesCasa ? c : max)
     : null;
 
-  // Dados para gráfico de cancelamentos por tempo de casa
+  // Dados para gráfico de cancelamentos por tempo de casa (com lista de clientes)
   const churnsPorTempoCasa = useMemo(() => {
     const ranges = [
       { label: '0-3 meses', min: 0, max: 3 },
@@ -117,10 +118,14 @@ export default function Churns() {
       { label: '24+ meses', min: 24, max: Infinity }
     ];
 
-    return ranges.map(range => ({
-      name: range.label,
-      quantidade: filteredData.filter(c => c.mesesCasa >= range.min && c.mesesCasa < range.max).length
-    })).filter(item => item.quantidade > 0);
+    return ranges.map(range => {
+      const clientesNoRange = filteredData.filter(c => c.mesesCasa >= range.min && c.mesesCasa < range.max);
+      return {
+        name: range.label,
+        quantidade: clientesNoRange.length,
+        clientes: clientesNoRange.map(c => c.nome)
+      };
+    }).filter(item => item.quantidade > 0);
   }, [filteredData]);
 
   // Dados para gráfico de motivos de cancelamento (com lista de clientes)
@@ -262,92 +267,83 @@ export default function Churns() {
                   >
                     Todos
                   </button>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => {
-                      setSelectedYear(parseInt(e.target.value));
-                      setShowAllYears(false);
-                    }}
-                    disabled={showAllYears}
-                    className="h-7 px-2 rounded-md text-xs text-gray-700 bg-white/90 border-0 focus:outline-none disabled:opacity-50"
-                  >
-                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                      <option key={year} value={year}>{year}</option>
+                  <div className="flex gap-0.5">
+                    {availableMonthsYears.map(({ year }) => year).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => b - a).map(year => (
+                      <button
+                        key={year}
+                        onClick={() => {
+                          setSelectedYear(year);
+                          setShowAllYears(false);
+                        }}
+                        className={`h-7 px-2 rounded text-[10px] font-medium transition-colors ${
+                          selectedYear === year && !showAllYears
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white/90 text-gray-700 hover:bg-white'
+                        }`}
+                        disabled={showAllYears}
+                      >
+                        {year}
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
 
-              <span className="text-xs text-gray-300 pb-1">
-                {filteredData.length} cancelamento(s) em {periodLabel}
-              </span>
-            </div>
-          </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tipo</label>
+                <select
+                  value={selectedTipo || ''}
+                  onChange={(e) => setSelectedTipo(e.target.value || null)}
+                  className="h-7 px-2 rounded text-xs bg-white/90 text-gray-700 border border-gray-300"
+                >
+                  <option value="">Todos</option>
+                  {tipos.map(tipo => (
+                    <option key={tipo} value={tipo}>{tipo}</option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Filtros Adicionais */}
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Cliente</label>
-              <input
-                type="text"
-                placeholder="Buscar cliente..."
-                value={searchCliente}
-                onChange={(e) => setSearchCliente(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                style={{ width: '150px' }}
-              />
-            </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Motivo</label>
+                <select
+                  value={selectedMotivo || ''}
+                  onChange={(e) => setSelectedMotivo(e.target.value || null)}
+                  className="h-7 px-2 rounded text-xs bg-white/90 text-gray-700 border border-gray-300"
+                >
+                  <option value="">Todos</option>
+                  {motivos.map(motivo => (
+                    <option key={motivo} value={motivo}>{motivo}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tipo</label>
-              <select
-                value={selectedTipo || ''}
-                onChange={(e) => setSelectedTipo(e.target.value || null)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">Todos</option>
-                {tipos.map(tipo => (
-                  <option key={tipo} value={tipo}>{tipo}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Motivo</label>
-              <select
-                value={selectedMotivo || ''}
-                onChange={(e) => setSelectedMotivo(e.target.value || null)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">Todos</option>
-                {motivos.map(motivo => (
-                  <option key={motivo} value={motivo}>{motivo}</option>
-                ))}
-              </select>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Buscar Cliente</label>
+                <input
+                  type="text"
+                  placeholder="Nome do cliente..."
+                  value={searchCliente}
+                  onChange={(e) => setSearchCliente(e.target.value)}
+                  className="h-7 px-2 rounded text-xs bg-white/90 text-gray-700 border border-gray-300"
+                />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="p-6">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">Erro ao carregar dados: {error}</p>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <p className="font-semibold">Erro ao carregar dados:</p>
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
-        {loading && data.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#00DD00' }}></div>
-              <p className="text-gray-600">Carregando dados de CHURNS...</p>
-            </div>
-          </div>
-        ) : (
+        {!error && (
           <>
-            {/* Estatísticas Principais */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
+            {/* Cards de Estatísticas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-lg p-4 border" style={{ borderColor: '#E0E8F0' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingDown className="w-4 h-4 text-red-600" />
@@ -392,15 +388,39 @@ export default function Churns() {
               <div className="bg-white rounded-lg p-4 border shadow-sm" style={{ borderColor: '#E0E8F0' }}>
                 <h3 className="font-bold mb-4" style={{ color: '#001F3F' }}>Cancelamentos por Tempo de Casa</h3>
                 {churnsPorTempoCasa.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={churnsPorTempoCasa}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="quantidade" fill="#FF6B6B" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    {churnsPorTempoCasa.map((item, index) => (
+                      <div key={item.name} className="group relative">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">
+                            {item.name}
+                          </span>
+                          <div className="flex-1 h-7 bg-gray-200 rounded-sm overflow-hidden relative cursor-pointer">
+                            <div
+                              className="h-full flex items-center justify-end pr-2 transition-all duration-300"
+                              style={{ width: `${Math.max((item.quantidade / Math.max(...churnsPorTempoCasa.map(c => c.quantidade))) * 100, 8)}%`, backgroundColor: '#FF6B6B' }}
+                            >
+                              <span className="text-xs font-bold text-white drop-shadow-sm">{item.quantidade}</span>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Tooltip com lista de clientes */}
+                        <div className="absolute z-50 left-32 top-full mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block">
+                          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#FF6B6B' }}>
+                            {item.name} ({item.quantidade})
+                          </p>
+                          <div className="max-h-40 overflow-y-auto space-y-1">
+                            {item.clientes.map((cliente, ci) => (
+                              <div key={ci} className="text-xs text-gray-700 py-0.5 px-2 rounded hover:bg-gray-50 flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#FF6B6B' }} />
+                                {cliente}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <p className="text-center text-gray-500 py-8">Sem dados para este período</p>
                 )}
@@ -456,79 +476,88 @@ export default function Churns() {
             {/* Tabela de Cancelamentos */}
             <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
               <div className="p-4 border-b" style={{ borderColor: '#E0E8F0' }}>
-                <h3 className="font-bold" style={{ color: '#001F3F' }}>Detalhes dos Cancelamentos - {periodLabel}</h3>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-bold" style={{ color: '#001F3F' }}>Detalhes dos Cancelamentos - {periodLabel}</h3>
+                  <button
+                    onClick={() => exportToExcel(filteredData, periodLabel)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors"
+                    style={{ backgroundColor: '#00DD00', color: '#FFFFFF' }}
+                  >
+                    <Download className="w-4 h-4" />
+                    Exportar para Excel
+                  </button>
+                </div>
               </div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold" style={{ color: '#001F3F' }}>Detalhes dos Cancelamentos</h3>
-              <button
-                onClick={() => exportToExcel(filteredData, periodLabel)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors"
-                style={{ backgroundColor: '#00DD00', color: '#FFFFFF' }}
-              >
-                <Download className="w-4 h-4" />
-                Exportar para Excel
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead style={{ backgroundColor: '#F5F7FA', borderBottom: '2px solid #E0E8F0' }}>
-                  <tr>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Cliente</th>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Tipo</th>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Entrada</th>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Saída</th>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Tempo (meses)</th>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Motivo</th>
-                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>CSM</th>
-                  </tr>
-                </thead>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead style={{ backgroundColor: '#F5F7FA', borderBottom: '2px solid #E0E8F0' }}>
+                    <tr>
+                      <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Cliente</th>
+                      <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Tipo</th>
+                      <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Entrada</th>
+                      <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Saída</th>
+                      <th className="px-4 py-3 text-left font-bold cursor-pointer hover:bg-gray-300 transition-colors" style={{ color: '#001F3F' }} onClick={() => {
+                        if (sortTempo === 'asc') setSortTempo('desc');
+                        else if (sortTempo === 'desc') setSortTempo(null);
+                        else setSortTempo('asc');
+                      }}>Tempo (meses) {sortTempo === 'asc' ? '↑' : sortTempo === 'desc' ? '↓' : '↕'}</th>
+                      <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Motivo</th>
+                      <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>CSM</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {filteredData.length > 0 ? (
-                      filteredData.slice(0, 20).map((churn, idx) => (
-                        <tr key={churn.id} style={{ borderBottom: '1px solid #E0E8F0', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
-                          <td className="px-4 py-3 font-semibold" style={{ color: '#001F3F' }}>{churn.nome}</td>
-                          <td className="px-4 py-3 text-gray-600">{churn.tipo}</td>
-                          <td className="px-4 py-3 text-gray-600">{churn.dataEntrada}</td>
-                          <td className="px-4 py-3 text-gray-600">{churn.dataSaida}</td>
-                          <td className="px-4 py-3">
-                            <span className="px-2 py-1 rounded text-xs font-semibold" style={{ backgroundColor: '#FFE5E5', color: '#FF6B6B' }}>
-                              {churn.mesesCasa}m
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600 max-w-xs">
-                            <div className="relative group inline-block w-full">
-                              <span className="truncate block cursor-help underline decoration-dotted decoration-gray-400 underline-offset-2">
-                                {churn.motivoCancelamento || '-'}
+                      (() => {
+                        let dataToDisplay = [...filteredData];
+                        if (sortTempo === 'asc') {
+                          dataToDisplay.sort((a, b) => a.mesesCasa - b.mesesCasa);
+                        } else if (sortTempo === 'desc') {
+                          dataToDisplay.sort((a, b) => b.mesesCasa - a.mesesCasa);
+                        }
+                        return dataToDisplay.slice(0, 20).map((churn, idx) => (
+                          <tr key={churn.id} style={{ borderBottom: '1px solid #E0E8F0', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
+                            <td className="px-4 py-3 font-semibold" style={{ color: '#001F3F' }}>{churn.nome}</td>
+                            <td className="px-4 py-3 text-gray-600">{churn.tipo}</td>
+                            <td className="px-4 py-3 text-gray-600">{churn.dataEntrada}</td>
+                            <td className="px-4 py-3 text-gray-600">{churn.dataSaida}</td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-1 rounded text-xs font-semibold" style={{ backgroundColor: '#FFE5E5', color: '#FF6B6B' }}>
+                                {churn.mesesCasa}m
                               </span>
-                              {(churn.motivoDeclarado || churn.analiseInterna) && (
-                                <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block text-left">
-                                  {churn.motivoDeclarado && (
-                                    <div className="mb-2">
-                                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Motivo Declarado pelo Cliente</p>
-                                      <p className="text-sm text-gray-800 leading-snug">{churn.motivoDeclarado}</p>
-                                    </div>
-                                  )}
-                                  {churn.motivoDeclarado && churn.analiseInterna && (
-                                    <hr className="my-2 border-gray-200" />
-                                  )}
-                                  {churn.analiseInterna && (
-                                    <div>
-                                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Análise Interna</p>
-                                      <p className="text-sm text-gray-800 leading-snug">{churn.analiseInterna}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">{churn.atendente}</td>
-                        </tr>
-                      ))
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 max-w-xs">
+                              <div className="relative group inline-block w-full">
+                                <span className="truncate block cursor-help underline decoration-dotted decoration-gray-400 underline-offset-2">
+                                  {churn.motivoCancelamento || '-'}
+                                </span>
+                                {(churn.motivoDeclarado || churn.analiseInterna) && (
+                                  <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block text-left">
+                                    {churn.motivoDeclarado && (
+                                      <div className="mb-2">
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Motivo Declarado pelo Cliente</p>
+                                        <p className="text-sm text-gray-800 leading-snug">{churn.motivoDeclarado}</p>
+                                      </div>
+                                    )}
+                                    {churn.motivoDeclarado && churn.analiseInterna && (
+                                      <hr className="my-2 border-gray-200" />
+                                    )}
+                                    {churn.analiseInterna && (
+                                      <div>
+                                        <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Análise Interna</p>
+                                        <p className="text-sm text-gray-800 leading-snug">{churn.analiseInterna}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-gray-600">{churn.atendente}</td>
+                          </tr>
+                        ));
+                      })()
                     ) : (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                          Nenhum cancelamento encontrado para {periodLabel}
-                        </td>
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">Nenhum cancelamento encontrado</td>
                       </tr>
                     )}
                   </tbody>
