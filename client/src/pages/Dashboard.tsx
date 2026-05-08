@@ -351,29 +351,29 @@ function BestClientsTable({
 function CamerasTable({ data }: { data: EquipmentCount[] }) {
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-2 py-1.5 border-b" style={{ backgroundColor: '#1E40AF', borderColor: '#1E3A8A' }}>
-        <h3 className="text-xs font-bold text-white flex items-center gap-1">
-          <CameraIcon className="w-3 h-3" />
-          Câmeras
+      <div className="px-4 py-2 border-b" style={{ backgroundColor: '#1E40AF', borderColor: '#1E3A8A' }}>
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <CameraIcon className="w-4 h-4" />
+          Câmeras cadastradas no mês
         </h3>
       </div>
-      <div className="overflow-y-auto max-h-[280px]">
-        <table className="w-full text-[9px]">
+      <div className="overflow-y-auto max-h-[350px]">
+        <table className="w-full text-[11px]">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              <th className="text-left px-1 py-0.5 font-semibold text-gray-700 text-[8px]">Central</th>
-              <th className="text-right px-1 py-0.5 font-semibold text-gray-700 text-[8px]">Qtd</th>
+              <th className="text-left px-2 py-1 font-semibold text-gray-700 text-[10px]">Central</th>
+              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">Qtd</th>
             </tr>
           </thead>
           <tbody>
             {data.map((c, i) => (
               <tr key={i} className="border-t border-gray-100 hover:bg-blue-50/50">
-                <td className="px-1 py-0.5 text-gray-800 font-medium text-[9px] truncate">{c.clientName}</td>
-                <td className="px-1 py-0.5 text-right text-blue-700 font-bold text-[9px]">{c.quantity}</td>
+                <td className="px-2 py-0.5 text-gray-800 font-medium text-[11px]">{c.clientName}</td>
+                <td className="px-2 py-0.5 text-right text-blue-700 font-bold text-[11px]">{c.quantity}</td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan={2} className="px-1 py-1 text-center text-gray-400 text-[8px]">Nenhum</td></tr>
+              <tr><td colSpan={2} className="px-2 py-2 text-center text-gray-400 text-[11px]">Nenhum dado</td></tr>
             )}
           </tbody>
         </table>
@@ -386,29 +386,29 @@ function CamerasTable({ data }: { data: EquipmentCount[] }) {
 function TagsTable({ data }: { data: EquipmentCount[] }) {
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-2 py-1.5 border-b" style={{ backgroundColor: '#7C3AED', borderColor: '#6D28D9' }}>
-        <h3 className="text-xs font-bold text-white flex items-center gap-1">
-          <Tag className="w-3 h-3" />
-          Tags
+      <div className="px-4 py-2 border-b" style={{ backgroundColor: '#7C3AED', borderColor: '#6D28D9' }}>
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <Tag className="w-4 h-4" />
+          Tag's cadastradas no mês
         </h3>
       </div>
-      <div className="overflow-y-auto max-h-[280px]">
-        <table className="w-full text-[9px]">
+      <div className="overflow-y-auto max-h-[350px]">
+        <table className="w-full text-[11px]">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              <th className="text-left px-1 py-0.5 font-semibold text-gray-700 text-[8px]">Central</th>
-              <th className="text-right px-1 py-0.5 font-semibold text-gray-700 text-[8px]">Qtd</th>
+              <th className="text-left px-3 py-1.5 font-semibold text-gray-700">Central</th>
+              <th className="text-right px-3 py-1.5 font-semibold text-gray-700">Quantidade</th>
             </tr>
           </thead>
           <tbody>
             {data.map((c, i) => (
               <tr key={i} className="border-t border-gray-100 hover:bg-purple-50/50">
-                <td className="px-1 py-0.5 text-gray-800 font-medium text-[9px] truncate">{c.clientName}</td>
-                <td className="px-1 py-0.5 text-right text-purple-700 font-bold text-[9px]">{c.quantity}</td>
+                <td className="px-3 py-1 text-gray-800 font-medium">{c.clientName}</td>
+                <td className="px-3 py-1 text-right text-purple-700 font-bold">{c.quantity}</td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan={2} className="px-1 py-1 text-center text-gray-400 text-[8px]">Nenhum</td></tr>
+              <tr><td colSpan={2} className="px-3 py-4 text-center text-gray-400">Nenhum dado</td></tr>
             )}
           </tbody>
         </table>
@@ -593,33 +593,11 @@ export default function Dashboard() {
         </div>
 
         {/* 4 tabelas em grid */}
-<<<<<<< Updated upstream
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div className="md:col-span-1 lg:col-span-2">
-            <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
-          </div>
-          <div className="md:col-span-1 lg:col-span-2">
-            <BestClientsTable clients={data.bestClients} comments={comments} onAddComment={handleAddComment} />
-          </div>
-          <div className="md:col-span-1 lg:col-span-0.5">
-            <CamerasTable data={data.cameras} />
-          </div>
-          <div className="md:col-span-1 lg:col-span-0.5">
-=======
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="xl:col-span-2">
-            <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
-          </div>
-          <div className="xl:col-span-2">
-            <BestClientsTable clients={data.bestClients} comments={comments} onAddComment={handleAddComment} />
-          </div>
-          <div className="xl:col-span-1">
-            <CamerasTable data={data.cameras} />
-          </div>
-          <div className="xl:col-span-1">
->>>>>>> Stashed changes
-            <TagsTable data={data.tags} />
-          </div>
+          <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
+          <BestClientsTable clients={data.bestClients} comments={comments} onAddComment={handleAddComment} />
+          <CamerasTable data={data.cameras} />
+          <TagsTable data={data.tags} />
         </div>
       </main>
 
