@@ -212,4 +212,7 @@
 - [ ] BUG: Clarice (clarice.pereira@systemsat.com.br) não consegue logar - erro "acesso negado" intermitente
 - [ ] Aba Churn: Adicionar tooltip com nomes de clientes no gráfico "Cancelamentos por Tempo de Casa"
 - [ ] Aba Churn: Implementar filtro/ordenação por coluna "Tempo" na tabela
+<<<<<<< Updated upstream
 - [x] Reduzir câmeras/tags HORIZONTALMENTE e aumentar piores/melhores clientes HORIZONTALMENTE
+=======
+>>>>>>> Stashed changes

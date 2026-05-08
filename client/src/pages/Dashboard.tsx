@@ -593,6 +593,7 @@ export default function Dashboard() {
         </div>
 
         {/* 4 tabelas em grid */}
+<<<<<<< Updated upstream
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="md:col-span-1 lg:col-span-2">
             <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
@@ -604,6 +605,19 @@ export default function Dashboard() {
             <CamerasTable data={data.cameras} />
           </div>
           <div className="md:col-span-1 lg:col-span-0.5">
+=======
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="xl:col-span-2">
+            <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
+          </div>
+          <div className="xl:col-span-2">
+            <BestClientsTable clients={data.bestClients} comments={comments} onAddComment={handleAddComment} />
+          </div>
+          <div className="xl:col-span-1">
+            <CamerasTable data={data.cameras} />
+          </div>
+          <div className="xl:col-span-1">
+>>>>>>> Stashed changes
             <TagsTable data={data.tags} />
           </div>
         </div>

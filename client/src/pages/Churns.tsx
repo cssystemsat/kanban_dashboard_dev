@@ -488,6 +488,7 @@ export default function Churns() {
                   </button>
                 </div>
               </div>
+<<<<<<< Updated upstream
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead style={{ backgroundColor: '#F5F7FA', borderBottom: '2px solid #E0E8F0' }}>
@@ -505,6 +506,36 @@ export default function Churns() {
                       <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>CSM</th>
                     </tr>
                   </thead>
+=======
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold" style={{ color: '#001F3F' }}>Detalhes dos Cancelamentos</h3>
+              <button
+                onClick={() => exportToExcel(filteredData, periodLabel)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors"
+                style={{ backgroundColor: '#00DD00', color: '#FFFFFF' }}
+              >
+                <Download className="w-4 h-4" />
+                Exportar para Excel
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead style={{ backgroundColor: '#F5F7FA', borderBottom: '2px solid #E0E8F0' }}>
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Cliente</th>
+                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Tipo</th>
+                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Entrada</th>
+                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Saída</th>
+                    <th className="px-4 py-3 text-left font-bold cursor-pointer hover:bg-gray-300 transition-colors" style={{ color: '#001F3F' }} onClick={() => {
+                      if (sortTempo === 'asc') setSortTempo('desc');
+                      else if (sortTempo === 'desc') setSortTempo(null);
+                      else setSortTempo('asc');
+                    }}>Tempo (meses) {sortTempo === 'asc' ? '↑' : sortTempo === 'desc' ? '↓' : '↕'}</th>
+                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>Motivo</th>
+                    <th className="px-4 py-3 text-left font-bold" style={{ color: '#001F3F' }}>CSM</th>
+                  </tr>
+                </thead>
+>>>>>>> Stashed changes
                   <tbody>
                     {filteredData.length > 0 ? (
                       (() => {
@@ -515,6 +546,7 @@ export default function Churns() {
                           dataToDisplay.sort((a, b) => b.mesesCasa - a.mesesCasa);
                         }
                         return dataToDisplay.slice(0, 20).map((churn, idx) => (
+<<<<<<< Updated upstream
                           <tr key={churn.id} style={{ borderBottom: '1px solid #E0E8F0', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
                             <td className="px-4 py-3 font-semibold" style={{ color: '#001F3F' }}>{churn.nome}</td>
                             <td className="px-4 py-3 text-gray-600">{churn.tipo}</td>
@@ -555,6 +587,48 @@ export default function Churns() {
                           </tr>
                         ));
                       })()
+=======
+                        <tr key={churn.id} style={{ borderBottom: '1px solid #E0E8F0', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
+                          <td className="px-4 py-3 font-semibold" style={{ color: '#001F3F' }}>{churn.nome}</td>
+                          <td className="px-4 py-3 text-gray-600">{churn.tipo}</td>
+                          <td className="px-4 py-3 text-gray-600">{churn.dataEntrada}</td>
+                          <td className="px-4 py-3 text-gray-600">{churn.dataSaida}</td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 rounded text-xs font-semibold" style={{ backgroundColor: '#FFE5E5', color: '#FF6B6B' }}>
+                              {churn.mesesCasa}m
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600 max-w-xs">
+                            <div className="relative group inline-block w-full">
+                              <span className="truncate block cursor-help underline decoration-dotted decoration-gray-400 underline-offset-2">
+                                {churn.motivoCancelamento || '-'}
+                              </span>
+                              {(churn.motivoDeclarado || churn.analiseInterna) && (
+                                <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block text-left">
+                                  {churn.motivoDeclarado && (
+                                    <div className="mb-2">
+                                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Motivo Declarado pelo Cliente</p>
+                                      <p className="text-sm text-gray-800 leading-snug">{churn.motivoDeclarado}</p>
+                                    </div>
+                                  )}
+                                  {churn.motivoDeclarado && churn.analiseInterna && (
+                                    <hr className="my-2 border-gray-200" />
+                                  )}
+                                  {churn.analiseInterna && (
+                                    <div>
+                                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Análise Interna</p>
+                                      <p className="text-sm text-gray-800 leading-snug">{churn.analiseInterna}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{churn.atendente}</td>
+                          </tr>
+                      ));
+                    })()
+>>>>>>> Stashed changes
                     ) : (
                       <tr>
                         <td colSpan={7} className="px-4 py-8 text-center text-gray-500">Nenhum cancelamento encontrado</td>
