@@ -209,3 +209,4 @@
 - [x] Otimizar tabelas para evitar scroll horizontal (reduzir padding, fontes, espaçamento)
 - [x] Reduzir altura do gráfico um pouco mais verticalmente
 - [x] Adicionar botão para copiar comentários em formato "Empresa -> comentário"
+- [x] Reorganizar layout Dashboard: Piores/Melhores grandes lado a lado, Câmeras/Tags pequenas lado a lado (apenas nome + qtd)
