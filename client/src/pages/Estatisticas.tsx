@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import { useChurnsByCsmData } from "@/hooks/useChurnsByCsmData";
 import {
   Users, Clock, MousePointer, Activity, TrendingUp,
-  LogIn, ChevronDown, ChevronUp, BarChart2, Eye, Zap,
+  LogIn, ChevronDown, ChevronUp, BarChart2, Eye, Zap, TrendingDown,
 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 function formatDuration(seconds: number | null | undefined): string {
   if (!seconds || seconds <= 0) return "—";
@@ -70,6 +72,11 @@ function PageName({ page }: { page: string }) {
 
 export default function Estatisticas() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const { data: churnsByCsm, loading: loadingChurnsByCsm, fetchData: fetchChurnsByCsm } = useChurnsByCsmData();
+
+  useEffect(() => {
+    fetchChurnsByCsm();
+  }, [fetchChurnsByCsm]);
 
   const { data: overview, isLoading: loadingOverview } = trpc.stats.overview.useQuery();
   const { data: userList, isLoading: loadingUsers } = trpc.stats.userList.useQuery();
@@ -77,7 +84,7 @@ export default function Estatisticas() {
   const { data: recentActions, isLoading: loadingActions } = trpc.stats.recentActions.useQuery();
   const { data: topPages, isLoading: loadingPages } = trpc.stats.topPages.useQuery();
 
-  const isLoading = loadingOverview || loadingUsers || loadingSessions || loadingActions || loadingPages;
+  const isLoading = loadingOverview || loadingUsers || loadingSessions || loadingActions || loadingPages || loadingChurnsByCsm;
 
   if (isLoading) {
     return (
@@ -101,6 +108,62 @@ export default function Estatisticas() {
         <StatCard icon={Zap} label="Ações Realizadas" value={overview?.totalActions ?? 0} color="#7C3AED" />
         <StatCard icon={Eye} label="Visualizações de Página" value={overview?.totalPageViews ?? 0} color="#D97706" />
       </div>
+
+      {/* Gráfico de Churns por CSM */}
+      {churnsByCsm && churnsByCsm.length > 0 && (
+        <div className="rounded-xl shadow-sm overflow-hidden" style={{ border: '1px solid #E5E7EB', backgroundColor: '#FFFFFF' }}>
+          <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <TrendingDown className="w-5 h-5" style={{ color: '#E53E3E' }} />
+            <h2 className="text-base font-semibold" style={{ color: '#111827' }}>Churns por CSM</h2>
+          </div>
+          <div className="p-5">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={churnsByCsm.map(item => ({
+                  name: item.csm,
+                  value: item.count,
+                  percentage: item.percentage,
+                  empresas: item.empresas
+                }))}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis type="number" stroke="#9CA3AF" />
+                <YAxis dataKey="name" type="category" stroke="#9CA3AF" width={140} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    padding: '12px'
+                  }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload[0]) {
+                      const data = payload[0].payload;
+                      return (
+                        <div style={{ color: '#374151', fontSize: '12px' }}>
+                          <div><strong>{data.value} churns</strong> ({data.percentage}%)</div>
+                          <div style={{ marginTop: '8px', color: '#6B7280' }}>
+                            <strong>Empresas:</strong>
+                            <div style={{ marginTop: '4px' }}>
+                              {data.empresas.map((emp: string, idx: number) => (
+                                <div key={idx}>{emp}</div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="value" fill="#E53E3E" radius={[0, 8, 8, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Páginas mais visitadas */}
       {topPages && topPages.length > 0 && (

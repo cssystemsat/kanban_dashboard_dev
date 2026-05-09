@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, ArrowRight, Phone } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, ArrowRight, Phone, PieChart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { getLoginUrl } from '@/const';
@@ -27,6 +27,7 @@ const PROTECTED_ITEMS = [
 // Abas apenas para admin
 const ADMIN_ONLY_ITEMS = [
   { id: 'atendimentos', label: 'Atendimentos', icon: Phone },
+  { id: 'estatisticas', label: 'Estatísticas', icon: PieChart },
 ];
 
 function getTodayBRT(): string {
@@ -148,7 +149,6 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
             {visibleAdminItems.map(renderItem)}
             {isAdmin && (
               <>
-                {renderItem({ id: 'estatisticas', label: 'Estatísticas', icon: BarChart2 })}
                 {renderItem({ id: 'configuracoes', label: 'Configurações', icon: Settings })}
               </>
             )}

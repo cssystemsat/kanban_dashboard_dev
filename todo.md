@@ -210,3 +210,12 @@
 - [x] Reduzir altura do gráfico um pouco mais verticalmente
 - [x] Adicionar botão para copiar comentários em formato "Empresa -> comentário"
 - [x] Reorganizar layout Dashboard: Piores/Melhores grandes lado a lado, Câmeras/Tags pequenas lado a lado (apenas nome + qtd)
+
+## Gráfico de Churns por CSM (em desenvolvimento)
+
+- [x] Adicionar "Estatísticas" à lista ADMIN_ONLY_ITEMS no SideMenu
+- [x] Criar hook useChurnsByCsmData para agregar churns por CSM com lista de empresas
+- [x] Criar procedimento tRPC para agregar churns por CSM
+- [x] Implementar gráfico comparativo com Recharts (BarChart horizontal)
+- [x] Adicionar tooltip customizado com lista de empresas
+- [x] Testar feature e criar checkpoint
