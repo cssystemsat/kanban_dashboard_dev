@@ -133,34 +133,7 @@ export default function Estatisticas() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                 <XAxis type="number" stroke="#9CA3AF" />
                 <YAxis dataKey="name" type="category" stroke="#9CA3AF" width={140} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#F3F4F6',
-                    border: '2px solid #E53E3E',
-                    borderRadius: '8px',
-                    padding: '12px'
-                  }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload[0]) {
-                      const data = payload[0].payload;
-                      return (
-                        <div style={{ color: '#111827', fontSize: '12px' }}>
-                          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{data.csm}</div>
-                          <div style={{ marginBottom: '8px' }}><strong>{data.value} churns</strong> ({data.percentage}%)</div>
-                          <div style={{ color: '#374151', borderTop: '1px solid #D1D5DB', paddingTop: '8px' }}>
-                            <strong>Empresas:</strong>
-                            <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              {data.empresas.map((emp: string, idx: number) => (
-                                <div key={idx} style={{ backgroundColor: '#FFFFFF', padding: '4px 6px', borderRadius: '4px', fontSize: '11px' }}>{emp}</div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                <Tooltip cursor={false} />
                 <Bar 
                   dataKey="value" 
                   fill="#E53E3E" 
