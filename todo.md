@@ -219,3 +219,5 @@
 - [x] Implementar gráfico comparativo com Recharts (BarChart horizontal)
 - [x] Adicionar tooltip customizado com lista de empresas
 - [x] Testar feature e criar checkpoint
+- [x] Mover percentual antes do nome do CSM no gráfico (ex: "25% - Lucas")
+- [x] Adicionar fundo colorido ao tooltip da lista de empresas

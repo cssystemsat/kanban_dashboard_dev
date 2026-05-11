@@ -120,10 +120,11 @@ export default function Estatisticas() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={churnsByCsm.map(item => ({
-                  name: item.csm,
+                  name: `${item.percentage}% - ${item.csm}`,
                   value: item.count,
                   percentage: item.percentage,
-                  empresas: item.empresas
+                  empresas: item.empresas,
+                  csm: item.csm
                 }))}
                 layout="vertical"
                 margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
@@ -133,8 +134,8 @@ export default function Estatisticas() {
                 <YAxis dataKey="name" type="category" stroke="#9CA3AF" width={140} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
+                    backgroundColor: '#F3F4F6',
+                    border: '2px solid #E53E3E',
                     borderRadius: '8px',
                     padding: '12px'
                   }}
@@ -142,13 +143,14 @@ export default function Estatisticas() {
                     if (active && payload && payload[0]) {
                       const data = payload[0].payload;
                       return (
-                        <div style={{ color: '#374151', fontSize: '12px' }}>
-                          <div><strong>{data.value} churns</strong> ({data.percentage}%)</div>
-                          <div style={{ marginTop: '8px', color: '#6B7280' }}>
+                        <div style={{ color: '#111827', fontSize: '12px' }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{data.csm}</div>
+                          <div style={{ marginBottom: '8px' }}><strong>{data.value} churns</strong> ({data.percentage}%)</div>
+                          <div style={{ color: '#374151', borderTop: '1px solid #D1D5DB', paddingTop: '8px' }}>
                             <strong>Empresas:</strong>
-                            <div style={{ marginTop: '4px' }}>
+                            <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               {data.empresas.map((emp: string, idx: number) => (
-                                <div key={idx}>{emp}</div>
+                                <div key={idx} style={{ backgroundColor: '#FFFFFF', padding: '4px 6px', borderRadius: '4px', fontSize: '11px' }}>{emp}</div>
                               ))}
                             </div>
                           </div>
