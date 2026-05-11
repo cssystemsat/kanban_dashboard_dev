@@ -72,6 +72,7 @@ function PageName({ page }: { page: string }) {
 
 export default function Estatisticas() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [selectedCsm, setSelectedCsm] = useState<{ csm: string; empresas: string[] } | null>(null);
   const { data: churnsByCsm, loading: loadingChurnsByCsm, fetchData: fetchChurnsByCsm } = useChurnsByCsmData();
 
   useEffect(() => {
@@ -160,7 +161,20 @@ export default function Estatisticas() {
                     return null;
                   }}
                 />
-                <Bar dataKey="value" fill="#E53E3E" radius={[0, 8, 8, 0]} />
+                <Bar 
+                  dataKey="value" 
+                  fill="#E53E3E" 
+                  radius={[0, 8, 8, 0]}
+                  onClick={(data) => {
+                    if (data && data.payload) {
+                      setSelectedCsm({
+                        csm: data.payload.csm,
+                        empresas: data.payload.empresas
+                      });
+                    }
+                  }}
+                  style={{ cursor: 'pointer' }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -412,6 +426,86 @@ export default function Estatisticas() {
           </div>
         )}
       </div>
+
+      {/* Modal de Empresas por CSM */}
+      {selectedCsm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setSelectedCsm(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '500px',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}>
+                {selectedCsm.csm}
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                {selectedCsm.empresas.length} empresa{selectedCsm.empresas.length !== 1 ? 's' : ''} em churn
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {selectedCsm.empresas.map((empresa, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: '#F9FAFB',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: '#374151'
+                  }}
+                >
+                  {idx + 1}. {empresa}
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setSelectedCsm(null)}
+              style={{
+                marginTop: '20px',
+                width: '100%',
+                padding: '10px',
+                backgroundColor: '#E53E3E',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#C92A2A')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E53E3E')}
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

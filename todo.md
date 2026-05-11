@@ -221,3 +221,4 @@
 - [x] Testar feature e criar checkpoint
 - [x] Mover percentual antes do nome do CSM no gráfico (ex: "25% - Lucas")
 - [x] Adicionar fundo colorido ao tooltip da lista de empresas
+- [x] Transformar lista de empresas em modal ao clicar na barra do gráfico
