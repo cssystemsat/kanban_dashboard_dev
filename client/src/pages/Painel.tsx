@@ -675,7 +675,7 @@ export default function Painel() {
 
             {/* ── 4 tabelas em linha única ── */}
             {/* Onboarding e Ongoing dividem o espaço; Marcos e Migração têm largura mínima fixa */}
-            <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr minmax(200px, 240px) minmax(200px, 240px)' }}>
+            <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr minmax(300px, 350px) minmax(200px, 240px)' }}>
               <TabelaCobertura titulo="Cobertura Semanal — Onboarding" cor="#2563EB"
                 dados={data.onboarding} total={data.totalOnboarding} />
               <TabelaCobertura titulo="Cobertura Semanal — Ongoing" cor="#7C3AED"
