@@ -31,6 +31,8 @@ export default function Home() {
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(null);
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] = useState<number | null>(null);
   const [diferencaMaxInput, setDiferencaMaxInput] = useState<string>('');
+  const [topBoleto, setTopBoleto] = useState<number>(0);
+  const [topVolume, setTopVolume] = useState<number>(0);
 
   useEffect(() => {
     fetchData();
@@ -71,6 +73,25 @@ export default function Home() {
       const val = parseFloat(String(client.deltaConsumo).replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.'));
       return !isNaN(val) && val <= -diferencaThreshold;
     });
+  }
+  // Filtros Top Boleto e Top Volume
+  if (topBoleto > 0) {
+    const topBoletoClientes = [...data]
+      .sort((a, b) => {
+        const aVal = parseFloat(String(a.ultimoBoleto || '0').replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
+        const bVal = parseFloat(String(b.ultimoBoleto || '0').replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
+        return bVal - aVal;
+      })
+      .slice(0, topBoleto)
+      .map(c => c.nome);
+    filteredData = filteredData.filter(c => topBoletoClientes.includes(c.nome));
+  }
+  if (topVolume > 0) {
+    const topVolumeClientes = [...data]
+      .sort((a, b) => (b.rastreadores?.length || 0) - (a.rastreadores?.length || 0))
+      .slice(0, topVolume)
+      .map(c => c.nome);
+    filteredData = filteredData.filter(c => topVolumeClientes.includes(c.nome));
   }
 
 
@@ -125,7 +146,7 @@ export default function Home() {
 
   const totalClientes = filteredData.length;
   const diferencaActive = diferencaMaxInput !== '' && !isNaN(parseFloat(diferencaMaxInput));
-  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null || diferencaActive);
+  const hasActiveFilter = !!(dateFilterStart || dateFilterEnd || searchCliente || statusFilter !== 'all' || flagFilter || selectedAtendente || percentualDesatualizadoFilter !== null || diferencaActive || topBoleto > 0 || topVolume > 0);
 
   return (
     <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
@@ -182,6 +203,26 @@ export default function Home() {
                 onChange={(e) => setDiferencaMaxInput(e.target.value)}
                 className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border focus:outline-none focus:ring-1 focus:ring-red-300"
                 style={{ borderColor: '#FCA5A5', width: '95px' }}
+                min="0"
+              />
+
+              <input
+                type="number"
+                placeholder="Top Boleto"
+                value={topBoleto}
+                onChange={(e) => setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                style={{ width: '95px' }}
+                min="0"
+              />
+
+              <input
+                type="number"
+                placeholder="Top Volume"
+                value={topVolume}
+                onChange={(e) => setTopVolume(Math.max(0, parseInt(e.target.value) || 0))}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                style={{ width: '95px' }}
                 min="0"
               />
             </div>
