@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats } from '@/hooks/usePainelData';
+import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats, ClienteMarcoDetalhado } from '@/hooks/usePainelData';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { useEstadosData } from '@/hooks/useEstadosData';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -376,15 +376,80 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
 }
 
 /* ─── Tabela de Marcos ────────────────────────────────────────────────── */
-function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) {
+function TabelaMarcos({ dados, total, clientesDetalhado }: { dados: MarcoStats[]; total: number; clientesDetalhado: ClienteMarcoDetalhado[] }) {
+  const [topBoleto, setTopBoleto] = useState<number>(0);
+  const [topVolume, setTopVolume] = useState<number>(0);
   const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626'];
+  
+  // Filtrar clientes baseado nos filtros
+  const clientesFiltrados = (() => {
+    let filtered = clientesDetalhado;
+    
+    if (topBoleto > 0) {
+      const topBoletoClientes = [...clientesDetalhado]
+        .sort((a, b) => b.ultimoBoleto - a.ultimoBoleto)
+        .slice(0, topBoleto)
+        .map(c => c.nome);
+      filtered = filtered.filter(c => topBoletoClientes.includes(c.nome));
+    }
+    
+    if (topVolume > 0) {
+      const topVolumeClientes = [...clientesDetalhado]
+        .sort((a, b) => b.quantidadeURs - a.quantidadeURs)
+        .slice(0, topVolume)
+        .map(c => c.nome);
+      filtered = filtered.filter(c => topVolumeClientes.includes(c.nome));
+    }
+    
+    return filtered;
+  })();
+  
+  // Recalcular marcos baseado nos clientes filtrados
+  const marcosFiltrados = (() => {
+    const marcoContagem: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    clientesFiltrados.forEach(c => {
+      marcoContagem[c.marco] = (marcoContagem[c.marco] || 0) + 1;
+    });
+    return [1, 2, 3, 4, 5].map(m => ({
+      marco: m,
+      quantidade: marcoContagem[m] || 0,
+      percentual: 0
+    }));
+  })();
+  
+  const totalFiltrado = clientesFiltrados.length;
+  
   return (
     <div className="bg-white rounded-xl border shadow-sm flex flex-col h-full" style={{ borderColor: '#E0E8F0', overflow: 'visible' }}>
-      <div className="px-3 py-2.5 shrink-0" style={{ backgroundColor: '#0F4C81' }}>
+      <div className="px-3 py-2.5 shrink-0 flex items-center justify-between gap-2" style={{ backgroundColor: '#0F4C81' }}>
         <h3 className="text-sm font-bold text-white tracking-wide">Marcos ≤ 90 dias</h3>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <label className="text-xs text-white font-medium whitespace-nowrap">Top Boleto:</label>
+            <input
+              type="number"
+              min="0"
+              value={topBoleto}
+              onChange={(e) => setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))}
+              className="w-12 px-2 py-1 text-xs rounded border border-gray-300"
+              placeholder="0"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <label className="text-xs text-white font-medium whitespace-nowrap">Top Volume:</label>
+            <input
+              type="number"
+              min="0"
+              value={topVolume}
+              onChange={(e) => setTopVolume(Math.max(0, parseInt(e.target.value) || 0))}
+              className="w-12 px-2 py-1 text-xs rounded border border-gray-300"
+              placeholder="0"
+            />
+          </div>
+        </div>
       </div>
       <div className="flex-1 flex flex-col divide-y" style={{ borderColor: '#F0F4F8' }}>
-        {dados.map((row, idx) => (
+        {marcosFiltrados.map((row, idx) => (
           <div key={row.marco} className="flex items-center justify-between px-4 py-3 hover:bg-blue-50/30 transition-colors flex-1"
             style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#FAFBFC' }}>
             <span className="inline-flex items-center justify-center font-bold text-sm w-8 h-8 rounded-full shrink-0"
@@ -400,7 +465,7 @@ function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) 
       <div className="px-4 py-2.5 border-t flex items-center justify-between shrink-0"
         style={{ borderColor: '#E0E8F0', backgroundColor: '#F1F5F9' }}>
         <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">Total</span>
-        <span className="text-3xl font-bold text-gray-800">{total}</span>
+        <span className="text-3xl font-bold text-gray-800">{totalFiltrado}</span>
       </div>
     </div>
   );
@@ -615,7 +680,7 @@ export default function Painel() {
                 dados={data.onboarding} total={data.totalOnboarding} />
               <TabelaCobertura titulo="Cobertura Semanal — Ongoing" cor="#7C3AED"
                 dados={data.ongoing} total={data.totalOngoing} />
-              <TabelaMarcos dados={data.clientesPorMarco} total={data.totalClientesMarco} />
+              <TabelaMarcos dados={data.clientesPorMarco} total={data.totalClientesMarco} clientesDetalhado={data.clientesMarcoDetalhado} />
               <TabelaMigracao />
             </div>
 

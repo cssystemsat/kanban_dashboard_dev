@@ -222,3 +222,18 @@
 - [x] Mover percentual antes do nome do CSM no gráfico (ex: "25% - Lucas")
 - [x] Adicionar fundo colorido ao tooltip da lista de empresas
 - [x] Transformar lista de empresas em modal ao clicar na barra do gráfico
+
+## Filtros Top Boleto e Top Volume na aba Marcos
+
+- [ ] Criar filtros "Top Boleto" e "Top Volume" lado a lado no topo direito
+- [ ] Implementar lógica de filtro por boleto atual (maior valor)
+- [ ] Implementar lógica de filtro por volume de placas (quantidade total)
+- [ ] Integrar filtros com a exibição dos cards de marcos
+- [ ] Testar e criar checkpoint
+
+## Filtros Top Boleto e Top Volume
+
+- [x] Adicionar tipos ClienteMarcoDetalhado ao hook usePainelData
+- [x] Extrair dados de boleto (coluna F) e URs (coluna G) da planilha
+- [x] Criar filtros Top Boleto e Top Volume na aba Marcos
+- [x] Implementar lógica de filtro que recalcula marcos baseado nos clientes selecionados

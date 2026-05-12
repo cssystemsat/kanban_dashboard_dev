@@ -35,6 +35,19 @@ export interface MarcoStats {
   percentual: number; // % do total de clientes
 }
 
+export interface ClienteMarcoDetalhado {
+  nome: string;
+  csm: string;
+  marco: number;
+  ultimoBoleto: number;
+  quantidadeURs: number;
+  flag: FlagTipo;
+  ultimoContato: string;
+  faturamento: string;
+  cidade: string;
+  estado: string;
+}
+
 export interface PainelData {
   onboarding: CoberturaCSM[];
   ongoing: CoberturaCSM[];
@@ -45,6 +58,7 @@ export interface PainelData {
   mesAtual: string; // ex: "Março/2026"
   clientesPorMarco: MarcoStats[]; // clientes até 90 dias por marco
   totalClientesMarco: number;
+  clientesMarcoDetalhado: ClienteMarcoDetalhado[]; // todos os clientes com dados de boleto e URs
 }
 
 const META_SEMANAL = 0.25; // 25%
@@ -249,7 +263,7 @@ export function usePainelData() {
       // Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
       // Marcos: AK(36), AL(37), AM(38), AN(39), AO(40)
       const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[] = [];
-      const marcosRowsMarco: { nome: string; entrada: string; marcos: string[] }[] = [];
+      const marcosRowsMarco: { nome: string; entrada: string; marcos: string[]; ultimoBoleto: number; quantidadeURs: number }[] = [];
       const marcosLines = marcosCsv.split('\n');
       for (let i = 1; i < marcosLines.length; i++) {
         const line = marcosLines[i].trim();
@@ -265,19 +279,26 @@ export function usePainelData() {
         const estado = row[35]?.trim() || ''; // AJ (índice 35)
         const entrada = row[3]?.trim() || '';
         const marcos = [row[36]?.trim() || '', row[37]?.trim() || '', row[38]?.trim() || '', row[39]?.trim() || '', row[40]?.trim() || ''];
+        const ultimoBoletoStr = row[5]?.trim() || '0';
+        const ultimoBoleto = parseFloat(ultimoBoletoStr.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
+        const quantidadeURsStr = row[6]?.trim() || '0';
+        const quantidadeURs = parseInt(quantidadeURsStr, 10) || 0;
         if (csm) marcosRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado });
-        if (entrada) marcosRowsMarco.push({ nome, entrada, marcos });
+        if (entrada) marcosRowsMarco.push({ nome, entrada, marcos, ultimoBoleto, quantidadeURs });
       }
 
-      // Calcular clientes até 90 dias por Marco
+      // Calcular clientes até 90 dias por Marco e coletar dados detalhados
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       const marcoContagem: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      const clientesMarcoDetalhado: ClienteMarcoDetalhado[] = [];
+      
       for (const r of marcosRowsMarco) {
         const entradaDate = parseDate(r.entrada);
         if (!entradaDate) continue;
         const dias = Math.floor((hoje.getTime() - entradaDate.getTime()) / (1000 * 60 * 60 * 24));
         if (dias > 90) continue; // só até 90 dias
+        
         // Determinar marco atual (primeiro não-OK)
         let marcoAtual = 1;
         for (let m = 0; m < r.marcos.length; m++) {
@@ -291,6 +312,23 @@ export function usePainelData() {
         }
         if (marcoAtual > 5) marcoAtual = 5;
         marcoContagem[marcoAtual] = (marcoContagem[marcoAtual] || 0) + 1;
+        
+        // Encontrar dados do cliente em marcosRows para obter CSM, flag, etc
+        const clienteInfo = marcosRows.find(mr => mr.nome === r.nome);
+        if (clienteInfo) {
+          clientesMarcoDetalhado.push({
+            nome: r.nome,
+            csm: clienteInfo.csm,
+            marco: marcoAtual,
+            ultimoBoleto: r.ultimoBoleto,
+            quantidadeURs: r.quantidadeURs,
+            flag: clienteInfo.flag,
+            ultimoContato: clienteInfo.ultimoContato,
+            faturamento: clienteInfo.faturamento,
+            cidade: clienteInfo.cidade,
+            estado: clienteInfo.estado
+          });
+        }
       }
       const totalClientesMarco = Object.values(marcoContagem).reduce((s, v) => s + v, 0);
       const clientesPorMarco: MarcoStats[] = [1, 2, 3, 4, 5].map(m => ({
@@ -347,6 +385,7 @@ export function usePainelData() {
         mesAtual: mes.label,
         clientesPorMarco,
         totalClientesMarco,
+        clientesMarcoDetalhado,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
