@@ -206,25 +206,29 @@ export default function Home() {
                 min="0"
               />
 
-              <input
-                type="number"
-                placeholder="Top Boleto"
-                value={topBoleto}
-                onChange={(e) => setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))}
-                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                style={{ width: '95px' }}
-                min="0"
-              />
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700 font-medium whitespace-nowrap">Top Boletos:</label>
+                <input
+                  type="number"
+                  value={topBoleto}
+                  onChange={(e) => setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  style={{ width: '60px' }}
+                  min="0"
+                />
+              </div>
 
-              <input
-                type="number"
-                placeholder="Top Volume"
-                value={topVolume}
-                onChange={(e) => setTopVolume(Math.max(0, parseInt(e.target.value) || 0))}
-                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                style={{ width: '95px' }}
-                min="0"
-              />
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700 font-medium whitespace-nowrap">Top Volume:</label>
+                <input
+                  type="number"
+                  value={topVolume}
+                  onChange={(e) => setTopVolume(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  style={{ width: '60px' }}
+                  min="0"
+                />
+              </div>
             </div>
 
             <Button
