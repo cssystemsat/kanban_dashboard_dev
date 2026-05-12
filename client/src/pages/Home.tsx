@@ -207,7 +207,7 @@ export default function Home() {
               />
 
               <div className="flex items-center gap-1">
-                <label className="text-xs text-gray-700 font-medium whitespace-nowrap">Top Boletos:</label>
+                <label className="text-xs text-white font-medium whitespace-nowrap">Top Boletos:</label>
                 <input
                   type="number"
                   value={topBoleto}
@@ -219,7 +219,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-1">
-                <label className="text-xs text-gray-700 font-medium whitespace-nowrap">Top Volume:</label>
+                <label className="text-xs text-white font-medium whitespace-nowrap">Top Volume:</label>
                 <input
                   type="number"
                   value={topVolume}
