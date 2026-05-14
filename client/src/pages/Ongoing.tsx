@@ -27,6 +27,8 @@ export default function Ongoing() {
   const [ultimoBoletoMax, setUltimoBoletoMax] = useState<number | null>(null);
   const [selectedSituacao, setSelectedSituacao] = useState<string | null>(null);
   const [deltaMaxInput, setDeltaMaxInput] = useState<string>('');
+  const [topBoleto, setTopBoleto] = useState<number>(0);
+  const [topVolume, setTopVolume] = useState<number>(0);
 
   // Filtrar dados
   let filteredData = flagFilter ? data.filter(client => client.flag === flagFilter) : data;
@@ -52,6 +54,24 @@ export default function Ongoing() {
   const deltaThreshold = deltaMaxInput !== '' ? parseFloat(deltaMaxInput) : null;
   if (deltaThreshold !== null && !isNaN(deltaThreshold)) {
     filteredData = filteredData.filter(client => client.deltaConsumo <= -deltaThreshold);
+  }
+
+  // Filtro Top Boleto: mostra top X clientes com maior boleto
+  if (topBoleto > 0) {
+    const topBoletoClients = [...data]
+      .sort((a, b) => b.ultimoBoleto - a.ultimoBoleto)
+      .slice(0, topBoleto)
+      .map(c => c.nome);
+    filteredData = filteredData.filter(client => topBoletoClients.includes(client.nome));
+  }
+
+  // Filtro Top Volume: mostra top X clientes com maior quantidade de placas (URs)
+  if (topVolume > 0) {
+    const topVolumeClients = [...data]
+      .sort((a, b) => (b.placas || 0) - (a.placas || 0))
+      .slice(0, topVolume)
+      .map(c => c.nome);
+    filteredData = filteredData.filter(client => topVolumeClients.includes(client.nome));
   }
 
   // Contagens base (sem filtro de flag, mas com filtro de CSM)
@@ -197,6 +217,30 @@ export default function Ongoing() {
               />
             </div>
 
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-white uppercase tracking-wider">Top Boletos</label>
+              <input
+                type="number"
+                value={topBoleto}
+                onChange={(e) => setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                style={{ width: '80px' }}
+                min="0"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-white uppercase tracking-wider">Top Volume</label>
+              <input
+                type="number"
+                value={topVolume}
+                onChange={(e) => setTopVolume(Math.max(0, parseInt(e.target.value) || 0))}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                style={{ width: '80px' }}
+                min="0"
+              />
+            </div>
+
             <button
               onClick={() => {
                 setSearchCliente('');
@@ -206,6 +250,8 @@ export default function Ongoing() {
                 setUltimoBoletoMax(null);
                 setSelectedSituacao(null);
                 setDeltaMaxInput('');
+                setTopBoleto(0);
+                setTopVolume(0);
               }}
               className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
             >
@@ -215,7 +261,7 @@ export default function Ongoing() {
         </div>
 
         {/* Resumo de Filtros Ativos */}
-        {hasActiveFilter && (
+        {(hasActiveFilter || topBoleto > 0 || topVolume > 0) && (
           <div className="px-4 py-2 bg-blue-50 border border-blue-200 mt-3 rounded-lg flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold" style={{ color: '#001F3F' }}>Filtros:</span>
             {ultimoBoletoMin !== null && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Boleto Mín: R$ {ultimoBoletoMin.toFixed(2)}</span>}
@@ -224,7 +270,9 @@ export default function Ongoing() {
             {flagFilter && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">{flagFilter}</span>}
             {selectedAtendente && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">CSM: {selectedAtendente}</span>}
             {selectedSituacao && <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Situação: {selectedSituacao}</span>}
-            {deltaActive && <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">Delta &le; -R$ {parseFloat(deltaMaxInput).toFixed(2)}</span>}
+             {deltaActive && <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">Delta ≤ -R$ {parseFloat(deltaMaxInput).toFixed(2)}</span>}
+            {topBoleto > 0 && <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">Top Boletos: {topBoleto}</span>}
+            {topVolume > 0 && <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">Top Volume: {topVolume}</span>}
           </div>
         )}
       </header>

@@ -237,3 +237,8 @@
 - [x] Extrair dados de boleto (coluna F) e URs (coluna G) da planilha
 - [x] Criar filtros Top Boleto e Top Volume na aba Marcos
 - [x] Implementar lógica de filtro que recalcula marcos baseado nos clientes selecionados
+
+## Filtros Top Boleto e Top Volume na aba Ongoing
+
+- [x] Adicionar filtros Top Boletos e Top Volume na aba Ongoing
+- [x] Implementar lógica de filtro que recalcula cards baseado nos clientes selecionados
