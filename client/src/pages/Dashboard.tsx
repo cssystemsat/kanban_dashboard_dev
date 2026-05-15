@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
 import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -454,8 +454,26 @@ export default function Dashboard() {
   const { data, loading, error, fetchData } = useURsDashboard();
   const { data: authData } = trpc.auth.me.useQuery();
   const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
-  const [comments, setComments] = useState<Record<string, CommentData>>({});
+  const [comments, setComments] = useState<Record<string, CommentData>>(() => {
+    // Carregar comentários do localStorage ao inicializar
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('dashboard_comments');
+        return saved ? JSON.parse(saved) : {};
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Salvar comentários no localStorage sempre que mudam
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dashboard_comments', JSON.stringify(comments));
+    }
+  }, [comments]);
 
   const handleScreenshot = async () => {
     if (!contentRef.current) return;
@@ -509,13 +527,20 @@ export default function Dashboard() {
       date: new Date().toISOString(),
     };
     
-    setComments(prev => ({
-      ...prev,
+    const updatedComments = {
+      ...comments,
       [clientName]: {
         current: newComment,
         history: newHistory,
       }
-    }));
+    };
+    
+    setComments(updatedComments);
+    
+    // Salvar no localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dashboard_comments', JSON.stringify(updatedComments));
+    }
     
     setCommentModal(null);
   };
@@ -524,11 +549,15 @@ export default function Dashboard() {
     if (!commentModal) return;
     
     const clientName = commentModal.clientName;
-    setComments(prev => {
-      const updated = { ...prev };
-      delete updated[clientName];
-      return updated;
-    });
+    const updated = { ...comments };
+    delete updated[clientName];
+    
+    setComments(updated);
+    
+    // Salvar no localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dashboard_comments', JSON.stringify(updated));
+    }
     
     setCommentModal(null);
   };
