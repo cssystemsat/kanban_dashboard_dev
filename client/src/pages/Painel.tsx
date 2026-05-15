@@ -549,32 +549,7 @@ export default function Painel() {
         </div>
       </header>
 
-      {/* Filtros Top Boleto e Top Volume */}
-      <div className="px-4 pt-3 pb-2 flex items-center gap-3 border-b" style={{ backgroundColor: '#F0F4F8', borderColor: '#E0E8F0' }}>
-        <span className="text-xs font-semibold text-gray-600">Filtros:</span>
-        <div className="flex items-center gap-1">
-          <label className="text-xs text-white font-medium whitespace-nowrap">Top Boletos:</label>
-          <input
-            type="number"
-            value={topBoleto}
-            onChange={(e) => setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))}
-            className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-            style={{ width: '60px' }}
-            min="0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <label className="text-xs text-white font-medium whitespace-nowrap">Top Volume:</label>
-          <input
-            type="number"
-            value={topVolume}
-            onChange={(e) => setTopVolume(Math.max(0, parseInt(e.target.value) || 0))}
-            className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-            style={{ width: '60px' }}
-            min="0"
-          />
-        </div>
-      </div>
+
 
       <main className="px-4 pt-4 pb-8 w-full space-y-4">
         {loading && (
