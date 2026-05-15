@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
 import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -454,26 +454,29 @@ export default function Dashboard() {
   const { data, loading, error, fetchData } = useURsDashboard();
   const { data: authData } = trpc.auth.me.useQuery();
   const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
-  const [comments, setComments] = useState<Record<string, CommentData>>(() => {
-    // Carregar comentários do localStorage ao inicializar
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('dashboard_comments');
-        return saved ? JSON.parse(saved) : {};
-      } catch {
-        return {};
-      }
-    }
-    return {};
-  });
+  const [comments, setComments] = useState<Record<string, CommentData>>({});
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Carregar comentários do banco ao inicializar
+  const monthYear = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const { data: dbComments } = trpc.clientComments.list.useQuery({ monthYear });
 
-  // Salvar comentários no localStorage sempre que mudam
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('dashboard_comments', JSON.stringify(comments));
+    if (dbComments && dbComments.length > 0) {
+      const commentsMap: Record<string, CommentData> = {};
+      dbComments.forEach(comment => {
+        commentsMap[comment.clientName] = {
+          current: {
+            text: comment.comment,
+            user: comment.authorName || 'Usuário',
+            date: comment.updatedAt?.toISOString() || new Date().toISOString(),
+          },
+          history: [],
+        };
+      });
+      setComments(commentsMap);
     }
-  }, [comments]);
+  }, [dbComments]);
 
   const handleScreenshot = async () => {
     if (!contentRef.current) return;
@@ -509,7 +512,11 @@ export default function Dashboard() {
     setCommentModal({ clientName });
   };
 
-  const handleSaveComment = (text: string) => {
+  // Mutation para salvar comentário no banco
+  const upsertCommentMutation = trpc.clientComments.upsert.useMutation();
+  const deleteCommentMutation = trpc.clientComments.delete.useMutation();
+
+  const handleSaveComment = async (text: string) => {
     if (!commentModal) return;
     
     const clientName = commentModal.clientName;
@@ -537,15 +544,21 @@ export default function Dashboard() {
     
     setComments(updatedComments);
     
-    // Salvar no localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('dashboard_comments', JSON.stringify(updatedComments));
+    // Salvar no banco de dados
+    try {
+      await upsertCommentMutation.mutateAsync({
+        clientName,
+        comment: text,
+        monthYear,
+      });
+    } catch (err) {
+      console.error('Erro ao salvar comentário:', err);
     }
     
     setCommentModal(null);
   };
 
-  const handleDeleteComment = () => {
+  const handleDeleteComment = async () => {
     if (!commentModal) return;
     
     const clientName = commentModal.clientName;
@@ -554,9 +567,14 @@ export default function Dashboard() {
     
     setComments(updated);
     
-    // Salvar no localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('dashboard_comments', JSON.stringify(updated));
+    // Deletar do banco de dados
+    try {
+      await deleteCommentMutation.mutateAsync({
+        clientName,
+        monthYear,
+      });
+    } catch (err) {
+      console.error('Erro ao deletar comentário:', err);
     }
     
     setCommentModal(null);
