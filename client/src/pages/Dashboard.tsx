@@ -10,8 +10,8 @@ import { domToPng } from 'modern-screenshot';
 function EvolutionChart({ data }: { data: DailyUR[] }) {
   if (data.length === 0) return null;
 
-  const width = 1100;
-  const height = 160;
+  const width = 1400;
+  const height = 200;
   const padding = { top: 10, right: 15, bottom: 30, left: 60 };
 
   const chartW = width - padding.left - padding.right;
