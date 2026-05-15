@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+'use client';
+
+import { useState, useMemo, useRef } from 'react';
 import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
 import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -85,27 +87,51 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
   );
 }
 
+/* ─── Tipos de Comentário ─── */
+interface CommentEntry {
+  text: string;
+  user: string;
+  date: string;
+}
+
+interface CommentData {
+  current: CommentEntry | null;
+  history: CommentEntry[];
+}
+
 /* ─── Modal de Comentário ─── */
 function CommentModal({ 
   clientName, 
-  currentComment, 
+  commentData, 
+  currentUser,
   onSave, 
   onDelete,
   onClose 
 }: { 
   clientName: string; 
-  currentComment: string;
+  commentData: CommentData | null;
+  currentUser: string;
   onSave: (comment: string) => void;
   onDelete: () => void;
   onClose: () => void;
 }) {
-  const [text, setText] = useState(currentComment);
+  const [text, setText] = useState(commentData?.current?.text || '');
+  const [showHistory, setShowHistory] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl p-5 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-xl shadow-2xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <h3 className="text-sm font-bold text-gray-800 mb-1">Comentário</h3>
         <p className="text-xs text-gray-500 mb-3">{clientName}</p>
+        
+        {/* Informações do comentário atual */}
+        {commentData?.current && (
+          <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200 text-xs">
+            <p className="text-gray-600"><strong>Usuário:</strong> {commentData.current.user}</p>
+            <p className="text-gray-600"><strong>Data:</strong> {new Date(commentData.current.date).toLocaleString('pt-BR')}</p>
+          </div>
+        )}
+        
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -114,11 +140,35 @@ function CommentModal({
           placeholder="Digite um comentário sobre este cliente..."
           autoFocus
         />
+        
+        {/* Botão para mostrar histórico */}
+        {commentData && commentData.history.length > 0 && (
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="mt-2 text-xs text-blue-600 hover:underline"
+          >
+            {showHistory ? 'Ocultar' : 'Mostrar'} histórico ({commentData.history.length})
+          </button>
+        )}
+        
+        {/* Histórico de alterações */}
+        {showHistory && commentData && commentData.history.length > 0 && (
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-[200px] overflow-y-auto">
+            <p className="text-xs font-semibold text-gray-700 mb-2">Histórico de Alterações:</p>
+            {commentData.history.map((entry, idx) => (
+              <div key={idx} className="mb-2 pb-2 border-b border-gray-200 last:border-b-0">
+                <p className="text-xs text-gray-600"><strong>{entry.user}</strong> - {new Date(entry.date).toLocaleString('pt-BR')}</p>
+                <p className="text-xs text-gray-700 mt-1 whitespace-pre-wrap">{entry.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        
         <div className="flex justify-between mt-3">
           <button
             onClick={onDelete}
             className="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            disabled={!currentComment}
+            disabled={!commentData?.current}
           >
             Remover
           </button>
@@ -143,16 +193,6 @@ function CommentModal({
   );
 }
 
-/* ─── Tooltip de Comentário ─── */
-function CommentTooltip({ comment, clientName }: { comment: string; clientName: string }) {
-  return (
-    <div className="absolute z-50 left-0 top-full mt-1 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl max-w-[250px] whitespace-pre-wrap">
-      <p className="font-semibold mb-1 text-blue-300">{clientName}</p>
-      <p>{comment}</p>
-    </div>
-  );
-}
-
 type SortMode = 'qty' | 'percent';
 
 /* ─── Tabela de Piores Clientes ─── */
@@ -162,11 +202,10 @@ function WorstClientsTable({
   onAddComment 
 }: { 
   clients: ClientDelta[]; 
-  comments: Record<string, string>;
+  comments: Record<string, CommentData>;
   onAddComment: (clientName: string) => void;
 }) {
   const [sortMode, setSortMode] = useState<SortMode>('qty');
-  const [hoveredClient, setHoveredClient] = useState<string | null>(null);
 
   const sorted = useMemo(() => {
     return [...clients].sort((a, b) => {
@@ -213,19 +252,16 @@ function WorstClientsTable({
           </thead>
           <tbody>
             {sorted.map((c, i) => {
-              const hasComment = !!comments[c.clientName];
+              const hasComment = !!comments[c.clientName]?.current;
               return (
-                <tr key={i} className="border-t border-gray-100 hover:bg-red-50/50 relative"
-                  onMouseEnter={() => hasComment && setHoveredClient(c.clientName)}
-                  onMouseLeave={() => setHoveredClient(null)}
-                >
+                <tr key={i} className="border-t border-gray-100 hover:bg-red-50/50 relative">
                   <td className="px-2 py-0.5 relative">
-                    <span className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}>
+                    <span 
+                      className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}
+                      onClick={() => hasComment && onAddComment(c.clientName)}
+                    >
                       {c.clientName}
                     </span>
-                    {hoveredClient === c.clientName && hasComment && (
-                      <CommentTooltip comment={comments[c.clientName]} clientName={c.clientName} />
-                    )}
                   </td>
                   <td className="py-0.5">
                     <button
@@ -258,11 +294,10 @@ function BestClientsTable({
   onAddComment 
 }: { 
   clients: ClientDelta[]; 
-  comments: Record<string, string>;
+  comments: Record<string, CommentData>;
   onAddComment: (clientName: string) => void;
 }) {
   const [sortMode, setSortMode] = useState<SortMode>('qty');
-  const [hoveredClient, setHoveredClient] = useState<string | null>(null);
 
   const sorted = useMemo(() => {
     return [...clients].sort((a, b) => {
@@ -309,19 +344,16 @@ function BestClientsTable({
           </thead>
           <tbody>
             {sorted.map((c, i) => {
-              const hasComment = !!comments[c.clientName];
+              const hasComment = !!comments[c.clientName]?.current;
               return (
-                <tr key={i} className="border-t border-gray-100 hover:bg-green-50/50 relative"
-                  onMouseEnter={() => hasComment && setHoveredClient(c.clientName)}
-                  onMouseLeave={() => setHoveredClient(null)}
-                >
+                <tr key={i} className="border-t border-gray-100 hover:bg-green-50/50 relative">
                   <td className="px-2 py-0.5 relative">
-                    <span className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}>
+                    <span 
+                      className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}
+                      onClick={() => hasComment && onAddComment(c.clientName)}
+                    >
                       {c.clientName}
                     </span>
-                    {hoveredClient === c.clientName && hasComment && (
-                      <CommentTooltip comment={comments[c.clientName]} clientName={c.clientName} />
-                    )}
                   </td>
                   <td className="py-0.5">
                     <button
@@ -332,8 +364,8 @@ function BestClientsTable({
                       <MessageSquarePlus className="w-2.5 h-2.5" />
                     </button>
                   </td>
-                  <td className="px-2 py-0.5 text-right text-green-700 font-bold text-[11px]">{c.delta}</td>
-                  <td className="px-2 py-0.5 text-right text-green-700 text-[11px]">{c.deltaPercent.toFixed(2)}%</td>
+                  <td className="px-2 py-0.5 text-right text-green-600 font-bold text-[11px]">{c.delta}</td>
+                  <td className="px-2 py-0.5 text-right text-green-600 text-[11px]">{c.deltaPercent.toFixed(2)}%</td>
                 </tr>
               );
             })}
@@ -420,8 +452,9 @@ function TagsTable({ data }: { data: EquipmentCount[] }) {
 /* ─── Página principal ─── */
 export default function Dashboard() {
   const { data, loading, error, fetchData } = useURsDashboard();
-  const [commentModal, setCommentModal] = useState<{ clientName: string; comment: string } | null>(null);
-  const [comments, setComments] = useState<Record<string, string>>({});
+  const { data: authData } = trpc.auth.me.useQuery();
+  const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
+  const [comments, setComments] = useState<Record<string, CommentData>>({});
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleScreenshot = async () => {
@@ -450,165 +483,134 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error('Erro ao capturar screenshot:', err);
+      alert('Erro ao capturar screenshot');
     }
   };
-
-  // Mês atual no formato YYYY-MM
-  const currentMonth = useMemo(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  }, []);
-
-  // Buscar comentários do mês
-  const commentsQuery = trpc.clientComments.list.useQuery({ monthYear: currentMonth });
-  const upsertMutation = trpc.clientComments.upsert.useMutation({
-    onSuccess: () => commentsQuery.refetch(),
-  });
-  const deleteMutation = trpc.clientComments.delete.useMutation({
-    onSuccess: () => commentsQuery.refetch(),
-  });
-
-  // Converter lista de comentários em mapa
-  useEffect(() => {
-    if (commentsQuery.data) {
-      const map: Record<string, string> = {};
-      for (const c of commentsQuery.data) {
-        map[c.clientName] = c.comment;
-      }
-      setComments(map);
-    }
-  }, [commentsQuery.data]);
 
   const handleAddComment = (clientName: string) => {
-    setCommentModal({ clientName, comment: comments[clientName] || '' });
+    setCommentModal({ clientName });
   };
 
-  const handleSaveComment = (comment: string) => {
+  const handleSaveComment = (text: string) => {
     if (!commentModal) return;
-    upsertMutation.mutate({
-      clientName: commentModal.clientName,
-      comment,
-      monthYear: currentMonth,
-    });
-    setComments(prev => ({ ...prev, [commentModal.clientName]: comment }));
+    
+    const clientName = commentModal.clientName;
+    const currentData = comments[clientName] || { current: null, history: [] };
+    
+    // Adicionar comentário atual ao histórico
+    const newHistory = currentData.current 
+      ? [...currentData.history, currentData.current]
+      : currentData.history;
+    
+    // Criar novo comentário
+    const newComment: CommentEntry = {
+      text,
+      user: authData?.name || 'Usuário',
+      date: new Date().toISOString(),
+    };
+    
+    setComments(prev => ({
+      ...prev,
+      [clientName]: {
+        current: newComment,
+        history: newHistory,
+      }
+    }));
+    
     setCommentModal(null);
   };
 
   const handleDeleteComment = () => {
     if (!commentModal) return;
-    deleteMutation.mutate({
-      clientName: commentModal.clientName,
-      monthYear: currentMonth,
-    });
+    
+    const clientName = commentModal.clientName;
     setComments(prev => {
-      const next = { ...prev };
-      delete next[commentModal.clientName];
-      return next;
+      const updated = { ...prev };
+      delete updated[clientName];
+      return updated;
     });
+    
     setCommentModal(null);
-  };
-
-  const handleCopyComments = async () => {
-    const commentLines = Object.entries(comments)
-      .filter(([_, comment]) => comment && comment.trim())
-      .map(([clientName, comment]) => `${clientName} -> ${comment}`)
-      .join('\n');
-    
-    if (!commentLines) {
-      alert('Nenhum comentário para copiar');
-      return;
-    }
-    
-    try {
-      await navigator.clipboard.writeText(commentLines);
-      alert('Comentários copiados para a área de transferência!');
-    } catch {
-      // Fallback: criar um textarea temporário
-      const textarea = document.createElement('textarea');
-      textarea.value = commentLines;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      alert('Comentários copiados para a área de transferência!');
-    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen md:ml-20 flex flex-col items-center justify-center" style={{ backgroundColor: '#F0F4F8' }}>
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-        <p className="text-base text-gray-500 mt-3">Carregando dados de evolução de UR's...</p>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F0F4F8' }}>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: '#001F3F' }} />
+          <p style={{ color: '#001F3F' }}>Carregando dados...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen md:ml-20 flex flex-col items-center justify-center" style={{ backgroundColor: '#F0F4F8' }}>
-        <AlertCircle className="w-10 h-10 text-red-500" />
-        <p className="text-base text-gray-600 mt-3">Erro ao carregar dados: {error}</p>
-        <button onClick={fetchData} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Tentar novamente
-        </button>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F0F4F8' }}>
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
+          <p className="text-red-600">Erro ao carregar dados: {error}</p>
+          <button
+            onClick={fetchData}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Tentar novamente
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (!data) return null;
-
   return (
-    <div className="min-h-screen md:ml-20" style={{ backgroundColor: '#F0F4F8' }}>
-      <header className="sticky top-0 z-40 border-b px-5 py-3 flex items-center justify-between"
-        style={{ backgroundColor: '#001F3F', borderColor: '#1a3a5c' }}>
-        <div>
-          <h1 className="text-lg font-bold text-white">
-            Controle de UR's, Câmeras e Tags no mês de {new Date().toLocaleString('pt-BR', { month: 'long' }).replace(/^\w/, c => c.toUpperCase())}
+    <div style={{ backgroundColor: '#F0F4F8', minHeight: '100vh', padding: '20px' }}>
+      <div ref={contentRef} className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold" style={{ color: '#001F3F' }}>
+            Controle de UR's, Câmeras e Tags no mês de Maio
           </h1>
-        </div>
-        <div className="flex items-center gap-2">
           <button
             onClick={handleScreenshot}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/20"
-            title="Capturar tela e copiar"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
           >
-            <CameraIcon className="w-3.5 h-3.5" />
-            Print
-          </button>
-          <button
-            onClick={handleCopyComments}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/20"
-            title="Copiar comentários estruturados"
-          >
-            <MessageSquarePlus className="w-3.5 h-3.5" />
-            Copiar Comentários
+            Screenshot
           </button>
         </div>
-      </header>
 
-      <main ref={contentRef} className="px-4 pt-4 pb-8 w-full space-y-4">
-        {/* Gráfico de evolução */}
-        <div className="bg-gray-900 rounded-xl p-4 shadow-lg">
-          <EvolutionChart data={data.evolution} />
-        </div>
+        {/* Gráfico de Evolução */}
+        {data && data.evolution && <EvolutionChart data={data.evolution} />}
 
-        {/* 4 tabelas em grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <WorstClientsTable clients={data.worstClients} comments={comments} onAddComment={handleAddComment} />
-          <BestClientsTable clients={data.bestClients} comments={comments} onAddComment={handleAddComment} />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <CamerasTable data={data.cameras} />
-          <TagsTable data={data.tags} />
-        </div>
-      </main>
+        {/* Tabelas */}
+        {data && (
+          <>
+            <div className="grid grid-cols-2 gap-4 mt-6">
+              <WorstClientsTable 
+                clients={data.worstClients} 
+                comments={comments}
+                onAddComment={handleAddComment}
+              />
+              <BestClientsTable 
+                clients={data.bestClients} 
+                comments={comments}
+                onAddComment={handleAddComment}
+              />
+            </div>
 
-      {/* Modal de comentário */}
+            {/* Equipamentos */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <CamerasTable data={data.cameras} />
+              <TagsTable data={data.tags} />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Modal de Comentário */}
       {commentModal && (
         <CommentModal
           clientName={commentModal.clientName}
-          currentComment={commentModal.comment}
+          commentData={comments[commentModal.clientName] || null}
+          currentUser={authData?.name || 'Usuário'}
           onSave={handleSaveComment}
           onDelete={handleDeleteComment}
           onClose={() => setCommentModal(null)}

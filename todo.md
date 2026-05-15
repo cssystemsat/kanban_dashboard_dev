@@ -242,3 +242,10 @@
 
 - [x] Adicionar filtros Top Boletos e Top Volume na aba Ongoing
 - [x] Implementar lógica de filtro que recalcula cards baseado nos clientes selecionados
+
+## Modal de Comentários com Histórico
+
+- [x] Criar estrutura de dados para comentários com histórico de versões
+- [x] Implementar modal que mostra comentário, usuário, data e histórico
+- [x] Integrar modal nas seções Piores e Melhores clientes
+- [x] Testar feature e criar checkpoint
