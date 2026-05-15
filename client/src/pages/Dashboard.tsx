@@ -39,9 +39,9 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
   const xLabels = data.filter((_, i) => i % 3 === 0 || i === data.length - 1);
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto rounded-lg border border-gray-700 bg-gray-900">
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto min-w-[700px]">
-        <rect x={padding.left} y={padding.top} width={chartW} height={chartH} fill="#1a1a2e" rx="4" />
+        <rect x={padding.left} y={padding.top} width={chartW} height={chartH} fill="#0f0f1e" rx="4" stroke="#444" strokeWidth="1" />
         {yTicks.map((tick, i) => (
           <g key={i}>
             <line x1={padding.left} y1={getY(tick)} x2={padding.left + chartW} y2={getY(tick)} stroke="#333" strokeWidth="0.5" strokeDasharray="3,3" />
