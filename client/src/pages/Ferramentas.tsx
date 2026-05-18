@@ -33,7 +33,6 @@ type ChecklistItem = {
   checklistId: number;
   text: string;
   order: number;
-  dueDate?: string | null; // "YYYY-MM-DD"
   completed: boolean;
 };
 
@@ -212,23 +211,7 @@ function ChecklistCard({
   const total = checklist.items.length;
   const progress = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
-  let minDaysRemaining: number | null = null;
-  let hasOverdue = false;
-  let hasToday = false;
 
-  checklist.items.forEach(item => {
-    if (item.dueDate && !item.completed) {
-      const daysRemaining = Math.ceil((new Date(item.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-      if (daysRemaining < 0) {
-        hasOverdue = true;
-      } else if (daysRemaining === 0) {
-        hasToday = true;
-      }
-      if (minDaysRemaining === null || daysRemaining < minDaysRemaining) {
-        minDaysRemaining = daysRemaining;
-      }
-    }
-  });
 
   const resetLabelMap: Record<string, string> = {
     daily: "Reset diário",
@@ -260,17 +243,7 @@ function ChecklistCard({
         </div>
 
         {/* Progresso e Dias */}
-        <div className="flex items-center gap-3 shrink-0">
-          {minDaysRemaining !== null && (
-            <div className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
-              hasOverdue ? 'bg-red-100 text-red-600' :
-              hasToday ? 'bg-orange-100 text-orange-600' :
-              minDaysRemaining <= 3 ? 'bg-orange-50 text-orange-500' :
-              'bg-gray-100 text-gray-500'
-            }`}>
-              {hasOverdue ? 'Vencido' : hasToday ? 'Hoje' : `${minDaysRemaining}d`}
-            </div>
-          )}
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-gray-500">{completedCount}/{total}</span>
           <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
@@ -313,9 +286,6 @@ function ChecklistCard({
                 return true;
               })
               .map(item => {
-                const isOverdue = item.dueDate && new Date(item.dueDate) < new Date() && !item.completed;
-                const daysRemaining = item.dueDate ? Math.ceil((new Date(item.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
-
                 return (
                   <div key={item.id} className="flex items-start gap-3 py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors">
                     <label className="flex items-center gap-3 flex-1 cursor-pointer">
@@ -326,21 +296,9 @@ function ChecklistCard({
                         className="w-4 h-4 rounded accent-blue-600 mt-0.5 shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <span className={`text-sm block ${item.completed ? 'line-through text-gray-400' : isOverdue ? 'text-red-600 font-medium' : 'text-gray-700'}`}>
+                        <span className={`text-sm block ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
                           {item.text}
                         </span>
-                        {item.dueDate && daysRemaining !== null && (
-                          <span className={`text-xs mt-0.5 block ${
-                            daysRemaining < 0 ? 'text-red-500 font-medium' :
-                            daysRemaining === 0 ? 'text-orange-500 font-medium' :
-                            daysRemaining <= 3 ? 'text-orange-400' :
-                            'text-gray-400'
-                          }`}>
-                            {daysRemaining < 0 ? `Vencido há ${Math.abs(daysRemaining)} dia${Math.abs(daysRemaining) !== 1 ? 's' : ''}` :
-                             daysRemaining === 0 ? 'Vence hoje' :
-                             `${daysRemaining} dia${daysRemaining !== 1 ? 's' : ''} para vencer`}
-                          </span>
-                        )}
                       </div>
                     </label>
                   </div>
@@ -359,8 +317,7 @@ function CreateChecklistDialog({ open, onClose, onCreated }: { open: boolean; on
   const [description, setDescription] = useState("");
   const [resetType, setResetType] = useState<"daily" | "manual" | "none" | "unique">("daily");
   const [isAdminChecklist, setIsAdminChecklist] = useState(false);
-  const [items, setItems] = useState<string[]>([""]);
-  const [itemDates, setItemDates] = useState<(string | null)[]>([null]);
+  const [items, setItems] = useState<string[]>([""]);;
 
   const { data: permission } = trpc.atendimento.checkPermission.useQuery();
   const isAdmin = permission?.isAdmin === true;
@@ -373,24 +330,14 @@ function CreateChecklistDialog({ open, onClose, onCreated }: { open: boolean; on
       setResetType("daily");
       setIsAdminChecklist(false);
       setItems([""]);
-      setItemDates([null]);
       onCreated();
     },
     onError: (e) => toast("Erro: " + e.message),
   });
 
-  const addItemField = () => {
-    setItems(prev => [...prev, ""]);
-    setItemDates(prev => [...prev, null]);
-  };
-
-  const removeItemField = (idx: number) => {
-    setItems(prev => prev.filter((_, i) => i !== idx));
-    setItemDates(prev => prev.filter((_, i) => i !== idx));
-  };
-
+  const addItemField = () => setItems(prev => [...prev, ""]);
+  const removeItemField = (idx: number) => setItems(prev => prev.filter((_, i) => i !== idx));
   const updateItem = (idx: number, val: string) => setItems(prev => prev.map((v, i) => i === idx ? val : v));
-  const updateItemDate = (idx: number, val: string | null) => setItemDates(prev => prev.map((v, i) => i === idx ? val : v));
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -451,15 +398,6 @@ function CreateChecklistDialog({ open, onClose, onCreated }: { open: boolean; on
                       </button>
                     )}
                   </div>
-                  {resetType === "unique" && (
-                    <Input
-                      type="date"
-                      value={itemDates[idx] || ""}
-                      onChange={e => updateItemDate(idx, e.target.value || null)}
-                      className="ml-6"
-                      placeholder="Data limite"
-                    />
-                  )}
                 </div>
               ))}
             </div>
@@ -487,7 +425,6 @@ function EditChecklistDialog({ checklist, onClose, onUpdated }: { checklist: Che
   const [description, setDescription] = useState(checklist.description ?? "");
   const [resetType, setResetType] = useState<"daily" | "manual" | "none" | "unique">(checklist.resetType as "daily" | "manual" | "none" | "unique");
   const [newItemText, setNewItemText] = useState("");
-  const [newItemDate, setNewItemDate] = useState<string | null>(null);
 
   const { data: permission } = trpc.atendimento.checkPermission.useQuery();
   const isAdmin = permission?.isAdmin === true;
@@ -499,7 +436,7 @@ function EditChecklistDialog({ checklist, onClose, onUpdated }: { checklist: Che
   });
 
   const addItemMutation = trpc.checklists.addItem.useMutation({
-    onSuccess: () => { utils.checklists.list.invalidate(); setNewItemText(""); setNewItemDate(null); toast("Item adicionado!"); },
+    onSuccess: () => { utils.checklists.list.invalidate(); setNewItemText(""); toast("Item adicionado!"); },
     onError: (e) => toast("Erro: " + e.message),
   });
 
@@ -555,9 +492,6 @@ function EditChecklistDialog({ checklist, onClose, onUpdated }: { checklist: Che
                   <div key={item.id} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-gray-700 block">{item.text}</span>
-                      {item.dueDate && (
-                        <span className="text-xs text-gray-500">{new Date(item.dueDate).toLocaleDateString('pt-BR')}</span>
-                      )}
                     </div>
                     <button
                       onClick={() => deleteItemMutation.mutate({ id: item.id })}
@@ -592,14 +526,6 @@ function EditChecklistDialog({ checklist, onClose, onUpdated }: { checklist: Che
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              {resetType === "unique" && (
-                <Input
-                  type="date"
-                  value={newItemDate || ""}
-                  onChange={e => setNewItemDate(e.target.value || null)}
-                  placeholder="Data limite (opcional)"
-                />
-              )}
             </div>
           </div>
         </div>

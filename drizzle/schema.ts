@@ -63,7 +63,6 @@ export const checklistItems = mysqlTable("checklist_items", {
   checklistId: int("checklistId").notNull(),
   text: varchar("text", { length: 500 }).notNull(),
   order: int("order").default(0).notNull(),
-  dueDate: varchar("dueDate", { length: 10 }), // "YYYY-MM-DD" para tipo "unique"
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -75,7 +74,7 @@ export const checklistItemHistory = mysqlTable("checklist_item_history", {
   id: int("id").autoincrement().primaryKey(),
   itemId: int("itemId").notNull(),
   previousText: varchar("previousText", { length: 500 }).notNull(),
-  previousDueDate: varchar("previousDueDate", { length: 10 }),
+
   changedBy: varchar("changedBy", { length: 320 }).notNull(), // e-mail do usuário
   changedAt: timestamp("changedAt").defaultNow().notNull(),
 });
