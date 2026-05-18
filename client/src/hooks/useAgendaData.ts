@@ -26,7 +26,7 @@ function parseDate(dateStr: string): number {
 }
 
 async function loadAgendaCache(): Promise<Map<string, AgendaEntry[]>> {
-  const response = await fetch(SHEET_URL);
+  const response = await fetch(SHEET_URL, { redirect: 'follow' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const csv = await response.text();
   const lines = csv.split('\n');
