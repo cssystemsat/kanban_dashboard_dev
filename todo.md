@@ -251,3 +251,11 @@
 - [x] Recuperar comentários anteriores do localStorage
 - [x] Restaurar tamanhos originais do gráfico e tabelas
 - [x] Testar feature e criar checkpoint
+
+## Tipo de Reset "Única" com Data Limite no Checklist
+
+- [x] Atualizar schema do banco para suportar data limite e tipo "Única"
+- [x] Adicionar campo de data limite no modal de edição de checklist
+- [x] Implementar lógica de desaparecimento ao marcar concluída
+- [x] Adicionar visualização de dias para vencer com alerta visual (vermelho quando vencida)
+- [x] Testar feature e criar checkpoint

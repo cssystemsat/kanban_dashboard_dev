@@ -33,6 +33,7 @@ type ChecklistItem = {
   checklistId: number;
   text: string;
   order: number;
+  dueDate?: string | null; // "YYYY-MM-DD"
   completed: boolean;
 };
 
@@ -45,6 +46,13 @@ type ChecklistData = {
   resetType: string;
   isOwner: boolean;
   items: ChecklistItem[];
+};
+
+const resetLabel: Record<string, string> = {
+  daily: "Reset diário (meia-noite)",
+  manual: "Reset manual",
+  none: "Sem reset",
+  unique: "Única (desaparece ao marcar)",
 };
 
 // Ferramentas disponíveis
@@ -309,6 +317,7 @@ function ChecklistCard({
     daily: "Reset diário",
     manual: "Reset manual",
     none: "Sem reset",
+    unique: "Única (desaparece ao marcar)",
   };
 
   return (
@@ -369,22 +378,47 @@ function ChecklistCard({
           {checklist.items.length === 0 ? (
             <p className="text-xs text-gray-400 py-2 text-center">Nenhum item ainda.</p>
           ) : (
-            checklist.items.map(item => (
-              <label
-                key={item.id}
-                className="flex items-center gap-3 py-1.5 px-1 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={item.completed}
-                  onChange={(e) => onToggleItem(item.id, e.target.checked)}
-                  className="w-4 h-4 rounded accent-blue-600"
-                />
-                <span className={`text-sm ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                  {item.text}
-                </span>
-              </label>
-            ))
+            checklist.items
+              .filter(item => {
+                if (checklist.resetType === 'unique' && item.completed) {
+                  return false;
+                }
+                return true;
+              })
+              .map(item => {
+                const isOverdue = item.dueDate && new Date(item.dueDate) < new Date() && !item.completed;
+                const daysRemaining = item.dueDate ? Math.ceil((new Date(item.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+                return (
+                  <div key={item.id} className="flex items-start gap-3 py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors">
+                    <label className="flex items-center gap-3 flex-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={(e) => onToggleItem(item.id, e.target.checked)}
+                        className="w-4 h-4 rounded accent-blue-600 mt-0.5 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-sm block ${item.completed ? 'line-through text-gray-400' : isOverdue ? 'text-red-600 font-medium' : 'text-gray-700'}`}>
+                          {item.text}
+                        </span>
+                        {item.dueDate && daysRemaining !== null && (
+                          <span className={`text-xs mt-0.5 block ${
+                            daysRemaining < 0 ? 'text-red-500 font-medium' :
+                            daysRemaining === 0 ? 'text-orange-500 font-medium' :
+                            daysRemaining <= 3 ? 'text-orange-400' :
+                            'text-gray-400'
+                          }`}>
+                            {daysRemaining < 0 ? `Vencido há ${Math.abs(daysRemaining)} dia${Math.abs(daysRemaining) !== 1 ? 's' : ''}` :
+                             daysRemaining === 0 ? 'Vence hoje' :
+                             `${daysRemaining} dia${daysRemaining !== 1 ? 's' : ''} para vencer`}
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                );
+              })
           )}
         </div>
       )}
@@ -396,7 +430,7 @@ function ChecklistCard({
 function CreateChecklistDialog({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [resetType, setResetType] = useState<"daily" | "manual" | "none">("daily");
+  const [resetType, setResetType] = useState<"daily" | "manual" | "none" | "unique">("daily");
   const [isAdminChecklist, setIsAdminChecklist] = useState(false);
   const [items, setItems] = useState<string[]>([""]);
 
@@ -435,13 +469,14 @@ function CreateChecklistDialog({ open, onClose, onCreated }: { open: boolean; on
             <label className="text-xs font-medium text-gray-600 mb-1 block">Tipo de reset</label>
             <select
               value={resetType}
-              onChange={e => setResetType(e.target.value as "daily" | "manual" | "none")}
+              onChange={e => setResetType(e.target.value as "daily" | "manual" | "none" | "unique")}
               className="w-full text-sm rounded-lg px-3 py-2 border outline-none"
               style={{ borderColor: '#D1D5DB', backgroundColor: '#FAFAFA' }}
             >
               <option value="daily">Reset diário (meia-noite)</option>
               <option value="manual">Reset manual</option>
               <option value="none">Sem reset</option>
+              <option value="unique">Única (desaparece ao marcar)</option>
             </select>
           </div>
           {isAdmin && (
@@ -497,7 +532,7 @@ function EditChecklistDialog({ checklist, onClose, onUpdated }: { checklist: Che
   const utils = trpc.useUtils();
   const [title, setTitle] = useState(checklist.title);
   const [description, setDescription] = useState(checklist.description ?? "");
-  const [resetType, setResetType] = useState<"daily" | "manual" | "none">(checklist.resetType as "daily" | "manual" | "none");
+  const [resetType, setResetType] = useState<"daily" | "manual" | "none" | "unique">(checklist.resetType as "daily" | "manual" | "none" | "unique");
   const [newItemText, setNewItemText] = useState("");
 
   const { data: permission } = trpc.atendimento.checkPermission.useQuery();
@@ -538,13 +573,14 @@ function EditChecklistDialog({ checklist, onClose, onUpdated }: { checklist: Che
             <label className="text-xs font-medium text-gray-600 mb-1 block">Tipo de reset</label>
             <select
               value={resetType}
-              onChange={e => setResetType(e.target.value as "daily" | "manual" | "none")}
+              onChange={e => setResetType(e.target.value as "daily" | "manual" | "none" | "unique")}
               className="w-full text-sm rounded-lg px-3 py-2 border outline-none"
               style={{ borderColor: '#D1D5DB', backgroundColor: '#FAFAFA' }}
             >
               <option value="daily">Reset diário (meia-noite)</option>
               <option value="manual">Reset manual</option>
               <option value="none">Sem reset</option>
+              <option value="unique">Única (desaparece ao marcar)</option>
             </select>
           </div>
           {isAdmin && (

@@ -192,7 +192,7 @@ export const appRouter = router({
       .input(z.object({
         title: z.string().min(1).max(255),
         description: z.string().optional(),
-        resetType: z.enum(['daily', 'manual', 'none']).default('daily'),
+        resetType: z.enum(['daily', 'manual', 'none', 'unique']).default('daily'),
         isAdminChecklist: z.boolean().default(false),
         items: z.array(z.string()).default([]),
       }))
@@ -220,7 +220,7 @@ export const appRouter = router({
         id: z.number(),
         title: z.string().min(1).max(255).optional(),
         description: z.string().optional(),
-        resetType: z.enum(['daily', 'manual', 'none']).optional(),
+        resetType: z.enum(['daily', 'manual', 'none', 'unique']).optional(),
         isAdminChecklist: z.boolean().optional(),
       }))
       .mutation(async ({ input, ctx }) => {

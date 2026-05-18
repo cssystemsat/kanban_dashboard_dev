@@ -49,7 +49,7 @@ export const checklists = mysqlTable("checklists", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   isAdminChecklist: int("isAdminChecklist").default(0).notNull(), // 1 = criado por admin, visível para todos
-  resetType: varchar("resetType", { length: 32 }).default("daily").notNull(), // "daily" | "manual" | "none"
+  resetType: varchar("resetType", { length: 32 }).default("daily").notNull(), // "daily" | "manual" | "none" | "unique"
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -63,11 +63,25 @@ export const checklistItems = mysqlTable("checklist_items", {
   checklistId: int("checklistId").notNull(),
   text: varchar("text", { length: 500 }).notNull(),
   order: int("order").default(0).notNull(),
+  dueDate: varchar("dueDate", { length: 10 }), // "YYYY-MM-DD" para tipo "unique"
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type ChecklistItem = typeof checklistItems.$inferSelect;
 export type InsertChecklistItem = typeof checklistItems.$inferInsert;
+
+// Histórico de versões de itens (para rastrear alterações)
+export const checklistItemHistory = mysqlTable("checklist_item_history", {
+  id: int("id").autoincrement().primaryKey(),
+  itemId: int("itemId").notNull(),
+  previousText: varchar("previousText", { length: 500 }).notNull(),
+  previousDueDate: varchar("previousDueDate", { length: 10 }),
+  changedBy: varchar("changedBy", { length: 320 }).notNull(), // e-mail do usuário
+  changedAt: timestamp("changedAt").defaultNow().notNull(),
+});
+
+export type ChecklistItemHistory = typeof checklistItemHistory.$inferSelect;
+export type InsertChecklistItemHistory = typeof checklistItemHistory.$inferInsert;
 
 // Completions: registro de quais itens foram marcados por qual usuário e em qual data
 export const checklistCompletions = mysqlTable("checklist_completions", {

@@ -36,6 +36,13 @@
       "when": 1778014809111,
       "tag": "0004_bright_lorna_dane",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1779122472301,
+      "tag": "0005_whole_ghost_rider",
+      "breakpoints": true
     }
   ]
 }
