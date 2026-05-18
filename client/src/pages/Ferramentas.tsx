@@ -212,6 +212,24 @@ function ChecklistCard({
   const total = checklist.items.length;
   const progress = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
+  let minDaysRemaining: number | null = null;
+  let hasOverdue = false;
+  let hasToday = false;
+
+  checklist.items.forEach(item => {
+    if (item.dueDate && !item.completed) {
+      const daysRemaining = Math.ceil((new Date(item.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      if (daysRemaining < 0) {
+        hasOverdue = true;
+      } else if (daysRemaining === 0) {
+        hasToday = true;
+      }
+      if (minDaysRemaining === null || daysRemaining < minDaysRemaining) {
+        minDaysRemaining = daysRemaining;
+      }
+    }
+  });
+
   const resetLabelMap: Record<string, string> = {
     daily: "Reset diário",
     manual: "Reset manual",
@@ -241,8 +259,18 @@ function ChecklistCard({
           )}
         </div>
 
-        {/* Progresso */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Progresso e Dias */}
+        <div className="flex items-center gap-3 shrink-0">
+          {minDaysRemaining !== null && (
+            <div className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
+              hasOverdue ? 'bg-red-100 text-red-600' :
+              hasToday ? 'bg-orange-100 text-orange-600' :
+              minDaysRemaining <= 3 ? 'bg-orange-50 text-orange-500' :
+              'bg-gray-100 text-gray-500'
+            }`}>
+              {hasOverdue ? 'Vencido' : hasToday ? 'Hoje' : `${minDaysRemaining}d`}
+            </div>
+          )}
           <span className="text-xs text-gray-500">{completedCount}/{total}</span>
           <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
