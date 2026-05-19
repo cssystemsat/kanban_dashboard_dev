@@ -4,6 +4,7 @@ import { useOngoingData, OngoingClientData } from '@/hooks/useOngoingData';
 import OngoingCard from '@/components/OngoingCard';
 import OngoingClientModal from '@/components/OngoingClientModal';
 import AtendimentoModal from '@/components/AtendimentoModal';
+import URsTrendIndicator from '@/components/URsTrendIndicator';
 import type { ClientData } from '@/hooks/useKanbanData';
 
 const FLAG_LEVELS = ['Red Flag', 'Yellow Flag', 'Black Flag'] as const;
@@ -29,6 +30,8 @@ export default function Ongoing() {
   const [deltaMaxInput, setDeltaMaxInput] = useState<string>('');
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
+  const [trendStartDate, setTrendStartDate] = useState<string>('');
+  const [trendEndDate, setTrendEndDate] = useState<string>('');
 
   // Filtrar dados
   let filteredData = flagFilter ? data.filter(client => client.flag === flagFilter) : data;
@@ -239,6 +242,26 @@ export default function Ongoing() {
                 style={{ width: '80px' }}
                 min="0"
               />
+             </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendencia De</label>
+              <input
+                type="date"
+                value={trendStartDate}
+                onChange={(e) => setTrendStartDate(e.target.value)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendencia Ate</label>
+              <input
+                type="date"
+                value={trendEndDate}
+                onChange={(e) => setTrendEndDate(e.target.value)}
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              />
             </div>
 
             <button
@@ -252,6 +275,8 @@ export default function Ongoing() {
                 setDeltaMaxInput('');
                 setTopBoleto(0);
                 setTopVolume(0);
+                setTrendStartDate('');
+                setTrendEndDate('');
               }}
               className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
             >
@@ -341,20 +366,28 @@ export default function Ongoing() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {sortedData.map((client, index) => (
-                  <div
-                    key={`${client.id}-${index}`}
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setIsModalOpen(true);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <OngoingCard
-                      client={client}
-                      onAtendimento={(c) => {
-                        setAtendimentoClient({ nome: c.nome } as ClientData);
+                  <div key={`${client.id}-${index}`} className="space-y-2">
+                    {trendStartDate && trendEndDate && (
+                      <URsTrendIndicator
+                        codigoCliente={client.codigoCliente}
+                        startDate={new Date(trendStartDate)}
+                        endDate={new Date(trendEndDate)}
+                      />
+                    )}
+                    <div
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setIsModalOpen(true);
                       }}
-                    />
+                      className="cursor-pointer"
+                    >
+                      <OngoingCard
+                        client={client}
+                        onAtendimento={(c) => {
+                          setAtendimentoClient({ nome: c.nome } as ClientData);
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
