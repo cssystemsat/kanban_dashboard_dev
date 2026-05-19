@@ -5,7 +5,6 @@ import { useEstadosData } from '@/hooks/useEstadosData';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { getLoginUrl } from '@/const';
 import BrazilMapPainel from '@/components/BrazilMapPainel';
-import URsTrendIndicator from '@/components/URsTrendIndicator';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
@@ -377,19 +376,7 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
 }
 
 /* ─── Tabela de Marcos ────────────────────────────────────────────────── */
-function TabelaMarcos({ 
-  dados, 
-  total,
-  startDate,
-  endDate,
-  clientes
-}: { 
-  dados: MarcoStats[]; 
-  total: number;
-  startDate: string;
-  endDate: string;
-  clientes: Array<{ codigoCliente: string; nome: string }>;
-}) {
+function TabelaMarcos({ dados, total }: { dados: MarcoStats[]; total: number }) {
   const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626'];
   
   return (
@@ -398,32 +385,18 @@ function TabelaMarcos({
         <h3 className="text-sm font-bold text-white tracking-wide">Marcos ≤ 90 dias</h3>
       </div>
       <div className="flex-1 flex flex-col divide-y" style={{ borderColor: '#F0F4F8' }}>
-        {dados.map((row, idx) => {
-          const clienteDoMarco = clientes.find(c => c.nome === String(row.marco));
-          return (
-            <div key={row.marco} className="flex flex-col px-4 py-3 hover:bg-blue-50/30 transition-colors"
-              style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#FAFBFC' }}>
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center justify-center font-bold text-sm w-8 h-8 rounded-full shrink-0"
-                  style={{ backgroundColor: colors[idx] + '20', color: colors[idx] }}>
-                  M{row.marco}
-                </span>
-                <span className="text-4xl font-bold tabular-nums" style={{ color: colors[idx] }}>
-                  {row.quantidade}
-                </span>
-              </div>
-              {startDate && endDate && clienteDoMarco && (
-                <div className="mt-2">
-                  <URsTrendIndicator
-                    codigoCliente={clienteDoMarco.codigoCliente}
-                    startDate={new Date(startDate)}
-                    endDate={new Date(endDate)}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {dados.map((row, idx) => (
+          <div key={row.marco} className="flex items-center justify-between px-4 py-3 hover:bg-blue-50/30 transition-colors flex-1"
+            style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#FAFBFC' }}>
+            <span className="inline-flex items-center justify-center font-bold text-sm w-8 h-8 rounded-full shrink-0"
+              style={{ backgroundColor: colors[idx] + '20', color: colors[idx] }}>
+              M{row.marco}
+            </span>
+            <span className="text-4xl font-bold tabular-nums" style={{ color: colors[idx] }}>
+              {row.quantidade}
+            </span>
+          </div>
+        ))}
       </div>
       <div className="px-4 py-2.5 border-t flex items-center justify-between shrink-0"
         style={{ borderColor: '#E0E8F0', backgroundColor: '#F1F5F9' }}>
@@ -524,6 +497,7 @@ export default function Painel() {
   const [topVolume, setTopVolume] = useState<number>(0);
   const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>('');
   const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>('');
+  const [marcosTrendClientes, setMarcosTrendClientes] = useState<Array<{ codigoCliente: string; nome: string }>>([]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMig(); }, []);
@@ -645,7 +619,7 @@ export default function Painel() {
             {/* ── Filtro de Tendência para Marcos ── */}
             <div className="bg-white rounded-xl border shadow-sm p-4 flex items-end gap-3" style={{ borderColor: '#E0E8F0' }}>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendencia Marcos De</label>
+                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendência Marcos De</label>
                 <input
                   type="date"
                   value={marcosTrendStartDate}
@@ -654,7 +628,7 @@ export default function Painel() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendencia Marcos Ate</label>
+                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendência Marcos Ate</label>
                 <input
                   type="date"
                   value={marcosTrendEndDate}
@@ -674,19 +648,13 @@ export default function Painel() {
             </div>
 
             {/* ── 4 tabelas em linha única ── */}
-            {/* Onboarding e Ongoing dividem o espaço; Marcos e Migração têm largura mínima fixa */}
+            {/* Onboarding e Ongoing dividem o espaço; Marcos e Migração tém largura mínima fixa */}
             <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr minmax(300px, 350px) minmax(200px, 240px)' }}>
               <TabelaCobertura titulo="Cobertura Semanal — Onboarding" cor="#2563EB"
                 dados={data.onboarding} total={data.totalOnboarding} />
               <TabelaCobertura titulo="Cobertura Semanal — Ongoing" cor="#7C3AED"
                 dados={data.ongoing} total={data.totalOngoing} />
-              <TabelaMarcos 
-                dados={data.clientesPorMarco} 
-                total={data.totalClientesMarco}
-                startDate={marcosTrendStartDate}
-                endDate={marcosTrendEndDate}
-                clientes={data.clientesMarcoDetalhado.map(c => ({ codigoCliente: c.nome, nome: String(c.marco) }))}
-              />
+              <TabelaMarcos dados={data.clientesPorMarco} total={data.totalClientesMarco} />
               <TabelaMigracao />
             </div>
 
