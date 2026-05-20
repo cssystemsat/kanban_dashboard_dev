@@ -4,8 +4,10 @@ import DateFilterCompact from "@/components/DateFilterCompact";
 import ClientDetailsModal from "@/components/ClientDetailsModal";
 import AtendimentoModal from "@/components/AtendimentoModal";
 import AISearchBox from "@/components/AISearchBox";
+import URsTrendIndicator from "@/components/URsTrendIndicator";
 
 import { useKanbanData, ClientData } from "@/hooks/useKanbanData";
+import { useMultipleURsTrends } from "@/hooks/useURsTrend";
 import { Flag, RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -33,6 +35,8 @@ export default function Home() {
   const [diferencaMaxInput, setDiferencaMaxInput] = useState<string>('');
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
+  const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>('');
+  const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -229,6 +233,39 @@ export default function Home() {
                   min="0"
                 />
               </div>
+
+              {/* Filtro de Tendência */}
+              <div className="flex items-end gap-1">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tend De</label>
+                  <input
+                    type="date"
+                    value={marcosTrendStartDate}
+                    onChange={(e) => setMarcosTrendStartDate(e.target.value)}
+                    className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                    style={{ width: '110px' }}
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tend Até</label>
+                  <input
+                    type="date"
+                    value={marcosTrendEndDate}
+                    onChange={(e) => setMarcosTrendEndDate(e.target.value)}
+                    className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                    style={{ width: '110px' }}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    setMarcosTrendStartDate('');
+                    setMarcosTrendEndDate('');
+                  }}
+                  className="h-7 px-2 rounded text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+                >
+                  Limpar
+                </button>
+              </div>
             </div>
 
             <Button
@@ -342,19 +379,45 @@ export default function Home() {
 
             {/* Kanban */}
             <div className="grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4 overflow-x-auto" style={{ minHeight: '600px' }}>
-              {marcos.map(marco => (
-                <KanbanColumn
-                  key={marco.id}
-                  marcoNumber={marco.id}
-                  marcoName={marco.nome}
-                  clients={marco.clientes}
-                  onClientClick={(client) => {
-                    setSelectedClient(client);
-                    setIsModalOpen(true);
-                  }}
-                  onAtendimento={(client) => setAtendimentoClient(client)}
-                />
-              ))}
+              {marcos.map(marco => {
+                // Calcular tendencia para este marco
+                const marcoClientesData = marco.clientes.map(c => ({ codigoCliente: c.codigoCliente, nome: c.nome }));
+                const { trends } = useMultipleURsTrends(marcoClientesData, marcosTrendStartDate ? new Date(marcosTrendStartDate) : null, marcosTrendEndDate ? new Date(marcosTrendEndDate) : null);
+                
+                const ascendentes = trends.filter(t => t.isAscending).length;
+                const descendentes = trends.filter(t => t.isDeclining).length;
+
+                return (
+                  <div key={marco.id} className="flex flex-col gap-2">
+                    {/* Indicador de Tendencia */}
+                    {(ascendentes > 0 || descendentes > 0) && (
+                      <div className="flex items-center gap-2 px-2 py-1 bg-white rounded border" style={{ borderColor: '#E0E8F0' }}>
+                        {ascendentes > 0 && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#D1FAE5', color: '#065F46' }}>
+                            ↑ {ascendentes}
+                          </span>
+                        )}
+                        {descendentes > 0 && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#FEE2E2', color: '#991B1B' }}>
+                            ↓ {descendentes}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <KanbanColumn
+                      key={marco.id}
+                      marcoNumber={marco.id}
+                      marcoName={marco.nome}
+                      clients={marco.clientes}
+                      onClientClick={(client) => {
+                        setSelectedClient(client);
+                        setIsModalOpen(true);
+                      }}
+                      onAtendimento={(client) => setAtendimentoClient(client)}
+                    />
+                  </div>
+                );
+              })}
             </div>
 
 

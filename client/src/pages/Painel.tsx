@@ -522,8 +522,6 @@ export default function Painel() {
   const { user, loading: authLoading } = useAuth();
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
-  const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>('');
-  const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>('');
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMig(); }, []);
@@ -559,37 +557,6 @@ export default function Painel() {
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Filtro de Tendência */}
-          <div className="flex items-end gap-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tendência De</label>
-              <input
-                type="date"
-                value={marcosTrendStartDate}
-                onChange={(e) => setMarcosTrendStartDate(e.target.value)}
-                className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tendência Até</label>
-              <input
-                type="date"
-                value={marcosTrendEndDate}
-                onChange={(e) => setMarcosTrendEndDate(e.target.value)}
-                className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-              />
-            </div>
-            <button
-              onClick={() => {
-                setMarcosTrendStartDate('');
-                setMarcosTrendEndDate('');
-              }}
-              className="h-7 px-2 rounded text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
-            >
-              Limpar
-            </button>
-          </div>
-
           <div className="text-xs text-gray-400 flex items-center gap-2">
             <span className="text-gray-500">Próx.:</span>
             <span className="font-mono text-gray-300 w-8 text-right">
@@ -683,8 +650,8 @@ export default function Painel() {
               <TabelaMarcos 
                 dados={data.clientesPorMarco} 
                 total={data.totalClientesMarco}
-                startDate={marcosTrendStartDate}
-                endDate={marcosTrendEndDate}
+                startDate=''
+                endDate=''
                 clientes={data.clientesMarcoDetalhado.map(c => ({ codigoCliente: c.nome, nome: String(c.marco) }))}
               />
               <TabelaMigracao />
