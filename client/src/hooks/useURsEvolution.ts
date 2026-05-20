@@ -25,6 +25,10 @@ export function useURsEvolution(codigoCliente?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let controller: AbortController | null = null;
+
     const fetchData = async () => {
       try {
         // Verificar cache em memória primeiro (mais rápido)
@@ -55,18 +59,18 @@ export function useURsEvolution(codigoCliente?: string) {
         }
 
         // Fetch do CSV com timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        controller = new AbortController();
+        timeoutId = setTimeout(() => controller?.abort(), 30000); // 30s timeout
 
         const response = await fetch(
           'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1250838098&output=csv',
           { 
-            signal: controller.signal,
+            signal: controller?.signal,
             cache: 'force-cache'
           }
         );
         
-        clearTimeout(timeoutId);
+        if (timeoutId) clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -129,23 +133,40 @@ export function useURsEvolution(codigoCliente?: string) {
           console.warn('localStorage full, skipping cache');
         }
 
-        if (codigoCliente) {
+        if (isMounted && codigoCliente) {
           const clientData = sortedMap.get(codigoCliente);
           setData(clientData || []);
         }
       } catch (error) {
+        // Ignorar erros de abort (componente desmontado ou timeout)
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.warn('Fetch cancelado (timeout ou desmontagem)');
+          return;
+        }
         console.error('Erro ao carregar dados de evolução de URs:', error);
-        setData([]);
+        if (isMounted) {
+          setData([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    // Cleanup: cancelar fetch se componente desmontar
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+      controller?.abort();
+    };
   }, [codigoCliente]);
 
   return { data, loading };
 }
+
 
 // Parser CSV otimizado que lida com aspas
 function parseCSVLine(line: string): string[] {
