@@ -558,7 +558,38 @@ export default function Painel() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Filtro de Tendência */}
+          <div className="flex items-end gap-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tendência De</label>
+              <input
+                type="date"
+                value={marcosTrendStartDate}
+                onChange={(e) => setMarcosTrendStartDate(e.target.value)}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Tendência Até</label>
+              <input
+                type="date"
+                value={marcosTrendEndDate}
+                onChange={(e) => setMarcosTrendEndDate(e.target.value)}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setMarcosTrendStartDate('');
+                setMarcosTrendEndDate('');
+              }}
+              className="h-7 px-2 rounded text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+            >
+              Limpar
+            </button>
+          </div>
+
           <div className="text-xs text-gray-400 flex items-center gap-2">
             <span className="text-gray-500">Próx.:</span>
             <span className="font-mono text-gray-300 w-8 text-right">
@@ -640,37 +671,6 @@ export default function Painel() {
                   <span className="text-xs text-sky-600 font-semibold">Acumulado anual</span>
                 </div>
               </div>
-            </div>
-
-            {/* ── Filtro de Tendência para Marcos ── */}
-            <div className="bg-white rounded-xl border shadow-sm p-4 flex items-end gap-3" style={{ borderColor: '#E0E8F0' }}>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendencia Marcos De</label>
-                <input
-                  type="date"
-                  value={marcosTrendStartDate}
-                  onChange={(e) => setMarcosTrendStartDate(e.target.value)}
-                  className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendencia Marcos Ate</label>
-                <input
-                  type="date"
-                  value={marcosTrendEndDate}
-                  onChange={(e) => setMarcosTrendEndDate(e.target.value)}
-                  className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                />
-              </div>
-              <button
-                onClick={() => {
-                  setMarcosTrendStartDate('');
-                  setMarcosTrendEndDate('');
-                }}
-                className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
-              >
-                Limpar
-              </button>
             </div>
 
             {/* ── 4 tabelas em linha única ── */}
