@@ -495,6 +495,9 @@ export default function Painel() {
   const { user, loading: authLoading } = useAuth();
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
+  const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>('');
+  const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>('');
+  const [marcosTrendClientes, setMarcosTrendClientes] = useState<Array<{ codigoCliente: string; nome: string }>>([]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMig(); }, []);
@@ -611,6 +614,37 @@ export default function Painel() {
                   <span className="text-xs text-sky-600 font-semibold">Acumulado anual</span>
                 </div>
               </div>
+            </div>
+
+            {/* ── Filtro de Tendência para Marcos ── */}
+            <div className="bg-white rounded-xl border shadow-sm p-4 flex items-end gap-3" style={{ borderColor: '#E0E8F0' }}>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendência Marcos De</label>
+                <input
+                  type="date"
+                  value={marcosTrendStartDate}
+                  onChange={(e) => setMarcosTrendStartDate(e.target.value)}
+                  className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Tendência Marcos Ate</label>
+                <input
+                  type="date"
+                  value={marcosTrendEndDate}
+                  onChange={(e) => setMarcosTrendEndDate(e.target.value)}
+                  className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  setMarcosTrendStartDate('');
+                  setMarcosTrendEndDate('');
+                }}
+                className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
+              >
+                Limpar
+              </button>
             </div>
 
             {/* ── 4 tabelas em linha única ── */}
