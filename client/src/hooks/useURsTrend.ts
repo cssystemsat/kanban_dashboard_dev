@@ -79,6 +79,9 @@ export function useMultipleURsTrends(
   const [trends, setTrends] = useState<URsTrendData[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Memoizar clientes para evitar recriação a cada render
+  const clientesStr = JSON.stringify(clientes);
+
   useEffect(() => {
     if (!startDate || !endDate || clientes.length === 0) {
       setTrends([]);
@@ -183,7 +186,7 @@ export function useMultipleURsTrends(
     };
 
     fetchAllTrends();
-  }, [clientes, startDate, endDate]);
+  }, [JSON.stringify(clientes), startDate?.getTime(), endDate?.getTime()]);
 
   return { trends, loading };
 }
