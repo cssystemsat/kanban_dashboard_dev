@@ -1,5 +1,6 @@
 import { ClientData } from '@/hooks/useKanbanData';
 import ClientCard from './ClientCard';
+import URsTrendIndicator from './URsTrendIndicator';
 
 interface KanbanColumnProps {
   marcoNumber: number;
@@ -7,9 +8,11 @@ interface KanbanColumnProps {
   clients: ClientData[];
   onClientClick?: (client: ClientData) => void;
   onAtendimento?: (client: ClientData) => void;
+  trendStartDate?: Date | null;
+  trendEndDate?: Date | null;
 }
 
-export default function KanbanColumn({ marcoNumber, marcoName, clients, onClientClick, onAtendimento }: KanbanColumnProps) {
+export default function KanbanColumn({ marcoNumber, marcoName, clients, onClientClick, onAtendimento, trendStartDate, trendEndDate }: KanbanColumnProps) {
   // Para a coluna 100% Implantados (marcoNumber === 6), mostrar todos os clientes com isComplete
   const columnClients = marcoNumber === 6 
     ? clients.filter(c => c.isComplete)
@@ -36,8 +39,17 @@ export default function KanbanColumn({ marcoNumber, marcoName, clients, onClient
             </div>
           ) : (
             columnClients.map(client => (
-              <div key={client.id} onClick={() => onClientClick?.(client)} className="cursor-pointer">
-                <ClientCard client={client} onAtendimento={onAtendimento} />
+              <div key={client.id} className="space-y-2">
+                {trendStartDate && trendEndDate && (
+                  <URsTrendIndicator
+                    codigoCliente={client.codigoCliente}
+                    startDate={trendStartDate}
+                    endDate={trendEndDate}
+                  />
+                )}
+                <div onClick={() => onClientClick?.(client)} className="cursor-pointer">
+                  <ClientCard client={client} onAtendimento={onAtendimento} />
+                </div>
               </div>
             ))
           )}

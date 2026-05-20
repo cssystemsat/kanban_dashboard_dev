@@ -422,6 +422,8 @@ export default function Home() {
                         setIsModalOpen(true);
                       }}
                       onAtendimento={(client) => setAtendimentoClient(client)}
+                      trendStartDate={marcosTrendStartDate ? new Date(marcosTrendStartDate) : null}
+                      trendEndDate={marcosTrendEndDate ? new Date(marcosTrendEndDate) : null}
                     />
                   </div>
                 );
