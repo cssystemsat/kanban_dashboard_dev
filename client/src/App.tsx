@@ -10,7 +10,6 @@ import Configuracoes from './pages/Configuracoes';
 import Ferramentas from './pages/Ferramentas';
 import Estatisticas from './pages/Estatisticas';
 import Painel from './pages/Painel';
-import Marcos from './pages/Marcos';
 import { Migracao } from './pages/Migracao';
 import AtendimentosPage from './pages/AtendimentosPage';
 import ChecklistPanel from './components/ChecklistPanel';
@@ -91,7 +90,7 @@ function AppInner() {
       case 'dashboard':
         return <Dashboard />;
       case 'marcos':
-        return <Marcos />;
+        return <Home />;
       case 'ongoing':
         return <Ongoing />;
       case 'churns':
