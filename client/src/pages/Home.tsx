@@ -38,6 +38,14 @@ export default function Home() {
   const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>('');
   const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>('');
 
+  // Calcular tendências para todos os clientes uma única vez
+  const allClientsForTrend = data.map(c => ({ codigoCliente: c.codigoCliente, nome: c.nome }));
+  const { trends: allTrends } = useMultipleURsTrends(
+    allClientsForTrend,
+    marcosTrendStartDate ? new Date(marcosTrendStartDate) : null,
+    marcosTrendEndDate ? new Date(marcosTrendEndDate) : null
+  );
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -380,12 +388,12 @@ export default function Home() {
             {/* Kanban */}
             <div className="grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4 overflow-x-auto" style={{ minHeight: '600px' }}>
               {marcos.map(marco => {
-                // Calcular tendencia para este marco
-                const marcoClientesData = marco.clientes.map(c => ({ codigoCliente: c.codigoCliente, nome: c.nome }));
-                const { trends } = useMultipleURsTrends(marcoClientesData, marcosTrendStartDate ? new Date(marcosTrendStartDate) : null, marcosTrendEndDate ? new Date(marcosTrendEndDate) : null);
+                // Filtrar tendências para clientes deste marco
+                const marcoClientesCodigos = new Set(marco.clientes.map(c => c.codigoCliente));
+                const marcoTrends = allTrends.filter(t => marcoClientesCodigos.has(t.codigoCliente));
                 
-                const ascendentes = trends.filter(t => t.isAscending).length;
-                const descendentes = trends.filter(t => t.isDeclining).length;
+                const ascendentes = marcoTrends.filter(t => t.isAscending).length;
+                const descendentes = marcoTrends.filter(t => t.isDeclining).length;
 
                 return (
                   <div key={marco.id} className="flex flex-col gap-2">
