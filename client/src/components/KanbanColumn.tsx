@@ -42,7 +42,7 @@ export default function KanbanColumn({ marcoNumber, marcoName, clients, onClient
               <div key={client.id} className="space-y-2">
                 {trendStartDate && trendEndDate && (
                   <URsTrendIndicator
-                    codigoCliente={client.codigoCliente}
+                    codigoCliente={client.nome}
                     startDate={trendStartDate}
                     endDate={trendEndDate}
                   />
