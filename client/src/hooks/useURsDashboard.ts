@@ -13,6 +13,7 @@ export interface ClientDelta {
   clientName: string;
   delta: number;
   deltaPercent: number;
+  changedToday?: boolean; // true se o cliente teve variação hoje
 }
 
 export interface EquipmentEntry {
@@ -132,7 +133,11 @@ export function useURsDashboard() {
       const evolutionMap = new Map<string, number>();
 
       // Dados para piores/melhores clientes (colunas AA, AD, AE)
-      const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>();
+      const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>(); 
+      
+      // Rastrear clientes que variaram hoje
+      const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+      const clientsChangedToday = new Set<string>();
 
       // Dados para equipamentos (filtrado por mês usando coluna AU)
       const cameraMap = new Map<string, number>();
@@ -169,6 +174,11 @@ export function useURsDashboard() {
           if (!isNaN(delta) && delta !== 0 && !clientDeltaSet.has(clientNameAA)) {
             clientDeltaSet.set(clientNameAA, { delta, deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent });
           }
+          
+          // Rastrear se o cliente variou hoje
+          if (dateStr === today && clientNameAA) {
+            clientsChangedToday.add(clientNameAA);
+          }
         }
 
         // --- Equipamentos (colunas AP=41, AQ=42, AU=46) ---
@@ -198,7 +208,12 @@ export function useURsDashboard() {
       // Processar piores e melhores clientes (dados já prontos das colunas AA, AD, AE)
       const allDeltas: ClientDelta[] = [];
       clientDeltaSet.forEach(({ delta, deltaPercent }, clientName) => {
-        allDeltas.push({ clientName, delta: Math.round(delta), deltaPercent });
+        allDeltas.push({ 
+          clientName, 
+          delta: Math.round(delta), 
+          deltaPercent,
+          changedToday: clientsChangedToday.has(clientName)
+        });
       });
 
       const worstClients = allDeltas

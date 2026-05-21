@@ -253,8 +253,9 @@ function WorstClientsTable({
           <tbody>
             {sorted.map((c, i) => {
               const hasComment = !!comments[c.clientName]?.current;
+              const bgClass = c.changedToday ? 'bg-red-100' : 'hover:bg-red-50/50';
               return (
-                <tr key={i} className="border-t border-gray-100 hover:bg-red-50/50 relative">
+                <tr key={i} className={`border-t border-gray-100 ${bgClass} relative`}>
                   <td className="px-2 py-0.5 relative">
                     <span 
                       className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}
@@ -345,8 +346,9 @@ function BestClientsTable({
           <tbody>
             {sorted.map((c, i) => {
               const hasComment = !!comments[c.clientName]?.current;
+              const bgClass = c.changedToday ? 'bg-green-100' : 'hover:bg-green-50/50';
               return (
-                <tr key={i} className="border-t border-gray-100 hover:bg-green-50/50 relative">
+                <tr key={i} className={`border-t border-gray-100 ${bgClass} relative`}>
                   <td className="px-2 py-0.5 relative">
                     <span 
                       className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}
