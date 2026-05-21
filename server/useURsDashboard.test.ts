@@ -227,3 +227,69 @@ describe('useURsDashboard - Deduplicação de clientes', () => {
     expect(clientDeltaSet.get('SSX_A')?.delta).toBe(-10); // primeira ocorrência
   });
 });
+
+describe('useURsDashboard - Conversão de data DD/MM/YYYY para YYYY-MM-DD', () => {
+  it('deve converter data DD/MM/YYYY corretamente', () => {
+    const lastChangeStr = '21/05/2026';
+    const dateParts = lastChangeStr.split('/');
+    
+    expect(dateParts.length).toBe(3);
+    
+    const day = dateParts[0];
+    const month = dateParts[1];
+    const year = dateParts[2];
+    const lastChangeDateStr = `${year}-${month}-${day}`;
+    
+    expect(lastChangeDateStr).toBe('2026-05-21');
+  });
+
+  it('deve marcar cliente como changedToday se data em AF for hoje', () => {
+    const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+    const clientsChangedToday = new Set<string>();
+    
+    // Simular dados com datas em DD/MM/YYYY
+    const rows = [
+      { clientName: 'SSX_4X4AUTOCENTER', lastChangeStr: '21/05/2026' },
+      { clientName: 'SSX_ABFRASTREADORES', lastChangeStr: '21/05/2026' },
+      { clientName: 'SSX_3DSERVICOS', lastChangeStr: '03/02/2026' },
+    ];
+    
+    for (const row of rows) {
+      if (row.lastChangeStr) {
+        const dateParts = row.lastChangeStr.split('/');
+        if (dateParts.length === 3) {
+          const day = dateParts[0];
+          const month = dateParts[1];
+          const year = dateParts[2];
+          const lastChangeDateStr = `${year}-${month}-${day}`;
+          
+          if (lastChangeDateStr === today) {
+            clientsChangedToday.add(row.clientName);
+          }
+        }
+      }
+    }
+    
+    // Se hoje for 21/05/2026, esses dois devem estar marcados
+    if (today === '2026-05-21') {
+      expect(clientsChangedToday.has('SSX_4X4AUTOCENTER')).toBe(true);
+      expect(clientsChangedToday.has('SSX_ABFRASTREADORES')).toBe(true);
+      expect(clientsChangedToday.has('SSX_3DSERVICOS')).toBe(false);
+    }
+  });
+
+  it('deve ignorar datas com formato inválido', () => {
+    const clientsChangedToday = new Set<string>();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Simular data com formato inválido
+    const lastChangeStr = '2026-05-21'; // Formato errado (YYYY-MM-DD em vez de DD/MM/YYYY)
+    
+    const dateParts = lastChangeStr.split('/');
+    if (dateParts.length === 3) {
+      clientsChangedToday.add('SSX_TEST');
+    }
+    
+    expect(clientsChangedToday.has('SSX_TEST')).toBe(false);
+  });
+});

@@ -147,6 +147,9 @@ export function useURsDashboard() {
         const line = lines[i].trim();
         if (!line) continue;
 
+        // Pular linha 1 (vazia) e linha 2 (cabeçalho)
+        if (i <= 2) continue;
+
         const parts = parseCSVLine(line);
 
         // --- Evolução geral (colunas X=23 e Y=24) ---
@@ -160,10 +163,11 @@ export function useURsDashboard() {
           }
         }
 
-        // --- Piores/Melhores clientes (colunas AA=26, AD=29, AE=30) ---
+        // --- Piores/Melhores clientes (colunas AA=26, AD=29, AE=30, AF=31) ---
         const clientNameAA = parts[26]?.trim() || '';
         const deltaStr = parts[29]?.trim() || '';
         const deltaPercentStr = parts[30]?.trim() || '';
+        const lastChangeStr = parts[31]?.trim() || ''; // AF - data da última variação (DD/MM/YYYY)
 
         if (clientNameAA && deltaStr) {
           const delta = parseFloat(deltaStr.replace(/\./g, '').replace(',', '.'));
@@ -175,9 +179,20 @@ export function useURsDashboard() {
             clientDeltaSet.set(clientNameAA, { delta, deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent });
           }
           
-          // Rastrear se o cliente variou hoje
-          if (dateStr === today && clientNameAA) {
-            clientsChangedToday.add(clientNameAA);
+          // Rastrear se o cliente variou hoje (verificar data em AF - DD/MM/YYYY)
+          if (lastChangeStr && clientNameAA) {
+            // Converter DD/MM/YYYY para YYYY-MM-DD
+            const dateParts = lastChangeStr.split('/');
+            if (dateParts.length === 3) {
+              const day = dateParts[0];
+              const month = dateParts[1];
+              const year = dateParts[2];
+              const lastChangeDateStr = `${year}-${month}-${day}`;
+              
+              if (lastChangeDateStr === today) {
+                clientsChangedToday.add(clientNameAA);
+              }
+            }
           }
         }
 
