@@ -149,9 +149,9 @@ export function useURsDashboard() {
 
         const parts = parseCSVLine(line);
 
-        // --- Evolução geral (colunas X=23 e Y=24) ---
-        const dateStr = parts[23]?.trim() || '';
-        const quantityStr = parts[24]?.trim() || '';
+        // --- Evolução geral (colunas B=1 e C=2) ---
+        const dateStr = parts[1]?.trim() || '';
+        const quantityStr = parts[4]?.trim() || ''; // QtdAtual
 
         if (dateStr && quantityStr) {
           const quantity = parseInt(quantityStr.replace(/\./g, '').replace(/,/g, ''), 10);
@@ -160,24 +160,30 @@ export function useURsDashboard() {
           }
         }
 
-        // --- Piores/Melhores clientes (colunas AA=26, AD=29, AE=30) ---
-        const clientNameAA = parts[26]?.trim() || '';
+        // --- Piores/Melhores clientes (colunas A=0, AH=29, AI=30) ---
+        // Nota: Col 29 tem 'delta' ou valor numérico, Col 30 tem '%delta' ou percentual
+        const clientNameA = parts[0]?.trim() || '';
         const deltaStr = parts[29]?.trim() || '';
         const deltaPercentStr = parts[30]?.trim() || '';
 
-        if (clientNameAA && deltaStr) {
+        // Pular linhas de header (onde delta = 'delta' literal)
+        if (deltaStr === 'delta' || !deltaStr) {
+          continue;
+        }
+
+        if (clientNameA && deltaStr) {
           const delta = parseFloat(deltaStr.replace(/\./g, '').replace(',', '.'));
           const deltaPercent = deltaPercentStr
             ? parseFloat(deltaPercentStr.replace(/\./g, '').replace(',', '.').replace('%', ''))
             : 0;
 
-          if (!isNaN(delta) && delta !== 0 && !clientDeltaSet.has(clientNameAA)) {
-            clientDeltaSet.set(clientNameAA, { delta, deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent });
+          if (!isNaN(delta) && delta !== 0 && !clientDeltaSet.has(clientNameA)) {
+            clientDeltaSet.set(clientNameA, { delta, deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent });
           }
           
-          // Rastrear se o cliente variou hoje
-          if (dateStr === today && clientNameAA) {
-            clientsChangedToday.add(clientNameAA);
+          // Rastrear se o cliente variou hoje (se a data é hoje e delta != 0)
+          if (dateStr === today && clientNameA && delta !== 0) {
+            clientsChangedToday.add(clientNameA);
           }
         }
 

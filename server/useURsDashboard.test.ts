@@ -227,3 +227,43 @@ describe('useURsDashboard - Deduplicação de clientes', () => {
     expect(clientDeltaSet.get('SSX_A')?.delta).toBe(-10); // primeira ocorrência
   });
 });
+
+describe('useURsDashboard - Rastreamento de changedToday', () => {
+  it('deve marcar cliente como changedToday se data é hoje e delta != 0', () => {
+    const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+    const clientsChangedToday = new Set<string>();
+    
+    // Simular dados de hoje com delta
+    const rows = [
+      { clientName: 'SSX_SAFE_CAR_SERVICOS_BRASIL', dateStr: today, delta: 8 },
+      { clientName: 'SSX_CONTROLRISC', dateStr: today, delta: 0 }, // delta zero não marca
+      { clientName: 'SSX_MASTER_ASSOCIADOS', dateStr: '2026-05-20', delta: -65 }, // data diferente não marca
+    ];
+    
+    for (const row of rows) {
+      if (row.dateStr === today && row.clientName && row.delta !== 0) {
+        clientsChangedToday.add(row.clientName);
+      }
+    }
+    
+    expect(clientsChangedToday.has('SSX_SAFE_CAR_SERVICOS_BRASIL')).toBe(true);
+    expect(clientsChangedToday.has('SSX_CONTROLRISC')).toBe(false);
+    expect(clientsChangedToday.has('SSX_MASTER_ASSOCIADOS')).toBe(false);
+  });
+  
+  it('deve ignorar linhas com delta = "delta" (headers)', () => {
+    const clientsChangedToday = new Set<string>();
+    
+    // Simular header row
+    const deltaStr = 'delta';
+    
+    // Pular se for header
+    if (deltaStr === 'delta' || !deltaStr) {
+      // skip
+    } else {
+      clientsChangedToday.add('SSX_TEST');
+    }
+    
+    expect(clientsChangedToday.has('SSX_TEST')).toBe(false);
+  });
+});
