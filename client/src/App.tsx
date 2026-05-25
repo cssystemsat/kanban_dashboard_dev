@@ -148,8 +148,6 @@ function AppInner() {
             </div>
           </div>
         );
-      case 'atendimentos':
-        return <AtendimentosPage />;
       default:
         return <Painel />;
     }
