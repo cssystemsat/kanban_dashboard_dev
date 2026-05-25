@@ -28,6 +28,11 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
   const flagColor = getFlagColor(client.flag);
   const hasFlag = !!flagColor;
 
+  // Verificar se cliente tem >60 dias e <30 placas
+  const diasCorridos = parseInt(String(client.diasCorridos || 0));
+  const urs = parseInt(String(client.urs || 0));
+  const shouldHighlightRedBorder = diasCorridos > 60 && urs < 30;
+
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (client.whatsapp) {
@@ -47,7 +52,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
     <div className="relative">
       <div
         className="bg-white rounded-lg border p-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-2 shadow-sm cursor-pointer"
-        style={{ borderColor: '#E0E8F0' }}
+        style={{ borderColor: shouldHighlightRedBorder ? '#DC2626' : '#E0E8F0', borderWidth: shouldHighlightRedBorder ? '2px' : '1px' }}
       >
         {/* Linha 1: WA + nome (sem truncate, quebra linha) */}
         <div className="flex items-start gap-2">
