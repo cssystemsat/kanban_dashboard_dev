@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, email, name, role FROM users WHERE email LIKE '%clarice%'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute SELECT id, email, name, role FROM users WHERE email LIKE '%clarice%'",
+  "rows": [
+    {
+      "id": "63",
+      "email": "clarice.pereira@systemsat.com.br",
+      "name": "Clarice Pereira",
+      "role": "user"
+    },
+    {
+      "id": "7260420",
+      "email": "austregesilo.clarice@gmail.com",
+      "name": "CLARICE AUSTREGÉSILO",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\n63\tclarice.pereira@systemsat.com.br\tClarice Pereira\tuser\n7260420\taustregesilo.clarice@gmail.com\tCLARICE AUSTREGÉSILO\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}

@@ -21,7 +21,14 @@ function AppInner() {
   const [currentPage, setCurrentPage] = useState('painel');
   const sessionIdRef = useRef<number | null>(null);
 
-  const { data: user } = trpc.auth.me.useQuery();
+  const { data: user, isLoading: authLoading, error: authError } = trpc.auth.me.useQuery();
+  
+  // Debug: log auth errors
+  useEffect(() => {
+    if (authError) {
+      console.error('[Auth] Error fetching user:', authError);
+    }
+  }, [authError]);
 
   const startSession = trpc.tracking.startSession.useMutation();
   const endSession = trpc.tracking.endSession.useMutation();
@@ -34,18 +41,23 @@ function AppInner() {
     if (!user?.email) return;
     if (sessionIdRef.current !== null) return; // já tem sessão ativa
 
+    console.log('[Session] Starting session for user:', user.email);
     startSession.mutate(
       { userAgent: navigator.userAgent },
       {
         onSuccess: (data) => {
           if (data.sessionId) {
             sessionIdRef.current = data.sessionId;
+            console.log('[Session] Session started:', data.sessionId);
             trackAction.mutate({
               actionType: 'login',
               description: `Login de ${user.name ?? user.email}`,
               sessionId: data.sessionId,
             });
           }
+        },
+        onError: (error) => {
+          console.error('[Session] Failed to start session:', error);
         },
       }
     );
@@ -66,9 +78,15 @@ function AppInner() {
   useEffect(() => {
     const handleUnload = () => {
       if (sessionIdRef.current !== null) {
-        // Usar sendBeacon para garantir que a requisição seja enviada mesmo ao fechar
-        const body = JSON.stringify({ sessionId: sessionIdRef.current });
-        navigator.sendBeacon?.('/api/trpc/tracking.endSession', body);
+        // Usar sendBeacon com formato tRPC correto
+        try {
+          const input = JSON.stringify({ sessionId: sessionIdRef.current });
+          const encodedInput = encodeURIComponent(input);
+          const url = `/api/trpc/tracking.endSession?input=${encodedInput}`;
+          navigator.sendBeacon?.(url);
+        } catch (error) {
+          console.error('[Session] Failed to end session on unload:', error);
+        }
       }
     };
     window.addEventListener('beforeunload', handleUnload);
