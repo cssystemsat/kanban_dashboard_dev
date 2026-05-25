@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE allowed_emails SET isAdmin = 1 WHERE email = 'clarice.pereira@systemsat.com.br'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute UPDATE allowed_emails SET isAdmin = 1 WHERE email = 'clarice.pereira@systemsat.com.br'",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 269
+}

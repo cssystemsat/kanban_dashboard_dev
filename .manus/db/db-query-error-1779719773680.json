@@ -1,0 +1,8 @@
+{
+  "query": "SELECT * FROM allowedEmails WHERE email = 'clarice.pereira@systemsat.com.br'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute SELECT * FROM allowedEmails WHERE email = 'clarice.pereira@systemsat.com.br'",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'm4jthxh6frtqzx9kxaa8p4.allowedEmails' doesn't exist"
+  ]
+}

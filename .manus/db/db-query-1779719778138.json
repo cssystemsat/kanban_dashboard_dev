@@ -1,0 +1,43 @@
+{
+  "query": "SHOW TABLES",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute SHOW TABLES",
+  "rows": [
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "allowed_emails"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "checklist_completions"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "checklist_item_history"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "checklist_items"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "checklists"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "client_comments"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "page_views"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "user_actions"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "user_sessions"
+    },
+    {
+      "Tables_in_m4JthXh6fRtQzx9KxAa8P4": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_m4JthXh6fRtQzx9KxAa8P4\n__drizzle_migrations\nallowed_emails\nchecklist_completions\nchecklist_item_history\nchecklist_items\nchecklists\nclient_comments\npage_views\nuser_actions\nuser_sessions\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

@@ -1,0 +1,20 @@
+{
+  "query": "SELECT * FROM allowed_emails WHERE email = 'clarice.pereira@systemsat.com.br'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute SELECT * FROM allowed_emails WHERE email = 'clarice.pereira@systemsat.com.br'",
+  "rows": [
+    {
+      "id": "120001",
+      "email": "clarice.pereira@systemsat.com.br",
+      "label": "Cla Cla",
+      "isAdmin": "0",
+      "createdAt": "2026-05-05 16:51:59",
+      "updatedAt": "2026-05-05 16:51:59",
+      "allowedPages": "NULL",
+      "canLaunch": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tlabel\tisAdmin\tcreatedAt\tupdatedAt\tallowedPages\tcanLaunch\n120001\tclarice.pereira@systemsat.com.br\tCla Cla\t0\t2026-05-05 16:51:59\t2026-05-05 16:51:59\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 302
+}

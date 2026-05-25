@@ -1,0 +1,60 @@
+{
+  "query": "SELECT * FROM allowed_emails WHERE canLaunch = 1 LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2BApd1kEQGqNmXc.c24abdef0101 --database m4JthXh6fRtQzx9KxAa8P4 --execute SELECT * FROM allowed_emails WHERE canLaunch = 1 LIMIT 5",
+  "rows": [
+    {
+      "id": "1",
+      "email": "agendamento.cs@systemsat.com.br",
+      "label": "Agendamento CS",
+      "isAdmin": "1",
+      "createdAt": "2026-03-05 19:55:05",
+      "updatedAt": "2026-03-09 22:58:12",
+      "allowedPages": "NULL",
+      "canLaunch": "1"
+    },
+    {
+      "id": "2",
+      "email": "joao.pedro@systemsat.com.br",
+      "label": "João Pedro",
+      "isAdmin": "1",
+      "createdAt": "2026-03-05 19:55:05",
+      "updatedAt": "2026-03-05 19:55:05",
+      "allowedPages": "NULL",
+      "canLaunch": "1"
+    },
+    {
+      "id": "3",
+      "email": "ivan.faria@systemsat.com.br",
+      "label": "Ivan Faria",
+      "isAdmin": "1",
+      "createdAt": "2026-03-05 20:06:48",
+      "updatedAt": "2026-03-09 22:58:00",
+      "allowedPages": "NULL",
+      "canLaunch": "1"
+    },
+    {
+      "id": "5",
+      "email": "luiz.felipe@systemsat.com.br",
+      "label": "Lewis",
+      "isAdmin": "1",
+      "createdAt": "2026-03-05 20:07:15",
+      "updatedAt": "2026-03-11 00:06:02",
+      "allowedPages": "NULL",
+      "canLaunch": "1"
+    },
+    {
+      "id": "6",
+      "email": "rafaela.agnelo@systemsat.com.br",
+      "label": "Rafa",
+      "isAdmin": "0",
+      "createdAt": "2026-03-05 20:07:29",
+      "updatedAt": "2026-03-11 00:06:05",
+      "allowedPages": "NULL",
+      "canLaunch": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tlabel\tisAdmin\tcreatedAt\tupdatedAt\tallowedPages\tcanLaunch\n1\tagendamento.cs@systemsat.com.br\tAgendamento CS\t1\t2026-03-05 19:55:05\t2026-03-09 22:58:12\tNULL\t1\n2\tjoao.pedro@systemsat.com.br\tJoão Pedro\t1\t2026-03-05 19:55:05\t2026-03-05 19:55:05\tNULL\t1\n3\tivan.faria@systemsat.com.br\tIvan Faria\t1\t2026-03-05 20:06:48\t2026-03-09 22:58:00\tNULL\t1\n5\tluiz.felipe@systemsat.com.br\tLewis\t1\t2026-03-05 20:07:15\t2026-03-11 00:06:02\tNULL\t1\n6\trafaela.agnelo@systemsat.com.br\tRafa\t0\t2026-03-05 20:07:29\t2026-03-11 00:06:05\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 320
+}
