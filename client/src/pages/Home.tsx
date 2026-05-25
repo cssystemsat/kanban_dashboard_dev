@@ -37,6 +37,7 @@ export default function Home() {
   const [topVolume, setTopVolume] = useState<number>(0);
   const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>('');
   const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>('');
+  const [filterURsPerDay, setFilterURsPerDay] = useState<boolean>(false);
 
   // Calcular tendências para todos os clientes uma única vez
   const allClientsForTrend = data.map(c => ({ codigoCliente: c.codigoCliente, nome: c.nome }));
@@ -105,6 +106,14 @@ export default function Home() {
       .map(c => c.nome);
     filteredData = filteredData.filter(c => topVolumeClientes.includes(c.nome));
   }
+  // Filtro UR's/Dia: menos de 30 UR's em 60 dias
+  if (filterURsPerDay) {
+    filteredData = filteredData.filter(client => {
+      const diasCorridos = parseInt(String(client.diasCorridos || 0));
+      const urs = parseInt(String(client.urs || 0));
+      return diasCorridos > 60 && urs < 30;
+    });
+  }
 
 
   // Contagens base (sem filtro de flag, mas com filtros de CSM e data)
@@ -131,6 +140,11 @@ export default function Home() {
 
   const clientesNoPrazo = baseDataForCounts.filter(c => c.marcoStatus === 'ok').length;
   const clientesAtrasados = baseDataForCounts.filter(c => c.marcoStatus === 'atrasado').length;
+  const clientesURsPerDay = baseDataForCounts.filter(c => {
+    const diasCorridos = parseInt(String(c.diasCorridos || 0));
+    const urs = parseInt(String(c.urs || 0));
+    return diasCorridos > 60 && urs < 30;
+  }).length;
 
   // Obter lista única de CSMs
   const csms = Array.from(new Set(data.map(c => c.atendente).filter(Boolean))).sort();
@@ -383,6 +397,23 @@ export default function Home() {
                   </button>
                 );
               })}
+
+              {/* Filtro UR's/Dia */}
+              <button
+                onClick={() => setFilterURsPerDay(!filterURsPerDay)}
+                className="flex flex-col items-center justify-center flex-1 py-3 px-2 transition-colors"
+                style={{
+                  borderRight: 'none',
+                  backgroundColor: filterURsPerDay ? '#DBEAFE' : 'transparent',
+                }}
+              >
+                <span className="text-[11px] leading-none mb-1" style={{ color: filterURsPerDay ? '#1E40AF' : '#4A5F7F' }}>
+                  UR's/Dia
+                </span>
+                <span className="text-xl font-bold leading-none" style={{ color: filterURsPerDay ? '#1E40AF' : '#4A5F7F' }}>
+                  {clientesURsPerDay}
+                </span>
+              </button>
             </div>
 
             {/* Kanban */}
