@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { X, Send, Plus, Trash2, CheckSquare, Square } from 'lucide-react';
+import { X, Send, Plus, Trash2, CheckSquare, Square, Upload } from 'lucide-react';
+import CSVImportModal from './CSVImportModal';
 
 interface Vehicle {
   id: number;
@@ -28,6 +29,19 @@ interface MigrationVehiclesModalProps {
   onVehiclesChange: (vehicles: Vehicle[]) => void;
 }
 
+interface ImportedVehicle {
+  status: 'enviar' | 'enviado' | 'aguardando' | 'comunicou';
+  clientName: string;
+  vehicleName: string;
+  model?: string;
+  vehicleId: string;
+  apn?: string;
+  apnLogin?: string;
+  apnPassword?: string;
+  command?: string;
+  lineNumber?: string;
+}
+
 const STATUS_CONFIG = {
   enviar: { label: 'Enviar', color: '#E0E8F0', textColor: '#4A5F7F' },
   enviado: { label: 'Enviado', color: '#D1FAE5', textColor: '#065F46' },
@@ -46,6 +60,7 @@ export default function MigrationVehiclesModal({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
+  const [showCSVImport, setShowCSVImport] = useState(false);
 
   if (!isOpen) return null;
 
@@ -124,9 +139,19 @@ export default function MigrationVehiclesModal({
     );
   };
 
+  const handleCSVImport = (importedVehicles: ImportedVehicle[]) => {
+    const newVehicles = importedVehicles.map((v, idx) => ({
+      ...v,
+      id: Math.max(...vehicles.map(v => v.id), 0) + idx + 1,
+      migrationId,
+    }));
+    onVehiclesChange([...vehicles, ...newVehicles]);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full h-full max-h-screen max-w-7xl flex flex-col">
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg w-full h-full max-h-screen max-w-7xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: '#E0E8F0' }}>
           <div>
@@ -147,14 +172,23 @@ export default function MigrationVehiclesModal({
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 p-4 border-b bg-gray-50" style={{ borderColor: '#E0E8F0' }}>
-          <button
-            onClick={handleAddVehicle}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: '#1D4ED8' }}
-          >
-            <Plus className="w-4 h-4" />
-            Adicionar Veículo
-          </button>
+        <button
+          onClick={handleAddVehicle}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+          style={{ backgroundColor: '#1D4ED8' }}
+        >
+          <Plus className="w-4 h-4" />
+          Adicionar Veículo
+        </button>
+
+        <button
+          onClick={() => setShowCSVImport(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+          style={{ backgroundColor: '#7C3AED' }}
+        >
+          <Upload className="w-4 h-4" />
+          Importar CSV
+        </button>
 
           {selectedIds.size > 0 && (
             <>
@@ -392,5 +426,14 @@ export default function MigrationVehiclesModal({
         </div>
       </div>
     </div>
+
+    {/* CSV Import Modal */}
+    <CSVImportModal
+      isOpen={showCSVImport}
+      onClose={() => setShowCSVImport(false)}
+      onImport={handleCSVImport}
+      migrationId={migrationId}
+    />
+    </>
   );
 }
