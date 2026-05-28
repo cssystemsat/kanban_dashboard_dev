@@ -148,3 +148,25 @@ export const clientComments = mysqlTable("client_comments", {
 
 export type ClientComment = typeof clientComments.$inferSelect;
 export type InsertClientComment = typeof clientComments.$inferInsert;
+
+// Tabela de migrações para controlar movimentações de dados
+export const migrations = mysqlTable("migrations", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: mysqlEnum("status", ["planejamento", "em_progresso", "concluido", "cancelado"]).default("planejamento").notNull(),
+  sourceSystem: varchar("sourceSystem", { length: 128 }), // Sistema de origem
+  targetSystem: varchar("targetSystem", { length: 128 }), // Sistema de destino
+  estimatedRecords: int("estimatedRecords"), // Quantidade estimada de registros
+  processedRecords: int("processedRecords").default(0), // Quantidade processada
+  owner: varchar("owner", { length: 320 }), // E-mail do responsável
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  priority: mysqlEnum("priority", ["baixa", "media", "alta"]).default("media").notNull(),
+  notes: text("notes"), // Notas adicionais
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Migration = typeof migrations.$inferSelect;
+export type InsertMigration = typeof migrations.$inferInsert;
