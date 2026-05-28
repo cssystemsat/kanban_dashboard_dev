@@ -100,10 +100,11 @@ export default function CreateMigrationModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-2xl max-h-96 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: '#E0E8F0' }}>
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: '#E0E8F0' }}>
           <h2 className="text-xl font-bold" style={{ color: '#001F3F' }}>
             Nova Migração
           </h2>
@@ -113,10 +114,10 @@ export default function CreateMigrationModal({
           >
             <X className="w-6 h-6" />
           </button>
-        </div>
+          </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-6 space-y-4">
+          {/* Content */}
+          <div className="flex-1 overflow-auto p-6 space-y-4">
           {/* Errors */}
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -277,10 +278,10 @@ export default function CreateMigrationModal({
               />
             </div>
           </div>
-        </div>
+          </div>
 
-        {/* Footer */}
-        <div className="flex gap-2 p-6 border-t" style={{ borderColor: '#E0E8F0' }}>
+          {/* Footer */}
+          <div className="flex gap-2 p-6 border-t" style={{ borderColor: '#E0E8F0' }}>
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2 rounded-lg font-semibold transition-all hover:opacity-90"
@@ -295,8 +296,9 @@ export default function CreateMigrationModal({
           >
             Criar Migração
           </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
