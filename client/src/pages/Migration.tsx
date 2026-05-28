@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, ChevronRight } from 'lucide-react';
+import MigrationVehiclesModal from '@/components/MigrationVehiclesModal';
 
 interface MigrationCard {
   id: number;
@@ -32,10 +33,31 @@ const PRIORITY_CONFIG = {
   alta: { label: 'Alta', color: '#FEE2E2' },
 };
 
+interface MigratedVehicle {
+  id: number;
+  migrationId: number;
+  status: 'enviar' | 'enviado' | 'aguardando' | 'comunicou';
+  clientName: string;
+  vehicleName: string;
+  model?: string;
+  vehicleId: string;
+  apn?: string;
+  apnLogin?: string;
+  apnPassword?: string;
+  command?: string;
+  lineNumber?: string;
+  sentAt?: Date;
+  communicatedAt?: Date;
+  notes?: string;
+}
+
 export default function Migration() {
   const [migrations, setMigrations] = useState<MigrationCard[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showVehiclesModal, setShowVehiclesModal] = useState(false);
+  const [selectedMigrationId, setSelectedMigrationId] = useState<number | null>(null);
+  const [vehiclesByMigration, setVehiclesByMigration] = useState<Record<number, MigratedVehicle[]>>({});
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
@@ -88,6 +110,41 @@ export default function Migration() {
         updatedAt: new Date(),
       },
     ]);
+
+    // Mock data de veículos
+    setVehiclesByMigration({
+      1: [
+        {
+          id: 1,
+          migrationId: 1,
+          status: 'enviar',
+          clientName: 'Cliente A',
+          vehicleName: 'Veículo 001',
+          model: 'Tracker',
+          vehicleId: 'VEH001',
+          apn: 'apn.example.com',
+          apnLogin: 'user',
+          apnPassword: 'pass123',
+          command: 'AT+COMMAND',
+          lineNumber: '11999999999',
+        },
+        {
+          id: 2,
+          migrationId: 1,
+          status: 'enviado',
+          clientName: 'Cliente B',
+          vehicleName: 'Veículo 002',
+          model: 'Tracker Pro',
+          vehicleId: 'VEH002',
+          apn: 'apn.example.com',
+          apnLogin: 'user2',
+          apnPassword: 'pass456',
+          command: 'AT+COMMAND',
+          lineNumber: '11988888888',
+        },
+      ],
+      2: [],
+    });
   }, []);
 
   const handleAddMigration = () => {
@@ -177,7 +234,7 @@ export default function Migration() {
                   cards.map(migration => (
                     <div
                       key={migration.id}
-                      className="bg-white rounded-lg border p-3 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                      className="bg-white rounded-lg border p-3 transition-all hover:shadow-md hover:-translate-y-0.5"
                       style={{ borderColor: '#E0E8F0' }}
                     >
                       {/* Title */}
@@ -245,6 +302,17 @@ export default function Migration() {
                       {/* Actions */}
                       <div className="flex gap-2">
                         <button
+                          onClick={() => {
+                            setSelectedMigrationId(migration.id);
+                            setShowVehiclesModal(true);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded text-xs font-semibold transition-all hover:opacity-90"
+                          style={{ backgroundColor: '#DBEAFE', color: '#0C4A6E' }}
+                        >
+                          <ChevronRight className="w-3 h-3" />
+                          Veículos
+                        </button>
+                        <button
                           onClick={() => setEditingId(migration.id)}
                           className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded text-xs font-semibold transition-all hover:opacity-90"
                           style={{ backgroundColor: '#E0E8F0', color: '#001F3F' }}
@@ -269,7 +337,24 @@ export default function Migration() {
         })}
       </div>
 
-      {/* Modal */}
+      {/* Vehicles Modal */}
+      {selectedMigrationId && (
+        <MigrationVehiclesModal
+          migrationId={selectedMigrationId}
+          migrationTitle={migrations.find(m => m.id === selectedMigrationId)?.title || ''}
+          isOpen={showVehiclesModal}
+          onClose={() => setShowVehiclesModal(false)}
+          vehicles={vehiclesByMigration[selectedMigrationId] || []}
+          onVehiclesChange={(vehicles) =>
+            setVehiclesByMigration(prev => ({
+              ...prev,
+              [selectedMigrationId]: vehicles,
+            }))
+          }
+        />
+      )}
+
+      {/* Migration Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
