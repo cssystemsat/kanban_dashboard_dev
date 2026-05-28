@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronRight, X } from 'lucide-react';
 import MigrationVehiclesModal from '@/components/MigrationVehiclesModal';
+import CreateMigrationModal from '@/components/CreateMigrationModal';
 
 interface MigrationCard {
   id: number;
@@ -53,6 +54,7 @@ interface MigratedVehicle {
 
 export default function Migration() {
   const [migrations, setMigrations] = useState<MigrationCard[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showVehiclesModal, setShowVehiclesModal] = useState(false);
@@ -194,7 +196,7 @@ export default function Migration() {
           <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>Gerencie todas as migrações de dados</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-white transition-all hover:opacity-90"
           style={{ backgroundColor: '#1D4ED8' }}
         >
@@ -353,6 +355,30 @@ export default function Migration() {
           }
         />
       )}
+
+      {/* Create Migration Modal */}
+      <CreateMigrationModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={(data) => {
+          const newMigration: MigrationCard = {
+            id: Math.max(...migrations.map(m => m.id), 0) + 1,
+            title: `Migração - ${data.clientName}`,
+            description: `Migração de ${data.sourceSystem} para SSX`,
+            status: 'planejamento',
+            sourceSystem: data.sourceSystem,
+            targetSystem: 'SSX',
+            estimatedRecords: 0,
+            processedRecords: 0,
+            owner: 'admin@example.com',
+            priority: 'media',
+            notes: '',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          setMigrations([...migrations, newMigration]);
+        }}
+      />
 
       {/* Migration Modal */}
       {showModal && (
