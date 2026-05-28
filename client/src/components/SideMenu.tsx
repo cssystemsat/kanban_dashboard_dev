@@ -20,7 +20,6 @@ const PROTECTED_ITEMS = [
   { id: 'ongoing', label: 'Ongoing', icon: Users },
   { id: 'churns', label: 'CHURNs', icon: TrendingDown },
   { id: 'migracao', label: 'Migracao', icon: ArrowRight },
-  { id: 'migracao2', label: 'Migração 2.0', icon: ArrowRight },
   { id: 'redflags', label: 'Red Flags', icon: AlertCircle },
   { id: 'ferramentas', label: 'Ferramentas', icon: Wrench },
 ];

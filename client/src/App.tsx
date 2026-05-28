@@ -11,7 +11,6 @@ import Ferramentas from './pages/Ferramentas';
 import Estatisticas from './pages/Estatisticas';
 import Painel from './pages/Painel';
 import { Migracao } from './pages/Migracao';
-import Migration from './pages/Migration';
 import AtendimentosPage from './pages/AtendimentosPage';
 import ChecklistPanel from './components/ChecklistPanel';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -128,12 +127,6 @@ function AppInner() {
         return (
           <div className="ml-20" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
             <Migracao />
-          </div>
-        );
-      case 'migracao2':
-        return (
-          <div className="ml-20" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
-            <Migration />
           </div>
         );
       case 'atendimentos':
