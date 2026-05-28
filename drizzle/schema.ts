@@ -170,3 +170,27 @@ export const migrations = mysqlTable("migrations", {
 
 export type Migration = typeof migrations.$inferSelect;
 export type InsertMigration = typeof migrations.$inferInsert;
+
+// Tabela de veículos migrados para cada migração
+export const migratedVehicles = mysqlTable("migrated_vehicles", {
+  id: int("id").autoincrement().primaryKey(),
+  migrationId: int("migrationId").notNull(), // FK para migrations
+  status: mysqlEnum("status", ["enviar", "enviado", "aguardando", "comunicou"]).default("enviar").notNull(),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  vehicleName: varchar("vehicleName", { length: 255 }).notNull(),
+  model: varchar("model", { length: 128 }),
+  vehicleId: varchar("vehicleId", { length: 128 }).notNull(), // ID do veículo
+  apn: varchar("apn", { length: 128 }),
+  apnLogin: varchar("apnLogin", { length: 128 }),
+  apnPassword: varchar("apnPassword", { length: 128 }),
+  command: text("command"), // Comando a ser enviado
+  lineNumber: varchar("lineNumber", { length: 64 }), // Número da linha/chip
+  sentAt: timestamp("sentAt"), // Quando foi enviado
+  communicatedAt: timestamp("communicatedAt"), // Quando comunicou
+  notes: text("notes"), // Notas adicionais
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MigratedVehicle = typeof migratedVehicles.$inferSelect;
+export type InsertMigratedVehicle = typeof migratedVehicles.$inferInsert;
