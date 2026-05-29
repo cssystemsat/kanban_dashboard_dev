@@ -1,0 +1,20 @@
+CREATE TABLE `migrated_vehicles` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`migrationId` int NOT NULL,
+	`status` enum('enviar','enviado','aguardando','comunicou') NOT NULL DEFAULT 'enviar',
+	`clientName` varchar(255) NOT NULL,
+	`vehicleName` varchar(255) NOT NULL,
+	`model` varchar(128),
+	`vehicleId` varchar(128) NOT NULL,
+	`apn` varchar(128),
+	`apnLogin` varchar(128),
+	`apnPassword` varchar(128),
+	`command` text,
+	`lineNumber` varchar(64),
+	`sentAt` timestamp,
+	`communicatedAt` timestamp,
+	`notes` text,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `migrated_vehicles_id` PRIMARY KEY(`id`)
+);
