@@ -150,8 +150,8 @@ export default function MigrationVehiclesModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white w-screen h-screen flex flex-col">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg w-full h-full max-h-screen max-w-7xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: '#E0E8F0' }}>
           <div>
