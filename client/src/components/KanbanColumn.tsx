@@ -25,9 +25,17 @@ export default function KanbanColumn({ marcoNumber, marcoName, clients, onClient
         <h2 className="font-bold text-lg" style={{ color: '#001F3F' }}>
           {marcoName || (marcoNumber === 6 ? '100% Implantados' : `Marco ${marcoNumber}`)}
         </h2>
-        <p className="text-xs mt-1" style={{ color: '#4A5F7F' }}>
-          {columnClients.length} {columnClients.length === 1 ? 'cliente' : 'clientes'}
-        </p>
+        <div className="flex gap-4 mt-1">
+          <p className="text-xs" style={{ color: '#4A5F7F' }}>
+            {columnClients.length} {columnClients.length === 1 ? 'cliente' : 'clientes'}
+          </p>
+          <p className="text-xs" style={{ color: '#4A5F7F' }}>
+            {columnClients.reduce((total, client) => {
+              const ursCount = parseInt(client.urs || '0', 10);
+              return total + (isNaN(ursCount) ? 0 : ursCount);
+            }, 0)} placas
+          </p>
+        </div>
       </div>
 
       {/* Cards dos clientes com scroll vertical */}
