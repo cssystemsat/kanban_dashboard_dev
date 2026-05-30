@@ -224,11 +224,11 @@
 
 ## Filtros Top Boleto e Top Volume na aba Marcos
 
-- [ ] Criar filtros "Top Boleto" e "Top Volume" lado a lado no topo direito
-- [ ] Implementar lógica de filtro por boleto atual (maior valor)
-- [ ] Implementar lógica de filtro por volume de placas (quantidade total)
-- [ ] Integrar filtros com a exibição dos cards de marcos
-- [ ] Testar e criar checkpoint
+- [x] Criar filtros "Top Boleto" e "Top Volume" lado a lado no topo direito
+- [x] Implementar lógica de filtro por boleto atual (maior valor)
+- [x] Implementar lógica de filtro por volume de placas (quantidade total)
+- [x] Integrar filtros com a exibição dos cards de marcos
+- [x] Testar e criar checkpoint
 
 ## Filtros Top Boleto e Top Volume
 
