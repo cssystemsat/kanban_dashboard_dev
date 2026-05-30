@@ -94,3 +94,85 @@ export async function appendAtendimento(data: {
 
   return { row: nextRow, sheetName };
 }
+
+/**
+ * Atualiza uma migração na aba Migração (gid=146618493).
+ * Busca a linha pela empresa e dataInicio, depois atualiza as colunas L, P, T.
+ * Colunas: L=levantamentoDados, P=envioDados, T=situacao
+ */
+export async function updateMigracao(data: {
+  empresa: string;
+  dataInicio: string;
+  levantamentoDados?: string;
+  envioDados?: string;
+  situacao?: string;
+}): Promise<{ success: boolean; row?: number; sheetName: string }> {
+  const MIGRACAO_GID = 146618493;
+
+  const sheetName = await getSheetNameByGid(MIGRACAO_GID);
+  if (!sheetName) {
+    throw new Error(`Aba com gid=${MIGRACAO_GID} não encontrada na planilha.`);
+  }
+
+  // Buscar todas as linhas para encontrar a migração
+  const sheets = getSheetsClient();
+  const result = await sheets.spreadsheets.values.get({
+    spreadsheetId: ENV.googleSheetsSpreadsheetId,
+    range: `${sheetName}!A:T`, // Colunas até T
+  });
+
+  const values = result.data.values ?? [];
+  let targetRow = -1;
+
+  // Procurar pela empresa (coluna B, índice 1) e dataInicio (coluna D, índice 3)
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    if (row[1] === data.empresa && row[3] === data.dataInicio) {
+      targetRow = i + 1; // Sheets usa 1-indexed
+      break;
+    }
+  }
+
+  if (targetRow === -1) {
+    throw new Error(`Migração não encontrada: ${data.empresa} (${data.dataInicio})`);
+  }
+
+  // Preparar updates para as colunas L, P, T
+  const updates = [];
+
+  if (data.levantamentoDados !== undefined) {
+    updates.push({
+      range: `${sheetName}!L${targetRow}`,
+      values: [[data.levantamentoDados]],
+    });
+  }
+
+  if (data.envioDados !== undefined) {
+    updates.push({
+      range: `${sheetName}!P${targetRow}`,
+      values: [[data.envioDados]],
+    });
+  }
+
+  if (data.situacao !== undefined) {
+    updates.push({
+      range: `${sheetName}!T${targetRow}`,
+      values: [[data.situacao]],
+    });
+  }
+
+  if (updates.length === 0) {
+    return { success: true, row: targetRow, sheetName };
+  }
+
+  // Executar batch update
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: ENV.googleSheetsSpreadsheetId,
+    requestBody: {
+      data: updates,
+      valueInputOption: "USER_ENTERED",
+    },
+  });
+
+  return { success: true, row: targetRow, sheetName };
+}

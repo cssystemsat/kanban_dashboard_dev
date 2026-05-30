@@ -3,7 +3,8 @@ import { useMigracaoListData, MigracaoCard } from '@/hooks/useMigracaoListData';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, X, RefreshCw, Search } from 'lucide-react';
+import { Loader2, X, RefreshCw } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 type FilterType = 'atendente' | 'plataforma' | 'tempo' | 'cliente';
 
@@ -19,6 +20,7 @@ export function Migracao() {
   });
   const [selectedCard, setSelectedCard] = useState<MigracaoCard | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const updateMigracaoMutation = trpc.migracao.atualizar.useMutation();
 
   useEffect(() => {
     fetchData();
@@ -238,6 +240,17 @@ export function Migracao() {
                     key={migr.id}
                     migr={migr}
                     onClick={() => setSelectedCard(migr)}
+                    onUpdate={(updates) => {
+                      updateMigracaoMutation.mutate({
+                        empresa: migr.empresa,
+                        dataInicio: migr.dataInicio,
+                        ...updates,
+                      }, {
+                        onSuccess: () => {
+                          fetchData();
+                        },
+                      });
+                    }}
                   />
                 ))}
               </div>
@@ -343,9 +356,34 @@ export function Migracao() {
 interface MigracaoCardCompactComponentProps {
   migr: MigracaoCard;
   onClick: () => void;
+  onUpdate: (updates: { levantamentoDados?: string; envioDados?: string; situacao?: string }) => void;
 }
 
-function MigracaoCardCompactComponent({ migr, onClick }: MigracaoCardCompactComponentProps) {
+function MigracaoCardCompactComponent({ migr, onClick, onUpdate }: MigracaoCardCompactComponentProps) {
+  const [showDropdowns, setShowDropdowns] = useState(false);
+  const [localL, setLocalL] = useState(migr.levantamentoDados || '');
+  const [localP, setLocalP] = useState(migr.envioDados || '');
+  const [localT, setLocalT] = useState(migr.situacao || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Opções predefinidas para L (Levantamento)
+  const levantamentoOptions = [
+    'Não iniciou',
+    'Sendo organizados',
+    'Parcialmente importados',
+    'Totalmente importados',
+    'Cliente vai enviar',
+  ];
+
+  // Opções predefinidas para P (Envio)
+  const envioOptions = [
+    'Fazendo por demanda',
+    'Fazendo por clientes',
+    'Reenvio e conferencia',
+    'Solicitou tudo',
+  ];
+
   const getTypeColor = (tipo: string) => {
     if (tipo.toLowerCase().includes('ongoing')) return 'bg-blue-50 border-blue-200';
     if (tipo.toLowerCase().includes('onboarding')) return 'bg-purple-50 border-purple-200';
@@ -360,17 +398,42 @@ function MigracaoCardCompactComponent({ migr, onClick }: MigracaoCardCompactComp
   };
 
   const getStatusInfo = () => {
-    // Retorna o status baseado na etapa
     if (!migr.levantamentoDados || migr.levantamentoDados.trim() === '') {
-      return null; // Não iniciado
+      return null;
     }
     if (migr.levantamentoDados && (!migr.envioDados || migr.envioDados.trim() === '')) {
-      return migr.levantamentoDados; // Levantamento
+      return migr.levantamentoDados;
     }
     if (migr.envioDados && migr.envioDados.trim() !== '') {
-      return migr.envioDados; // Envio de Comandos
+      return migr.envioDados;
     }
     return null;
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveStatus('idle');
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simular delay de API
+      
+      onUpdate({
+        levantamentoDados: localL,
+        envioDados: localP,
+        situacao: localT,
+      });
+      
+      setSaveStatus('success');
+      setTimeout(() => {
+        setShowDropdowns(false);
+        setSaveStatus('idle');
+      }, 1000);
+    } catch (error) {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -416,6 +479,108 @@ function MigracaoCardCompactComponent({ migr, onClick }: MigracaoCardCompactComp
         <div className="text-xs text-gray-600 text-center leading-tight">
           {migr.migrados}/{migr.total}
         </div>
+
+        {/* Menus Suspensos para Edição */}
+        {showDropdowns && (
+          <div className="border-t pt-2 mt-2 space-y-2" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-600">L - Levantamento</label>
+              <select
+                value={localL}
+                onChange={(e) => setLocalL(e.target.value)}
+                className="h-6 px-1.5 rounded text-xs bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              >
+                <option value="">Selecione...</option>
+                {levantamentoOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-600">P - Envio</label>
+              <select
+                value={localP}
+                onChange={(e) => setLocalP(e.target.value)}
+                className="h-6 px-1.5 rounded text-xs bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              >
+                <option value="">Selecione...</option>
+                {envioOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-600">T - Situação</label>
+              <select
+                value={localT}
+                onChange={(e) => setLocalT(e.target.value)}
+                className="h-6 px-1.5 rounded text-xs bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              >
+                <option value="">Selecione...</option>
+                <option value="Cancelado">Cancelado</option>
+                <option value="Paralisado">Paralisado</option>
+                <option value="Finalizada">Finalizada</option>
+              </select>
+            </div>
+
+            {/* Feedback de Status */}
+            {saveStatus !== 'idle' && (
+              <div className={`text-center text-xs font-semibold py-1 rounded ${
+                saveStatus === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {saveStatus === 'success' ? '✓ Salvo com sucesso!' : '✗ Erro ao salvar'}
+              </div>
+            )}
+
+            <div className="flex gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSave();
+                }}
+                disabled={isSaving}
+                className={`flex-1 h-6 rounded text-xs font-semibold transition-colors ${
+                  isSaving 
+                    ? 'bg-blue-300 text-white cursor-not-allowed' 
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                {isSaving ? 'Salvando...' : 'Salvar'}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDropdowns(false);
+                  setLocalL(migr.levantamentoDados || '');
+                  setLocalP(migr.envioDados || '');
+                  setLocalT(migr.situacao || '');
+                  setSaveStatus('idle');
+                }}
+                disabled={isSaving}
+                className={`flex-1 h-6 rounded text-xs font-semibold transition-colors ${
+                  isSaving
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                }`}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Botão para mostrar/ocultar menus */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowDropdowns(!showDropdowns);
+          }}
+          className="w-full h-6 rounded text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mt-1"
+        >
+          {showDropdowns ? 'Ocultar' : 'Editar'}
+        </button>
       </div>
     </Card>
   );

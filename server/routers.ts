@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
-import { appendAtendimento } from "./googleSheets";
+import { appendAtendimento, updateMigracao } from "./googleSheets";
 import {
   getAllowedEmails,
   isEmailAllowed,
@@ -60,6 +60,32 @@ export const appRouter = router({
         });
         const content = response.choices?.[0]?.message?.content;
         return typeof content === "string" ? content : "Não foi possível processar a resposta.";
+      }),
+  }),
+  migracao: router({
+    atualizar: publicProcedure
+      .input(
+        z.object({
+          empresa: z.string(),
+          dataInicio: z.string(),
+          levantamentoDados: z.string().optional(),
+          envioDados: z.string().optional(),
+          situacao: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        // Verificar se o usuário está autenticado
+        if (!ctx.user || !ctx.user.email) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado para atualizar migrações.' });
+        }
+        const result = await updateMigracao({
+          empresa: input.empresa,
+          dataInicio: input.dataInicio,
+          levantamentoDados: input.levantamentoDados,
+          envioDados: input.envioDados,
+          situacao: input.situacao,
+        });
+        return { success: result.success, row: result.row, sheetName: result.sheetName };
       }),
   }),
   atendimento: router({
