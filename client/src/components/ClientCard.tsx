@@ -54,33 +54,10 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
         className="bg-white rounded-lg border p-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-1 shadow-sm cursor-pointer"
         style={{ borderColor: shouldHighlightRedBorder ? '#DC2626' : '#E0E8F0', borderWidth: shouldHighlightRedBorder ? '2px' : '1px' }}
       >
-        {/* Linha 1: WA + nome (sem truncate, quebra linha) */}
+        {/* Linha 1: nome (sem truncate, quebra linha) */}
         <div className="flex items-start gap-1">
-          {/* Ícone WhatsApp */}
-          {client.whatsappGrupo ? (
-            <button
-              onClick={handleWhatsAppGrupo}
-              className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all hover:opacity-80 hover:scale-110 mt-0.5"
-              style={{ backgroundColor: '#25D366' }}
-              title="Abrir grupo do WhatsApp"
-            >
-              <MessageCircle className="w-3 h-3 text-white" />
-            </button>
-          ) : client.whatsapp ? (
-            <button
-              onClick={handleWhatsApp}
-              className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all hover:opacity-80 hover:scale-110 mt-0.5"
-              style={{ backgroundColor: '#25D366' }}
-              title="Enviar WhatsApp"
-            >
-              <MessageCircle className="w-3 h-3 text-white" />
-            </button>
-          ) : (
-            <div className="flex-shrink-0 w-5 h-5 mt-0.5" />
-          )}
-
-          {/* Nome — quebra linha, não trunca */}
-          <h3 className="font-bold text-xs leading-snug flex-1" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
+          {/* Nome — quebra linha, não trunca, alinhado à esquerda */}
+          <h3 className="font-bold text-xs leading-snug flex-1 text-left" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
             {client.nome}
           </h3>
 
@@ -215,6 +192,27 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
 
         {/* Botões de Ação */}
         <div className="flex items-center gap-1.5 mt-1">
+          {/* Botão WhatsApp */}
+          {client.whatsappGrupo ? (
+            <button
+              onClick={handleWhatsAppGrupo}
+              className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
+              style={{ backgroundColor: '#25D366', color: '#FFFFFF' }}
+              title="Abrir grupo do WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </button>
+          ) : client.whatsapp ? (
+            <button
+              onClick={handleWhatsApp}
+              className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
+              style={{ backgroundColor: '#25D366', color: '#FFFFFF' }}
+              title="Enviar WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </button>
+          ) : null}
+          
           {/* Botão Atendimento */}
           <button
             onClick={(e) => {
