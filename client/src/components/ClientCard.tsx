@@ -174,11 +174,9 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
             </span>
           </div>
         )}
-
         {/* Informações de Boleto */}
         {(client.ultimoBoleto || client.consumo || client.deltaConsumo) && (
-          <div className="flex flex-col gap-1 text-xs">
-            {client.ultimoBoleto && (
+          <div className="flex flex-col gap-0 text-xs">            {client.ultimoBoleto && (
               <div className="flex items-center gap-2">
                 <DollarSign className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
                 <span style={{ color: '#4A5F7F' }}>
