@@ -145,7 +145,7 @@
 - [x] Criar página AtendimentosPage.tsx como aba separada
 - [x] Adicionar rota e ícone (Phone) no SideMenu
 - [x] Adicionar botão de atualizar dados
-- [ ] Corrigir formato de tempo na planilha para sempre ser em minutos (números apenas)
+- [x] Corrigir formato de tempo na planilha para sempre ser em minutos (números apenas)
 - [x] Corrigir formato de tempo em AtendimentoModal para ser sempre em minutos (números apenas)
 - [x] Criar tabela interativa de atendimentos com hover detalhado
 - [x] Adicionar filtros na aba Atendimentos (cliente, origem, tipo, assunto, atendente)

@@ -118,6 +118,27 @@ export const appRouter = router({
           month: "2-digit",
           year: "numeric",
         });
+        
+        // Normalizar duração para apenas números (minutos)
+        const normalizarDuracao = (duracao: string): string => {
+          const lower = duracao.toLowerCase().trim();
+          
+          // Verificar se é em horas
+          const horasMatch = lower.match(/(\d+)\s*(horas?|h)/);
+          if (horasMatch) {
+            const horas = parseInt(horasMatch[1], 10);
+            return (horas * 60).toString();
+          }
+          
+          // Verificar se é em minutos
+          const minutosMatch = lower.match(/(\d+)\s*(minutos?|min)?/);
+          if (minutosMatch) {
+            return minutosMatch[1];
+          }
+          
+          return '0';
+        };
+        
         const result = await appendAtendimento({
           data: dataFormatada,
           cliente: input.cliente,
@@ -125,7 +146,7 @@ export const appRouter = router({
           situacao: input.situacao,
           razao: input.razao,
           resumo: input.resumo,
-          duracao: input.duracao,
+          duracao: normalizarDuracao(input.duracao),
           usuario: ctx.user.name ?? ctx.user.email,
         });
         return { success: true, row: result.row, sheetName: result.sheetName };
