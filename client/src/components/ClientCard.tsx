@@ -51,13 +51,13 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
   return (
     <div className="relative">
       <div
-        className="bg-white rounded-lg border p-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-1 shadow-sm cursor-pointer"
+        className="bg-white rounded-lg border p-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-0.5 shadow-sm cursor-pointer"
         style={{ borderColor: shouldHighlightRedBorder ? '#DC2626' : '#E0E8F0', borderWidth: shouldHighlightRedBorder ? '2px' : '1px' }}
       >
         {/* Linha 1: nome (sem truncate, quebra linha) */}
-        <div className="flex items-start gap-1">
+        <div className="flex items-start gap-1 leading-tight">
           {/* Nome — quebra linha, não trunca, alinhado à esquerda */}
-          <h3 className="font-bold text-xs leading-snug flex-1 text-left" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
+          <h3 className="font-bold text-xs leading-tight flex-1 text-left" style={{ color: '#001F3F', wordBreak: 'break-word' }}>
             {client.nome}
           </h3>
 
@@ -80,8 +80,8 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
           )}
         </div>
 
-          {/* Linha 2: bandeira + nome da flag + No prazo/Atrasado */}
-        <div className="flex items-center gap-0.5 flex-wrap">
+        {/* Bandeira + nome da flag + No prazo/Atrasado */}
+        <div className="flex items-center gap-0.5 flex-wrap leading-tight">
           {/* Estrela — só se houver flag */}
           {hasFlag && client.estrela && (
             <span title="Destaque">
@@ -112,7 +112,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
         </div>
 
         {/* Entrada com dias corridos */}
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs leading-tight">
           <Calendar className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
           <span style={{ color: '#4A5F7F' }}>
             <span className="font-600" style={{ color: '#001F3F' }}>{client.entrada}</span>
@@ -122,13 +122,13 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
 
         {/* Cidade/Estado */}
         {(client.cidade || client.estado) && (
-          <div className="text-xs" style={{ color: '#9CA3AF' }}>
+          <div className="text-xs leading-tight" style={{ color: '#9CA3AF' }}>
             {client.cidade}{client.cidade && client.estado ? '/' : ''}{client.estado}
           </div>
         )}
 
         {/* Quantidade de placas + % Desatualizado na mesma linha */}
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs leading-tight">
           <Truck className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
           <span className="font-600" style={{ color: '#001F3F' }}>{client.urs}</span>
           <span style={{ color: '#9CA3AF' }}>|</span>
@@ -143,7 +143,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
 
         {/* Último contato em dias */}
         {client.diasUltimoContato !== undefined && client.diasUltimoContato >= 0 && (
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs leading-tight">
             <Calendar className="w-3 h-3 flex-shrink-0" style={{ color: '#4A5F7F' }} />
             <span style={{ color: '#4A5F7F' }}>
               <span className="font-600" style={{ color: '#001F3F' }}>{client.diasUltimoContato}d</span>
@@ -153,8 +153,8 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
         )}
         {/* Informações de Boleto */}
         {(client.ultimoBoleto || client.consumo || client.deltaConsumo) && (
-          <div className="flex flex-col gap-0 text-xs">            {client.ultimoBoleto && (
-              <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-0 text-xs leading-tight">            {client.ultimoBoleto && (
+              <div className="flex items-center gap-2 leading-tight">
                 <DollarSign className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
                 <span style={{ color: '#4A5F7F' }}>
                   <span className="font-600" style={{ color: '#001F3F' }}>Boleto:</span>
@@ -163,7 +163,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
               </div>
             )}
             {client.consumo && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 leading-tight">
                 <DollarSign className="w-3 h-3 flex-shrink-0" style={{ color: '#00DD00' }} />
                 <span style={{ color: '#4A5F7F' }}>
                   <span className="font-600" style={{ color: '#001F3F' }}>Consumo:</span>
@@ -172,7 +172,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
               </div>
             )}
             {client.deltaConsumo && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 leading-tight">
                 <DollarSign
                   className="w-3 h-3 flex-shrink-0"
                   style={{ color: client.deltaConsumo.startsWith('-') ? '#EF4444' : '#10B981' }}
@@ -191,7 +191,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
 
 
         {/* Botões de Ação */}
-        <div className="flex items-center gap-1.5 mt-1">
+        <div className="flex items-center gap-1.5 mt-0.5">
           {/* Botão WhatsApp */}
           {client.whatsappGrupo ? (
             <button
