@@ -1,5 +1,5 @@
 import { ClientData } from '@/hooks/useKanbanData';
-import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X, Headphones, Star } from 'lucide-react';
+import { Calendar, Truck, AlertCircle, DollarSign, Flag, User, Briefcase, Heart, MessageCircle, TrendingUp, TrendingDown, X, Headphones, Star, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import { useAgendaData, isAgendaOutdated, getDaysSinceUpdate } from '@/hooks/useAgendaData';
 
@@ -51,7 +51,7 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
   return (
     <div className="relative">
       <div
-        className="bg-white rounded-lg border p-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-2 shadow-sm cursor-pointer"
+        className="bg-white rounded-lg border p-2.5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex flex-col gap-1.5 shadow-sm cursor-pointer"
         style={{ borderColor: shouldHighlightRedBorder ? '#DC2626' : '#E0E8F0', borderWidth: shouldHighlightRedBorder ? '2px' : '1px' }}
       >
         {/* Linha 1: WA + nome (sem truncate, quebra linha) */}
@@ -229,19 +229,34 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
 
 
 
-        {/* Botão Atendimento */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onAtendimento?.(client);
-          }}
-          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-semibold transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
-          style={{ backgroundColor: '#1D4ED8', color: '#FFFFFF' }}
-          title="Registrar atendimento"
-        >
-          <Headphones className="w-3 h-3" />
-          Atendimento
-        </button>
+        {/* Botões de Ação */}
+        <div className="flex items-center gap-1.5 mt-1">
+          {/* Botão Atendimento */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAtendimento?.(client);
+            }}
+            className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
+            style={{ backgroundColor: '#1D4ED8', color: '#FFFFFF' }}
+            title="Registrar atendimento"
+          >
+            <Headphones className="w-4 h-4" />
+          </button>
+          
+          {/* Botão Dashboard */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // Ação do dashboard será implementada depois
+            }}
+            className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
+            style={{ backgroundColor: '#6B7280', color: '#FFFFFF' }}
+            title="Dashboard"
+          >
+            <BarChart3 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Tooltip desabilitado */}
