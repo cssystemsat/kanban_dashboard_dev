@@ -155,6 +155,23 @@ function AppInner() {
             </div>
           </div>
         );
+      case 'apppersonalizado':
+        return (
+          <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold" style={{ color: '#001F3F' }}>App Personalizado</h1>
+                <p className="text-gray-600 mt-2">Página do App Personalizado (em construção)</p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors"
+              >
+                Atualizar
+              </button>
+            </div>
+          </div>
+        );
       default:
         return <Painel />;
     }
