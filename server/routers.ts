@@ -37,6 +37,13 @@ import {
   getClientComments,
   upsertClientComment,
   deleteClientComment,
+  getAppKanbanCards,
+  getAppKanbanCardsByStage,
+  createAppKanbanCard,
+  updateAppKanbanCard,
+  deleteAppKanbanCard,
+  moveAppKanbanCard,
+  getAppKanbanHistory,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 
@@ -433,6 +440,64 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return deleteClientComment(input.clientName, input.monthYear);
+      }),
+  }),
+  appKanban: router({
+    list: protectedProcedure.query(async () => {
+      return getAppKanbanCards();
+    }),
+    listByStage: protectedProcedure
+      .input(z.object({ stage: z.string() }))
+      .query(async ({ input }) => {
+        return getAppKanbanCardsByStage(input.stage);
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        companyName: z.string(),
+        csm: z.string(),
+        startDate: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas admin pode criar cards' });
+        }
+        const cardId = await createAppKanbanCard({
+          companyName: input.companyName,
+          csm: input.csm,
+          startDate: new Date(input.startDate),
+          stage: 'venda_feita',
+          order: 0,
+          createdBy: ctx.user.email || 'unknown',
+        });
+        return { id: cardId, ...input, stage: 'venda_feita' };
+      }),
+    move: protectedProcedure
+      .input(z.object({
+        cardId: z.number(),
+        fromStage: z.string(),
+        toStage: z.string(),
+        newOrder: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas admin pode mover cards' });
+        }
+        await moveAppKanbanCard(input.cardId, input.fromStage, input.toStage, ctx.user.email || 'unknown', input.newOrder);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ cardId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas admin pode deletar cards' });
+        }
+        await deleteAppKanbanCard(input.cardId);
+        return { success: true };
+      }),
+    history: protectedProcedure
+      .input(z.object({ cardId: z.number() }))
+      .query(async ({ input }) => {
+        return getAppKanbanHistory(input.cardId);
       }),
   }),
   auth: router({

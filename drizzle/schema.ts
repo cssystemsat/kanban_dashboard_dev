@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -194,3 +194,40 @@ export const migratedVehicles = mysqlTable("migrated_vehicles", {
 
 export type MigratedVehicle = typeof migratedVehicles.$inferSelect;
 export type InsertMigratedVehicle = typeof migratedVehicles.$inferInsert;
+
+// Tabela de empresas no Kanban de App Personalizado
+export const appKanbanCards = mysqlTable("app_kanban_cards", {
+  id: int("id").autoincrement().primaryKey(),
+  companyName: varchar("companyName", { length: 255 }).notNull(),
+  csm: varchar("csm", { length: 255 }).notNull(),
+  startDate: date("startDate").notNull(),
+  stage: mysqlEnum("stage", [
+    "venda_feita",
+    "formulario",
+    "revisao_dados",
+    "desenvolvimento",
+    "envio_lojas",
+    "teste_liberacao",
+    "app_entregue"
+  ]).default("venda_feita").notNull(),
+  order: int("order").default(0).notNull(), // Para ordenação dentro de cada etapa
+  createdBy: varchar("createdBy", { length: 320 }).notNull(), // E-mail do admin que criou
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AppKanbanCard = typeof appKanbanCards.$inferSelect;
+export type InsertAppKanbanCard = typeof appKanbanCards.$inferInsert;
+
+// Tabela de histórico de movimentações de cards
+export const appKanbanHistory = mysqlTable("app_kanban_history", {
+  id: int("id").autoincrement().primaryKey(),
+  cardId: int("cardId").notNull(), // FK para app_kanban_cards
+  fromStage: varchar("fromStage", { length: 64 }).notNull(),
+  toStage: varchar("toStage", { length: 64 }).notNull(),
+  movedBy: varchar("movedBy", { length: 320 }).notNull(), // E-mail do usuário
+  movedAt: timestamp("movedAt").defaultNow().notNull(),
+});
+
+export type AppKanbanHistory = typeof appKanbanHistory.$inferSelect;
+export type InsertAppKanbanHistory = typeof appKanbanHistory.$inferInsert;

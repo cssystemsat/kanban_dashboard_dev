@@ -7,6 +7,8 @@ import {
   userSessions, pageViews, userActions,
   InsertUserSession, InsertPageView, InsertUserAction,
   clientComments, InsertClientComment,
+  appKanbanCards, appKanbanHistory,
+  InsertAppKanbanCard, InsertAppKanbanHistory,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -432,4 +434,76 @@ export async function deleteClientComment(clientName: string, monthYear: string)
     )
   );
   return true;
+}
+
+
+// ─── App Kanban Cards ───
+
+export async function getAppKanbanCards() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(appKanbanCards).orderBy(appKanbanCards.stage, appKanbanCards.order);
+}
+
+export async function getAppKanbanCardsByStage(stage: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(appKanbanCards).where(eq(appKanbanCards.stage, stage)).orderBy(appKanbanCards.order);
+}
+
+export async function createAppKanbanCard(data: InsertAppKanbanCard) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  
+  const cardData = {
+    ...data,
+    stage: 'venda_feita' as const,
+    order: 0,
+    createdBy: 'system',
+  };
+  
+  const result = await db.insert(appKanbanCards).values(cardData);
+  const cardId = result[0].insertId;
+  
+  // Retornar o card criado
+  const cards = await db.select().from(appKanbanCards).where(eq(appKanbanCards.id, cardId));
+  return cards[0];
+}
+
+export async function updateAppKanbanCard(id: number, data: Partial<InsertAppKanbanCard>) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  await db.update(appKanbanCards).set(data).where(eq(appKanbanCards.id, id));
+}
+
+export async function deleteAppKanbanCard(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  // Deletar histórico primeiro
+  await db.delete(appKanbanHistory).where(eq(appKanbanHistory.cardId, id));
+  await db.delete(appKanbanCards).where(eq(appKanbanCards.id, id));
+}
+
+export async function moveAppKanbanCard(cardId: number, fromStage: string, toStage: string, movedBy: string, newOrder: number) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  
+  // Atualizar card
+  const validStages = ['venda_feita', 'formulario', 'revisao_dados', 'desenvolvimento', 'envio_lojas', 'teste_liberacao', 'app_entregue'];
+  const stage = validStages.includes(toStage) ? (toStage as any) : 'venda_feita';
+  await db.update(appKanbanCards).set({ stage, order: newOrder }).where(eq(appKanbanCards.id, cardId));
+  
+  // Registrar no histórico
+  await db.insert(appKanbanHistory).values({
+    cardId,
+    fromStage,
+    toStage,
+    movedBy,
+  });
+}
+
+export async function getAppKanbanHistory(cardId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(appKanbanHistory).where(eq(appKanbanHistory.cardId, cardId)).orderBy(desc(appKanbanHistory.movedAt));
 }
