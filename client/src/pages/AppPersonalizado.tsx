@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Info, Plus, Trash2 } from 'lucide-react';
+import { Info, Plus, Trash2, Database } from 'lucide-react';
 
 const STAGES = [
   { id: 'venda_feita', label: 'Venda feita' },
@@ -48,8 +48,10 @@ export default function AppPersonalizado() {
   const [draggedCard, setDraggedCard] = useState<KanbanCard | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showDataModal, setShowDataModal] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [selectedCardName, setSelectedCardName] = useState('');
+  const [selectedCardData, setSelectedCardData] = useState<KanbanCard | null>(null);
   const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
   const [formData, setFormData] = useState({ companyName: '', csm: '', startDate: '' });
 
@@ -217,8 +219,8 @@ export default function AppPersonalizado() {
       </div>
 
       {/* Kanban Board - Todas as colunas visíveis */}
-      <div className="flex-1 px-3 pb-4" style={{ overflow: 'hidden' }}>
-        <div className="flex gap-1.5 h-full" style={{ minHeight: 'calc(100vh - 80px)', width: '100%' }}>
+      <div className="flex-1 px-3 pb-4 overflow-hidden">
+        <div className="flex gap-1.5" style={{ height: 'calc(100vh - 80px)', width: '100%' }}>
           {STAGES.map((stage) => (
             <div
               key={stage.id}
@@ -274,14 +276,23 @@ export default function AppPersonalizado() {
                       {formatDate(card.startDate)}
                     </p>
 
-                    {/* Info Button */}
-                    <button
-                      onClick={() => handleShowHistory(card.id, card.companyName)}
-                      className="w-full flex items-center justify-center gap-1 h-5 text-[10px] text-gray-500 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
-                    >
-                      <Info className="w-2.5 h-2.5" />
-                      Info
-                    </button>
+                    {/* Buttons: Info + Dados */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleShowHistory(card.id, card.companyName)}
+                        className="flex-1 flex items-center justify-center gap-1 h-5 text-[10px] text-gray-500 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
+                      >
+                        <Info className="w-2.5 h-2.5" />
+                        Info
+                      </button>
+                      <button
+                        onClick={() => { setSelectedCardData(card); setShowDataModal(true); }}
+                        className="flex-1 flex items-center justify-center gap-1 h-5 text-[10px] text-blue-500 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
+                      >
+                        <Database className="w-2.5 h-2.5" />
+                        Dados
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -289,6 +300,49 @@ export default function AppPersonalizado() {
           ))}
         </div>
       </div>
+
+      {/* Modal de Dados - Fundo transparente */}
+      {showDataModal && selectedCardData && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={() => setShowDataModal(false)}
+        >
+          <div className="absolute inset-0 bg-transparent" />
+          <div
+            className="relative bg-white rounded-lg shadow-2xl border border-gray-300 w-[90vw] max-w-md p-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-sm">Dados - {selectedCardData.companyName}</h3>
+              <button
+                onClick={() => setShowDataModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <p className="text-xs text-gray-500">Empresa</p>
+                <p className="text-sm font-semibold text-gray-800">{selectedCardData.companyName}</p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <p className="text-xs text-gray-500">CSM</p>
+                <p className="text-sm font-semibold text-gray-800">{selectedCardData.csm}</p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <p className="text-xs text-gray-500">Data de Início</p>
+                <p className="text-sm font-semibold text-gray-800">{formatDate(selectedCardData.startDate)}</p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <p className="text-xs text-gray-500">Etapa Atual</p>
+                <p className="text-sm font-semibold text-gray-800">{STAGE_LABELS[selectedCardData.stage] || selectedCardData.stage}</p>
+              </div>
+              <p className="text-[10px] text-gray-400 text-center italic">Mais dados em breve...</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Histórico - Fundo transparente */}
       {showHistoryModal && (
