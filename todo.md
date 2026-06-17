@@ -258,3 +258,9 @@
 - [x] Implementar lógica de desaparecimento ao marcar concluída
 - [x] Adicionar visualização de dias para vencer com alerta visual (vermelho quando vencida)
 - [x] Testar feature e criar checkpoint
+
+## App Personalizado - Correções
+
+- [ ] Corrigir layout do Kanban App Personalizado para caber todas as colunas na tela (sem cortar)
+- [ ] Corrigir histórico de movimentações não salvando no modal Info
+- [ ] Estilizar modal Info com fundo transparente

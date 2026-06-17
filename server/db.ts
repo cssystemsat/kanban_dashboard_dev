@@ -1,4 +1,4 @@
-import { and, eq, desc, gte, sql } from "drizzle-orm";
+import { and, eq, desc, asc, gte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, InsertAllowedEmail, allowedEmails, users,
@@ -442,13 +442,13 @@ export async function deleteClientComment(clientName: string, monthYear: string)
 export async function getAppKanbanCards() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(appKanbanCards).orderBy(appKanbanCards.stage, appKanbanCards.order);
+  return db.select().from(appKanbanCards).orderBy(asc(appKanbanCards.order));
 }
 
 export async function getAppKanbanCardsByStage(stage: string) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(appKanbanCards).where(eq(appKanbanCards.stage, stage)).orderBy(appKanbanCards.order);
+  return db.select().from(appKanbanCards).where(eq(appKanbanCards.stage, stage as any)).orderBy(asc(appKanbanCards.order));
 }
 
 export async function createAppKanbanCard(data: InsertAppKanbanCard) {

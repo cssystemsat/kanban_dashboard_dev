@@ -10,10 +10,20 @@ const STAGES = [
   { id: 'formulario', label: 'Formulário' },
   { id: 'revisao_dados', label: 'Revisão de Dados' },
   { id: 'desenvolvimento', label: 'Desenvolvimento' },
-  { id: 'envio_lojas', label: 'Envio para lojas' },
-  { id: 'teste_liberacao', label: 'Teste para liberação' },
+  { id: 'envio_lojas', label: 'Envio p/ lojas' },
+  { id: 'teste_liberacao', label: 'Teste p/ liberação' },
   { id: 'app_entregue', label: 'App entregue' },
 ];
+
+const STAGE_LABELS: Record<string, string> = {
+  venda_feita: 'Venda feita',
+  formulario: 'Formulário',
+  revisao_dados: 'Revisão de Dados',
+  desenvolvimento: 'Desenvolvimento',
+  envio_lojas: 'Envio p/ lojas',
+  teste_liberacao: 'Teste p/ liberação',
+  app_entregue: 'App entregue',
+};
 
 interface KanbanCard {
   id: number;
@@ -26,6 +36,7 @@ interface KanbanCard {
 
 interface HistoryEntry {
   id: number;
+  cardId: number;
   fromStage: string;
   toStage: string;
   movedBy: string;
@@ -36,8 +47,10 @@ export default function AppPersonalizado() {
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [draggedCard, setDraggedCard] = useState<KanbanCard | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedCardHistory, setSelectedCardHistory] = useState<HistoryEntry[]>([]);
-  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
+  const [selectedCardName, setSelectedCardName] = useState('');
+  const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
   const [formData, setFormData] = useState({ companyName: '', csm: '', startDate: '' });
 
   const { data: user } = trpc.auth.me.useQuery();
@@ -45,9 +58,11 @@ export default function AppPersonalizado() {
   const createCard = trpc.appKanban.create.useMutation();
   const moveCard = trpc.appKanban.move.useMutation();
   const deleteCardMutation = trpc.appKanban.delete.useMutation();
-  const getHistory = trpc.appKanban.history.useQuery(
-    { cardId: selectedCardHistory.length > 0 ? 0 : -1 },
-    { enabled: false }
+
+  // Query de histórico com cardId dinâmico
+  const historyQuery = trpc.appKanban.history.useQuery(
+    { cardId: selectedCardId ?? 0 },
+    { enabled: selectedCardId !== null && selectedCardId > 0, staleTime: 0, refetchOnMount: 'always' }
   );
 
   useEffect(() => {
@@ -55,6 +70,12 @@ export default function AppPersonalizado() {
       setCards(listCards.data as KanbanCard[]);
     }
   }, [listCards.data]);
+
+  useEffect(() => {
+    if (historyQuery.data && selectedCardId) {
+      setHistoryData(historyQuery.data as HistoryEntry[]);
+    }
+  }, [historyQuery.data, selectedCardId]);
 
   const isAdmin = user?.role === 'admin';
 
@@ -79,16 +100,24 @@ export default function AppPersonalizado() {
     }
   };
 
-  const handleDragStart = (card: KanbanCard) => {
+  const handleDragStart = (e: React.DragEvent, card: KanbanCard) => {
     setDraggedCard(card);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = async (toStage: string) => {
-    if (!draggedCard || !isAdmin) return;
+    if (!draggedCard || !isAdmin || draggedCard.stage === toStage) {
+      setDraggedCard(null);
+      return;
+    }
+
+    // Optimistic update
+    setCards(prev => prev.map(c => c.id === draggedCard.id ? { ...c, stage: toStage } : c));
 
     try {
       await moveCard.mutateAsync({
@@ -100,7 +129,7 @@ export default function AppPersonalizado() {
       listCards.refetch();
     } catch (error) {
       console.error('Erro ao mover card:', error);
-      alert('Erro ao mover card');
+      listCards.refetch(); // Revert on error
     }
 
     setDraggedCard(null);
@@ -115,18 +144,16 @@ export default function AppPersonalizado() {
       listCards.refetch();
     } catch (error) {
       console.error('Erro ao deletar card:', error);
-      alert('Erro ao deletar card');
     }
   };
 
-  const handleShowHistory = async (cardId: number) => {
-    try {
-      const history = await getHistory.refetch();
-      setSelectedCardHistory(history.data as HistoryEntry[]);
-      setShowHistoryDialog(true);
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
-    }
+  const handleShowHistory = (cardId: number, cardName: string) => {
+    setSelectedCardId(cardId);
+    setSelectedCardName(cardName);
+    setHistoryData([]);
+    setShowHistoryModal(true);
+    // Force refetch when opening modal
+    setTimeout(() => historyQuery.refetch(), 100);
   };
 
   const getCardsByStage = (stageId: string) => {
@@ -139,15 +166,15 @@ export default function AppPersonalizado() {
   };
 
   return (
-    <div className="bg-background min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col md:ml-20" style={{ backgroundColor: '#F5F7FA' }}>
       {/* Header */}
-      <div className="px-4 pt-3 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-border">
-        <h1 className="text-2xl font-bold">App Personalizado</h1>
+      <div className="px-6 pt-3 pb-2 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-800">App Personalizado</h1>
         {isAdmin && (
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button className="gap-2 whitespace-nowrap h-8 text-sm">
-                <Plus className="w-4 h-4" />
+              <Button className="gap-1 whitespace-nowrap h-7 text-xs px-3">
+                <Plus className="w-3 h-3" />
                 Adicionar Empresa
               </Button>
             </DialogTrigger>
@@ -180,43 +207,50 @@ export default function AppPersonalizado() {
         )}
       </div>
 
-      {/* Kanban Board - Layout similar a Marcos */}
-      <div className="flex-1 overflow-x-auto px-4 py-3">
-        <div className="flex gap-4 min-w-min">
+      {/* Kanban Board - Todas as colunas visíveis */}
+      <div className="flex-1 px-3 pb-4" style={{ overflow: 'hidden' }}>
+        <div className="flex gap-1.5 h-full" style={{ minHeight: 'calc(100vh - 80px)', width: '100%' }}>
           {STAGES.map((stage) => (
             <div
               key={stage.id}
-              className="flex-shrink-0 bg-white rounded-lg border border-gray-200 flex flex-col"
-              style={{ width: '280px', minHeight: '600px' }}
+              style={{ flex: '1 1 0', minWidth: '120px' }}
+              className={`bg-white rounded border border-gray-200 flex flex-col overflow-hidden transition-all ${
+                draggedCard && draggedCard.stage !== stage.id ? 'ring-2 ring-blue-200' : ''
+              }`}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(stage.id)}
             >
               {/* Stage Header */}
-              <h2 className="font-semibold text-sm px-3 py-2 border-b border-gray-200 text-gray-900">
-                {stage.label}
-              </h2>
+              <div className="px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+                <h2 className="font-semibold text-[11px] text-gray-700 truncate">
+                  {stage.label}
+                </h2>
+                <span className="text-[10px] text-gray-400">
+                  {getCardsByStage(stage.id).length} {getCardsByStage(stage.id).length === 1 ? 'empresa' : 'empresas'}
+                </span>
+              </div>
 
               {/* Cards Container */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              <div className="flex-1 overflow-y-auto p-1.5 space-y-1.5">
                 {getCardsByStage(stage.id).map((card) => (
                   <div
                     key={card.id}
                     draggable={isAdmin}
-                    onDragStart={() => handleDragStart(card)}
-                    className={`p-3 bg-gray-50 rounded-lg border border-gray-200 transition-all hover:shadow-sm ${
+                    onDragStart={(e) => handleDragStart(e, card)}
+                    className={`p-2 bg-gray-50 rounded border border-gray-200 transition-all hover:shadow-sm hover:border-gray-300 ${
                       isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
-                    }`}
+                    } ${draggedCard?.id === card.id ? 'opacity-50' : ''}`}
                   >
-                    {/* Card Title */}
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <h3 className="font-semibold text-sm text-gray-900 truncate flex-1">
+                    {/* Card Title + Delete */}
+                    <div className="flex justify-between items-start gap-1 mb-1">
+                      <h3 className="font-semibold text-[11px] text-gray-900 leading-tight line-clamp-2">
                         {card.companyName}
                       </h3>
                       {isAdmin && (
                         <button
-                          onClick={() => handleDeleteCard(card.id)}
-                          className="text-red-500 hover:text-red-700 flex-shrink-0"
-                          title="Deletar card"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }}
+                          className="text-red-400 hover:text-red-600 flex-shrink-0"
+                          title="Deletar"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -224,51 +258,21 @@ export default function AppPersonalizado() {
                     </div>
 
                     {/* Card Info */}
-                    <p className="text-xs text-gray-600 mb-1 truncate">
+                    <p className="text-[10px] text-gray-500 truncate">
                       CSM: {card.csm}
                     </p>
-                    <p className="text-xs text-gray-600 mb-2 truncate">
-                      Data: {formatDate(card.startDate)}
+                    <p className="text-[10px] text-gray-500 mb-1.5 truncate">
+                      {formatDate(card.startDate)}
                     </p>
 
                     {/* Info Button */}
-                    <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full gap-1 h-7 text-xs"
-                          onClick={() => handleShowHistory(card.id)}
-                        >
-                          <Info className="w-3 h-3" />
-                          Info
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="w-[90vw] max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="text-lg">Histórico de Movimentações</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                          {selectedCardHistory.length > 0 ? (
-                            selectedCardHistory.map((entry) => (
-                              <div key={entry.id} className="p-2 bg-gray-100 rounded-lg text-xs">
-                                <p className="font-semibold text-sm">
-                                  {entry.fromStage} → {entry.toStage}
-                                </p>
-                                <p className="text-gray-600">
-                                  Por: {entry.movedBy}
-                                </p>
-                                <p className="text-gray-600">
-                                  {formatDate(entry.movedAt)}
-                                </p>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-gray-600 text-xs">Nenhuma movimentação registrada</p>
-                          )}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <button
+                      onClick={() => handleShowHistory(card.id, card.companyName)}
+                      className="w-full flex items-center justify-center gap-1 h-5 text-[10px] text-gray-500 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
+                    >
+                      <Info className="w-2.5 h-2.5" />
+                      Info
+                    </button>
                   </div>
                 ))}
               </div>
@@ -276,6 +280,52 @@ export default function AppPersonalizado() {
           ))}
         </div>
       </div>
+
+      {/* Modal de Histórico - Fundo transparente */}
+      {showHistoryModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={() => setShowHistoryModal(false)}
+        >
+          {/* Overlay transparente (sem fundo preto) */}
+          <div className="absolute inset-0 bg-transparent" />
+
+          {/* Modal Content */}
+          <div
+            className="relative bg-white rounded-lg shadow-2xl border border-gray-300 w-[90vw] max-w-md p-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-sm">Histórico - {selectedCardName}</h3>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {historyQuery.isLoading ? (
+                <p className="text-gray-500 text-xs text-center py-4">Carregando...</p>
+              ) : historyData.length > 0 ? (
+                historyData.map((entry) => (
+                  <div key={entry.id} className="p-2 bg-gray-50 rounded border border-gray-200 text-xs">
+                    <p className="font-semibold text-gray-800">
+                      {STAGE_LABELS[entry.fromStage] || entry.fromStage} → {STAGE_LABELS[entry.toStage] || entry.toStage}
+                    </p>
+                    <p className="text-gray-500 mt-0.5">
+                      Por: {entry.movedBy} · {formatDate(entry.movedAt)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-xs text-center py-4">Nenhuma movimentação registrada</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
