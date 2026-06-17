@@ -139,18 +139,21 @@ export default function AppPersonalizado() {
   };
 
   return (
-    <div className="p-6 bg-background min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">App Personalizado</h1>
+    <div className="bg-background min-h-screen" style={{ padding: 'max(1rem, 2vw)' }}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold" style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)' }}>
+          App Personalizado
+        </h1>
         {isAdmin && (
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 whitespace-nowrap">
                 <Plus className="w-4 h-4" />
                 Adicionar Empresa
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[90vw] max-w-md">
               <DialogHeader>
                 <DialogTitle>Criar Novo Card</DialogTitle>
               </DialogHeader>
@@ -179,62 +182,96 @@ export default function AppPersonalizado() {
         )}
       </div>
 
-      {/* Kanban Board */}
-      <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 overflow-x-auto pb-4">
+      {/* Kanban Board - Responsivo ao zoom */}
+      <div 
+        className="overflow-x-auto pb-4 -mx-4 px-4"
+        style={{ 
+          display: 'flex',
+          gap: 'clamp(0.75rem, 1.5vw, 1rem)',
+          minHeight: 'calc(100vh - 150px)'
+        }}
+      >
         {STAGES.map((stage) => (
           <div
             key={stage.id}
-            className="flex-shrink-0 w-full lg:w-80 bg-card rounded-lg p-4 border border-border"
+            className="flex-shrink-0 bg-card rounded-lg border border-border flex flex-col"
+            style={{
+              width: 'clamp(250px, 20vw, 320px)',
+              padding: 'clamp(0.75rem, 1.5vw, 1rem)',
+              minHeight: 'fit-content'
+            }}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(stage.id)}
           >
-            <h2 className="font-semibold mb-4 text-card-foreground">{stage.label}</h2>
-            <div className="space-y-3 min-h-96">
+            {/* Stage Header */}
+            <h2 
+              className="font-semibold mb-3 text-card-foreground truncate"
+              style={{ fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}
+            >
+              {stage.label}
+            </h2>
+
+            {/* Cards Container */}
+            <div className="space-y-2 flex-1 overflow-y-auto pr-1">
               {getCardsByStage(stage.id).map((card) => (
                 <div
                   key={card.id}
                   draggable={isAdmin}
                   onDragStart={() => handleDragStart(card)}
-                  className={`p-4 bg-background rounded-lg border border-border cursor-move hover:shadow-md transition-shadow ${
-                    isAdmin ? 'cursor-grab active:cursor-grabbing' : ''
+                  className={`p-3 bg-background rounded-lg border border-border transition-all hover:shadow-md ${
+                    isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
                   }`}
+                  style={{
+                    padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+                    fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)',
+                  }}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-foreground truncate">{card.companyName}</h3>
+                  {/* Card Title */}
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h3 className="font-semibold text-foreground truncate flex-1">
+                      {card.companyName}
+                    </h3>
                     {isAdmin && (
                       <button
                         onClick={() => handleDeleteCard(card.id)}
-                        className="text-destructive hover:text-destructive/80 ml-2"
+                        className="text-destructive hover:text-destructive/80 flex-shrink-0"
+                        title="Deletar card"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-1">CSM: {card.csm}</p>
-                  <p className="text-sm text-muted-foreground mb-3">
+
+                  {/* Card Info */}
+                  <p className="text-xs text-muted-foreground mb-1 truncate">
+                    CSM: {card.csm}
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2 truncate">
                     Data: {formatDate(card.startDate)}
                   </p>
+
+                  {/* Info Button */}
                   <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full gap-2"
+                        className="w-full gap-1 h-7 text-xs"
                         onClick={() => handleShowHistory(card.id)}
                       >
-                        <Info className="w-4 h-4" />
+                        <Info className="w-3 h-3" />
                         Info
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="w-[90vw] max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Histórico de Movimentações</DialogTitle>
+                        <DialogTitle className="text-lg">Histórico de Movimentações</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                      <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                         {selectedCardHistory.length > 0 ? (
                           selectedCardHistory.map((entry) => (
-                            <div key={entry.id} className="p-3 bg-muted rounded-lg text-sm">
-                              <p className="font-semibold">
+                            <div key={entry.id} className="p-2 bg-muted rounded-lg text-xs">
+                              <p className="font-semibold text-sm">
                                 {entry.fromStage} → {entry.toStage}
                               </p>
                               <p className="text-muted-foreground">
@@ -246,7 +283,7 @@ export default function AppPersonalizado() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-muted-foreground">Nenhuma movimentação registrada</p>
+                          <p className="text-muted-foreground text-xs">Nenhuma movimentação registrada</p>
                         )}
                       </div>
                     </DialogContent>
