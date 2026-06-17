@@ -261,6 +261,11 @@
 
 ## App Personalizado - Correções
 
-- [ ] Corrigir layout do Kanban App Personalizado para caber todas as colunas na tela (sem cortar)
-- [ ] Corrigir histórico de movimentações não salvando no modal Info
-- [ ] Estilizar modal Info com fundo transparente
+- [x] Corrigir layout do Kanban App Personalizado para caber todas as colunas na tela (sem cortar)
+- [x] Corrigir histórico de movimentações não salvando no modal Info
+- [x] Estilizar modal Info com fundo transparente
+
+## App Personalizado - Novos Cards e CSMs
+
+- [x] Criar 15 cards no banco de dados com data 01/06/2026 e CSM João
+- [x] Configurar lista padrão de CSMs no formulário (João, Duda, Clarice, Lucas, Luis, Rafaela, Jeferson)

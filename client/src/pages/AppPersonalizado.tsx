@@ -188,11 +188,20 @@ export default function AppPersonalizado() {
                   value={formData.companyName}
                   onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                 />
-                <Input
-                  placeholder="CSM"
+                <select
                   value={formData.csm}
                   onChange={(e) => setFormData({ ...formData, csm: e.target.value })}
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Selecione o CSM</option>
+                  <option value="João">João</option>
+                  <option value="Duda">Duda</option>
+                  <option value="Clarice">Clarice</option>
+                  <option value="Lucas">Lucas</option>
+                  <option value="Luis">Luis</option>
+                  <option value="Rafaela">Rafaela</option>
+                  <option value="Jeferson">Jeferson</option>
+                </select>
                 <Input
                   type="date"
                   value={formData.startDate}
