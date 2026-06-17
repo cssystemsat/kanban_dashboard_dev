@@ -139,16 +139,14 @@ export default function AppPersonalizado() {
   };
 
   return (
-    <div className="bg-background min-h-screen" style={{ padding: 'max(1rem, 2vw)' }}>
+    <div className="bg-background min-h-screen flex flex-col">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold" style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)' }}>
-          App Personalizado
-        </h1>
+      <div className="px-4 pt-3 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-border">
+        <h1 className="text-2xl font-bold">App Personalizado</h1>
         {isAdmin && (
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button className="gap-2 whitespace-nowrap">
+              <Button className="gap-2 whitespace-nowrap h-8 text-sm">
                 <Plus className="w-4 h-4" />
                 Adicionar Empresa
               </Button>
@@ -182,117 +180,101 @@ export default function AppPersonalizado() {
         )}
       </div>
 
-      {/* Kanban Board - Responsivo ao zoom */}
-      <div 
-        className="overflow-x-auto pb-4 -mx-4 px-4"
-        style={{ 
-          display: 'flex',
-          gap: 'clamp(0.75rem, 1.5vw, 1rem)',
-          minHeight: 'calc(100vh - 150px)'
-        }}
-      >
-        {STAGES.map((stage) => (
-          <div
-            key={stage.id}
-            className="flex-shrink-0 bg-card rounded-lg border border-border flex flex-col"
-            style={{
-              width: 'clamp(250px, 20vw, 320px)',
-              padding: 'clamp(0.75rem, 1.5vw, 1rem)',
-              minHeight: 'fit-content'
-            }}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(stage.id)}
-          >
-            {/* Stage Header */}
-            <h2 
-              className="font-semibold mb-3 text-card-foreground truncate"
-              style={{ fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}
+      {/* Kanban Board - Layout similar a Marcos */}
+      <div className="flex-1 overflow-x-auto px-4 py-3">
+        <div className="flex gap-4 min-w-min">
+          {STAGES.map((stage) => (
+            <div
+              key={stage.id}
+              className="flex-shrink-0 bg-white rounded-lg border border-gray-200 flex flex-col"
+              style={{ width: '280px', minHeight: '600px' }}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(stage.id)}
             >
-              {stage.label}
-            </h2>
+              {/* Stage Header */}
+              <h2 className="font-semibold text-sm px-3 py-2 border-b border-gray-200 text-gray-900">
+                {stage.label}
+              </h2>
 
-            {/* Cards Container */}
-            <div className="space-y-2 flex-1 overflow-y-auto pr-1">
-              {getCardsByStage(stage.id).map((card) => (
-                <div
-                  key={card.id}
-                  draggable={isAdmin}
-                  onDragStart={() => handleDragStart(card)}
-                  className={`p-3 bg-background rounded-lg border border-border transition-all hover:shadow-md ${
-                    isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
-                  }`}
-                  style={{
-                    padding: 'clamp(0.5rem, 1vw, 0.75rem)',
-                    fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)',
-                  }}
-                >
-                  {/* Card Title */}
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <h3 className="font-semibold text-foreground truncate flex-1">
-                      {card.companyName}
-                    </h3>
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDeleteCard(card.id)}
-                        className="text-destructive hover:text-destructive/80 flex-shrink-0"
-                        title="Deletar card"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
+              {/* Cards Container */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {getCardsByStage(stage.id).map((card) => (
+                  <div
+                    key={card.id}
+                    draggable={isAdmin}
+                    onDragStart={() => handleDragStart(card)}
+                    className={`p-3 bg-gray-50 rounded-lg border border-gray-200 transition-all hover:shadow-sm ${
+                      isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+                    }`}
+                  >
+                    {/* Card Title */}
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <h3 className="font-semibold text-sm text-gray-900 truncate flex-1">
+                        {card.companyName}
+                      </h3>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteCard(card.id)}
+                          className="text-red-500 hover:text-red-700 flex-shrink-0"
+                          title="Deletar card"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Card Info */}
+                    <p className="text-xs text-gray-600 mb-1 truncate">
+                      CSM: {card.csm}
+                    </p>
+                    <p className="text-xs text-gray-600 mb-2 truncate">
+                      Data: {formatDate(card.startDate)}
+                    </p>
+
+                    {/* Info Button */}
+                    <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full gap-1 h-7 text-xs"
+                          onClick={() => handleShowHistory(card.id)}
+                        >
+                          <Info className="w-3 h-3" />
+                          Info
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="w-[90vw] max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-lg">Histórico de Movimentações</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+                          {selectedCardHistory.length > 0 ? (
+                            selectedCardHistory.map((entry) => (
+                              <div key={entry.id} className="p-2 bg-gray-100 rounded-lg text-xs">
+                                <p className="font-semibold text-sm">
+                                  {entry.fromStage} → {entry.toStage}
+                                </p>
+                                <p className="text-gray-600">
+                                  Por: {entry.movedBy}
+                                </p>
+                                <p className="text-gray-600">
+                                  {formatDate(entry.movedAt)}
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-600 text-xs">Nenhuma movimentação registrada</p>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-
-                  {/* Card Info */}
-                  <p className="text-xs text-muted-foreground mb-1 truncate">
-                    CSM: {card.csm}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-2 truncate">
-                    Data: {formatDate(card.startDate)}
-                  </p>
-
-                  {/* Info Button */}
-                  <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-1 h-7 text-xs"
-                        onClick={() => handleShowHistory(card.id)}
-                      >
-                        <Info className="w-3 h-3" />
-                        Info
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="w-[90vw] max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="text-lg">Histórico de Movimentações</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                        {selectedCardHistory.length > 0 ? (
-                          selectedCardHistory.map((entry) => (
-                            <div key={entry.id} className="p-2 bg-muted rounded-lg text-xs">
-                              <p className="font-semibold text-sm">
-                                {entry.fromStage} → {entry.toStage}
-                              </p>
-                              <p className="text-muted-foreground">
-                                Por: {entry.movedBy}
-                              </p>
-                              <p className="text-muted-foreground">
-                                {formatDate(entry.movedAt)}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground text-xs">Nenhuma movimentação registrada</p>
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
