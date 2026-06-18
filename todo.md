@@ -269,3 +269,8 @@
 
 - [x] Criar 15 cards no banco de dados com data 01/06/2026 e CSM João
 - [x] Configurar lista padrão de CSMs no formulário (João, Duda, Clarice, Lucas, Luis, Rafaela, Jeferson)
+
+## App Personalizado - Checklist e Dias Corridos
+- [ ] Adicionar checklist no modal Dados (Logomarca, Descrição Curta, Descrição Longa, Política de privacidade)
+- [ ] Salvar estado do checklist no banco de dados
+- [ ] Mostrar dias corridos no card (hoje - data início)

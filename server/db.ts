@@ -7,8 +7,8 @@ import {
   userSessions, pageViews, userActions,
   InsertUserSession, InsertPageView, InsertUserAction,
   clientComments, InsertClientComment,
-  appKanbanCards, appKanbanHistory,
-  InsertAppKanbanCard, InsertAppKanbanHistory,
+  appKanbanCards, appKanbanHistory, appKanbanChecklist,
+  InsertAppKanbanCard, InsertAppKanbanHistory, InsertAppKanbanChecklist,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -506,4 +506,28 @@ export async function getAppKanbanHistory(cardId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(appKanbanHistory).where(eq(appKanbanHistory.cardId, cardId)).orderBy(desc(appKanbanHistory.movedAt));
+}
+
+// === App Kanban Checklist ===
+
+export async function getAppKanbanChecklist(cardId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(appKanbanChecklist).where(eq(appKanbanChecklist.cardId, cardId));
+  return rows[0] || null;
+}
+
+export async function upsertAppKanbanChecklist(cardId: number, data: { logomarca?: boolean; descricaoCurta?: boolean; descricaoLonga?: boolean; politicaPrivacidade?: boolean }) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(appKanbanChecklist).where(eq(appKanbanChecklist.cardId, cardId));
+  if (existing.length > 0) {
+    await db.update(appKanbanChecklist).set(data).where(eq(appKanbanChecklist.cardId, cardId));
+    const updated = await db.select().from(appKanbanChecklist).where(eq(appKanbanChecklist.cardId, cardId));
+    return updated[0];
+  } else {
+    await db.insert(appKanbanChecklist).values({ cardId, logomarca: data.logomarca ?? false, descricaoCurta: data.descricaoCurta ?? false, descricaoLonga: data.descricaoLonga ?? false, politicaPrivacidade: data.politicaPrivacidade ?? false });
+    const inserted = await db.select().from(appKanbanChecklist).where(eq(appKanbanChecklist.cardId, cardId));
+    return inserted[0];
+  }
 }

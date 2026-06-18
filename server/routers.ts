@@ -44,6 +44,8 @@ import {
   deleteAppKanbanCard,
   moveAppKanbanCard,
   getAppKanbanHistory,
+  getAppKanbanChecklist,
+  upsertAppKanbanChecklist,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 
@@ -498,6 +500,26 @@ export const appRouter = router({
       .input(z.object({ cardId: z.number() }))
       .query(async ({ input }) => {
         return getAppKanbanHistory(input.cardId);
+      }),
+    getChecklist: protectedProcedure
+      .input(z.object({ cardId: z.number() }))
+      .query(async ({ input }) => {
+        return getAppKanbanChecklist(input.cardId);
+      }),
+    updateChecklist: protectedProcedure
+      .input(z.object({
+        cardId: z.number(),
+        logomarca: z.boolean().optional(),
+        descricaoCurta: z.boolean().optional(),
+        descricaoLonga: z.boolean().optional(),
+        politicaPrivacidade: z.boolean().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas admin pode atualizar checklist' });
+        }
+        const { cardId, ...data } = input;
+        return upsertAppKanbanChecklist(cardId, data);
       }),
   }),
   auth: router({

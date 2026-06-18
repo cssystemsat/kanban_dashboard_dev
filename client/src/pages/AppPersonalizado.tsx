@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Info, Plus, Trash2, Database } from 'lucide-react';
+import { Info, Plus, Trash2, Database, CheckSquare, Square } from 'lucide-react';
 
 const STAGES = [
   { id: 'venda_feita', label: 'Venda feita' },
@@ -25,6 +25,13 @@ const STAGE_LABELS: Record<string, string> = {
   app_entregue: 'App entregue',
 };
 
+const CHECKLIST_ITEMS = [
+  { key: 'logomarca', label: 'Logomarca' },
+  { key: 'descricaoCurta', label: 'Descrição Curta' },
+  { key: 'descricaoLonga', label: 'Descrição Longa' },
+  { key: 'politicaPrivacidade', label: 'Política de privacidade' },
+] as const;
+
 interface KanbanCard {
   id: number;
   companyName: string;
@@ -43,6 +50,20 @@ interface HistoryEntry {
   movedAt: string | Date;
 }
 
+interface ChecklistData {
+  logomarca: boolean;
+  descricaoCurta: boolean;
+  descricaoLonga: boolean;
+  politicaPrivacidade: boolean;
+}
+
+function getDaysSince(startDate: string | Date): number {
+  const start = new Date(startDate);
+  const now = new Date();
+  const diffMs = now.getTime() - start.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
 export default function AppPersonalizado() {
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [draggedCard, setDraggedCard] = useState<KanbanCard | null>(null);
@@ -53,6 +74,12 @@ export default function AppPersonalizado() {
   const [selectedCardName, setSelectedCardName] = useState('');
   const [selectedCardData, setSelectedCardData] = useState<KanbanCard | null>(null);
   const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
+  const [checklistState, setChecklistState] = useState<ChecklistData>({
+    logomarca: false,
+    descricaoCurta: false,
+    descricaoLonga: false,
+    politicaPrivacidade: false,
+  });
   const [formData, setFormData] = useState({ companyName: '', csm: '', startDate: '' });
 
   const { data: user } = trpc.auth.me.useQuery();
@@ -60,11 +87,18 @@ export default function AppPersonalizado() {
   const createCard = trpc.appKanban.create.useMutation();
   const moveCard = trpc.appKanban.move.useMutation();
   const deleteCardMutation = trpc.appKanban.delete.useMutation();
+  const updateChecklist = trpc.appKanban.updateChecklist.useMutation();
 
   // Query de histórico com cardId dinâmico
   const historyQuery = trpc.appKanban.history.useQuery(
     { cardId: selectedCardId ?? 0 },
     { enabled: selectedCardId !== null && selectedCardId > 0, staleTime: 0, refetchOnMount: 'always' }
+  );
+
+  // Query de checklist com cardId dinâmico
+  const checklistQuery = trpc.appKanban.getChecklist.useQuery(
+    { cardId: selectedCardData?.id ?? 0 },
+    { enabled: showDataModal && selectedCardData !== null && selectedCardData.id > 0, staleTime: 0 }
   );
 
   useEffect(() => {
@@ -79,7 +113,41 @@ export default function AppPersonalizado() {
     }
   }, [historyQuery.data, selectedCardId]);
 
+  useEffect(() => {
+    if (checklistQuery.data) {
+      setChecklistState({
+        logomarca: checklistQuery.data.logomarca ?? false,
+        descricaoCurta: checklistQuery.data.descricaoCurta ?? false,
+        descricaoLonga: checklistQuery.data.descricaoLonga ?? false,
+        politicaPrivacidade: checklistQuery.data.politicaPrivacidade ?? false,
+      });
+    } else if (showDataModal) {
+      setChecklistState({
+        logomarca: false,
+        descricaoCurta: false,
+        descricaoLonga: false,
+        politicaPrivacidade: false,
+      });
+    }
+  }, [checklistQuery.data, showDataModal]);
+
   const isAdmin = user?.role === 'admin';
+
+  const handleChecklistToggle = async (key: keyof ChecklistData) => {
+    if (!selectedCardData || !isAdmin) return;
+    const newValue = !checklistState[key];
+    setChecklistState(prev => ({ ...prev, [key]: newValue }));
+    try {
+      await updateChecklist.mutateAsync({
+        cardId: selectedCardData.id,
+        [key]: newValue,
+      });
+    } catch (error) {
+      // Revert on error
+      setChecklistState(prev => ({ ...prev, [key]: !newValue }));
+      console.error('Erro ao atualizar checklist:', error);
+    }
+  };
 
   const handleCreateCard = async () => {
     if (!formData.companyName || !formData.csm || !formData.startDate) {
@@ -156,6 +224,11 @@ export default function AppPersonalizado() {
     setShowHistoryModal(true);
     // Force refetch when opening modal
     setTimeout(() => historyQuery.refetch(), 100);
+  };
+
+  const handleShowData = (card: KanbanCard) => {
+    setSelectedCardData(card);
+    setShowDataModal(true);
   };
 
   const getCardsByStage = (stageId: string) => {
@@ -272,8 +345,12 @@ export default function AppPersonalizado() {
                     <p className="text-[10px] text-gray-500 truncate">
                       CSM: {card.csm}
                     </p>
-                    <p className="text-[10px] text-gray-500 mb-1.5 truncate">
+                    <p className="text-[10px] text-gray-500 truncate">
                       {formatDate(card.startDate)}
+                    </p>
+                    {/* Dias corridos */}
+                    <p className="text-[10px] font-semibold text-orange-600 mb-1.5">
+                      {getDaysSince(card.startDate)} dias
                     </p>
 
                     {/* Buttons: Info + Dados */}
@@ -286,7 +363,7 @@ export default function AppPersonalizado() {
                         Info
                       </button>
                       <button
-                        onClick={() => { setSelectedCardData(card); setShowDataModal(true); }}
+                        onClick={() => handleShowData(card)}
                         className="flex-1 flex items-center justify-center gap-1 h-5 text-[10px] text-blue-500 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
                       >
                         <Database className="w-2.5 h-2.5" />
@@ -338,7 +415,41 @@ export default function AppPersonalizado() {
                 <p className="text-xs text-gray-500">Etapa Atual</p>
                 <p className="text-sm font-semibold text-gray-800">{STAGE_LABELS[selectedCardData.stage] || selectedCardData.stage}</p>
               </div>
-              <p className="text-[10px] text-gray-400 text-center italic">Mais dados em breve...</p>
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <p className="text-xs text-gray-500">Dias Corridos</p>
+                <p className="text-sm font-semibold text-orange-600">{getDaysSince(selectedCardData.startDate)} dias</p>
+              </div>
+
+              {/* Checklist */}
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Checklist de Documentos</p>
+                <div className="space-y-2">
+                  {CHECKLIST_ITEMS.map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => handleChecklistToggle(item.key)}
+                      disabled={!isAdmin}
+                      className={`w-full flex items-center gap-2 p-2 rounded border transition-all text-left ${
+                        checklistState[item.key]
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                      } ${!isAdmin ? 'cursor-default' : 'cursor-pointer'}`}
+                    >
+                      {checklistState[item.key] ? (
+                        <CheckSquare className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <Square className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      )}
+                      <span className={`text-xs ${checklistState[item.key] ? 'text-green-700 line-through' : 'text-gray-700'}`}>
+                        {item.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2 text-center">
+                  {CHECKLIST_ITEMS.filter(i => checklistState[i.key]).length}/{CHECKLIST_ITEMS.length} concluídos
+                </p>
+              </div>
             </div>
           </div>
         </div>

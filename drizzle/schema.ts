@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -231,3 +231,17 @@ export const appKanbanHistory = mysqlTable("app_kanban_history", {
 
 export type AppKanbanHistory = typeof appKanbanHistory.$inferSelect;
 export type InsertAppKanbanHistory = typeof appKanbanHistory.$inferInsert;
+
+// Tabela de checklist do App Personalizado
+export const appKanbanChecklist = mysqlTable("app_kanban_checklist", {
+  id: int("id").autoincrement().primaryKey(),
+  cardId: int("cardId").notNull(), // FK para app_kanban_cards
+  logomarca: boolean("logomarca").default(false).notNull(),
+  descricaoCurta: boolean("descricaoCurta").default(false).notNull(),
+  descricaoLonga: boolean("descricaoLonga").default(false).notNull(),
+  politicaPrivacidade: boolean("politicaPrivacidade").default(false).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AppKanbanChecklist = typeof appKanbanChecklist.$inferSelect;
+export type InsertAppKanbanChecklist = typeof appKanbanChecklist.$inferInsert;
