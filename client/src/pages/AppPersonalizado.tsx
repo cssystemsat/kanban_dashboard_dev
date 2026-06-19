@@ -66,6 +66,7 @@ function getDaysSince(startDate: string | Date): number {
 
 export default function AppPersonalizado() {
   const [cards, setCards] = useState<KanbanCard[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [draggedCard, setDraggedCard] = useState<KanbanCard | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -234,7 +235,12 @@ export default function AppPersonalizado() {
   };
 
   const getCardsByStage = (stageId: string) => {
-    return cards.filter(card => card.stage === stageId);
+    return cards.filter(card => {
+      const matchesStage = card.stage === stageId;
+      const matchesSearch = searchQuery === '' || 
+        card.companyName.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStage && matchesSearch;
+    });
   };
 
   const formatDate = (date: string | Date) => {
@@ -293,9 +299,19 @@ export default function AppPersonalizado() {
         )}
       </div>
 
+      {/* Search bar */}
+      <div className="px-6 py-3 border-b" style={{ borderColor: '#E0E8F0' }}>
+        <Input
+          placeholder="Buscar cliente..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md h-9 text-sm"
+        />
+      </div>
+
       {/* Kanban Board - Todas as colunas visíveis */}
       <div className="flex-1 px-3 pb-4 overflow-hidden">
-        <div className="flex gap-1.5" style={{ height: 'calc(100vh - 80px)', width: '100%' }}>
+        <div className="flex gap-1.5" style={{ height: 'calc(100vh - 140px)', width: '100%' }}>
           {STAGES.map((stage) => (
             <div
               key={stage.id}

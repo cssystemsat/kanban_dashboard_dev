@@ -293,3 +293,9 @@
 - [x] Mostrar apenas aba App Personalizado no menu para esses usuários
 - [x] Esconder Home para usuários não-autenticados
 - [x] Testar fluxo de navegação com diferentes tipos de usuários
+
+
+## Busca por Cliente no App Personalizado
+
+- [x] Adicionar campo de busca no topo do App Personalizado
+- [x] Filtrar cards em tempo real por nome do cliente
