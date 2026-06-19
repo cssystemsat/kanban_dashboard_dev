@@ -24,6 +24,9 @@ function AppInner() {
   const sessionIdRef = useRef<number | null>(null);
 
   const { data: user, isLoading: authLoading, error: authError } = trpc.auth.me.useQuery();
+  const { data: myPerms } = trpc.config.myPermissions.useQuery(undefined, {
+    enabled: !!user,
+  });
   
   // Debug: log auth errors
   useEffect(() => {
@@ -37,6 +40,13 @@ function AppInner() {
   const heartbeat = trpc.tracking.heartbeat.useMutation();
   const trackPage = trpc.tracking.trackPage.useMutation();
   const trackAction = trpc.tracking.trackAction.useMutation();
+
+  // Redirecionar usuários com onlyAppKanban para App Personalizado
+  useEffect(() => {
+    if (myPerms?.onlyAppKanban && currentPage !== 'apppersonalizado') {
+      setCurrentPage('apppersonalizado');
+    }
+  }, [myPerms?.onlyAppKanban, currentPage]);
 
   // Iniciar sessão quando o usuário logar
   useEffect(() => {
@@ -104,6 +114,11 @@ function AppInner() {
   };
 
   const renderPage = () => {
+    // Se não está autenticado e tenta acessar Home (marcos), redirecionar para Painel
+    if (!user && currentPage === 'marcos') {
+      return <Painel />;
+    }
+
     switch (currentPage) {
       case 'painel':
         return <Painel />;

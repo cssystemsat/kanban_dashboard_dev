@@ -82,6 +82,12 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
     return PROTECTED_ITEMS.filter(item => myPerms?.allowedPages?.includes(item.id));
   })();
 
+  // Ábas públicas visíveis (Home só para autenticados)
+  const visiblePublicItems = (() => {
+    if (!isLoggedIn) return []; // Esconder Home para não-autenticados
+    return PUBLIC_ITEMS;
+  })();
+
   // Abas apenas para admin
   const visibleAdminItems = (() => {
     if (!isAdmin) return [];
@@ -135,8 +141,8 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
       </div>
 
       <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
-        {/* Aba pública — sempre visível */}
-        {PUBLIC_ITEMS.map(renderItem)}
+        {/* Ába pública — apenas para autenticados */}
+        {visiblePublicItems.map(renderItem)}
 
         {/* Separador se houver abas protegidas visíveis */}
         {visibleProtectedItems.length > 0 && (

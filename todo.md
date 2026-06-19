@@ -285,3 +285,11 @@
 - [x] Adicionar campo `onlyAppKanban` na tabela `allowed_emails` para usuários exclusivos
 - [x] Atualizar SideMenu.tsx para filtrar abas baseado em `onlyAppKanban`
 - [x] Testar acesso restrito com diferentes tipos de usuários
+
+
+## Navegação e Redirecionamento
+
+- [x] Redirecionar usuários com onlyAppKanban direto para App Personalizado
+- [x] Mostrar apenas aba App Personalizado no menu para esses usuários
+- [x] Esconder Home para usuários não-autenticados
+- [x] Testar fluxo de navegação com diferentes tipos de usuários
