@@ -76,6 +76,8 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
   // Abas protegidas visíveis para o usuário logado
   const visibleProtectedItems = (() => {
     if (!isLoggedIn || !isAllowed) return [];
+    // Se o usuário tem onlyAppKanban, mostrar apenas App Personalizado
+    if (myPerms?.onlyAppKanban) return PROTECTED_ITEMS.filter(item => item.id === 'apppersonalizado');
     if (myPerms?.allowedPages === null) return PROTECTED_ITEMS; // acesso total
     return PROTECTED_ITEMS.filter(item => myPerms?.allowedPages?.includes(item.id));
   })();

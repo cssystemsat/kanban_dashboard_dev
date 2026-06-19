@@ -35,6 +35,8 @@ export const allowedEmails = mysqlTable("allowed_emails", {
   // JSON array de IDs de abas permitidas, ex: ["dashboard","marcos","ongoing"]
   // null = acesso a todas as abas (comportamento padrão para admins)
   allowedPages: text("allowedPages"),
+  canMoveAppKanban: int("canMoveAppKanban").default(0).notNull(), // 1 = pode mover cards no App Personalizado
+  onlyAppKanban: int("onlyAppKanban").default(0).notNull(), // 1 = vê apenas a aba App Personalizado
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

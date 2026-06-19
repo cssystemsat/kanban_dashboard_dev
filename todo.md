@@ -271,6 +271,17 @@
 - [x] Configurar lista padrão de CSMs no formulário (João, Duda, Clarice, Lucas, Luis, Rafaela, Jeferson)
 
 ## App Personalizado - Checklist e Dias Corridos
-- [ ] Adicionar checklist no modal Dados (Logomarca, Descrição Curta, Descrição Longa, Política de privacidade)
-- [ ] Salvar estado do checklist no banco de dados
-- [ ] Mostrar dias corridos no card (hoje - data início)
+- [x] Adicionar checklist no modal Dados (Logomarca, Descrição Curta, Descrição Longa, Política de privacidade)
+- [x] Salvar estado do checklist no banco de dados
+- [x] Mostrar dias corridos no card (hoje - data início)
+
+## App Personalizado - Controle de Acesso e Permissões
+
+- [x] Adicionar campo `canMoveAppKanban` na tabela `allowed_emails` para controlar quem pode mover cards
+- [x] Adicionar coluna `canMoveAppKanban` na UI de Configurações para admin gerenciar permissões
+- [x] Implementar verificação de permissão no backend (procedure `appKanban.move`)
+- [x] Implementar verificação de permissão no frontend (AppPersonalizado.tsx)
+- [x] Criar mecanismo para usuários que veem APENAS a aba "App Personalizado"
+- [x] Adicionar campo `onlyAppKanban` na tabela `allowed_emails` para usuários exclusivos
+- [x] Atualizar SideMenu.tsx para filtrar abas baseado em `onlyAppKanban`
+- [x] Testar acesso restrito com diferentes tipos de usuários

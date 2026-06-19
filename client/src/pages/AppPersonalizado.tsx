@@ -83,6 +83,7 @@ export default function AppPersonalizado() {
   const [formData, setFormData] = useState({ companyName: '', csm: '', startDate: '' });
 
   const { data: user } = trpc.auth.me.useQuery();
+  const { data: myPerms } = trpc.config.myPermissions.useQuery();
   const listCards = trpc.appKanban.list.useQuery();
   const createCard = trpc.appKanban.create.useMutation();
   const moveCard = trpc.appKanban.move.useMutation();
@@ -132,9 +133,10 @@ export default function AppPersonalizado() {
   }, [checklistQuery.data, showDataModal]);
 
   const isAdmin = user?.role === 'admin';
+  const canMoveCards = isAdmin || myPerms?.canMoveAppKanban === true;
 
   const handleChecklistToggle = async (key: keyof ChecklistData) => {
-    if (!selectedCardData || !isAdmin) return;
+    if (!selectedCardData || !canMoveCards) return;
     const newValue = !checklistState[key];
     setChecklistState(prev => ({ ...prev, [key]: newValue }));
     try {
@@ -181,7 +183,7 @@ export default function AppPersonalizado() {
   };
 
   const handleDrop = async (toStage: string) => {
-    if (!draggedCard || !isAdmin || draggedCard.stage === toStage) {
+    if (!draggedCard || !canMoveCards || draggedCard.stage === toStage) {
       setDraggedCard(null);
       return;
     }
@@ -245,7 +247,7 @@ export default function AppPersonalizado() {
       {/* Header */}
       <div className="px-6 pt-3 pb-2 flex justify-between items-center">
         <h1 className="text-xl font-bold text-gray-800">App Personalizado</h1>
-        {isAdmin && (
+        {canMoveCards && (
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button className="gap-1 whitespace-nowrap h-7 text-xs px-3">
@@ -319,10 +321,10 @@ export default function AppPersonalizado() {
                 {getCardsByStage(stage.id).map((card) => (
                   <div
                     key={card.id}
-                    draggable={isAdmin}
+                    draggable={canMoveCards}
                     onDragStart={(e) => handleDragStart(e, card)}
                     className={`p-2 bg-gray-50 rounded border border-gray-200 transition-all hover:shadow-sm hover:border-gray-300 ${
-                      isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+                      canMoveCards ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
                     } ${draggedCard?.id === card.id ? 'opacity-50' : ''}`}
                   >
                     {/* Card Title + Delete */}
@@ -330,7 +332,7 @@ export default function AppPersonalizado() {
                       <h3 className="font-semibold text-[11px] text-gray-900 leading-tight line-clamp-2">
                         {card.companyName}
                       </h3>
-                      {isAdmin && (
+                      {canMoveCards && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }}
                           className="text-red-400 hover:text-red-600 flex-shrink-0"

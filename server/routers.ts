@@ -179,16 +179,16 @@ export const appRouter = router({
       return getAllowedEmails();
     }),
     addEmail: publicProcedure
-      .input(z.object({ email: z.string().email(), label: z.string().optional(), isAdmin: z.boolean().default(false), canLaunch: z.boolean().default(true) }))
+      .input(z.object({ email: z.string().email(), label: z.string().optional(), isAdmin: z.boolean().default(false), canLaunch: z.boolean().default(true), canMoveAppKanban: z.boolean().default(false), onlyAppKanban: z.boolean().default(false) }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
         const admin = await isEmailAdmin(ctx.user.email);
         if (!admin) throw new TRPCError({ code: 'FORBIDDEN' });
-        await addAllowedEmail({ email: input.email, label: input.label ?? null, isAdmin: input.isAdmin ? 1 : 0, canLaunch: input.canLaunch ? 1 : 0 });
+        await addAllowedEmail({ email: input.email, label: input.label ?? null, isAdmin: input.isAdmin ? 1 : 0, canLaunch: input.canLaunch ? 1 : 0, canMoveAppKanban: input.canMoveAppKanban ? 1 : 0, onlyAppKanban: input.onlyAppKanban ? 1 : 0 });
         return { success: true };
       }),
     updateEmail: publicProcedure
-      .input(z.object({ id: z.number(), email: z.string().email().optional(), label: z.string().optional(), isAdmin: z.boolean().optional(), canLaunch: z.boolean().optional(), allowedPages: z.array(z.string()).nullable().optional() }))
+      .input(z.object({ id: z.number(), email: z.string().email().optional(), label: z.string().optional(), isAdmin: z.boolean().optional(), canLaunch: z.boolean().optional(), canMoveAppKanban: z.boolean().optional(), onlyAppKanban: z.boolean().optional(), allowedPages: z.array(z.string()).nullable().optional() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
         const admin = await isEmailAdmin(ctx.user.email);
@@ -199,6 +199,8 @@ export const appRouter = router({
         if (data.label !== undefined) updateData.label = data.label;
         if (data.isAdmin !== undefined) updateData.isAdmin = data.isAdmin ? 1 : 0;
         if (data.canLaunch !== undefined) updateData.canLaunch = data.canLaunch ? 1 : 0;
+        if (data.canMoveAppKanban !== undefined) updateData.canMoveAppKanban = data.canMoveAppKanban ? 1 : 0;
+        if (data.onlyAppKanban !== undefined) updateData.onlyAppKanban = data.onlyAppKanban ? 1 : 0;
         if (data.allowedPages !== undefined) updateData.allowedPages = data.allowedPages === null ? null : JSON.stringify(data.allowedPages);
         await updateAllowedEmail(id, updateData as Parameters<typeof updateAllowedEmail>[1]);
         return { success: true };
@@ -214,11 +216,11 @@ export const appRouter = router({
       }),
     // Retorna as abas permitidas para o usuário atual
     myPermissions: publicProcedure.query(async ({ ctx }) => {
-      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false };
+      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
       const entry = await getEmailEntry(ctx.user.email);
-      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false };
+      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
       const allowedPages = entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null;
-      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true };
+      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true, canMoveAppKanban: entry.canMoveAppKanban === 1, onlyAppKanban: entry.onlyAppKanban === 1 };
     }),
   }),
   checklists: router({
@@ -481,8 +483,15 @@ export const appRouter = router({
         newOrder: z.number(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas admin pode mover cards' });
+        if (!ctx.user?.email) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado' });
+        }
+        // Verificar se é admin OU se tem permissão canMoveAppKanban
+        const isAdmin = ctx.user.role === 'admin';
+        const entry = await getEmailEntry(ctx.user.email);
+        const canMove = isAdmin || (entry?.canMoveAppKanban === 1);
+        if (!canMove) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Você não tem permissão para mover cards' });
         }
         await moveAppKanbanCard(input.cardId, input.fromStage, input.toStage, ctx.user.email || 'unknown', input.newOrder);
         return { success: true };
@@ -515,8 +524,15 @@ export const appRouter = router({
         politicaPrivacidade: z.boolean().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas admin pode atualizar checklist' });
+        if (!ctx.user?.email) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado' });
+        }
+        // Verificar se é admin OU se tem permissão canMoveAppKanban
+        const isAdmin = ctx.user.role === 'admin';
+        const entry = await getEmailEntry(ctx.user.email);
+        const canEdit = isAdmin || (entry?.canMoveAppKanban === 1);
+        if (!canEdit) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Você não tem permissão para atualizar o checklist' });
         }
         const { cardId, ...data } = input;
         return upsertAppKanbanChecklist(cardId, data);

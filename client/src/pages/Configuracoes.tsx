@@ -31,6 +31,8 @@ type EmailEntry = {
   label: string | null;
   isAdmin: number;
   canLaunch: number;
+  canMoveAppKanban: number;
+  onlyAppKanban: number;
   allowedPages: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -53,6 +55,8 @@ export default function Configuracoes() {
       setNewLabel("");
       setNewIsAdmin(false);
       setNewCanLaunch(true);
+      setNewCanMoveAppKanban(false);
+      setNewOnlyAppKanban(false);
       setNewAllowedPages(null);
     },
     onError: (e) => toast("Erro: " + e.message),
@@ -81,6 +85,8 @@ export default function Configuracoes() {
   const [newLabel, setNewLabel] = useState("");
   const [newIsAdmin, setNewIsAdmin] = useState(false);
   const [newCanLaunch, setNewCanLaunch] = useState(true);
+  const [newCanMoveAppKanban, setNewCanMoveAppKanban] = useState(false);
+  const [newOnlyAppKanban, setNewOnlyAppKanban] = useState(false);
   const [newAllowedPages, setNewAllowedPages] = useState<string[] | null>(null); // null = todas
 
   const [editOpen, setEditOpen] = useState(false);
@@ -89,6 +95,8 @@ export default function Configuracoes() {
   const [editLabel, setEditLabel] = useState("");
   const [editIsAdmin, setEditIsAdmin] = useState(false);
   const [editCanLaunch, setEditCanLaunch] = useState(true);
+  const [editCanMoveAppKanban, setEditCanMoveAppKanban] = useState(false);
+  const [editOnlyAppKanban, setEditOnlyAppKanban] = useState(false);
   const [editAllowedPages, setEditAllowedPages] = useState<string[] | null>(null);
 
   const openEdit = (entry: EmailEntry) => {
@@ -97,6 +105,8 @@ export default function Configuracoes() {
     setEditLabel(entry.label ?? "");
     setEditIsAdmin(entry.isAdmin === 1);
     setEditCanLaunch(entry.canLaunch === 1);
+    setEditCanMoveAppKanban(entry.canMoveAppKanban === 1);
+    setEditOnlyAppKanban(entry.onlyAppKanban === 1);
     setEditAllowedPages(entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null);
     setEditOpen(true);
   };
@@ -195,6 +205,16 @@ export default function Configuracoes() {
                             Só visualiza
                           </Badge>
                         )}
+                        {(entry as EmailEntry).canMoveAppKanban === 1 && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-purple-100 text-purple-700 border-purple-200">
+                            Move Kanban
+                          </Badge>
+                        )}
+                        {(entry as EmailEntry).onlyAppKanban === 1 && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 border-orange-200">
+                            Apenas App
+                          </Badge>
+                        )}
                       </div>
                       {entry.label && (
                         <p className="text-xs text-gray-400 mt-0.5">{entry.label}</p>
@@ -286,6 +306,24 @@ export default function Configuracoes() {
               />
               <span className="text-sm text-gray-700">Pode lançar atendimentos</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newCanMoveAppKanban}
+                onChange={(e) => setNewCanMoveAppKanban(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">Pode mover cards no App Personalizado</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newOnlyAppKanban}
+                onChange={(e) => setNewOnlyAppKanban(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">Ver apenas a aba App Personalizado</span>
+            </label>
 
             {/* Seleção de abas */}
             <div>
@@ -330,7 +368,7 @@ export default function Configuracoes() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
             <Button
-              onClick={() => addMutation.mutate({ email: newEmail, label: newLabel || undefined, isAdmin: newIsAdmin, canLaunch: newCanLaunch })}
+              onClick={() => addMutation.mutate({ email: newEmail, label: newLabel || undefined, isAdmin: newIsAdmin, canLaunch: newCanLaunch, canMoveAppKanban: newCanMoveAppKanban, onlyAppKanban: newOnlyAppKanban })}
               disabled={!newEmail || addMutation.isPending}
             >
               {addMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
@@ -378,6 +416,24 @@ export default function Configuracoes() {
                 className="w-4 h-4 rounded"
               />
               <span className="text-sm text-gray-700">Pode lançar atendimentos</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editCanMoveAppKanban}
+                onChange={(e) => setEditCanMoveAppKanban(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">Pode mover cards no App Personalizado</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editOnlyAppKanban}
+                onChange={(e) => setEditOnlyAppKanban(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">Ver apenas a aba App Personalizado</span>
             </label>
 
             {/* Seleção de abas */}
@@ -429,6 +485,8 @@ export default function Configuracoes() {
                 label: editLabel || undefined,
                 isAdmin: editIsAdmin,
                 canLaunch: editCanLaunch,
+                canMoveAppKanban: editCanMoveAppKanban,
+                onlyAppKanban: editOnlyAppKanban,
                 allowedPages: editAllowedPages,
               })}
               disabled={!editEmail || updateMutation.isPending}

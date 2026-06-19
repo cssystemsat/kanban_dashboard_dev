@@ -99,6 +99,13 @@
       "when": 1781793391617,
       "tag": "0013_early_inhumans",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1781881477286,
+      "tag": "0014_nappy_wiccan",
+      "breakpoints": true
     }
   ]
 }
