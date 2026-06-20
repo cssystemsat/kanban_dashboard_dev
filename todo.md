@@ -299,3 +299,8 @@
 
 - [x] Adicionar campo de busca no topo do App Personalizado
 - [x] Filtrar cards em tempo real por nome do cliente
+
+
+## Renomear Colunas do Kanban
+
+- [x] Atualizar nomes das colunas no App Personalizado

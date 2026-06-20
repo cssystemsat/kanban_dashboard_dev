@@ -6,22 +6,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Info, Plus, Trash2, Database, CheckSquare, Square } from 'lucide-react';
 
 const STAGES = [
-  { id: 'venda_feita', label: 'Venda feita' },
-  { id: 'formulario', label: 'Formulário' },
+  { id: 'venda_feita', label: 'Novo na esteira' },
+  { id: 'formulario', label: 'Formulário respondido' },
   { id: 'revisao_dados', label: 'Revisão de Dados' },
-  { id: 'desenvolvimento', label: 'Desenvolvimento' },
-  { id: 'envio_lojas', label: 'Envio p/ lojas' },
-  { id: 'teste_liberacao', label: 'Teste p/ liberação' },
+  { id: 'desenvolvimento', label: 'Em desenvolvimento' },
+  { id: 'envio_lojas', label: 'Enviado para a Loja' },
+  { id: 'teste_liberacao', label: 'Teste para liberação (loja própria)' },
   { id: 'app_entregue', label: 'App entregue' },
 ];
 
 const STAGE_LABELS: Record<string, string> = {
-  venda_feita: 'Venda feita',
-  formulario: 'Formulário',
+  venda_feita: 'Novo na esteira',
+  formulario: 'Formulário respondido',
   revisao_dados: 'Revisão de Dados',
-  desenvolvimento: 'Desenvolvimento',
-  envio_lojas: 'Envio p/ lojas',
-  teste_liberacao: 'Teste p/ liberação',
+  desenvolvimento: 'Em desenvolvimento',
+  envio_lojas: 'Enviado para a Loja',
+  teste_liberacao: 'Teste para liberação (loja própria)',
   app_entregue: 'App entregue',
 };
 
