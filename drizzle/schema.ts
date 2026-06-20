@@ -202,6 +202,7 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
   id: int("id").autoincrement().primaryKey(),
   companyName: varchar("companyName", { length: 255 }).notNull(),
   csm: varchar("csm", { length: 255 }).notNull(),
+  comercial: varchar("comercial", { length: 255 }).notNull(),
   startDate: date("startDate").notNull(),
   stage: mysqlEnum("stage", [
     "venda_feita",

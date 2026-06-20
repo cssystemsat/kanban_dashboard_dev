@@ -459,6 +459,7 @@ export const appRouter = router({
       .input(z.object({
         companyName: z.string(),
         csm: z.string(),
+        comercial: z.string(),
         startDate: z.string(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -468,6 +469,7 @@ export const appRouter = router({
         const cardId = await createAppKanbanCard({
           companyName: input.companyName,
           csm: input.csm,
+          comercial: input.comercial,
           startDate: new Date(input.startDate),
           stage: 'venda_feita',
           order: 0,

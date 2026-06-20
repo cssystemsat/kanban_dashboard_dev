@@ -1,0 +1,1 @@
+ALTER TABLE `app_kanban_cards` ADD `comercial` varchar(255) NOT NULL;

@@ -304,3 +304,11 @@
 ## Renomear Colunas do Kanban
 
 - [x] Atualizar nomes das colunas no App Personalizado
+
+
+## Campo Comercial no App Personalizado
+
+- [x] Adicionar coluna comercial na tabela app_kanban_cards
+- [x] Adicionar campo comercial no formulário de criar empresa
+- [x] Exibir comercial no card do Kanban
+- [x] Executar migração do banco de dados

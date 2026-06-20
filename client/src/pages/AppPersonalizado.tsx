@@ -36,6 +36,7 @@ interface KanbanCard {
   id: number;
   companyName: string;
   csm: string;
+  comercial: string;
   startDate: string | Date;
   stage: string;
   order: number;
@@ -81,7 +82,7 @@ export default function AppPersonalizado() {
     descricaoLonga: false,
     politicaPrivacidade: false,
   });
-  const [formData, setFormData] = useState({ companyName: '', csm: '', startDate: '' });
+  const [formData, setFormData] = useState({ companyName: '', csm: '', comercial: '', startDate: '' });
 
   const { data: user } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery();
@@ -153,7 +154,7 @@ export default function AppPersonalizado() {
   };
 
   const handleCreateCard = async () => {
-    if (!formData.companyName || !formData.csm || !formData.startDate) {
+    if (!formData.companyName || !formData.csm || !formData.comercial || !formData.startDate) {
       alert('Preencha todos os campos');
       return;
     }
@@ -162,9 +163,10 @@ export default function AppPersonalizado() {
       await createCard.mutateAsync({
         companyName: formData.companyName,
         csm: formData.csm,
+        comercial: formData.comercial,
         startDate: formData.startDate,
       });
-      setFormData({ companyName: '', csm: '', startDate: '' });
+      setFormData({ companyName: '', csm: '', comercial: '', startDate: '' });
       setShowCreateDialog(false);
       listCards.refetch();
     } catch (error) {
@@ -285,6 +287,18 @@ export default function AppPersonalizado() {
                   <option value="Rafaela">Rafaela</option>
                   <option value="Jeferson">Jeferson</option>
                 </select>
+                <select
+                  value={formData.comercial}
+                  onChange={(e) => setFormData({ ...formData, comercial: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Selecione o Comercial</option>
+                  <option value="Patrícia Fernandes">Patrícia Fernandes</option>
+                  <option value="Aline">Aline</option>
+                  <option value="Carlos">Carlos</option>
+                  <option value="Alessandro">Alessandro</option>
+                  <option value="Heitor">Heitor</option>
+                </select>
                 <Input
                   type="date"
                   value={formData.startDate}
@@ -362,6 +376,9 @@ export default function AppPersonalizado() {
                     {/* Card Info */}
                     <p className="text-[10px] text-gray-500 truncate">
                       CSM: {card.csm}
+                    </p>
+                    <p className="text-[10px] text-gray-500 truncate">
+                      Comercial: {card.comercial}
                     </p>
                     <p className="text-[10px] text-gray-500 truncate">
                       {formatDate(card.startDate)}
