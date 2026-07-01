@@ -214,6 +214,7 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
     "app_entregue"
   ]).default("venda_feita").notNull(),
   order: int("order").default(0).notNull(), // Para ordenação dentro de cada etapa
+  priority: int("priority").default(0).notNull(), // Prioridade (1 até N) apenas para estágio "desenvolvimento"
   createdBy: varchar("createdBy", { length: 320 }).notNull(), // E-mail do admin que criou
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

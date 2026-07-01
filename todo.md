@@ -319,3 +319,12 @@
 - [x] Permitir que qualquer administrador marque o checklist de documentos
 - [x] Atualizar lógica de permissão no backend (appKanban.updateChecklist)
 - [x] Atualizar UI para mostrar checklist editável para admins
+
+
+## Sistema de Prioridades - Em Desenvolvimento
+
+- [x] Adicionar coluna `priority` na tabela `appKanbanCards`
+- [x] Criar procedure no backend para atualizar prioridade
+- [x] Adicionar dropdown de prioridade no frontend para cards em "Em desenvolvimento"
+- [x] Permitir que admins editem a prioridade
+- [x] Testar sistema de prioridades

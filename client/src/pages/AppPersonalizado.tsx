@@ -40,6 +40,7 @@ interface KanbanCard {
   startDate: string | Date;
   stage: string;
   order: number;
+  priority?: number;
 }
 
 interface HistoryEntry {
@@ -91,6 +92,7 @@ export default function AppPersonalizado() {
   const moveCard = trpc.appKanban.move.useMutation();
   const deleteCardMutation = trpc.appKanban.delete.useMutation();
   const updateChecklist = trpc.appKanban.updateChecklist.useMutation();
+  const updatePriority = trpc.appKanban.updatePriority.useMutation();
 
   // Query de histórico com cardId dinâmico
   const historyQuery = trpc.appKanban.history.useQuery(
@@ -388,6 +390,36 @@ export default function AppPersonalizado() {
                     <p className="text-[10px] font-semibold text-orange-600 mb-1.5">
                       {getDaysSince(card.startDate)} dias
                     </p>
+
+                    {/* Priority Dropdown - Apenas para desenvolvimento */}
+                    {stage.id === 'desenvolvimento' && isAdmin && (
+                      <div className="mb-1.5">
+                        <select
+                          value={card.priority || 0}
+                          onChange={(e) => {
+                            const newPriority = parseInt(e.target.value);
+                            if (newPriority > 0) {
+                              updatePriority.mutateAsync({
+                                cardId: card.id,
+                                priority: newPriority,
+                              }).then(() => {
+                                listCards.refetch();
+                              }).catch((error) => {
+                                console.error('Erro ao atualizar prioridade:', error);
+                              });
+                            }
+                          }}
+                          className="w-full h-6 text-[10px] border border-purple-200 rounded bg-purple-50 px-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                        >
+                          <option value="0">Sem prioridade</option>
+                          {Array.from({ length: getCardsByStage(stage.id).length }, (_, i) => i + 1).map((num) => (
+                            <option key={num} value={num}>
+                              Prioridade {num}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
                     {/* Buttons: Info + Dados */}
                     <div className="flex gap-1">

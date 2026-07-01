@@ -48,6 +48,9 @@ import {
   upsertAppKanbanChecklist,
 } from "./db";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { appKanbanCards } from "../drizzle/schema";
+import { getDb } from "./db";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -536,6 +539,26 @@ export const appRouter = router({
         }
         const { cardId, ...data } = input;
         return upsertAppKanbanChecklist(cardId, data);
+      }),
+    updatePriority: protectedProcedure
+      .input(z.object({
+        cardId: z.number(),
+        priority: z.number().int().positive(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Voce precisa estar autenticado' });
+        }
+        const isAdmin = await isEmailAdmin(ctx.user.email);
+        if (!isAdmin) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas administradores podem atualizar prioridade' });
+        }
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Banco de dados nao disponivel' });
+        
+        await db.update(appKanbanCards).set({ priority: input.priority }).where(eq(appKanbanCards.id, input.cardId));
+        const updated = await db.select().from(appKanbanCards).where(eq(appKanbanCards.id, input.cardId));
+        return updated[0];
       }),
   }),
   auth: router({
