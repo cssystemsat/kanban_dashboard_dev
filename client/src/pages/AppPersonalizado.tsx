@@ -136,9 +136,10 @@ export default function AppPersonalizado() {
 
   const isAdmin = user?.role === 'admin';
   const canMoveCards = isAdmin || myPerms?.canMoveAppKanban === true;
+  const canEditChecklist = isAdmin; // Apenas admins podem editar checklist
 
   const handleChecklistToggle = async (key: keyof ChecklistData) => {
-    if (!selectedCardData || !canMoveCards) return;
+    if (!selectedCardData || !canEditChecklist) return;
     const newValue = !checklistState[key];
     setChecklistState(prev => ({ ...prev, [key]: newValue }));
     try {
@@ -463,12 +464,12 @@ export default function AppPersonalizado() {
                     <button
                       key={item.key}
                       onClick={() => handleChecklistToggle(item.key)}
-                      disabled={!isAdmin}
+                      disabled={!canEditChecklist}
                       className={`w-full flex items-center gap-2 p-2 rounded border transition-all text-left ${
                         checklistState[item.key]
                           ? 'bg-green-50 border-green-200'
                           : 'bg-white border-gray-200 hover:bg-gray-50'
-                      } ${!isAdmin ? 'cursor-default' : 'cursor-pointer'}`}
+                      } ${!canEditChecklist ? 'cursor-default' : 'cursor-pointer'}`}
                     >
                       {checklistState[item.key] ? (
                         <CheckSquare className="w-4 h-4 text-green-600 flex-shrink-0" />

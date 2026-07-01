@@ -312,3 +312,10 @@
 - [x] Adicionar campo comercial no formulário de criar empresa
 - [x] Exibir comercial no card do Kanban
 - [x] Executar migração do banco de dados
+
+
+## Checklist de Documentos - Permissões
+
+- [x] Permitir que qualquer administrador marque o checklist de documentos
+- [x] Atualizar lógica de permissão no backend (appKanban.updateChecklist)
+- [x] Atualizar UI para mostrar checklist editável para admins

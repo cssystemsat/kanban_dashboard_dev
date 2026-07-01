@@ -529,12 +529,9 @@ export const appRouter = router({
         if (!ctx.user?.email) {
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado' });
         }
-        // Verificar se é admin OU se tem permissão canMoveAppKanban
-        const isAdmin = ctx.user.role === 'admin';
-        const entry = await getEmailEntry(ctx.user.email);
-        const canEdit = isAdmin || (entry?.canMoveAppKanban === 1);
-        if (!canEdit) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Você não tem permissão para atualizar o checklist' });
+        // Apenas admins podem atualizar o checklist
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas administradores podem atualizar o checklist' });
         }
         const { cardId, ...data } = input;
         return upsertAppKanbanChecklist(cardId, data);
