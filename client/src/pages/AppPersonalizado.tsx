@@ -134,7 +134,7 @@ export default function AppPersonalizado() {
     }
   }, [checklistQuery.data, showDataModal]);
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = myPerms?.isAdmin === true; // Usar allowed_emails.isAdmin, não user.role
   const canMoveCards = isAdmin || myPerms?.canMoveAppKanban === true;
   const canEditChecklist = isAdmin; // Apenas admins podem editar checklist
 

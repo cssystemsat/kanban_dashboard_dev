@@ -529,8 +529,9 @@ export const appRouter = router({
         if (!ctx.user?.email) {
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado' });
         }
-        // Apenas admins podem atualizar o checklist
-        if (ctx.user.role !== 'admin') {
+        // Apenas admins (allowed_emails.isAdmin) podem atualizar o checklist
+        const isAdmin = await isEmailAdmin(ctx.user.email);
+        if (!isAdmin) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas administradores podem atualizar o checklist' });
         }
         const { cardId, ...data } = input;
