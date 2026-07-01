@@ -560,6 +560,26 @@ export const appRouter = router({
         const updated = await db.select().from(appKanbanCards).where(eq(appKanbanCards.id, input.cardId));
         return updated[0];
       }),
+    updateRefusalReason: protectedProcedure
+      .input(z.object({
+        cardId: z.number(),
+        refusalReason: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Voce precisa estar autenticado' });
+        }
+        const isAdmin = await isEmailAdmin(ctx.user.email);
+        if (!isAdmin) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas administradores podem atualizar motivo de recusa' });
+        }
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Banco de dados nao disponivel' });
+        
+        await db.update(appKanbanCards).set({ refusalReason: input.refusalReason || null }).where(eq(appKanbanCards.id, input.cardId));
+        const updated = await db.select().from(appKanbanCards).where(eq(appKanbanCards.id, input.cardId));
+        return updated[0];
+      }),
   }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

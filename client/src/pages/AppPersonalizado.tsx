@@ -6,22 +6,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Info, Plus, Trash2, Database, CheckSquare, Square } from 'lucide-react';
 
 const STAGES = [
-  { id: 'venda_feita', label: 'Novo na esteira' },
+  { id: 'venda_feita', label: 'Vendido' },
   { id: 'formulario', label: 'Formulário respondido' },
-  { id: 'revisao_dados', label: 'Revisão de Dados' },
+  { id: 'revisao_dados', label: 'Pronto para desenvolvimento' },
   { id: 'desenvolvimento', label: 'Em desenvolvimento' },
   { id: 'envio_lojas', label: 'Enviado para a Loja' },
-  { id: 'teste_liberacao', label: 'Teste para liberação (loja própria)' },
+  { id: 'teste_liberacao', label: 'Recuso pela Loja' },
   { id: 'app_entregue', label: 'App entregue' },
 ];
 
 const STAGE_LABELS: Record<string, string> = {
-  venda_feita: 'Novo na esteira',
+  venda_feita: 'Vendido',
   formulario: 'Formulário respondido',
-  revisao_dados: 'Revisão de Dados',
+  revisao_dados: 'Pronto para desenvolvimento',
   desenvolvimento: 'Em desenvolvimento',
   envio_lojas: 'Enviado para a Loja',
-  teste_liberacao: 'Teste para liberação (loja própria)',
+  teste_liberacao: 'Recuso pela Loja',
   app_entregue: 'App entregue',
 };
 
@@ -41,6 +41,7 @@ interface KanbanCard {
   stage: string;
   order: number;
   priority?: number;
+  refusalReason?: string;
 }
 
 interface HistoryEntry {
@@ -93,6 +94,7 @@ export default function AppPersonalizado() {
   const deleteCardMutation = trpc.appKanban.delete.useMutation();
   const updateChecklist = trpc.appKanban.updateChecklist.useMutation();
   const updatePriority = trpc.appKanban.updatePriority.useMutation();
+  const updateRefusalReason = trpc.appKanban.updateRefusalReason.useMutation();
 
   // Query de histórico com cardId dinâmico
   const historyQuery = trpc.appKanban.history.useQuery(
@@ -418,6 +420,28 @@ export default function AppPersonalizado() {
                             </option>
                           ))}
                         </select>
+                      </div>
+                    )}
+
+                    {/* Motivo de Recusa - Apenas para teste_liberacao */}
+                    {stage.id === 'teste_liberacao' && isAdmin && (
+                      <div className="mb-1.5">
+                        <textarea
+                          value={card.refusalReason || ''}
+                          onChange={(e) => {
+                            const newReason = e.target.value;
+                            updateRefusalReason.mutateAsync({
+                              cardId: card.id,
+                              refusalReason: newReason || undefined,
+                            }).then(() => {
+                              listCards.refetch();
+                            }).catch((error) => {
+                              console.error('Erro ao atualizar motivo de recusa:', error);
+                            });
+                          }}
+                          placeholder="Motivo da recusa..."
+                          className="w-full h-12 text-[10px] border border-red-200 rounded bg-red-50 px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-red-400 resize-none"
+                        />
                       </div>
                     )}
 

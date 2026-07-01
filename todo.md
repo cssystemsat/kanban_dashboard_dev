@@ -328,3 +328,13 @@
 - [x] Adicionar dropdown de prioridade no frontend para cards em "Em desenvolvimento"
 - [x] Permitir que admins editem a prioridade
 - [x] Testar sistema de prioridades
+
+
+## Renomear Colunas e Adicionar Motivo de Recusa
+
+- [x] Renomear "Novo na esteira" para "Vendido"
+- [x] Renomear "Revisão de Dados" para "Pronto para desenvolvimento"
+- [x] Renomear "Teste para liberação (loja própria)" para "Recuso pela Loja"
+- [x] Adicionar coluna `refusalReason` na tabela `appKanbanCards`
+- [x] Criar campo de texto para motivo de recusa no card quando estiver em "Recuso pela Loja"
+- [x] Atualizar procedure de atualizar card para incluir motivo de recusa

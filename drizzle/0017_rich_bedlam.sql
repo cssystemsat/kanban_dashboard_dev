@@ -1,0 +1,1 @@
+ALTER TABLE `app_kanban_cards` ADD `refusalReason` text;
