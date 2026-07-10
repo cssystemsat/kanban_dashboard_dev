@@ -591,6 +591,41 @@ export const appRouter = router({
       } as const;
     }),
   }),
+  urs: router({
+    generateInsights: protectedProcedure
+      .input(z.object({
+        csvData: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const prompt = `Analise os dados CSV de URs fornecidos e gere um relatorio executivo estruturado.\n\nDados CSV (Coluna A: Cliente, Coluna K: Data, Coluna E: Quantidade Atual, Coluna G: Variacao):\n${input.csvData}\n\nGere um relatorio com:\n1. Resumo executivo com total de URs e variacao diaria/semanal\n2. Alertas criticos (maiores perdas)\n3. Variacao da contagem total\n4. Centrais que mais ganharam URs\n5. Centrais que mais perderam URs\n6. Possiveis anomalias e insights\n7. Recomendacoes de acao\n\nFormate o relatorio em markdown com secoes claras e dados especificos.`;
+
+          const response = await invokeLLM({
+            messages: [
+              {
+                role: 'system',
+                content: 'Voce e um analista de dados especializado em rastreamento de URs. Gere relatorios estruturados e acionaveis.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+          });
+
+          const content = response.choices?.[0]?.message?.content || '';
+          return {
+            success: true,
+            insights: content,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Erro ao gerar insights com IA',
+          });
+        }
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

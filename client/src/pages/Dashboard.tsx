@@ -457,7 +457,9 @@ export default function Dashboard() {
   const { data: authData } = trpc.auth.me.useQuery();
   const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
   const [comments, setComments] = useState<Record<string, CommentData>>({});
+  const [insightsModal, setInsightsModal] = useState<{ open: boolean; insights: string; loading: boolean }>({ open: false, insights: '', loading: false });
   const contentRef = useRef<HTMLDivElement>(null);
+  const generateInsightsMutation = trpc.urs.generateInsights.useMutation();
   
   // Carregar comentários do banco ao inicializar
   const monthYear = new Date().toISOString().slice(0, 7); // "YYYY-MM"
@@ -512,6 +514,22 @@ export default function Dashboard() {
 
   const handleAddComment = (clientName: string) => {
     setCommentModal({ clientName });
+  };
+
+  const handleGenerateInsights = async () => {
+    try {
+      setInsightsModal({ open: true, insights: '', loading: true });
+      const response = await fetch(
+        'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1250838098&output=csv'
+      );
+      const csvData = await response.text();
+      const result = await generateInsightsMutation.mutateAsync({ csvData });
+      const insightsText = typeof result.insights === 'string' ? result.insights : '';
+      setInsightsModal({ open: true, insights: insightsText, loading: false });
+    } catch (err) {
+      console.error('Erro ao gerar insights:', err);
+      setInsightsModal({ open: true, insights: 'Erro ao gerar insights. Tente novamente.', loading: false });
+    }
   };
 
   // Mutation para salvar comentário no banco
@@ -618,12 +636,21 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold" style={{ color: '#001F3F' }}>
             Controle de UR's, Câmeras e Tags no mês de Maio
           </h1>
-          <button
-            onClick={handleScreenshot}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            Screenshot
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleGenerateInsights}
+              disabled={insightsModal.loading}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {insightsModal.loading ? 'Gerando...' : 'Gerar Insights'}
+            </button>
+            <button
+              onClick={handleScreenshot}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              Screenshot
+            </button>
+          </div>
         </div>
 
         {/* Gráfico de Evolução */}
@@ -664,6 +691,59 @@ export default function Dashboard() {
           onDelete={handleDeleteComment}
           onClose={() => setCommentModal(null)}
         />
+      )}
+
+      {/* Modal de Insights */}
+      {insightsModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setInsightsModal({ ...insightsModal, open: false })}>
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Análise de URs com IA</h2>
+              <button
+                onClick={() => setInsightsModal({ ...insightsModal, open: false })}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            {insightsModal.loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">Gerando análise...</span>
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed">
+                  {insightsModal.insights}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <button
+                onClick={() => setInsightsModal({ ...insightsModal, open: false })}
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Fechar
+              </button>
+              <button
+                onClick={async () => {
+                  const text = insightsModal.insights;
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    alert('Análise copiada para a área de transferência!');
+                  } catch {
+                    alert('Erro ao copiar');
+                  }
+                }}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Copiar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -338,3 +338,11 @@
 - [x] Adicionar coluna `refusalReason` na tabela `appKanbanCards`
 - [x] Criar campo de texto para motivo de recusa no card quando estiver em "Recuso pela Loja"
 - [x] Atualizar procedure de atualizar card para incluir motivo de recusa
+
+
+## Análise Diária de URs com IA
+
+- [x] Criar procedure no backend `generateURsInsights` que consome dados da planilha e gera análise com IA
+- [x] Adicionar botão "Gerar Insights" na aba Evolução de URs
+- [x] Implementar modal para exibir análise gerada
+- [x] Testar geração de insights e validar formato
