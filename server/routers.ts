@@ -613,7 +613,23 @@ export const appRouter = router({
             ],
           });
 
-          const content = response.choices?.[0]?.message?.content || '';
+          let content = '';
+          const messageContent = response.choices?.[0]?.message?.content;
+          
+          // Extrair texto da resposta (pode ser string ou array)
+          if (typeof messageContent === 'string') {
+            content = messageContent;
+          } else if (Array.isArray(messageContent)) {
+            // Se for array, concatenar todos os textos
+            content = messageContent
+              .map((item: any) => {
+                if (typeof item === 'string') return item;
+                if (item.type === 'text' && item.text) return item.text;
+                return '';
+              })
+              .join('');
+          }
+          
           return {
             success: true,
             insights: content,
