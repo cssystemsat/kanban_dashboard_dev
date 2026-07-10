@@ -598,59 +598,55 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         try {
-          // Parse CSV simples: Cliente, Data, Quantidade Atual, Variação
+          // Parse CSV: Coluna A: Cliente, E: Qtd Atual, F: Variação 7 dias, G: Variação 1 dia
           const lines = input.csvData.trim().split('\n').filter((l: string) => l.trim());
           
           // Pular header se existir
           const dataLines = lines.slice(1);
           
-          // Agrupar por cliente
-          const clientData: Record<string, { gains: number; losses: number; lastVariation: number }> = {};
+          // Agrupar por cliente (pegar o último registro de cada um)
+          const clientData: Record<string, { qtdAtual: number; var7dias: number; var1dia: number }> = {};
           
           for (const line of dataLines) {
             const parts = line.split(',');
-            if (parts.length < 4) continue;
+            if (parts.length < 7) continue;
             
             const cliente = parts[0]?.trim() || 'Desconhecido';
-            const variacao = parseInt(parts[3]?.trim() || '0');
+            const qtdAtual = parseInt(parts[4]?.trim() || '0'); // Coluna E (índice 4)
+            const var7dias = parseInt(parts[5]?.trim() || '0'); // Coluna F (índice 5)
+            const var1dia = parseInt(parts[6]?.trim() || '0');  // Coluna G (índice 6)
             
-            if (!clientData[cliente]) {
-              clientData[cliente] = { gains: 0, losses: 0, lastVariation: 0 };
-            }
-            
-            if (variacao > 0) {
-              clientData[cliente].gains += variacao;
-            } else if (variacao < 0) {
-              clientData[cliente].losses += Math.abs(variacao);
-            }
-            
-            clientData[cliente].lastVariation = variacao;
+            // Sempre pegar o último registro (mais recente)
+            clientData[cliente] = { qtdAtual, var7dias, var1dia };
           }
           
-          // Ordenar por ganhos e perdas
-          const sortedByGains = Object.entries(clientData)
-            .sort((a, b) => b[1].gains - a[1].gains)
+          // Ordenar por variação 7 dias (maiores perdas = menores números)
+          const sortedByVar7 = Object.entries(clientData)
+            .sort((a, b) => a[1].var7dias - b[1].var7dias)
             .slice(0, 3);
           
-          const sortedByLosses = Object.entries(clientData)
-            .sort((a, b) => b[1].losses - a[1].losses)
+          const sortedByGains7 = Object.entries(clientData)
+            .sort((a, b) => b[1].var7dias - a[1].var7dias)
             .slice(0, 3);
           
           // Gerar análise simples
           let analysis = '## 📊 Análise de Ganhos e Perdas de Placas (Últimos 7 Dias)\n\n';
           
-          if (sortedByLosses.length > 0) {
+          if (sortedByVar7.length > 0) {
             analysis += '### 🔴 Empresas Críticas (Maiores Perdas)\n\n';
-            for (const [cliente, data] of sortedByLosses) {
-              const lastChange = data.lastVariation < 0 ? `perdeu ${Math.abs(data.lastVariation)} placa(s) de ontem para hoje` : `ganhou ${data.lastVariation} placa(s) de ontem para hoje`;
-              analysis += `**${cliente}**: ${lastChange} e principalmente perdeu ${data.losses} placa(s) nos últimos 7 dias.\n\n`;
+            for (const [cliente, data] of sortedByVar7) {
+              if (data.var7dias < 0) {
+                analysis += `**${cliente}**: Perdeu ${Math.abs(data.var1dia)} placa(s) de ontem para hoje e principalmente ${Math.abs(data.var7dias)} placa(s) nos últimos 7 dias. Tem ${data.qtdAtual} placas atualmente.\n\n`;
+              }
             }
           }
           
-          if (sortedByGains.length > 0) {
+          if (sortedByGains7.length > 0) {
             analysis += '### 🟢 Empresas em Crescimento (Maiores Ganhos)\n\n';
-            for (const [cliente, data] of sortedByGains) {
-              analysis += `**${cliente}**: Ganhou ${data.gains} placa(s) nos últimos 7 dias.\n\n`;
+            for (const [cliente, data] of sortedByGains7) {
+              if (data.var7dias > 0) {
+                analysis += `**${cliente}**: Ganhou ${data.var7dias} placa(s) nos últimos 7 dias. Tem ${data.qtdAtual} placas atualmente.\n\n`;
+              }
             }
           }
           
