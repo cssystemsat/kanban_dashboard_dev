@@ -512,7 +512,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleAddComment = (clientName: string) => {
+    const handleAddComment = (clientName: string) => {
     setCommentModal({ clientName });
   };
 
@@ -523,7 +523,38 @@ export default function Dashboard() {
         'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1250838098&output=csv'
       );
       const csvData = await response.text();
-      const result = await generateInsightsMutation.mutateAsync({ csvData });
+      
+      // Filtrar apenas últimos 7 dias
+      const lines = csvData.split('\n');
+      const header = lines[0];
+      const dataLines = lines.slice(1);
+      
+      // Encontrar coluna de data (coluna K = índice 10)
+      const today = new Date();
+      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      const filteredLines = dataLines.filter(line => {
+        if (!line.trim()) return false;
+        const parts = line.split(',');
+        if (parts.length < 11) return false;
+        
+        const dateStr = parts[10]?.trim(); // Coluna K (índice 10)
+        if (!dateStr) return false;
+        
+        try {
+          // Parse data no formato dd/mm/yyyy
+          const [day, month, year] = dateStr.split('/');
+          const lineDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          return lineDate >= sevenDaysAgo && lineDate <= today;
+        } catch {
+          return false;
+        }
+      });
+      
+      // Reconstruir CSV com header + últimos 7 dias
+      const filteredCsv = [header, ...filteredLines].join('\n');
+      
+      const result = await generateInsightsMutation.mutateAsync({ csvData: filteredCsv });
       const insightsText = typeof result.insights === 'string' ? result.insights : '';
       setInsightsModal({ open: true, insights: insightsText, loading: false });
     } catch (err) {
