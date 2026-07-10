@@ -598,72 +598,75 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         try {
-          const prompt = `Analise os dados CSV de URs fornecidos e gere um relatorio executivo estruturado.\n\nDados CSV (Coluna A: Cliente, Coluna K: Data, Coluna E: Quantidade Atual, Coluna G: Variacao):\n${input.csvData}\n\nGere um relatorio com:\n1. Resumo executivo com total de URs e variacao diaria/semanal\n2. Alertas criticos (maiores perdas)\n3. Variacao da contagem total\n4. Centrais que mais ganharam URs\n5. Centrais que mais perderam URs\n6. Possiveis anomalias e insights\n7. Recomendacoes de acao\n\nFormate o relatorio em markdown com secoes claras e dados especificos.`;
-
-          const response = await invokeLLM({
-            messages: [
-              {
-                role: 'system',
-                content: 'Voce e um analista de dados especializado em rastreamento de URs. Gere relatorios estruturados e acionaveis.',
-              },
-              {
-                role: 'user',
-                content: prompt,
-              },
-            ],
-          });
-
-          let content = '';
-          const messageContent = response.choices?.[0]?.message?.content;
+          // Parse CSV simples: Cliente, Data, Quantidade Atual, Variação
+          const lines = input.csvData.trim().split('\n').filter((l: string) => l.trim());
           
-          // Extrair texto da resposta (pode ser string ou array)
-          if (typeof messageContent === 'string') {
-            content = messageContent;
-          } else if (Array.isArray(messageContent)) {
-            // Se for array, concatenar todos os textos
-            content = messageContent
-              .map((item: any) => {
-                if (typeof item === 'string') return item;
-                if (item.type === 'text' && item.text) return item.text;
-                return '';
-              })
-              .join('');
+          // Pular header se existir
+          const dataLines = lines.slice(1);
+          
+          // Agrupar por cliente
+          const clientData: Record<string, { gains: number; losses: number; lastVariation: number }> = {};
+          
+          for (const line of dataLines) {
+            const parts = line.split(',');
+            if (parts.length < 4) continue;
+            
+            const cliente = parts[0]?.trim() || 'Desconhecido';
+            const variacao = parseInt(parts[3]?.trim() || '0');
+            
+            if (!clientData[cliente]) {
+              clientData[cliente] = { gains: 0, losses: 0, lastVariation: 0 };
+            }
+            
+            if (variacao > 0) {
+              clientData[cliente].gains += variacao;
+            } else if (variacao < 0) {
+              clientData[cliente].losses += Math.abs(variacao);
+            }
+            
+            clientData[cliente].lastVariation = variacao;
+          }
+          
+          // Ordenar por ganhos e perdas
+          const sortedByGains = Object.entries(clientData)
+            .sort((a, b) => b[1].gains - a[1].gains)
+            .slice(0, 3);
+          
+          const sortedByLosses = Object.entries(clientData)
+            .sort((a, b) => b[1].losses - a[1].losses)
+            .slice(0, 3);
+          
+          // Gerar análise simples
+          let analysis = '## 📊 Análise de Ganhos e Perdas de Placas (Últimos 7 Dias)\n\n';
+          
+          if (sortedByLosses.length > 0) {
+            analysis += '### 🔴 Empresas Críticas (Maiores Perdas)\n\n';
+            for (const [cliente, data] of sortedByLosses) {
+              const lastChange = data.lastVariation < 0 ? `perdeu ${Math.abs(data.lastVariation)} placa(s) de ontem para hoje` : `ganhou ${data.lastVariation} placa(s) de ontem para hoje`;
+              analysis += `**${cliente}**: ${lastChange} e principalmente perdeu ${data.losses} placa(s) nos últimos 7 dias.\n\n`;
+            }
+          }
+          
+          if (sortedByGains.length > 0) {
+            analysis += '### 🟢 Empresas em Crescimento (Maiores Ganhos)\n\n';
+            for (const [cliente, data] of sortedByGains) {
+              analysis += `**${cliente}**: Ganhou ${data.gains} placa(s) nos últimos 7 dias.\n\n`;
+            }
+          }
+          
+          if (Object.keys(clientData).length === 0) {
+            analysis += 'Nenhum dado disponível para análise.';
           }
           
           return {
             success: true,
-            insights: content,
+            insights: analysis,
           };
-        } catch (error) {
-          // Fallback: retornar análise de teste quando IA falha
-          console.warn('[generateInsights] Usando fallback após erro:', error);
-          const fallbackInsights = `## 📊 Análise de URs - Últimos 7 Dias (Teste)
-
-### 📈 Resumo Executivo
-- **Total de movimentações**: ${input.csvData.split('\n').length - 1} registros
-- **Período analisado**: Últimos 7 dias
-- **Status**: Análise em processamento
-
-### 🏆 Clientes com Maior Ganho
-1. Aguardando dados...
-2. Aguardando dados...
-3. Aguardando dados...
-
-### 📉 Clientes com Maior Perda
-1. Aguardando dados...
-2. Aguardando dados...
-3. Aguardando dados...
-
-### 💡 Recomendações
-- Validar dados de entrada
-- Verificar conexão com serviço de IA
-- Tentar novamente em alguns minutos
-
-**Nota**: Esta é uma análise de teste. A análise completa com IA será disponibilizada em breve.`;
-          
+        } catch (error: any) {
+          console.error('[generateInsights] Erro:', error?.message || error);
           return {
             success: true,
-            insights: fallbackInsights,
+            insights: '## 📊 Análise Indisponível\n\nDesculpe, não conseguimos processar os dados no momento. Tente novamente.',
           };
         }
       }),
