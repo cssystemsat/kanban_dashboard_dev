@@ -619,23 +619,23 @@ export default function Painel() {
                 );
               })}
 
-              {/* Card Migrados no Ano */}
+              {/* Card Migrado no Mês */}
               <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-1"
-                style={{ borderColor: '#E0E8F0', borderLeft: '4px solid #0EA5E9' }}>
+                style={{ borderColor: '#E0E8F0', borderLeft: '4px solid #7C3AED' }}>
                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-sky-500" /> Migrados no Ano
+                  <Truck className="w-3.5 h-3.5 text-purple-500" /> Migrado no Mês
                 </p>
                 {migLoading ? (
-                  <Loader2 className="w-8 h-8 animate-spin text-sky-400 mt-1" />
+                  <Loader2 className="w-8 h-8 animate-spin text-purple-400 mt-1" />
                 ) : (
-                  <p className="text-5xl font-bold text-sky-500 leading-none">
-                    {mig.migradosAno !== null ? mig.migradosAno.toLocaleString('pt-BR') : '—'}
+                  <p className="text-5xl font-bold text-purple-500 leading-none">
+                    {mig.migradoMes !== null ? mig.migradoMes.toLocaleString('pt-BR') : '—'}
                   </p>
                 )}
-                <p className="text-sm text-gray-500 mt-1">placas migradas em 2026</p>
+                <p className="text-sm text-gray-500 mt-1">placas migradas neste mês</p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Truck className="w-3.5 h-3.5 text-sky-400" />
-                  <span className="text-xs text-sky-600 font-semibold">Acumulado anual</span>
+                  <Truck className="w-3.5 h-3.5 text-purple-400" />
+                  <span className="text-xs text-purple-600 font-semibold">Acumulado mensal</span>
                 </div>
               </div>
             </div>
