@@ -623,40 +623,72 @@ export const appRouter = router({
           // Ordenar por variação 7 dias (maiores perdas = menores números)
           const sortedByVar7 = Object.entries(clientData)
             .sort((a, b) => a[1].var7dias - b[1].var7dias)
-            .slice(0, 3);
+            .slice(0, 5);
           
           const sortedByGains7 = Object.entries(clientData)
             .sort((a, b) => b[1].var7dias - a[1].var7dias)
-            .slice(0, 3);
+            .slice(0, 5);
           
-          // Gerar análise simples
+          // Calcular métricas gerais
+          const totalClientes = Object.keys(clientData).length;
+          const totalPlacas = Object.values(clientData).reduce((sum, d) => sum + d.qtdAtual, 0);
+          const totalPerdasSemanal = Object.values(clientData)
+            .filter(d => d.var7dias < 0)
+            .reduce((sum, d) => sum + Math.abs(d.var7dias), 0);
+          const totalGanhosSemanal = Object.values(clientData)
+            .filter(d => d.var7dias > 0)
+            .reduce((sum, d) => sum + d.var7dias, 0);
+          
+          // Gerar análise criativa
           let analysis = '## 📊 Análise de Ganhos e Perdas de Placas (Últimos 7 Dias)\n\n';
+          analysis += `### 📋 Resumo Executivo\n- **Total de empresas**: ${totalClientes}\n- **Total de placas em circulação**: ${totalPlacas.toLocaleString('pt-BR')}\n- **Ganhos na semana**: +${totalGanhosSemanal} placas\n- **Perdas na semana**: -${totalPerdasSemanal} placas\n- **Saldo**: ${totalGanhosSemanal - totalPerdasSemanal > 0 ? '+' : ''}${totalGanhosSemanal - totalPerdasSemanal} placas\n\n`;
           
           if (sortedByVar7.length > 0) {
-            analysis += '### 🔴 Empresas Críticas (Maiores Perdas)\n\n';
+            analysis += '### 🔴 Empresas Críticas - TOP 5 (Maiores Perdas)\n\n';
+            let rank = 1;
             for (const [cliente, data] of sortedByVar7) {
               if (data.var7dias < 0) {
-                analysis += `**${cliente}**: Perdeu ${Math.abs(data.var1dia)} placa(s) de ontem para hoje e principalmente ${Math.abs(data.var7dias)} placa(s) nos últimos 7 dias. Tem ${data.qtdAtual} placas atualmente.\n\n`;
+                const percentualPerda = ((Math.abs(data.var7dias) / data.qtdAtual) * 100).toFixed(1);
+                const urgencia = Math.abs(data.var7dias) > 100 ? '\ud83d\udea8 URGENTE' : Math.abs(data.var7dias) > 50 ? '\u26a0\ufe0f ATENÇÃO' : '\ud83d\udd20 Monitor';
+                analysis += `**${rank}. ${cliente}** ${urgencia}\n`;
+                analysis += `   - Perdeu ${Math.abs(data.var1dia)} placa(s) ontem\n`;
+                analysis += `   - Perdeu ${Math.abs(data.var7dias)} placas em 7 dias (-${percentualPerda}%)\n`;
+                analysis += `   - Saldo atual: ${data.qtdAtual} placas\n\n`;
+                rank++;
               }
             }
           }
           
           if (sortedByGains7.length > 0) {
-            analysis += '### 🟢 Empresas em Crescimento (Maiores Ganhos)\n\n';
+            analysis += '### 🟢 Empresas em Crescimento - TOP 5 (Maiores Ganhos)\n\n';
+            let rank = 1;
             for (const [cliente, data] of sortedByGains7) {
               if (data.var7dias > 0) {
-                analysis += `**${cliente}**: Ganhou ${data.var7dias} placa(s) nos últimos 7 dias. Tem ${data.qtdAtual} placas atualmente.\n\n`;
+                const percentualGanho = ((data.var7dias / data.qtdAtual) * 100).toFixed(1);
+                analysis += `**${rank}. ${cliente}** \ud83c\udf1f DESTAQUE\n`;
+                analysis += `   - Ganhou ${data.var7dias} placas em 7 dias (+${percentualGanho}%)\n`;
+                analysis += `   - Saldo atual: ${data.qtdAtual} placas\n\n`;
+                rank++;
               }
             }
           }
           
+          analysis += '### 💭 Insights e Recomendações\n';
+          if (totalPerdasSemanal > totalGanhosSemanal) {
+            analysis += `- ⚠\ufe0f **Tendência Negativa**: Perdas (${totalPerdasSemanal}) superam ganhos (${totalGanhosSemanal}). Recomenda-se intensificar contatos com clientes em risco.\n`;
+          } else {
+            analysis += `- \ud83c\udf1f **Tendência Positiva**: Ganhos (${totalGanhosSemanal}) superam perdas (${totalPerdasSemanal}). Manter estratégia atual.\n`;
+          }
+          analysis += `- \ud83d\udcc4 Priorize contato com as 3 primeiras empresas críticas para entender causas das perdas.\n`;
+          analysis += `- \ud83c\udf86 Estude casos de sucesso das empresas em crescimento para replicar estratégias.\n`;
+          
           if (Object.keys(clientData).length === 0) {
-            analysis += 'Nenhum dado disponível para análise.';
+            analysis += '\nNenhum dado disponível para análise.';
           }
           
           return {
             success: true,
-            insights: analysis,
+            insights: analysis + '\n',
           };
         } catch (error: any) {
           console.error('[generateInsights] Erro:', error?.message || error);
