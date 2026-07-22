@@ -21,32 +21,30 @@ export function DailyLossesAlert({ open, onOpenChange }: DailyLossesAlertProps) 
   const [datas, setDatas] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const updateLastAlert = trpc.config.updateLastDailyAlert.useMutation();
-  const getDailyLosses = trpc.urs.getDailyLossesAlert.useQuery({ csvData: '' }, { enabled: false });
+  const getDailyLosses = trpc.urs.getDailyLossesAlert.useMutation();
 
   // Buscar dados da planilha
   useEffect(() => {
     if (!open) return;
 
     setLoading(true);
-    // Chamar procedure via fetch direto para contornar CORS
-    fetch('/api/trpc/urs.getDailyLossesAlert', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input: { csvData: '' } }),
-    })
-      .then(r => r.json())
-      .then(result => {
-        if (result.result?.data?.success) {
-          setClientes(result.result.data.clientes);
-          setDatas(result.result.data.datas);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('[DailyLossesAlert] Erro ao buscar dados:', error);
-        setLoading(false);
-      });
-  }, [open, getDailyLosses]);
+    getDailyLosses.mutate(
+      { csvData: '' },
+      {
+        onSuccess: (result) => {
+          if (result.success) {
+            setClientes(result.clientes);
+            setDatas(result.datas);
+          }
+          setLoading(false);
+        },
+        onError: (error) => {
+          console.error('[DailyLossesAlert] Erro ao buscar dados:', error);
+          setLoading(false);
+        },
+      }
+    );
+  }, [open]);
 
   const handleClose = () => {
     updateLastAlert.mutate(undefined, {

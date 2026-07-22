@@ -708,7 +708,7 @@ export const appRouter = router({
       .input(z.object({
         csvData: z.string(),
       }))
-      .query(async ({ input }) => {
+      .mutation(async ({ input }) => {
         try {
           // Cache em memória para evitar rate limit do Google Sheets
           const cacheKey = 'dailyLossesCache';
