@@ -15,6 +15,7 @@ import Migration from './pages/Migration';
 import AtendimentosPage from './pages/AtendimentosPage';
 import AppPersonalizado from './pages/AppPersonalizado';
 import ChecklistPanel from './components/ChecklistPanel';
+import { DailyLossesAlert } from './components/DailyLossesAlert';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
@@ -181,6 +182,7 @@ function AppInner() {
   return (
     <>
       <Toaster />
+      <DailyLossesAlert />
       <SideMenu currentPage={currentPage} onPageChange={handlePageChange} />
       {renderPage()}
       {user && currentPage !== 'painel' && <ChecklistPanel />}

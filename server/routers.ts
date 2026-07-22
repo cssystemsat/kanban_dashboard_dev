@@ -699,6 +699,67 @@ export const appRouter = router({
         }
       }),
   }),
+  // === Aviso de Perdas de URs (primeira entrada do dia) ===
+  dailyLosses: router({
+    getAlert: publicProcedure.query(async () => {
+      // Cache server-side de 5 minutos
+      const CACHE_KEY = '__dailyLossesCache';
+      const CACHE_DURATION = 5 * 60 * 1000;
+      const global = globalThis as any;
+      const cached = global[CACHE_KEY];
+      if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+        return cached.data;
+      }
+
+      try {
+        const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1969284070&single=true&output=csv';
+        const response = await fetch(url, { redirect: 'follow' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const csv = await response.text();
+        const lines = csv.split('\n');
+
+        // Col A = Cliente, Col B = Perda (SUM de Dif1Dia), Col C = Qtd Atual, Col D = % Perdida
+        const losses: { cliente: string; perda: number; qtdAtual: string; percentual: string }[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          // Parse CSV respeitando aspas
+          const cols: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          for (const char of line) {
+            if (char === '"') { inQuotes = !inQuotes; }
+            else if (char === ',' && !inQuotes) { cols.push(current); current = ''; }
+            else { current += char; }
+          }
+          cols.push(current);
+
+          const cliente = (cols[0] || '').replace(/^SSX_/, '').trim();
+          const perdaStr = (cols[1] || '').replace(/\./g, '').replace(',', '.').trim();
+          const perda = parseFloat(perdaStr);
+          const qtdAtual = (cols[2] || '').trim();
+          const percentual = (cols[3] || '').trim();
+
+          // Apenas clientes com perda (valor negativo)
+          if (!isNaN(perda) && perda < 0) {
+            losses.push({ cliente, perda, qtdAtual, percentual });
+          }
+        }
+
+        // Ordenar por maior perda (mais negativo primeiro)
+        losses.sort((a, b) => a.perda - b.perda);
+
+        const result = { losses, totalPerdas: losses.reduce((sum, l) => sum + l.perda, 0), count: losses.length };
+        global[CACHE_KEY] = { data: result, timestamp: Date.now() };
+        return result;
+      } catch (error: any) {
+        console.error('[getDailyLossesAlert] Erro:', error?.message || error);
+        return { losses: [], totalPerdas: 0, count: 0 };
+      }
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

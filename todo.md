@@ -346,3 +346,11 @@
 - [x] Adicionar botão "Gerar Insights" na aba Evolução de URs
 - [x] Implementar modal para exibir análise gerada
 - [x] Testar geração de insights e validar formato
+
+## Sistema de Aviso de Perdas de URs (primeira entrada do dia)
+
+- [x] Backend: procedure tRPC getDailyLossesAlert com cache server-side (5 min)
+- [x] Backend: buscar dados da aba gid=1969284070 (Col A=Cliente, B=Perda, C=Qtd Atual, D=% Perdida)
+- [x] Frontend: componente modal DailyLossesAlert com tabela de clientes com perdas
+- [x] Frontend: lógica de exibição apenas na primeira entrada do dia (localStorage)
+- [x] Integração no App.tsx para exibir modal automaticamente
