@@ -710,45 +710,44 @@ export const appRouter = router({
       }))
       .query(async ({ input }) => {
         try {
-          // Parse CSV: Coluna A: Cliente, G: Variacao 1 dia, I: % Variacao, K: Data
-          const lines = input.csvData.trim().split('\n').filter((l: string) => l.trim());
+          // Buscar CSV da aba de perdas do ultimo dia (gid=1969284070)
+          // Colunas: A=Cliente, B=Perda, C=Qtd Atual, D=%Perdida
+          const response = await fetch(
+            'https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?gid=1969284070&format=csv'
+          );
+          const csv = await response.text();
+          const lines = csv.trim().split('\n').filter((l: string) => l.trim());
           
-          // Extrair datas unicas (coluna K = indice 10)
-          const datas = new Map<string, number>();
-          const clientesComPerda: Array<{cliente: string; qtdPerdida: number; percentual: string; data: string}> = [];
+          const clientesComPerda: Array<{cliente: string; qtdPerdida: number; percentual: string}> = [];
           
+          // Pular header (linha 0)
           for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(',');
-            if (cols.length < 11) continue;
+            if (cols.length < 4) continue;
             
             const cliente = cols[0]?.trim() || '';
-            const variacaoDia = parseFloat(cols[6]?.trim() || '0'); // Coluna G (indice 6)
-            const percentual = cols[8]?.trim() || '0%'; // Coluna I (indice 8)
-            const data = cols[10]?.trim() || ''; // Coluna K (indice 10)
+            const qtdPerdida = parseFloat(cols[1]?.trim() || '0'); // Coluna B
+            const percentual = cols[3]?.trim() || '0%'; // Coluna D
             
-            if (data) datas.set(data, (datas.get(data) || 0) + 1);
-            
-            // Apenas clientes com perda (variacao negativa)
-            if (variacaoDia < 0 && cliente) {
+            // Apenas clientes com perda > 0
+            if (qtdPerdida > 0 && cliente) {
               clientesComPerda.push({
                 cliente,
-                qtdPerdida: Math.abs(variacaoDia),
+                qtdPerdida,
                 percentual,
-                data
               });
             }
           }
           
-          // Pegar as 2 ultimas datas
-          const datasOrdenadas = Array.from(datas.keys()).sort().reverse().slice(0, 2);
-          
-          // Filtrar apenas clientes das 2 ultimas datas
-          const clientesFiltrados = clientesComPerda.filter(c => datasOrdenadas.includes(c.data));
+          // Ordenar por perda decrescente e pegar top 10
+          const clientesOrdenados = clientesComPerda
+            .sort((a, b) => b.qtdPerdida - a.qtdPerdida)
+            .slice(0, 10);
           
           return {
             success: true,
-            clientes: clientesFiltrados,
-            datas: datasOrdenadas,
+            clientes: clientesOrdenados,
+            datas: ['Ontem para Hoje'],
           };
         } catch (error: any) {
           console.error('[getDailyLossesAlert] Erro:', error?.message || error);
