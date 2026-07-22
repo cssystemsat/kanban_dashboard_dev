@@ -710,6 +710,17 @@ export const appRouter = router({
       }))
       .query(async ({ input }) => {
         try {
+          // Cache em memória para evitar rate limit do Google Sheets
+          const cacheKey = 'dailyLossesCache';
+          const now = Date.now();
+          const cacheExpiry = 5 * 60 * 1000; // 5 minutos
+          
+          // Verificar se há cache válido
+          const cache = (global as any)[cacheKey];
+          if (cache && (now - cache.timestamp) < cacheExpiry) {
+            return cache.data;
+          }
+          
           // Buscar CSV da aba de perdas do ultimo dia (gid=1969284070)
           // Colunas: A=Cliente, B=Perda, C=Qtd Atual, D=%Perdida
           const response = await fetch(
@@ -744,11 +755,19 @@ export const appRouter = router({
             .sort((a, b) => b.qtdPerdida - a.qtdPerdida)
             .slice(0, 10);
           
-          return {
+          const result = {
             success: true,
             clientes: clientesOrdenados,
             datas: ['Ontem para Hoje'],
           };
+          
+          // Armazenar em cache
+          (global as any)[cacheKey] = {
+            data: result,
+            timestamp: now,
+          };
+          
+          return result;
         } catch (error: any) {
           console.error('[getDailyLossesAlert] Erro:', error?.message || error);
           return {
