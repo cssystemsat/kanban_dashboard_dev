@@ -37,7 +37,6 @@ export const allowedEmails = mysqlTable("allowed_emails", {
   allowedPages: text("allowedPages"),
   canMoveAppKanban: int("canMoveAppKanban").default(0).notNull(), // 1 = pode mover cards no App Personalizado
   onlyAppKanban: int("onlyAppKanban").default(0).notNull(), // 1 = vê apenas a aba App Personalizado
-  lastDailyAlertSeen: date("lastDailyAlertSeen"), // data do ultimo aviso diario visto
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

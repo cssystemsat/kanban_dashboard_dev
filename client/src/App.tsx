@@ -16,31 +16,17 @@ import AtendimentosPage from './pages/AtendimentosPage';
 import AppPersonalizado from './pages/AppPersonalizado';
 import ChecklistPanel from './components/ChecklistPanel';
 import ErrorBoundary from './components/ErrorBoundary';
-import { DailyLossesAlert } from './components/DailyLossesAlert';
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 
 function AppInner() {
   const [currentPage, setCurrentPage] = useState('painel');
-  const [showDailyAlert, setShowDailyAlert] = useState(false);
   const sessionIdRef = useRef<number | null>(null);
 
   const { data: user, isLoading: authLoading, error: authError } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery(undefined, {
     enabled: !!user,
   });
-  
-  // Mostrar aviso de primeira entrada do dia
-  useEffect(() => {
-    if (!user?.email || !myPerms) return;
-    
-    const today = new Date().toISOString().split('T')[0];
-    const lastSeen = myPerms.lastDailyAlertSeen ? new Date(myPerms.lastDailyAlertSeen).toISOString().split('T')[0] : null;
-    
-    if (lastSeen !== today) {
-      setShowDailyAlert(true);
-    }
-  }, [user?.email, myPerms]);
   
   // Debug: log auth errors
   useEffect(() => {
@@ -198,7 +184,6 @@ function AppInner() {
       <SideMenu currentPage={currentPage} onPageChange={handlePageChange} />
       {renderPage()}
       {user && currentPage !== 'painel' && <ChecklistPanel />}
-      <DailyLossesAlert open={showDailyAlert} onOpenChange={setShowDailyAlert} />
     </>
   );
 }

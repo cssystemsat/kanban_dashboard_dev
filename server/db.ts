@@ -138,13 +138,6 @@ export async function deleteAllowedEmail(id: number) {
   await db.delete(allowedEmails).where(eq(allowedEmails.id, id));
 }
 
-export async function updateLastDailyAlert(email: string) {
-  const db = await getDb();
-  if (!db) throw new Error('DB not available');
-  const today = new Date();
-  await db.update(allowedEmails).set({ lastDailyAlertSeen: today }).where(eq(allowedEmails.email, email.toLowerCase()));
-}
-
 export async function getEmailEntry(email: string) {
   const db = await getDb();
   if (!db) return null;

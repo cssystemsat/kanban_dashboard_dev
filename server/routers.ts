@@ -12,7 +12,6 @@ import {
   addAllowedEmail,
   updateAllowedEmail,
   deleteAllowedEmail,
-  updateLastDailyAlert,
   getEmailEntry,
   getChecklistsForUser,
   getChecklistById,
@@ -220,16 +219,11 @@ export const appRouter = router({
       }),
     // Retorna as abas permitidas para o usuário atual
     myPermissions: publicProcedure.query(async ({ ctx }) => {
-      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false, lastDailyAlertSeen: null };
+      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
       const entry = await getEmailEntry(ctx.user.email);
-      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false, lastDailyAlertSeen: null };
+      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
       const allowedPages = entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null;
-      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true, canMoveAppKanban: entry.canMoveAppKanban === 1, onlyAppKanban: entry.onlyAppKanban === 1, lastDailyAlertSeen: entry.lastDailyAlertSeen };
-    }),
-    updateLastDailyAlert: protectedProcedure.mutation(async ({ ctx }) => {
-      if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
-      await updateLastDailyAlert(ctx.user.email);
-      return { success: true };
+      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true, canMoveAppKanban: entry.canMoveAppKanban === 1, onlyAppKanban: entry.onlyAppKanban === 1 };
     }),
   }),
   checklists: router({
@@ -701,79 +695,6 @@ export const appRouter = router({
           return {
             success: true,
             insights: '## 📊 Análise Indisponível\n\nDesculpe, não conseguimos processar os dados no momento. Tente novamente.',
-          };
-        }
-      }),
-    getDailyLossesAlert: protectedProcedure
-      .input(z.object({
-        csvData: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        try {
-          // Cache em memória para evitar rate limit do Google Sheets
-          const cacheKey = 'dailyLossesCache';
-          const now = Date.now();
-          const cacheExpiry = 5 * 60 * 1000; // 5 minutos
-          
-          // Verificar se há cache válido
-          const cache = (global as any)[cacheKey];
-          if (cache && (now - cache.timestamp) < cacheExpiry) {
-            return cache.data;
-          }
-          
-          // Buscar CSV da aba de perdas do ultimo dia (gid=1969284070)
-          // Colunas: A=Cliente, B=Perda, C=Qtd Atual, D=%Perdida
-          const response = await fetch(
-            'https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?gid=1969284070&format=csv'
-          );
-          const csv = await response.text();
-          const lines = csv.trim().split('\n').filter((l: string) => l.trim());
-          
-          const clientesComPerda: Array<{cliente: string; qtdPerdida: number; percentual: string}> = [];
-          
-          // Pular header (linha 0)
-          for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(',');
-            if (cols.length < 4) continue;
-            
-            const cliente = cols[0]?.trim() || '';
-            const qtdPerdida = parseFloat(cols[1]?.trim() || '0'); // Coluna B
-            const percentual = cols[3]?.trim() || '0%'; // Coluna D
-            
-            // Apenas clientes com perda > 0
-            if (qtdPerdida > 0 && cliente) {
-              clientesComPerda.push({
-                cliente,
-                qtdPerdida,
-                percentual,
-              });
-            }
-          }
-          
-          // Ordenar por perda decrescente e pegar top 10
-          const clientesOrdenados = clientesComPerda
-            .sort((a, b) => b.qtdPerdida - a.qtdPerdida)
-            .slice(0, 10);
-          
-          const result = {
-            success: true,
-            clientes: clientesOrdenados,
-            datas: ['Ontem para Hoje'],
-          };
-          
-          // Armazenar em cache
-          (global as any)[cacheKey] = {
-            data: result,
-            timestamp: now,
-          };
-          
-          return result;
-        } catch (error: any) {
-          console.error('[getDailyLossesAlert] Erro:', error?.message || error);
-          return {
-            success: false,
-            clientes: [],
-            datas: [],
           };
         }
       }),
