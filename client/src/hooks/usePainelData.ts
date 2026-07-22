@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 // URLs das planilhas
 const MARCOS_URL =
@@ -245,8 +246,8 @@ export function usePainelData() {
       const mes = getMesAtual();
 
       const [marcosRes, ongoingRes] = await Promise.all([
-        fetch(MARCOS_URL),
-        fetch(ONGOING_URL),
+        cachedFetch(MARCOS_URL),
+        cachedFetch(ONGOING_URL),
       ]);
 
       if (!marcosRes.ok || !ongoingRes.ok) {

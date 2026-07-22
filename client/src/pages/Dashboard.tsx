@@ -1,4 +1,5 @@
 'use client';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
@@ -490,7 +491,7 @@ export default function Dashboard() {
         scale: 2,
       });
       // Converter data URL para blob
-      const res = await fetch(dataUrl);
+      const res = await cachedFetch(dataUrl);
       const blob = await res.blob();
       try {
         await navigator.clipboard.write([
@@ -519,7 +520,7 @@ export default function Dashboard() {
   const handleGenerateInsights = async () => {
     try {
       setInsightsModal({ open: true, insights: '', loading: true });
-      const response = await fetch(
+      const response = await cachedFetch(
         'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1250838098&output=csv'
       );
       const csvData = await response.text();

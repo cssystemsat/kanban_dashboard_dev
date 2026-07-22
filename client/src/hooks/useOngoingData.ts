@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 export interface OngoingClientData {
   id: string; // Coluna A - Código Cliente
@@ -67,7 +68,7 @@ export function useOngoingData() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(SHEET_URL);
+        const response = await cachedFetch(SHEET_URL);
         const csvText = await response.text();
         const lines = csvText.split('\n');
 

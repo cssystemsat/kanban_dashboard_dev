@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 export interface AgendaEntry {
   data: string;       // Coluna A — DD/MM/AAAA
@@ -26,7 +27,7 @@ function parseDate(dateStr: string): number {
 }
 
 async function loadAgendaCache(): Promise<Map<string, AgendaEntry[]>> {
-  const response = await fetch(SHEET_URL, { redirect: 'follow' });
+  const response = await cachedFetch(SHEET_URL, { redirect: 'follow' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const csv = await response.text();
   const lines = csv.split('\n');

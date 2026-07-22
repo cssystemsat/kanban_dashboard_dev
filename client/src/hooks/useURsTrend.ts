@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 import { useURsEvolution, URsEvolutionData } from './useURsEvolution';
 
 export interface URsTrendData {
@@ -94,7 +95,7 @@ export function useMultipleURsTrends(
     const fetchAllTrends = async () => {
       try {
         // Usar o cache global do useURsEvolution
-        const response = await fetch(
+        const response = await cachedFetch(
           'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1250838098&output=csv',
           { redirect: 'follow', cache: 'force-cache' }
         );

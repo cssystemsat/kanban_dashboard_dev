@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 // URL da planilha aba D (gid=1250838098)
 const CSV_URL =
@@ -102,7 +103,7 @@ export function useURsDashboard() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const response = await fetch(CSV_URL, {
+      const response = await cachedFetch(CSV_URL, {
         signal: controller.signal,
       });
 

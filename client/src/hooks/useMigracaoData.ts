@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 export interface MigracaoData {
   migradoHoje: number | null;   // G4 = Placas migradas no dia
@@ -74,7 +75,7 @@ export const useMigracaoData = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(SHEET_URL);
+      const response = await cachedFetch(SHEET_URL);
       if (!response.ok) throw new Error('Erro ao buscar dados de migração');
 
       const csv = await response.text();

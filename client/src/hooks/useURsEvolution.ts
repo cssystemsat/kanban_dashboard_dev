@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 export interface URsEvolutionData {
   clientName: string;
@@ -62,7 +63,7 @@ export function useURsEvolution(codigoCliente?: string) {
         controller = new AbortController();
         timeoutId = setTimeout(() => controller?.abort(), 30000); // 30s timeout
 
-        const response = await fetch(
+        const response = await cachedFetch(
           'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj/pub?gid=1250838098&output=csv',
           { 
             signal: controller?.signal,

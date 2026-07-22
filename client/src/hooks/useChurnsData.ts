@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 export interface ChurnData {
   id: string;
@@ -42,7 +43,7 @@ export const useChurnsData = () => {
     
     try {
       // URL da aba CHURNS com gid=1060737054
-      const response = await fetch(
+      const response = await cachedFetch(
         'https://docs.google.com/spreadsheets/d/e/2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC/pub?gid=1060737054&output=csv'
       );
       

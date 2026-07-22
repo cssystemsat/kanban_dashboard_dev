@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 interface ClienteEstado {
   nome: string;
@@ -58,12 +59,12 @@ export function useEstadosData(): EstadosData {
       try {
         // Onboarding (gid=0)
         const onboardingUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC/pub?gid=0&single=true&output=csv`;
-        const onboardingRes = await fetch(onboardingUrl);
+        const onboardingRes = await cachedFetch(onboardingUrl);
         const onboardingCsv = await onboardingRes.text();
 
         // Ongoing (gid=1152476970)
         const ongoingUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC/pub?gid=1152476970&single=true&output=csv`;
-        const ongoingRes = await fetch(ongoingUrl);
+        const ongoingRes = await cachedFetch(ongoingUrl);
         const ongoingCsv = await ongoingRes.text();
 
         // Processar Onboarding

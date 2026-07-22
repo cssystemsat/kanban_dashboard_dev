@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { cachedFetch } from '@/lib/sheetsCache';
 
 export interface Atendimento {
   id: string;
@@ -37,7 +38,7 @@ export function useAtendimentosData() {
     setError(null);
     try {
       const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
-      const response = await fetch(url);
+      const response = await cachedFetch(url);
       const csv = await response.text();
 
       const lines = csv.split('\n').filter(line => line.trim());

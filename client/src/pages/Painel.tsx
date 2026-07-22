@@ -523,11 +523,8 @@ export default function Painel() {
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchData(); }, []);
   useEffect(() => { fetchMig(); }, []);
-  useEffect(() => { 
-    if (fetchData) fetchData(); 
-  }, []);
 
   // Cronômetro regressivo (10 minutos = 600 segundos)
   const { timeLeft, resetCountdown } = useCountdown(600, () => {
