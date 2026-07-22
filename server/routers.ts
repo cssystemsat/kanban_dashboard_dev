@@ -12,6 +12,7 @@ import {
   addAllowedEmail,
   updateAllowedEmail,
   deleteAllowedEmail,
+  updateLastDailyAlert,
   getEmailEntry,
   getChecklistsForUser,
   getChecklistById,
@@ -219,11 +220,16 @@ export const appRouter = router({
       }),
     // Retorna as abas permitidas para o usuário atual
     myPermissions: publicProcedure.query(async ({ ctx }) => {
-      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
+      if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false, lastDailyAlertSeen: null };
       const entry = await getEmailEntry(ctx.user.email);
-      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
+      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false, lastDailyAlertSeen: null };
       const allowedPages = entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null;
-      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true, canMoveAppKanban: entry.canMoveAppKanban === 1, onlyAppKanban: entry.onlyAppKanban === 1 };
+      return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true, canMoveAppKanban: entry.canMoveAppKanban === 1, onlyAppKanban: entry.onlyAppKanban === 1, lastDailyAlertSeen: entry.lastDailyAlertSeen };
+    }),
+    updateLastDailyAlert: protectedProcedure.mutation(async ({ ctx }) => {
+      if (!ctx.user || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      await updateLastDailyAlert(ctx.user.email);
+      return { success: true };
     }),
   }),
   checklists: router({
@@ -695,6 +701,61 @@ export const appRouter = router({
           return {
             success: true,
             insights: '## 📊 Análise Indisponível\n\nDesculpe, não conseguimos processar os dados no momento. Tente novamente.',
+          };
+        }
+      }),
+    getDailyLossesAlert: protectedProcedure
+      .input(z.object({
+        csvData: z.string(),
+      }))
+      .query(async ({ input }) => {
+        try {
+          // Parse CSV: Coluna A: Cliente, G: Variacao 1 dia, I: % Variacao, K: Data
+          const lines = input.csvData.trim().split('\n').filter((l: string) => l.trim());
+          
+          // Extrair datas unicas (coluna K = indice 10)
+          const datas = new Map<string, number>();
+          const clientesComPerda: Array<{cliente: string; qtdPerdida: number; percentual: string; data: string}> = [];
+          
+          for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(',');
+            if (cols.length < 11) continue;
+            
+            const cliente = cols[0]?.trim() || '';
+            const variacaoDia = parseFloat(cols[6]?.trim() || '0'); // Coluna G (indice 6)
+            const percentual = cols[8]?.trim() || '0%'; // Coluna I (indice 8)
+            const data = cols[10]?.trim() || ''; // Coluna K (indice 10)
+            
+            if (data) datas.set(data, (datas.get(data) || 0) + 1);
+            
+            // Apenas clientes com perda (variacao negativa)
+            if (variacaoDia < 0 && cliente) {
+              clientesComPerda.push({
+                cliente,
+                qtdPerdida: Math.abs(variacaoDia),
+                percentual,
+                data
+              });
+            }
+          }
+          
+          // Pegar as 2 ultimas datas
+          const datasOrdenadas = Array.from(datas.keys()).sort().reverse().slice(0, 2);
+          
+          // Filtrar apenas clientes das 2 ultimas datas
+          const clientesFiltrados = clientesComPerda.filter(c => datasOrdenadas.includes(c.data));
+          
+          return {
+            success: true,
+            clientes: clientesFiltrados,
+            datas: datasOrdenadas,
+          };
+        } catch (error: any) {
+          console.error('[getDailyLossesAlert] Erro:', error?.message || error);
+          return {
+            success: false,
+            clientes: [],
+            datas: [],
           };
         }
       }),

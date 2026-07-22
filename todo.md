@@ -346,3 +346,11 @@
 - [x] Adicionar botão "Gerar Insights" na aba Evolução de URs
 - [x] Implementar modal para exibir análise gerada
 - [x] Testar geração de insights e validar formato
+
+
+## Aviso de Primeira Entrada do Dia
+
+- [x] Criar procedure no backend para buscar clientes com perdas das 2 últimas datas
+- [x] Adicionar lógica de detecção de primeira entrada do dia
+- [x] Implementar modal de aviso no frontend
+- [x] Testar fluxo completo de aviso
