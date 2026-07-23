@@ -10,8 +10,8 @@ interface LossEntry {
 
 /**
  * Modal de aviso de perdas de URs.
- * Persiste até o usuário marcar "Ciente" e confirmar.
- * Reaparece ao trocar de aba até ser reconhecido.
+ * - Fechar (X): desaparece temporariamente, reaparece ao trocar de aba
+ * - Marcar "Ciente" + Confirmar: desaparece permanentemente por hoje
  */
 export function DailyLossesAlert() {
   const [show, setShow] = useState(false);
@@ -20,8 +20,9 @@ export function DailyLossesAlert() {
 
   // Data de hoje em formato YYYY-MM-DD
   const today = new Date().toISOString().split('T')[0];
+  const storageKey = `losses_dismissed_${today}`;
 
-  // Verificar se já marcou como ciente hoje
+  // Verificar se já marcou como ciente hoje (permanente)
   const { data: acknowledged } = trpc.dailyLosses.checkAcknowledged.useQuery(
     { acknowledgedDate: today },
     { enabled: !isAcknowledged }
@@ -38,19 +39,32 @@ export function DailyLossesAlert() {
   // Verificar status ao carregar
   useEffect(() => {
     if (acknowledged === true) {
+      // Já marcou como ciente hoje - não mostrar
       setIsAcknowledged(true);
       setShow(false);
+      localStorage.removeItem(storageKey);
     } else if (acknowledged === false) {
-      setShow(true);
+      // Ainda não marcou como ciente
+      // Verificar se foi dismissido temporariamente
+      const wasDismissed = localStorage.getItem(storageKey) === 'true';
+      setShow(!wasDismissed);
     }
-  }, [acknowledged]);
+  }, [acknowledged, storageKey]);
 
+  // Fechar temporariamente (X button)
+  const handleTemporaryClose = () => {
+    setShow(false);
+    localStorage.setItem(storageKey, 'true');
+  };
+
+  // Confirmar "Ciente" (permanente)
   const handleConfirm = async () => {
     if (!isCiente) return;
     try {
       await markAcknowledged.mutateAsync({ acknowledgedDate: today });
       setIsAcknowledged(true);
       setShow(false);
+      localStorage.removeItem(storageKey);
     } catch (error) {
       console.error('Erro ao marcar como ciente:', error);
     }
@@ -82,8 +96,8 @@ export function DailyLossesAlert() {
       <div className="bg-white rounded-xl shadow-2xl w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b bg-red-50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-red-600 text-xl">&#9888;</span>
             </div>
             <div>
@@ -93,6 +107,16 @@ export function DailyLossesAlert() {
               </p>
             </div>
           </div>
+          {/* Botão fechar (X) - temporário */}
+          <button
+            onClick={handleTemporaryClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors ml-4 flex-shrink-0"
+            title="Fechar temporariamente (reaparece ao trocar de aba)"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Tabela */}
