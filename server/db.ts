@@ -9,6 +9,7 @@ import {
   clientComments, InsertClientComment,
   appKanbanCards, appKanbanHistory, appKanbanChecklist,
   InsertAppKanbanCard, InsertAppKanbanHistory, InsertAppKanbanChecklist,
+  dailyLossesAcknowledgments, InsertDailyLossesAcknowledgment,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -530,4 +531,47 @@ export async function upsertAppKanbanChecklist(cardId: number, data: { logomarca
     const inserted = await db.select().from(appKanbanChecklist).where(eq(appKanbanChecklist.cardId, cardId));
     return inserted[0];
   }
+}
+
+
+// === Daily Losses Acknowledgments ===
+
+export async function markLossesAsAcknowledged(userId: number, acknowledgedDate: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+  
+  // Converter string (YYYY-MM-DD) para Date
+  const dateObj = new Date(acknowledgedDate);
+  
+  // Verificar se já existe registro para este usuário e data
+  const existing = await db
+    .select()
+    .from(dailyLossesAcknowledgments)
+    .where(and(
+      eq(dailyLossesAcknowledgments.userId, userId),
+      eq(dailyLossesAcknowledgments.acknowledgedDate, dateObj)
+    ));
+  
+  if (existing.length === 0) {
+    // Inserir novo registro
+    await db.insert(dailyLossesAcknowledgments).values({
+      userId,
+      acknowledgedDate: dateObj,
+    });
+  }
+}
+
+export async function checkLossesAcknowledged(userId: number, acknowledgedDate: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db
+    .select()
+    .from(dailyLossesAcknowledgments)
+    .where(and(
+      eq(dailyLossesAcknowledgments.userId, userId),
+      eq(dailyLossesAcknowledgments.acknowledgedDate, new Date(acknowledgedDate))
+    ));
+  
+  return result.length > 0;
 }

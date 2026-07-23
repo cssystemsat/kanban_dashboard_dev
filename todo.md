@@ -354,3 +354,12 @@
 - [x] Frontend: componente modal DailyLossesAlert com tabela de clientes com perdas
 - [x] Frontend: lógica de exibição apenas na primeira entrada do dia (localStorage)
 - [x] Integração no App.tsx para exibir modal automaticamente
+
+## Modificação: Modal de Perdas com Persistência até Marcar "Ciente"
+
+- [x] Criar tabela daily_losses_acknowledgments no banco (user_id, date, acknowledged_at)
+- [x] Procedure tRPC para marcar como ciente (markLossesAsAcknowledged)
+- [x] Procedure tRPC para verificar se já marcou como ciente hoje (checkLossesAcknowledged)
+- [x] Atualizar DailyLossesAlert: adicionar checkbox "Ciente" e botão "Confirmar"
+- [x] Modal reaparece ao trocar de aba até marcar "Ciente"
+- [x] Testar persistência entre navegação e recarregamento

@@ -46,6 +46,8 @@ import {
   getAppKanbanHistory,
   getAppKanbanChecklist,
   upsertAppKanbanChecklist,
+  markLossesAsAcknowledged,
+  checkLossesAcknowledged,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
@@ -759,6 +761,19 @@ export const appRouter = router({
         return { losses: [], totalPerdas: 0, count: 0 };
       }
     }),
+    markAsAcknowledged: protectedProcedure
+      .input(z.object({ acknowledgedDate: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        await markLossesAsAcknowledged(ctx.user.id, input.acknowledgedDate);
+        return { success: true };
+      }),
+    checkAcknowledged: protectedProcedure
+      .input(z.object({ acknowledgedDate: z.string() }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user?.id) return false;
+        return await checkLossesAcknowledged(ctx.user.id, input.acknowledgedDate);
+      }),
   }),
 });
 

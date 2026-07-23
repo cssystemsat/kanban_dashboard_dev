@@ -134,6 +134,13 @@
       "when": 1784724873547,
       "tag": "0018_abnormal_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1784749730741,
+      "tag": "0019_giant_rictor",
+      "breakpoints": true
     }
   ]
 }

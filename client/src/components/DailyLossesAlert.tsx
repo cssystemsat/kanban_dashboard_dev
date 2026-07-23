@@ -10,35 +10,53 @@ interface LossEntry {
 
 /**
  * Modal de aviso de perdas de URs.
- * Aparece automaticamente na primeira entrada do dia.
- * Mostra clientes que perderam placas de ontem para hoje.
+ * Persiste até o usuário marcar "Ciente" e confirmar.
+ * Reaparece ao trocar de aba até ser reconhecido.
  */
 export function DailyLossesAlert() {
   const [show, setShow] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
+  const [isCiente, setIsCiente] = useState(false);
 
-  // Verificar se já viu hoje
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const lastSeen = localStorage.getItem('dailyLossesAlertLastSeen');
-    if (lastSeen !== today) {
-      setShow(true);
-    }
-  }, []);
+  // Data de hoje em formato YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
+
+  // Verificar se já marcou como ciente hoje
+  const { data: acknowledged } = trpc.dailyLosses.checkAcknowledged.useQuery(
+    { acknowledgedDate: today },
+    { enabled: !isAcknowledged }
+  );
 
   // Buscar dados apenas quando o modal deve ser exibido
   const { data, isLoading } = trpc.dailyLosses.getAlert.useQuery(undefined, {
-    enabled: show && !dismissed,
+    enabled: show && !isAcknowledged && !acknowledged,
   });
 
-  const handleDismiss = () => {
-    const today = new Date().toISOString().split('T')[0];
-    localStorage.setItem('dailyLossesAlertLastSeen', today);
-    setDismissed(true);
-    setShow(false);
+  // Mutation para marcar como ciente
+  const markAcknowledged = trpc.dailyLosses.markAsAcknowledged.useMutation();
+
+  // Verificar status ao carregar
+  useEffect(() => {
+    if (acknowledged === true) {
+      setIsAcknowledged(true);
+      setShow(false);
+    } else if (acknowledged === false) {
+      setShow(true);
+    }
+  }, [acknowledged]);
+
+  const handleConfirm = async () => {
+    if (!isCiente) return;
+    try {
+      await markAcknowledged.mutateAsync({ acknowledgedDate: today });
+      setIsAcknowledged(true);
+      setShow(false);
+    } catch (error) {
+      console.error('Erro ao marcar como ciente:', error);
+    }
   };
 
-  if (!show || dismissed) return null;
+  if (!show || isAcknowledged) return null;
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -75,12 +93,6 @@ export function DailyLossesAlert() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleDismiss}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-          >
-            &times;
-          </button>
         </div>
 
         {/* Tabela */}
@@ -107,13 +119,29 @@ export function DailyLossesAlert() {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+        {/* Footer com Checkbox */}
+        <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isCiente}
+              onChange={(e) => setIsCiente(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Estou ciente das perdas acima
+            </span>
+          </label>
           <button
-            onClick={handleDismiss}
-            className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            onClick={handleConfirm}
+            disabled={!isCiente || markAcknowledged.isPending}
+            className={`px-5 py-2 rounded-lg font-medium transition-colors ${
+              isCiente && !markAcknowledged.isPending
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
-            Entendido
+            {markAcknowledged.isPending ? 'Confirmando...' : 'Confirmar'}
           </button>
         </div>
       </div>

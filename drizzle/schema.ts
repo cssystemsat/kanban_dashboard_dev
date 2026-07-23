@@ -251,3 +251,15 @@ export const appKanbanChecklist = mysqlTable("app_kanban_checklist", {
 
 export type AppKanbanChecklist = typeof appKanbanChecklist.$inferSelect;
 export type InsertAppKanbanChecklist = typeof appKanbanChecklist.$inferInsert;
+
+// Tabela para rastrear reconhecimento diário de perdas de URs
+export const dailyLossesAcknowledgments = mysqlTable("daily_losses_acknowledgments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK para users
+  acknowledgedDate: date("acknowledgedDate").notNull(), // data do reconhecimento (YYYY-MM-DD)
+  acknowledgedAt: timestamp("acknowledgedAt").defaultNow().notNull(), // timestamp do reconhecimento
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DailyLossesAcknowledgment = typeof dailyLossesAcknowledgments.$inferSelect;
+export type InsertDailyLossesAcknowledgment = typeof dailyLossesAcknowledgments.$inferInsert;
