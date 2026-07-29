@@ -94,15 +94,9 @@ export default function KPIs() {
   };
 
   return (
-    <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">KPI's de Gestão CS</h1>
-        <p className="text-gray-600">Acompanhamento de indicadores de Onboarding, Ongoing e Migração</p>
-      </div>
-
+    <div className="ml-20 p-6" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
       {/* Seletor de Semana */}
-      <div className="mb-8 flex gap-4">
+      <div className="mb-6 flex gap-4">
         <button
           onClick={() => setSelectedWeek('anterior')}
           className={`px-6 py-2 rounded-lg font-medium transition-all ${
@@ -126,18 +120,15 @@ export default function KPIs() {
       </div>
 
       {/* Grid de 3 Colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {columns.map((column, colIndex) => (
           <div key={colIndex} className="space-y-4">
             {/* Header da Coluna */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-3xl">{column.icon}</span>
-                <h2 className="text-xl font-bold text-gray-900">{column.title}</h2>
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-600">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{column.icon}</span>
+                <h2 className="text-lg font-bold text-gray-900">{column.title}</h2>
               </div>
-              <p className="text-sm text-gray-600">
-                {column.kpis.length} indicadores
-              </p>
             </div>
 
             {/* Cards de KPI */}
@@ -145,22 +136,22 @@ export default function KPIs() {
               {column.kpis.map((kpi, kpiIndex) => (
                 <div
                   key={kpiIndex}
-                  className={`rounded-lg border-2 p-4 transition-all hover:shadow-md ${getStatusColor(
+                  className={`rounded-lg border-2 p-3 transition-all hover:shadow-md ${getStatusColor(
                     kpi.status
                   )}`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <label className="text-sm font-medium text-gray-700 flex-1">{kpi.label}</label>
+                  <div className="flex items-start justify-between mb-1">
+                    <label className="text-xs font-medium text-gray-700 flex-1">{kpi.label}</label>
                     {kpi.status === 'critical' && (
                       <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 ml-2" />
                     )}
                   </div>
 
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className={`text-2xl font-bold ${getStatusTextColor(kpi.status)}`}>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className={`text-xl font-bold ${getStatusTextColor(kpi.status)}`}>
                       {kpi.value}
                     </span>
-                    {kpi.unit && <span className="text-sm text-gray-600">{kpi.unit}</span>}
+                    {kpi.unit && <span className="text-xs text-gray-600">{kpi.unit}</span>}
                   </div>
 
                   {kpi.trend && kpi.trendValue && (
