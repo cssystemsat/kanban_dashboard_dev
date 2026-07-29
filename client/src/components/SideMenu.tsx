@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, ArrowRight, Phone, PieChart, Smartphone } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, TrendingUp, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, ArrowRight, Phone, PieChart, Smartphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { getLoginUrl } from '@/const';
@@ -16,6 +16,7 @@ const PUBLIC_ITEMS = [
 // Abas que requerem login e permissao
 const PROTECTED_ITEMS = [
   { id: 'dashboard', label: "Evolução de UR's", icon: BarChart2 },
+  { id: 'kpis', label: "KPI's de Gestão CS", icon: TrendingUp },
   { id: 'marcos', label: 'Marcos', icon: CheckSquare },
   { id: 'ongoing', label: 'Ongoing', icon: Users },
   { id: 'churns', label: 'CHURNs', icon: TrendingDown },

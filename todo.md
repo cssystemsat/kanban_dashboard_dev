@@ -363,3 +363,14 @@
 - [x] Atualizar DailyLossesAlert: adicionar checkbox "Ciente" e botão "Confirmar"
 - [x] Modal reaparece ao trocar de aba até marcar "Ciente"
 - [x] Testar persistência entre navegação e recarregamento
+
+
+## Nova Aba: KPI's de Gestão CS
+
+- [x] Criar página KPIs.tsx com layout 3 colunas (Onboarding, Ongoing, Migração)
+- [x] Adicionar seletor de semana (anterior/retrasada)
+- [x] Estruturar cards com 9 KPI's para Onboarding
+- [x] Estruturar cards com 8 KPI's para Ongoing
+- [x] Estruturar cards com 8 KPI's para Migração
+- [x] Integrar rota no App.tsx e SideMenu (entre "Evoluções de UR's" e "Marcos")
+- [x] Placeholder de dados visuais para cada KPI

@@ -14,6 +14,7 @@ import { Migracao } from './pages/Migracao';
 import Migration from './pages/Migration';
 import AtendimentosPage from './pages/AtendimentosPage';
 import AppPersonalizado from './pages/AppPersonalizado';
+import KPIs from './pages/KPIs';
 import ChecklistPanel from './components/ChecklistPanel';
 import { DailyLossesAlert } from './components/DailyLossesAlert';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -172,6 +173,8 @@ function AppInner() {
             </div>
           </div>
         );
+      case 'kpis':
+        return <KPIs />;
       case 'apppersonalizado':
         return <AppPersonalizado />;
       default:
