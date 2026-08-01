@@ -35,6 +35,7 @@ import {
   getRecentActions,
   getMostVisitedPages,
   getClientComments,
+  getClientsWithComments,
   upsertClientComment,
   deleteClientComment,
   getAppKanbanCards,
@@ -422,6 +423,11 @@ export const appRouter = router({
     }),
   }),
   clientComments: router({
+    listWithComments: publicProcedure
+      .input(z.object({ monthYear: z.string().optional() }))
+      .query(async ({ input }) => {
+        return getClientsWithComments(input.monthYear);
+      }),
     list: publicProcedure
       .input(z.object({ monthYear: z.string() }))
       .query(async ({ input }) => {

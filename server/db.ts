@@ -575,3 +575,14 @@ export async function checkLossesAcknowledged(userId: number, acknowledgedDate: 
   
   return result.length > 0;
 }
+
+export async function getClientsWithComments(monthYear?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  if (monthYear) {
+    return db.select().from(clientComments).where(eq(clientComments.monthYear, monthYear)).orderBy(desc(clientComments.createdAt));
+  } else {
+    return db.select().from(clientComments).orderBy(desc(clientComments.createdAt));
+  }
+}

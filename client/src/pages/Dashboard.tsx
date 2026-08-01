@@ -459,12 +459,14 @@ export default function Dashboard() {
   const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
   const [comments, setComments] = useState<Record<string, CommentData>>({});
   const [insightsModal, setInsightsModal] = useState<{ open: boolean; insights: string; loading: boolean }>({ open: false, insights: '', loading: false });
+  const [reportModal, setReportModal] = useState<{ open: boolean }>({ open: false });
   const contentRef = useRef<HTMLDivElement>(null);
   const generateInsightsMutation = trpc.urs.generateInsights.useMutation();
   
   // Carregar comentários do banco ao inicializar
   const monthYear = new Date().toISOString().slice(0, 7); // "YYYY-MM"
   const { data: dbComments } = trpc.clientComments.list.useQuery({ monthYear });
+  const { data: allComments = [] } = trpc.clientComments.listWithComments.useQuery({ monthYear: monthYear || undefined });
 
   useEffect(() => {
     if (dbComments && dbComments.length > 0) {
@@ -772,6 +774,60 @@ export default function Dashboard() {
                 className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Relatório de Comentários */}
+      {reportModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setReportModal({ open: false })}>
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Relatório de Comentários de Clientes</h2>
+              <button
+                onClick={() => setReportModal({ open: false })}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            {allComments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>Nenhum comentário de cliente encontrado</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {allComments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 p-4"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-900">{comment.clientName}</p>
+                        <p className="text-xs text-gray-600">{new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded p-3 mb-2 border border-purple-100">
+                      <p className="text-sm text-gray-800 whitespace-pre-wrap">{comment.comment}</p>
+                    </div>
+                    {comment.authorName && (
+                      <p className="text-xs text-gray-600">Por: {comment.authorName}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <button
+                onClick={() => setReportModal({ open: false })}
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Fechar
               </button>
             </div>
           </div>
