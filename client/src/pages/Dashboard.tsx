@@ -828,7 +828,20 @@ export default function Dashboard() {
               </div>
             )}
             
-            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+            <div className="flex justify-between gap-2 mt-6 pt-4 border-t">
+              <button
+                onClick={() => {
+                  const text = allComments.map(c => `${c.clientName}\n${c.comment}\nPor: ${c.authorName || 'N/A'}\nData: ${new Date(c.createdAt).toLocaleDateString('pt-BR')}\n`).join('\n---\n\n');
+                  navigator.clipboard.writeText(text).then(() => {
+                    alert('Comentários copiados para a área de transferência!');
+                  }).catch(() => {
+                    alert('Erro ao copiar comentários');
+                  });
+                }}
+                className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
+              >
+                Copiar Tudo
+              </button>
               <button
                 onClick={() => setReportModal({ open: false })}
                 className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
