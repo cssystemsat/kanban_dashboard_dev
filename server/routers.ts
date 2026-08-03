@@ -589,6 +589,47 @@ export const appRouter = router({
         return updated[0];
       }),
   }),
+  kpis: router({
+    getOnboardingKpis: publicProcedure.query(async () => {
+      try {
+        // Clientes ativos no onboarding - puxar do Painel
+        const painelUrl = 'https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=0';
+        const painelResponse = await fetch(painelUrl);
+        const painelData = await painelResponse.text();
+        const painelLines = painelData.split('\n');
+        const clientesAtivos = painelLines[1]?.split(',')[1]?.trim() || '172';
+
+        // Dados da planilha de KPI's (AB3, AB5, AB7, AB8)
+        const kpisUrl = 'https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1590626518';
+        const kpisResponse = await fetch(kpisUrl);
+        const kpisData = await kpisResponse.text();
+        const kpisLines = kpisData.split('\n');
+        
+        // Extrair valores das células específicas (AB = coluna 28)
+        const concluidos = kpisLines[2]?.split(',')[27]?.trim() || '0';
+        const tempoMedio = kpisLines[4]?.split(',')[27]?.trim() || '0';
+        const taxaAtivacao = kpisLines[6]?.split(',')[27]?.trim() || '0';
+        const tempoValor = kpisLines[7]?.split(',')[27]?.trim() || '0';
+
+        return {
+          clientesAtivos: parseInt(clientesAtivos) || 172,
+          concluidos: parseInt(concluidos) || 0,
+          tempoMedio: parseFloat(tempoMedio) || 0,
+          taxaAtivacao: parseFloat(taxaAtivacao) || 0,
+          tempoValor: parseFloat(tempoValor) || 0,
+        };
+      } catch (error: any) {
+        console.error('[getOnboardingKpis] Erro:', error?.message);
+        return {
+          clientesAtivos: 172,
+          concluidos: 0,
+          tempoMedio: 0,
+          taxaAtivacao: 0,
+          tempoValor: 0,
+        };
+      }
+    }),
+  }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

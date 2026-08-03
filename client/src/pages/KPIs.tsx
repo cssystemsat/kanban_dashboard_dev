@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface KPICard {
   label: string;
@@ -19,18 +20,18 @@ interface KPIColumn {
 
 export default function KPIs() {
   const [selectedWeek, setSelectedWeek] = useState<'anterior' | 'retrasada'>('anterior');
+  const { data: onboardingData } = trpc.kpis.getOnboardingKpis.useQuery();
 
-  // Dados placeholder - serão substituídos por dados reais
+  // Dados reais do backend ou placeholder
   const onboardingKPIs: KPICard[] = [
-    { label: 'Clientes ativos no onboarding', value: 24, status: 'good', trend: 'up', trendValue: '+3' },
-    { label: 'Concluídos na semana', value: 8, status: 'good', trend: 'up', trendValue: '+2' },
+    { label: 'Clientes ativos no onboarding', value: onboardingData?.clientesAtivos || 172, status: 'good', trend: 'up', trendValue: '+3' },
+    { label: 'Concluídos na semana', value: onboardingData?.concluidos || 8, status: 'good', trend: 'up', trendValue: '+2' },
     { label: 'Percentual dentro do prazo', value: '87%', status: 'good', trend: 'up', trendValue: '+5%' },
-    { label: 'Tempo médio de onboarding', value: '12.5', unit: 'dias', status: 'warning', trend: 'down', trendValue: '-1.2d' },
+    { label: 'Tempo médio de onboarding', value: onboardingData?.tempoMedio || 12.5, unit: 'dias', status: 'warning', trend: 'down', trendValue: '-1.2d' },
     { label: 'Clientes parados ou atrasados', value: 3, status: 'warning', trend: 'neutral', trendValue: '0' },
-    { label: 'Taxa de ativação', value: '92%', status: 'good', trend: 'up', trendValue: '+3%' },
-    { label: 'Tempo até o primeiro valor', value: '4.2', unit: 'dias', status: 'good', trend: 'down', trendValue: '-0.5d' },
+    { label: 'Taxa de ativação', value: onboardingData?.taxaAtivacao ? `${onboardingData.taxaAtivacao}%` : '92%', status: 'good', trend: 'up', trendValue: '+3%' },
+    { label: 'Tempo até o primeiro valor', value: onboardingData?.tempoValor || 4.2, unit: 'dias', status: 'good', trend: 'down', trendValue: '-0.5d' },
     { label: 'Cancelamentos ou riscos', value: 1, status: 'good', trend: 'neutral', trendValue: '0' },
-    { label: 'Taxa de sucesso', value: '96%', status: 'good', trend: 'up', trendValue: '+2%' },
   ];
 
   const ongoingKPIs: KPICard[] = [
