@@ -128,6 +128,25 @@ export default function KPIs() {
     return null;
   };
 
+  const renderKPIColumn = (title: string, icon: string, kpis: KPICard[], borderColor: string) => (
+    <div className="flex-1">
+      <h3 className={`text-sm font-semibold text-gray-700 mb-3 pb-2 border-b-2 ${borderColor}`}>{icon} {title}</h3>
+      <div className="space-y-2">
+        {kpis.map((kpi, idx) => (
+          <div key={idx} className={`p-3 rounded border ${getStatusColor(kpi.status)}`}>
+            <p className="text-xs font-medium text-gray-700">{kpi.label}</p>
+            <div className="flex items-center justify-between mt-2">
+              <span className={`text-lg font-bold ${getStatusTextColor(kpi.status)}`}>
+                {kpi.value}{kpi.unit && ` ${kpi.unit}`}
+              </span>
+              {kpi.trend && <div className="flex items-center gap-1">{getTrendIcon(kpi.trend)} <span className="text-xs text-gray-600">{kpi.trendValue}</span></div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderWeekSection = (weekData: WeekData) => (
     <div className="flex-1">
       <div className="mb-4">
@@ -136,71 +155,21 @@ export default function KPIs() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        {/* Onboarding */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b-2 border-blue-500">🚀 Onboarding</h3>
-          <div className="space-y-2">
-            {weekData.onboarding.map((kpi, idx) => (
-              <div key={idx} className={`p-3 rounded border ${getStatusColor(kpi.status)}`}>
-                <p className="text-xs font-medium text-gray-700">{kpi.label}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className={`text-lg font-bold ${getStatusTextColor(kpi.status)}`}>
-                    {kpi.value}{kpi.unit && ` ${kpi.unit}`}
-                  </span>
-                  {kpi.trend && <div className="flex items-center gap-1">{getTrendIcon(kpi.trend)} <span className="text-xs text-gray-600">{kpi.trendValue}</span></div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Ongoing */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b-2 border-purple-500">📈 Ongoing</h3>
-          <div className="space-y-2">
-            {weekData.ongoing.map((kpi, idx) => (
-              <div key={idx} className={`p-3 rounded border ${getStatusColor(kpi.status)}`}>
-                <p className="text-xs font-medium text-gray-700">{kpi.label}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className={`text-lg font-bold ${getStatusTextColor(kpi.status)}`}>
-                    {kpi.value}{kpi.unit && ` ${kpi.unit}`}
-                  </span>
-                  {kpi.trend && <div className="flex items-center gap-1">{getTrendIcon(kpi.trend)} <span className="text-xs text-gray-600">{kpi.trendValue}</span></div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Migração */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b-2 border-teal-500">🔄 Migração</h3>
-          <div className="space-y-2">
-            {weekData.migracao.map((kpi, idx) => (
-              <div key={idx} className={`p-3 rounded border ${getStatusColor(kpi.status)}`}>
-                <p className="text-xs font-medium text-gray-700">{kpi.label}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className={`text-lg font-bold ${getStatusTextColor(kpi.status)}`}>
-                    {kpi.value}{kpi.unit && ` ${kpi.unit}`}
-                  </span>
-                  {kpi.trend && <div className="flex items-center gap-1">{getTrendIcon(kpi.trend)} <span className="text-xs text-gray-600">{kpi.trendValue}</span></div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {renderKPIColumn('Onboarding', '🚀', weekData.onboarding, 'border-blue-500')}
+        {renderKPIColumn('Ongoing', '📈', weekData.ongoing, 'border-purple-500')}
+        {renderKPIColumn('Migração', '🔄', weekData.migracao, 'border-teal-500')}
       </div>
     </div>
   );
 
   return (
     <div className="ml-20 p-6" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
-      <div className="space-y-8">
+      <div className="flex gap-8">
         {/* Semana Retrasada */}
         {renderWeekSection(weekRetrasada)}
 
-        {/* Divisor */}
-        <div className="border-t-2 border-gray-300 my-4"></div>
+        {/* Divisor vertical */}
+        <div className="border-l-2 border-gray-300"></div>
 
         {/* Semana Passada */}
         {renderWeekSection(weekPassada)}
