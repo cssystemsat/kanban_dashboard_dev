@@ -46,7 +46,7 @@ export default function KPIs() {
     { label: 'Recuperados MRR', value: '₹37.6k', status: 'good', trend: 'down', trendValue: '-₹8.2k' },
     { label: 'Churn clientes', value: '2.4%', status: 'warning', trend: 'up', trendValue: '+0.3%' },
     { label: 'Churn receita', value: '2.0%', status: 'warning', trend: 'up', trendValue: '+0.2%' },
-    { label: 'Risco principal', value: 'Preço', status: 'warning' },
+    { label: 'Risco principal', value: '-', status: 'warning' },
     { label: 'Expansão', value: 6, status: 'good', trend: 'down', trendValue: '-2' },
   ];
 
@@ -57,7 +57,7 @@ export default function KPIs() {
     { label: 'Recuperados MRR', value: '₹45.8k', status: 'good', trend: 'up', trendValue: '+₹8.2k' },
     { label: 'Churn clientes', value: '2.1%', status: 'good', trend: 'down', trendValue: '-0.3%' },
     { label: 'Churn receita', value: '1.8%', status: 'good', trend: 'down', trendValue: '-0.2%' },
-    { label: 'Risco principal', value: 'Preço', status: 'warning' },
+    { label: 'Risco principal', value: '-', status: 'warning' },
     { label: 'Expansão', value: 8, status: 'good', trend: 'up', trendValue: '+2' },
   ];
 
@@ -165,7 +165,9 @@ export default function KPIs() {
     <div className="ml-20 p-3" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
       <div className="flex gap-3 w-full">
         {renderCategory('Onboarding', '🚀', onboardingPassada, onboardingRetrasada, 'border-blue-500')}
+        <div className="border-l-2 border-gray-300"></div>
         {renderCategory('Ongoing', '📈', ongoingPassada, ongoingRetrasada, 'border-purple-500')}
+        <div className="border-l-2 border-gray-300"></div>
         {renderCategory('Migração', '🔄', migracaoPassada, migracaoRetrasada, 'border-teal-500')}
       </div>
     </div>
