@@ -116,42 +116,58 @@ export default function KPIs() {
     return null;
   };
 
-  const renderKPICard = (kpi: KPICard) => (
-    <div className={`p-3 rounded border ${getStatusColor(kpi.status)}`}>
-      <p className="text-xs font-medium text-gray-700">{kpi.label}</p>
-      <div className="flex items-center justify-between mt-2">
-        <span className={`text-lg font-bold ${getStatusTextColor(kpi.status)}`}>
-          {kpi.value}{kpi.unit && ` ${kpi.unit}`}
-        </span>
-        {kpi.trend && <div className="flex items-center gap-1">{getTrendIcon(kpi.trend)} <span className="text-xs text-gray-600">{kpi.trendValue}</span></div>}
+  const renderKPIRow = (kpiPassada: KPICard, kpiRetrasada: KPICard) => (
+    <div className="flex gap-4 mb-3">
+      {/* Semana Passada */}
+      <div className={`flex-1 p-3 rounded border ${getStatusColor(kpiPassada.status)}`}>
+        <p className="text-xs font-medium text-gray-700">{kpiPassada.label}</p>
+        <div className="flex items-center justify-between mt-2">
+          <span className={`text-base font-bold ${getStatusTextColor(kpiPassada.status)}`}>
+            {kpiPassada.value}{kpiPassada.unit && ` ${kpiPassada.unit}`}
+          </span>
+          {kpiPassada.trend && <div className="flex items-center gap-1">{getTrendIcon(kpiPassada.trend)} <span className="text-xs text-gray-600">{kpiPassada.trendValue}</span></div>}
+        </div>
+      </div>
+
+      {/* Semana Retrasada */}
+      <div className={`flex-1 p-3 rounded border ${getStatusColor(kpiRetrasada.status)}`}>
+        <p className="text-xs font-medium text-gray-700">{kpiRetrasada.label}</p>
+        <div className="flex items-center justify-between mt-2">
+          <span className={`text-base font-bold ${getStatusTextColor(kpiRetrasada.status)}`}>
+            {kpiRetrasada.value}{kpiRetrasada.unit && ` ${kpiRetrasada.unit}`}
+          </span>
+          {kpiRetrasada.trend && <div className="flex items-center gap-1">{getTrendIcon(kpiRetrasada.trend)} <span className="text-xs text-gray-600">{kpiRetrasada.trendValue}</span></div>}
+        </div>
       </div>
     </div>
   );
 
-  const renderWeekRow = (title: string, kpis: KPICard[]) => (
-    <div className="mb-6">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">{title}</h3>
-      <div className="grid grid-cols-4 gap-3">
-        {kpis.map((kpi, idx) => (
-          <div key={idx}>{renderKPICard(kpi)}</div>
-        ))}
+  const renderCategory = (categoryTitle: string, icon: string, passada: KPICard[], retrasada: KPICard[], borderColor: string) => (
+    <div className="mb-8">
+      <h2 className={`text-lg font-bold text-gray-900 mb-4 pb-2 border-b-4 ${borderColor}`}>{icon} {categoryTitle}</h2>
+      
+      {/* Headers das colunas */}
+      <div className="flex gap-4 mb-3">
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-700">Semana Passada (26/07 a 01/08)</p>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-700">Semana Retrasada (19/07 a 25/07)</p>
+        </div>
       </div>
-    </div>
-  );
 
-  const renderCategory = (categoryTitle: string, icon: string, retrasada: KPICard[], passada: KPICard[], borderColor: string) => (
-    <div className="mb-12">
-      <h2 className={`text-lg font-bold text-gray-900 mb-6 pb-3 border-b-4 ${borderColor}`}>{icon} {categoryTitle}</h2>
-      {renderWeekRow('Semana Retrasada (19/07 a 25/07)', retrasada)}
-      {renderWeekRow('Semana Passada (26/07 a 01/08)', passada)}
+      {/* KPI Rows */}
+      {passada.map((kpi, idx) => renderKPIRow(kpi, retrasada[idx]))}
     </div>
   );
 
   return (
     <div className="ml-20 p-6" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
-      {renderCategory('Onboarding', '🚀', onboardingRetrasada, onboardingPassada, 'border-blue-500')}
-      {renderCategory('Ongoing', '📈', ongoingRetrasada, ongoingPassada, 'border-purple-500')}
-      {renderCategory('Migração', '🔄', migracaoRetrasada, migracaoPassada, 'border-teal-500')}
+      <div className="max-w-7xl">
+        {renderCategory('Onboarding', '🚀', onboardingPassada, onboardingRetrasada, 'border-blue-500')}
+        {renderCategory('Ongoing', '📈', ongoingPassada, ongoingRetrasada, 'border-purple-500')}
+        {renderCategory('Migração', '🔄', migracaoPassada, migracaoRetrasada, 'border-teal-500')}
+      </div>
     </div>
   );
 }
