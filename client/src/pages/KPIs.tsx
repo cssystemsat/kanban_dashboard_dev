@@ -116,19 +116,8 @@ export default function KPIs() {
     return null;
   };
 
-  const renderKPIRow = (kpiPassada: KPICard, kpiRetrasada: KPICard) => (
-    <div className="flex gap-1 mb-1">
-      {/* Semana Passada */}
-      <div className={`flex-1 p-1.5 rounded border text-xs ${getStatusColor(kpiPassada.status)}`}>
-        <p className="font-medium text-gray-700 truncate text-xs">{kpiPassada.label}</p>
-        <div className="flex items-center justify-between mt-0.5">
-          <span className={`font-bold text-xs ${getStatusTextColor(kpiPassada.status)}`}>
-            {kpiPassada.value}
-          </span>
-          {kpiPassada.trend && <div className="flex items-center gap-0.5">{getTrendIcon(kpiPassada.trend)} <span className="text-xs text-gray-600">{kpiPassada.trendValue}</span></div>}
-        </div>
-      </div>
-
+  const renderKPIRow = (kpiPassada: KPICard, kpiRetrasada: KPICard, index: number) => (
+    <div key={`kpi-row-${index}`} className="flex gap-1 mb-1">
       {/* Semana Retrasada */}
       <div className={`flex-1 p-1.5 rounded border text-xs ${getStatusColor(kpiRetrasada.status)}`}>
         <p className="font-medium text-gray-700 truncate text-xs">{kpiRetrasada.label}</p>
@@ -137,6 +126,17 @@ export default function KPIs() {
             {kpiRetrasada.value}
           </span>
           {kpiRetrasada.trend && <div className="flex items-center gap-0.5">{getTrendIcon(kpiRetrasada.trend)} <span className="text-xs text-gray-600">{kpiRetrasada.trendValue}</span></div>}
+        </div>
+      </div>
+
+      {/* Semana Passada */}
+      <div className={`flex-1 p-1.5 rounded border text-xs ${getStatusColor(kpiPassada.status)}`}>
+        <p className="font-medium text-gray-700 truncate text-xs">{kpiPassada.label}</p>
+        <div className="flex items-center justify-between mt-0.5">
+          <span className={`font-bold text-xs ${getStatusTextColor(kpiPassada.status)}`}>
+            {kpiPassada.value}
+          </span>
+          {kpiPassada.trend && <div className="flex items-center gap-0.5">{getTrendIcon(kpiPassada.trend)} <span className="text-xs text-gray-600">{kpiPassada.trendValue}</span></div>}
         </div>
       </div>
     </div>
@@ -149,15 +149,15 @@ export default function KPIs() {
       {/* Headers das colunas */}
       <div className="flex gap-1 mb-1">
         <div className="flex-1">
-          <p className="text-xs font-semibold text-gray-700">Semana Passada</p>
+          <p className="text-xs font-semibold text-gray-700">Semana Retrasada</p>
         </div>
         <div className="flex-1">
-          <p className="text-xs font-semibold text-gray-700">Semana Retrasada</p>
+          <p className="text-xs font-semibold text-gray-700">Semana Passada</p>
         </div>
       </div>
 
       {/* KPI Rows */}
-      {passada.map((kpi, idx) => renderKPIRow(kpi, retrasada[idx]))}
+      {passada.map((kpi, idx) => renderKPIRow(kpi, retrasada[idx], idx))}
     </div>
   );
 
@@ -165,9 +165,9 @@ export default function KPIs() {
     <div className="ml-20 p-3" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
       <div className="flex gap-3 w-full">
         {renderCategory('Onboarding', '🚀', onboardingPassada, onboardingRetrasada, 'border-blue-500')}
-        <div className="border-l-2 border-gray-300"></div>
+        <div key="divider-1" className="border-l-2 border-gray-300"></div>
         {renderCategory('Ongoing', '📈', ongoingPassada, ongoingRetrasada, 'border-purple-500')}
-        <div className="border-l-2 border-gray-300"></div>
+        <div key="divider-2" className="border-l-2 border-gray-300"></div>
         {renderCategory('Migração', '🔄', migracaoPassada, migracaoRetrasada, 'border-teal-500')}
       </div>
     </div>
