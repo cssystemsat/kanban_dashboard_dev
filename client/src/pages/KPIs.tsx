@@ -1,6 +1,5 @@
-'use client';
-
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useState } from 'react';
+import { TrendingUp, TrendingDown, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 
 interface KPICard {
@@ -13,6 +12,7 @@ interface KPICard {
 }
 
 export default function KPIs() {
+  const [selectedKPI, setSelectedKPI] = useState<KPICard | null>(null);
   const { data: onboardingData } = trpc.kpis.getOnboardingKpis.useQuery();
 
   // Dados de Onboarding
@@ -51,11 +51,11 @@ export default function KPIs() {
   ];
 
   const ongoingPassada: KPICard[] = [
-    { label: 'Críticos', value: 5, status: 'critical', trend: 'down', trendValue: '-2' },
+    { label: 'Críticos', value: 5, status: 'warning', trend: 'down', trendValue: '-2' },
     { label: 'Sem contato 30+', value: 12, status: 'warning', trend: 'up', trendValue: '+3' },
     { label: 'Cancelamentos', value: 2, status: 'warning', trend: 'neutral', trendValue: '0' },
     { label: 'Recuperados MRR', value: '₹45.8k', status: 'good', trend: 'up', trendValue: '+₹8.2k' },
-    { label: 'Churn clientes', value: '2.1%', status: 'good', trend: 'down', trendValue: '-0.3%' },
+    { label: 'Churn clientes', value: '2.1%', status: 'warning', trend: 'down', trendValue: '-0.3%' },
     { label: 'Churn receita', value: '1.8%', status: 'good', trend: 'down', trendValue: '-0.2%' },
     { label: 'Risco principal', value: '-', status: 'warning' },
     { label: 'Expansão', value: 8, status: 'good', trend: 'up', trendValue: '+2' },
@@ -64,50 +64,38 @@ export default function KPIs() {
   // Dados de Migração
   const migracaoRetrasada: KPICard[] = [
     { label: 'Em andamento', value: 6, status: 'good', trend: 'neutral', trendValue: '0' },
-    { label: 'Concluído', value: '56%', status: 'warning', trend: 'down', trendValue: '-12%' },
+    { label: 'Percentual concluído', value: '56%', status: 'warning', trend: 'down', trendValue: '-12%' },
     { label: 'Atrasadas', value: 3, status: 'warning', trend: 'up', trendValue: '+1' },
-    { label: 'Tempo médio', value: '9.4d', status: 'warning', trend: 'up', trendValue: '+1.1d' },
-    { label: 'Erros', value: 2, status: 'warning', trend: 'up', trendValue: '+1' },
-    { label: 'Bloqueados', value: 1, status: 'warning', trend: 'up', trendValue: '+1' },
-    { label: 'Tickets pós', value: 6, status: 'warning', trend: 'up', trendValue: '+2' },
-    { label: 'CSAT', value: '4.4/5', status: 'good', trend: 'down', trendValue: '-0.2' },
+    { label: 'Tempo médio', value: '9.4d', status: 'good', trend: 'up', trendValue: '+1.1d' },
+    { label: 'Erros/Retrabalho', value: 2, status: 'warning', trend: 'up', trendValue: '+1' },
+    { label: 'Clientes bloqueados', value: '-', status: 'good' },
+    { label: 'Tickets pós-migração', value: '-', status: 'good' },
+    { label: 'CSAT migração', value: '-', status: 'good' },
   ];
 
   const migracaoPassada: KPICard[] = [
     { label: 'Em andamento', value: 6, status: 'good', trend: 'neutral', trendValue: '0' },
-    { label: 'Concluído', value: '68%', status: 'good', trend: 'up', trendValue: '+12%' },
+    { label: 'Percentual concluído', value: '68%', status: 'good', trend: 'up', trendValue: '+12%' },
     { label: 'Atrasadas', value: 2, status: 'warning', trend: 'down', trendValue: '-1' },
     { label: 'Tempo médio', value: '8.3d', status: 'good', trend: 'down', trendValue: '-1.1d' },
-    { label: 'Erros', value: 1, status: 'good', trend: 'down', trendValue: '-1' },
-    { label: 'Bloqueados', value: 0, status: 'good', trend: 'down', trendValue: '-1' },
-    { label: 'Tickets pós', value: 4, status: 'good', trend: 'down', trendValue: '-2' },
-    { label: 'CSAT', value: '4.6/5', status: 'good', trend: 'up', trendValue: '+0.2' },
+    { label: 'Erros/Retrabalho', value: 1, status: 'good', trend: 'down', trendValue: '-1' },
+    { label: 'Clientes bloqueados', value: '-', status: 'good' },
+    { label: 'Tickets pós-migração', value: '-', status: 'good' },
+    { label: 'CSAT migração', value: '-', status: 'good' },
   ];
 
   const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'good':
-        return 'bg-green-50 border-green-200';
-      case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'critical':
-        return 'bg-red-50 border-red-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
-    }
+    if (status === 'good') return 'bg-green-50 border-green-200';
+    if (status === 'warning') return 'bg-yellow-50 border-yellow-200';
+    if (status === 'critical') return 'bg-red-50 border-red-200';
+    return 'bg-gray-50 border-gray-200';
   };
 
   const getStatusTextColor = (status?: string) => {
-    switch (status) {
-      case 'good':
-        return 'text-green-700';
-      case 'warning':
-        return 'text-yellow-700';
-      case 'critical':
-        return 'text-red-700';
-      default:
-        return 'text-gray-700';
-    }
+    if (status === 'good') return 'text-green-700';
+    if (status === 'warning') return 'text-yellow-700';
+    if (status === 'critical') return 'text-red-700';
+    return 'text-gray-700';
   };
 
   const getTrendIcon = (trend?: string) => {
@@ -119,7 +107,10 @@ export default function KPIs() {
   const renderKPIRow = (kpiPassada: KPICard, kpiRetrasada: KPICard, index: number) => (
     <div key={`kpi-row-${index}`} className="flex gap-1 mb-1">
       {/* Semana Retrasada */}
-      <div className={`flex-1 p-1.5 rounded border text-xs ${getStatusColor(kpiRetrasada.status)}`}>
+      <div 
+        onClick={() => setSelectedKPI(kpiRetrasada)}
+        className={`flex-1 p-1.5 rounded border text-xs cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(kpiRetrasada.status)}`}
+      >
         <p className="font-medium text-gray-700 truncate text-xs">{kpiRetrasada.label}</p>
         <div className="flex items-center justify-between mt-0.5">
           <span className={`font-bold text-xs ${getStatusTextColor(kpiRetrasada.status)}`}>
@@ -130,7 +121,10 @@ export default function KPIs() {
       </div>
 
       {/* Semana Passada */}
-      <div className={`flex-1 p-1.5 rounded border text-xs ${getStatusColor(kpiPassada.status)}`}>
+      <div 
+        onClick={() => setSelectedKPI(kpiPassada)}
+        className={`flex-1 p-1.5 rounded border text-xs cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(kpiPassada.status)}`}
+      >
         <p className="font-medium text-gray-700 truncate text-xs">{kpiPassada.label}</p>
         <div className="flex items-center justify-between mt-0.5">
           <span className={`font-bold text-xs ${getStatusTextColor(kpiPassada.status)}`}>
@@ -170,6 +164,44 @@ export default function KPIs() {
         <div key="divider-2" className="border-l-2 border-gray-300"></div>
         {renderCategory('Migração', '🔄', migracaoPassada, migracaoRetrasada, 'border-teal-500')}
       </div>
+
+      {/* Modal de KPI */}
+      {selectedKPI && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-900">{selectedKPI.label}</h2>
+              <button
+                onClick={() => setSelectedKPI(null)}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-3xl font-bold text-gray-900 mb-2">{selectedKPI.value}</p>
+              {selectedKPI.trend && (
+                <div className="flex items-center gap-2">
+                  {getTrendIcon(selectedKPI.trend)}
+                  <span className="text-sm text-gray-600">{selectedKPI.trendValue}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-gray-50 rounded p-4 mb-4 min-h-[100px]">
+              <p className="text-sm text-gray-600">Informações do KPI serão adicionadas aqui...</p>
+            </div>
+
+            <button
+              onClick={() => setSelectedKPI(null)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
