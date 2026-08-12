@@ -15,6 +15,7 @@ import Migration from './pages/Migration';
 import AtendimentosPage from './pages/AtendimentosPage';
 import AppPersonalizado from './pages/AppPersonalizado';
 import KPIs from './pages/KPIs';
+import Performance from './pages/Performance';
 import ChecklistPanel from './components/ChecklistPanel';
 import { DailyLossesAlert } from './components/DailyLossesAlert';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -124,6 +125,8 @@ function AppInner() {
     switch (currentPage) {
       case 'painel':
         return <Painel />;
+      case 'performance':
+        return <Performance />;
       case 'dashboard':
         return <Dashboard />;
       case 'marcos':

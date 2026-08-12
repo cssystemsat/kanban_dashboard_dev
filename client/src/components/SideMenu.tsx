@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, TrendingUp, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, Phone, PieChart, Smartphone } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, TrendingUp, Settings, LogIn, LogOut, Wrench, BarChart2, BarChart3, LayoutGrid, Phone, PieChart, Smartphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { getLoginUrl } from '@/const';
@@ -11,6 +11,7 @@ interface SideMenuProps {
 // Aba pública — visível para todos sem login
 const PUBLIC_ITEMS = [
   { id: 'painel', label: 'Painel', icon: LayoutGrid },
+  { id: 'performance', label: 'Performance', icon: BarChart3 },
 ];
 
 // Abas que requerem login e permissao

@@ -386,3 +386,8 @@
 - [x] Remover as opções Migração 2.0 e Migração do menu lateral
 - [x] Validar o menu lateral e salvar checkpoint
 
+
+- [x] Criar a página Performance
+- [x] Adicionar Performance imediatamente abaixo de Painel no menu lateral e integrar a rota
+- [x] Validar a nova aba e salvar checkpoint
+
