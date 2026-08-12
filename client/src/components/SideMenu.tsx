@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, TrendingUp, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, ArrowRight, Phone, PieChart, Smartphone } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, TrendingUp, Settings, LogIn, LogOut, Wrench, BarChart2, LayoutGrid, Phone, PieChart, Smartphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { getLoginUrl } from '@/const';
@@ -20,8 +20,6 @@ const PROTECTED_ITEMS = [
   { id: 'marcos', label: 'Marcos', icon: CheckSquare },
   { id: 'ongoing', label: 'Ongoing', icon: Users },
   { id: 'churns', label: 'CHURNs', icon: TrendingDown },
-  { id: 'migracao', label: 'Migracao', icon: ArrowRight },
-  { id: 'migracao2', label: 'Migração 2.0', icon: ArrowRight },
   { id: 'redflags', label: 'Red Flags', icon: AlertCircle },
   { id: 'apppersonalizado', label: 'App Personalizado', icon: Smartphone },
   { id: 'ferramentas', label: 'Ferramentas', icon: Wrench },

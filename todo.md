@@ -382,3 +382,7 @@
 - [x] Tornar 100% invisível o fundo externo do modal de aviso de perdas de URs
 - [x] Validar os overlays transparentes e salvar checkpoint
 
+
+- [x] Remover as opções Migração 2.0 e Migração do menu lateral
+- [x] Validar o menu lateral e salvar checkpoint
+
