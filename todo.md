@@ -374,3 +374,11 @@
 - [x] Estruturar cards com 8 KPI's para Migração
 - [x] Integrar rota no App.tsx e SideMenu (entre "Evoluções de UR's" e "Marcos")
 - [x] Placeholder de dados visuais para cada KPI
+
+- [x] Tornar 100% invisível o fundo externo do modal de KPI's na aba KPI's de Gestão CS
+- [x] Validar o modal de KPI's após a alteração e salvar checkpoint
+
+
+- [x] Tornar 100% invisível o fundo externo do modal de aviso de perdas de URs
+- [x] Validar os overlays transparentes e salvar checkpoint
+

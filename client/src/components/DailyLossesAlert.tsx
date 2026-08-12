@@ -73,7 +73,7 @@ export function DailyLossesAlert() {
   if (!show || isAcknowledged) return null;
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-transparent">
         <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md">
           <div className="flex items-center gap-3">
             <div className="animate-spin h-5 w-5 border-2 border-red-500 border-t-transparent rounded-full" />
@@ -92,7 +92,7 @@ export function DailyLossesAlert() {
   if (!data) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-transparent">
       <div className="bg-white rounded-xl shadow-2xl w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b bg-red-50 flex items-center justify-between">
