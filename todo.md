@@ -430,3 +430,8 @@
 
 - [x] Remover o ícone flutuante de Meus Checklists da aba Performance
 - [x] Validar a remoção do ícone e salvar checkpoint
+
+- [x] Calcular a cobertura mensal da base por analista
+- [x] Aplicar penalização de 30 pontos no fechamento quando cobertura mensal < 90%
+- [x] Exibir o motivo da penalização mensal no histórico da pontuação
+- [x] Validar a regra mensal e salvar checkpoint

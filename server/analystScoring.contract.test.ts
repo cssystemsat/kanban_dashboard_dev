@@ -7,10 +7,18 @@ describe("Automação do ranking de analistas", () => {
   const serverSource = readFileSync(resolve(process.cwd(), "server/_core/index.ts"), "utf8");
 
   it("aplica penalização idempotente de 8 pontos para cobertura abaixo de 25%", () => {
-    expect(scoringSource).toContain("const COVERAGE_TARGET = 0.25");
+    expect(scoringSource).toContain("const WEEKLY_COVERAGE_TARGET = 0.25");
     expect(scoringSource).toContain("const WEEKLY_PENALTY = 8");
-    expect(scoringSource).toContain("penalty.periodKey === periodKey");
+    expect(scoringSource).toContain("penalty.periodKey === input.periodKey");
     expect(scoringSource).toContain("runWeeklyCoveragePenalty");
+  });
+
+  it("aplica 30 pontos no fechamento para cobertura mensal abaixo de 90%", () => {
+    expect(scoringSource).toContain("const MONTHLY_COVERAGE_TARGET = 0.9");
+    expect(scoringSource).toContain("const MONTHLY_PENALTY = 30");
+    expect(scoringSource).toContain("applyMonthlyCoveragePenalty");
+    expect(scoringSource).toContain("meta de cobertura mensal (< 90%)");
+    expect(scoringSource).toContain("monthlyPenalties");
   });
 
   it("fecha o mês anterior com histórico antes de iniciar a nova competência", () => {
