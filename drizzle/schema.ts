@@ -263,3 +263,30 @@ export const dailyLossesAcknowledgments = mysqlTable("daily_losses_acknowledgmen
 
 export type DailyLossesAcknowledgment = typeof dailyLossesAcknowledgments.$inferSelect;
 export type InsertDailyLossesAcknowledgment = typeof dailyLossesAcknowledgments.$inferInsert;
+
+// Tabela de pontuação atual e histórico dos analistas para o ranking
+export const analystScores = mysqlTable("analyst_scores", {
+  id: int("id").autoincrement().primaryKey(),
+  analystName: varchar("analystName", { length: 128 }).notNull(),
+  category: varchar("category", { length: 32 }).notNull(), // 'onboarding' | 'ongoing' | 'geral'
+  yearMonth: varchar("yearMonth", { length: 7 }).notNull(), // 'YYYY-MM'
+  score: int("score").default(100).notNull(),
+  penaltiesJson: text("penaltiesJson").notNull(), // JSON com histórico de penalizações e motivos (ex: [{date, points, reason}])
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AnalystScore = typeof analystScores.$inferSelect;
+export type InsertAnalystScore = typeof analystScores.$inferInsert;
+
+export const analystScoreHistory = mysqlTable("analyst_score_history", {
+  id: int("id").autoincrement().primaryKey(),
+  analystName: varchar("analystName", { length: 128 }).notNull(),
+  category: varchar("category", { length: 32 }).notNull(),
+  yearMonth: varchar("yearMonth", { length: 7 }).notNull(), // mês fechado (YYYY-MM)
+  finalScore: int("finalScore").notNull(),
+  penaltiesJson: text("penaltiesJson").notNull(),
+  savedAt: timestamp("savedAt").defaultNow().notNull(),
+});
+
+export type AnalystScoreHistory = typeof analystScoreHistory.$inferSelect;
+export type InsertAnalystScoreHistory = typeof analystScoreHistory.$inferInsert;

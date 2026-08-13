@@ -403,3 +403,9 @@
 - [x] Inicializar todos os analistas com 100 pontos
 - [x] Validar o ranking e salvar checkpoint
 
+
+- [ ] Criar tabela analist_scores e analist_score_history para gerenciar pontuação e histórico mensal
+- [ ] Implementar regra de desconto de 8 pontos na sexta-feira às 00h se cobertura < 25%
+- [ ] Exibir tooltip com histórico de penalizações (ex: "-8 pontos : meta de contato") ao passar o mouse sobre a pontuação
+- [ ] Validar as regras de pontuação e salvar checkpoint
+

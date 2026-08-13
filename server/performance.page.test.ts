@@ -21,11 +21,11 @@ describe('Performance page navigation', () => {
     expect(performanceIndex).toBeLessThan(sideMenuSource.indexOf('];', painelIndex));
   });
 
-  it('renders the three ranking columns with the initial score', () => {
+  it('renders the three ranking columns with scoring and penalty tooltips', () => {
     expect(pageSource).toContain("title=\"Ongoing\"");
     expect(pageSource).toContain("title=\"Onboarding\"");
     expect(pageSource).toContain("title=\"Geral\"");
-    expect(pageSource).toContain("style={{ backgroundColor: softAccent, color: accent }}>100</span>");
-    expect(pageSource).toContain("import { usePainelData } from '@/hooks/usePainelData';");
+    expect(pageSource).toContain("analystScores");
+    expect(pageSource).toContain("meta de contato");
   });
 });
