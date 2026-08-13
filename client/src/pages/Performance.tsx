@@ -217,15 +217,17 @@ export default function Performance() {
 
   return (
     <main className="min-h-screen bg-[#F5F7FA] md:ml-20">
-      <header className="sticky top-0 z-30 border-b border-[#DCE5EE] bg-white px-6 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 border-b border-[#DCE5EE] bg-white px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#008F00]">
               <BarChart3 className="h-5 w-5" />
             </div>
-            <div>
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-bold text-[#001F3F]">{PERFORMANCE_TITLE}</h1>
-              <p className="text-sm text-[#64748B]">Ranking de analistas com pontuação mensal e histórico de metas</p>
+              <span className="rounded-md border border-[#DCE5EE] bg-[#F8FAFC] px-2 py-1 text-xs font-semibold text-[#52677A]">
+                Semana vigente: <span className="text-[#001F3F]">{getCurrentWeekLabel()}</span>
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -246,11 +248,7 @@ export default function Performance() {
         </div>
       </header>
 
-      <section className="space-y-5 p-5 md:p-6">
-        <div className="rounded-xl border border-[#DCE5EE] bg-white px-4 py-3 text-sm font-semibold text-[#52677A] shadow-sm">
-          Semana vigente: <span className="text-[#001F3F]">{getCurrentWeekLabel()}</span>
-        </div>
-
+      <section className="p-3 md:p-4">
         {loading && !data ? (
           <div className="rounded-2xl border border-[#DCE5EE] bg-white px-6 py-16 text-center shadow-sm">
             <RefreshCw className="mx-auto h-7 w-7 animate-spin text-[#1683E8]" />
@@ -261,7 +259,7 @@ export default function Performance() {
             Não foi possível carregar o ranking. Tente atualizar novamente.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
             <RankingColumn title="Ongoing" subtitle={`${ongoingList.length} analista(s)`} analysts={ongoingList} accent="#7C3AED" softAccent="#F0EAFE" />
             <RankingColumn title="Onboarding" subtitle={`${onboardingList.length} analista(s)`} analysts={onboardingList} accent="#1683E8" softAccent="#E8F3FF" />
             <RankingColumn title="Geral" subtitle={`${generalList.length} analista(s)`} analysts={generalList} accent="#008F5A" softAccent="#E7F8EF" />

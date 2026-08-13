@@ -416,3 +416,7 @@
 - [ ] Configurar automação real para aplicar a penalização semanal na sexta-feira às 00h
 - [ ] Salvar o ranking fechado do mês anterior e reiniciar a pontuação no início de cada mês
 - [ ] Validar os jobs automáticos e salvar checkpoint
+
+- [x] Mover a semana vigente para o topo da aba Performance
+- [x] Reduzir o espaço vertical e aproximar as tabelas de ranking
+- [x] Validar o layout otimizado e salvar checkpoint

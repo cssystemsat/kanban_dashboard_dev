@@ -35,4 +35,10 @@ describe('Performance page navigation', () => {
     expect(pageSource).toContain('setSimulationActive((active) => !active)');
     expect(pageSource).not.toContain('Todos começam com <strong');
   });
+
+  it('keeps the week in the compact top header and brings ranking tables upward', () => {
+    expect(pageSource).toContain('bg-white px-5 py-3');
+    expect(pageSource).toContain('<section className="p-3 md:p-4">');
+    expect(pageSource).toContain('grid grid-cols-1 gap-4 xl:grid-cols-3');
+  });
 });
