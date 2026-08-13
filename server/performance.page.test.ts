@@ -31,6 +31,7 @@ describe('Performance page navigation', () => {
 
   it('shows only the current week summary and keeps the penalty simulation reversible', () => {
     expect(pageSource).toContain('Semana vigente:');
+    expect(pageSource).toContain("'Simular semana'");
     expect(pageSource).toContain('Desfazer Simulação');
     expect(pageSource).toContain('setSimulationActive((active) => !active)');
     expect(pageSource).not.toContain('Todos começam com <strong');

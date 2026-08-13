@@ -238,7 +238,7 @@ export default function Performance() {
               className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${simulationActive ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'}`}
               title={simulationActive ? 'Desfaz a simulação e restaura as notas anteriores' : 'Simula -8 pontos para analistas com cobertura abaixo de 25%'}
             >
-              {simulationActive ? 'Desfazer Simulação' : 'Simular Fechamento Sexta (-8 pts)'}
+              {simulationActive ? 'Desfazer Simulação' : 'Simular semana'}
             </button>
             <button type="button" onClick={() => { void fetchData(); void refetchScores(); }} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-[#C8D4E0] bg-white px-3 py-2 text-sm font-semibold text-[#24435C] transition hover:bg-[#F4F8FB] disabled:cursor-not-allowed disabled:opacity-60">
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

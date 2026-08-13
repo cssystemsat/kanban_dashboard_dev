@@ -424,3 +424,6 @@
 - [x] Remover penalizações registradas antes do primeiro fechamento válido da semana
 - [x] Garantir que a regra automática não aplique descontos retroativos
 - [x] Validar o reinício do ranking em 100 pontos e salvar checkpoint
+
+- [x] Renomear o botão de simulação para "Simular semana"
+- [x] Validar o novo rótulo e salvar checkpoint
