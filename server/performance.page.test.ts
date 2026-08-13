@@ -28,4 +28,11 @@ describe('Performance page navigation', () => {
     expect(pageSource).toContain("analystScores");
     expect(pageSource).toContain("meta de contato");
   });
+
+  it('shows only the current week summary and keeps the penalty simulation reversible', () => {
+    expect(pageSource).toContain('Semana vigente:');
+    expect(pageSource).toContain('Desfazer Simulação');
+    expect(pageSource).toContain('setSimulationActive((active) => !active)');
+    expect(pageSource).not.toContain('Todos começam com <strong');
+  });
 });

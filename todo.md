@@ -404,8 +404,15 @@
 - [x] Validar o ranking e salvar checkpoint
 
 
-- [ ] Criar tabela analist_scores e analist_score_history para gerenciar pontuação e histórico mensal
+- [x] Criar tabela analist_scores e analist_score_history para gerenciar pontuação e histórico mensal
 - [ ] Implementar regra de desconto de 8 pontos na sexta-feira às 00h se cobertura < 25%
-- [ ] Exibir tooltip com histórico de penalizações (ex: "-8 pontos : meta de contato") ao passar o mouse sobre a pontuação
+- [x] Exibir tooltip com histórico de penalizações (ex: "-8 pontos : meta de contato") ao passar o mouse sobre a pontuação
 - [ ] Validar as regras de pontuação e salvar checkpoint
 
+- [x] Exibir apenas a semana vigente no cabeçalho da aba Performance
+- [x] Tornar a simulação de penalizações reversível sem gravar descontos no banco
+- [x] Validar a reversão da simulação e salvar checkpoint
+
+- [ ] Configurar automação real para aplicar a penalização semanal na sexta-feira às 00h
+- [ ] Salvar o ranking fechado do mês anterior e reiniciar a pontuação no início de cada mês
+- [ ] Validar os jobs automáticos e salvar checkpoint

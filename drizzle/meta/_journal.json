@@ -148,6 +148,13 @@
       "when": 1786581953553,
       "tag": "0020_wooden_rocket_raccoon",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1786582822216,
+      "tag": "0021_useful_the_hand",
+      "breakpoints": true
     }
   ]
 }

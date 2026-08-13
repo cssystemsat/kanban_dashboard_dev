@@ -290,3 +290,15 @@ export const analystScoreHistory = mysqlTable("analyst_score_history", {
 
 export type AnalystScoreHistory = typeof analystScoreHistory.$inferSelect;
 export type InsertAnalystScoreHistory = typeof analystScoreHistory.$inferInsert;
+
+// Registra os IDs dos jobs automáticos responsáveis pelo ranking
+export const analystScoreSchedules = mysqlTable("analyst_score_schedules", {
+  id: int("id").autoincrement().primaryKey(),
+  jobType: varchar("jobType", { length: 32 }).notNull(), // 'weekly_penalty' | 'monthly_reset'
+  taskUid: varchar("taskUid", { length: 65 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AnalystScoreSchedule = typeof analystScoreSchedules.$inferSelect;
+export type InsertAnalystScoreSchedule = typeof analystScoreSchedules.$inferInsert;

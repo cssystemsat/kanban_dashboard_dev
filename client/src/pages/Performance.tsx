@@ -24,10 +24,21 @@ interface RankingColumnProps {
   analysts: AnalystData[];
   accent: string;
   softAccent: string;
-  categoryKey: string;
 }
 
-function RankingColumn({ title, subtitle, analysts, accent, softAccent, categoryKey }: RankingColumnProps) {
+function getCurrentWeekLabel(): string {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - daysSinceMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const format = (date: Date) => date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  return `${format(monday)} a ${format(sunday)}`;
+}
+
+function RankingColumn({ title, subtitle, analysts, accent, softAccent }: RankingColumnProps) {
   return (
     <section className="min-w-0 overflow-hidden rounded-2xl border border-[#DCE5EE] bg-white shadow-sm">
       <div className="border-b border-[#E5EAF0] px-4 py-4" style={{ borderTop: `4px solid ${accent}` }}>
@@ -99,6 +110,7 @@ function RankingColumn({ title, subtitle, analysts, accent, softAccent, category
 export default function Performance() {
   const { data, loading, error, fetchData } = usePainelData();
   const currentYearMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+  const [simulationActive, setSimulationActive] = useState(false);
 
   const { data: scoresRecords, refetch: refetchScores } = trpc.analystScores.list.useQuery({
     yearMonth: currentYearMonth,
@@ -107,13 +119,6 @@ export default function Performance() {
   useEffect(() => {
     void fetchData();
   }, [fetchData]);
-
-  // Aplicar regra automática de verificação (Simulando verificação de sexta-feira ou manual)
-  const applyPenaltyMutation = trpc.analystScores.applyPenalty.useMutation({
-    onSuccess: () => {
-      void refetchScores();
-    },
-  });
 
   const scoresMap = useMemo(() => {
     const map: Record<string, { score: number; penalties: PenaltyItem[] }> = {};
@@ -139,14 +144,17 @@ export default function Performance() {
       const name = item.csm.trim();
       const key = `${name}|onboarding`;
       const record = scoresMap[key];
+      const simulatedPenalty = simulationActive && item.percentual < 0.25
+        ? [{ date: `Semana vigente`, points: 8, reason: 'meta de contato (< 25%)' }]
+        : [];
       return {
         name,
-        score: record ? record.score : 100,
-        penalties: record ? record.penalties : [],
+        score: Math.max(0, (record ? record.score : 100) - (simulatedPenalty.length ? 8 : 0)),
+        penalties: [...(record ? record.penalties : []), ...simulatedPenalty],
         cobertura: item,
       };
     }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-  }, [data?.onboarding, scoresMap]);
+  }, [data?.onboarding, scoresMap, simulationActive]);
 
   // Processar analistas de Ongoing
   const ongoingList = useMemo(() => {
@@ -155,14 +163,17 @@ export default function Performance() {
       const name = item.csm.trim();
       const key = `${name}|ongoing`;
       const record = scoresMap[key];
+      const simulatedPenalty = simulationActive && item.percentual < 0.25
+        ? [{ date: `Semana vigente`, points: 8, reason: 'meta de contato (< 25%)' }]
+        : [];
       return {
         name,
-        score: record ? record.score : 100,
-        penalties: record ? record.penalties : [],
+        score: Math.max(0, (record ? record.score : 100) - (simulatedPenalty.length ? 8 : 0)),
+        penalties: [...(record ? record.penalties : []), ...simulatedPenalty],
         cobertura: item,
       };
     }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-  }, [data?.ongoing, scoresMap]);
+  }, [data?.ongoing, scoresMap, simulationActive]);
 
   // Processar analistas Geral (unificado com soma/média de pontuação ou combinados)
   const generalList = useMemo(() => {
@@ -204,42 +215,6 @@ export default function Performance() {
     }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
   }, [onboardingList, ongoingList]);
 
-  // Simular verificação da regra de sexta-feira (< 25% desconta 8 pontos)
-  const handleCheckFridayPenalty = () => {
-    if (!data) return;
-    let appliedCount = 0;
-
-    // Verificar onboarding
-    for (const item of data.onboarding) {
-      if (item.percentual < 0.25) {
-        applyPenaltyMutation.mutate({
-          analystName: item.csm.trim(),
-          category: 'onboarding',
-          yearMonth: currentYearMonth,
-          points: 8,
-          reason: 'meta de contato (< 25%)',
-        });
-        appliedCount++;
-      }
-    }
-
-    // Verificar ongoing
-    for (const item of data.ongoing) {
-      if (item.percentual < 0.25) {
-        applyPenaltyMutation.mutate({
-          analystName: item.csm.trim(),
-          category: 'ongoing',
-          yearMonth: currentYearMonth,
-          points: 8,
-          reason: 'meta de contato (< 25%)',
-        });
-        appliedCount++;
-      }
-    }
-
-    alert(`Verificação executada! ${appliedCount} analista(s) abaixo de 25% receberam penalização de -8 pontos.`);
-  };
-
   return (
     <main className="min-h-screen bg-[#F5F7FA] md:ml-20">
       <header className="sticky top-0 z-30 border-b border-[#DCE5EE] bg-white px-6 py-4">
@@ -256,11 +231,12 @@ export default function Performance() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={handleCheckFridayPenalty}
-              className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
-              title="Aplica -8 pontos para analistas com cobertura < 25%"
+              onClick={() => setSimulationActive((active) => !active)}
+              aria-pressed={simulationActive}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${simulationActive ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'}`}
+              title={simulationActive ? 'Desfaz a simulação e restaura as notas anteriores' : 'Simula -8 pontos para analistas com cobertura abaixo de 25%'}
             >
-              Simular Fechamento Sexta (-8 pts)
+              {simulationActive ? 'Desfazer Simulação' : 'Simular Fechamento Sexta (-8 pts)'}
             </button>
             <button type="button" onClick={() => { void fetchData(); void refetchScores(); }} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-[#C8D4E0] bg-white px-3 py-2 text-sm font-semibold text-[#24435C] transition hover:bg-[#F4F8FB] disabled:cursor-not-allowed disabled:opacity-60">
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -271,12 +247,8 @@ export default function Performance() {
       </header>
 
       <section className="space-y-5 p-5 md:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#DCE5EE] bg-white px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-2 text-sm text-[#52677A]">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#00A63C]" />
-            Todos começam com <strong className="text-[#001F3F]">100 pontos</strong> no início do mês. Abaixo de 25% de cobertura na sexta-feira: <strong className="text-red-600">-8 pontos</strong> (passe o mouse sobre a nota para ver os motivos).
-          </div>
-          <span className="text-xs text-[#8291A0]">Competência: {currentYearMonth}</span>
+        <div className="rounded-xl border border-[#DCE5EE] bg-white px-4 py-3 text-sm font-semibold text-[#52677A] shadow-sm">
+          Semana vigente: <span className="text-[#001F3F]">{getCurrentWeekLabel()}</span>
         </div>
 
         {loading && !data ? (
@@ -290,9 +262,9 @@ export default function Performance() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <RankingColumn title="Ongoing" subtitle={`${ongoingList.length} analista(s)`} analysts={ongoingList} accent="#7C3AED" softAccent="#F0EAFE" categoryKey="ongoing" />
-            <RankingColumn title="Onboarding" subtitle={`${onboardingList.length} analista(s)`} analysts={onboardingList} accent="#1683E8" softAccent="#E8F3FF" categoryKey="onboarding" />
-            <RankingColumn title="Geral" subtitle={`${generalList.length} analista(s)`} analysts={generalList} accent="#008F5A" softAccent="#E7F8EF" categoryKey="geral" />
+            <RankingColumn title="Ongoing" subtitle={`${ongoingList.length} analista(s)`} analysts={ongoingList} accent="#7C3AED" softAccent="#F0EAFE" />
+            <RankingColumn title="Onboarding" subtitle={`${onboardingList.length} analista(s)`} analysts={onboardingList} accent="#1683E8" softAccent="#E8F3FF" />
+            <RankingColumn title="Geral" subtitle={`${generalList.length} analista(s)`} analysts={generalList} accent="#008F5A" softAccent="#E7F8EF" />
           </div>
         )}
       </section>
