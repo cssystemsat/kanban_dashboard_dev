@@ -51,7 +51,7 @@ import {
   checkLossesAcknowledged,
 } from "./db";
 import { TRPCError } from "@trpc/server";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { appKanbanCards, analystScores } from "../drizzle/schema";
 import { getDb } from "./db";
 
@@ -830,71 +830,6 @@ export const appRouter = router({
         if (!db) return [];
         const records = await db.select().from(analystScores).where(eq(analystScores.yearMonth, input.yearMonth));
         return records;
-      }),
-    applyPenalty: publicProcedure
-      .input(z.object({
-        analystName: z.string(),
-        category: z.string(),
-        yearMonth: z.string(),
-        points: z.number(),
-        reason: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
-        
-        // Buscar registro atual
-        const existing = await db.select().from(analystScores)
-          .where(
-            and(
-              eq(analystScores.analystName, input.analystName),
-              eq(analystScores.category, input.category),
-              eq(analystScores.yearMonth, input.yearMonth)
-            )
-          );
-        
-        let currentScore = 100;
-        let penalties: { date: string; points: number; reason: string }[] = [];
-        
-        if (existing.length > 0) {
-          currentScore = existing[0].score;
-          try {
-            penalties = JSON.parse(existing[0].penaltiesJson || '[]');
-          } catch {
-            penalties = [];
-          }
-        }
-        
-        const newScore = Math.max(0, currentScore - input.points);
-        penalties.push({
-          date: new Date().toLocaleDateString('pt-BR'),
-          points: input.points,
-          reason: input.reason,
-        });
-        
-        const penaltiesJson = JSON.stringify(penalties);
-        
-        if (existing.length > 0) {
-          await db.update(analystScores)
-            .set({ score: newScore, penaltiesJson })
-            .where(
-              and(
-                eq(analystScores.analystName, input.analystName),
-                eq(analystScores.category, input.category),
-                eq(analystScores.yearMonth, input.yearMonth)
-              )
-            );
-        } else {
-          await db.insert(analystScores).values({
-            analystName: input.analystName,
-            category: input.category,
-            yearMonth: input.yearMonth,
-            score: newScore,
-            penaltiesJson,
-          });
-        }
-        
-        return { success: true, newScore, penalties };
       }),
   }),
 });

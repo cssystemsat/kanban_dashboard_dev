@@ -24,4 +24,10 @@ describe("Automação do ranking de analistas", () => {
     expect(serverSource).toContain('/api/scheduled/performance/monthly-reset');
     expect(serverSource).toContain("user.isCron");
   });
+
+  it("mantém os descontos restritos ao job semanal idempotente", () => {
+    const routerSource = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    expect(routerSource).not.toContain("applyPenalty:");
+    expect(scoringSource).toContain("const periodKey = `weekly-${weekWindowForBrt().key}`");
+  });
 });
