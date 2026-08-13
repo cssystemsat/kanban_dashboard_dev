@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats, ClienteMarcoDetalhado } from '@/hooks/usePainelData';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { useEstadosData } from '@/hooks/useEstadosData';
@@ -9,6 +9,7 @@ import URsTrendIndicator from '@/components/URsTrendIndicator';
 import { RefreshCw, TrendingUp, TrendingDown, CheckCircle2, XCircle, Loader2, AlertCircle, Flag, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
+import { trpc } from '@/lib/trpc';
 
 const META = 25;
 
@@ -60,12 +61,12 @@ function useCountdown(initialSeconds: number, onComplete: () => void) {
 
 function StatusBadge({ bateu }: { bateu: boolean }) {
   return bateu ? (
-    <span className="inline-flex items-center gap-1 text-green-600 font-bold text-xs whitespace-nowrap">
-      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Atingiu
+    <span className="inline-flex items-center gap-1 text-green-600 font-bold text-[10px] whitespace-nowrap">
+      <CheckCircle2 className="w-3 h-3 shrink-0" /> Atingiu
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-red-500 font-bold text-xs whitespace-nowrap">
-      <XCircle className="w-3.5 h-3.5 shrink-0" /> Abaixo
+    <span className="inline-flex items-center gap-1 text-red-500 font-bold text-[10px] whitespace-nowrap">
+      <XCircle className="w-3 h-3 shrink-0" /> Abaixo
     </span>
   );
 }
@@ -139,7 +140,7 @@ function ContatosCell({ row }: { row: CoberturaCSM }) {
     <div className="relative inline-block">
       <button
         ref={btnRef}
-        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-2xl leading-none"
+        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-lg leading-none"
         onClick={() => setOpen(v => !v)}
       >
         {row.contatosSemana}
@@ -234,7 +235,7 @@ function SemContatoCell({ row }: { row: CoberturaCSM }) {
     <div className="relative inline-block">
       <button
         ref={btnRef}
-        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-2xl leading-none"
+        className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors px-1 rounded text-lg leading-none"
         onClick={() => setOpen(v => !v)}
       >
         {row.totalClientes}
@@ -304,8 +305,8 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
 }) {
   return (
     <div className="bg-white rounded-xl border shadow-sm flex flex-col h-full" style={{ borderColor: '#E0E8F0', overflow: 'visible' }}>
-      <div className="px-4 py-2.5 shrink-0" style={{ backgroundColor: cor }}>
-        <h3 className="text-sm font-bold text-white tracking-wide">{titulo}</h3>
+      <div className="px-3 py-2 shrink-0" style={{ backgroundColor: cor }}>
+        <h3 className="text-xs font-bold text-white tracking-wide">{titulo}</h3>
       </div>
       <table className="w-full table-fixed">
         <colgroup>
@@ -318,12 +319,12 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
         </colgroup>
         <thead>
           <tr className="border-b" style={{ borderColor: '#E0E8F0', backgroundColor: '#F8FAFC' }}>
-            <th className="text-left px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">CSM</th>
-            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cont.</th>
-            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
-            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Sem.</th>
-            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Meta 25%</th>
-            <th className="text-center px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">% Mês</th>
+            <th className="text-left px-2 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">CSM</th>
+            <th className="text-center px-1 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Cont.</th>
+            <th className="text-center px-1 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+            <th className="text-center px-1 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">% Sem.</th>
+            <th className="text-center px-1 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Meta</th>
+            <th className="text-center px-1 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">% Mês</th>
           </tr>
         </thead>
         <tbody>
@@ -332,18 +333,18 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
             return (
               <tr key={row.csm} className="border-b transition-colors hover:bg-blue-50/30"
                 style={{ borderColor: '#F0F4F8', backgroundColor: idx % 2 === 0 ? '#fff' : '#FAFBFC' }}>
-                <td className="px-2 py-2.5 font-semibold text-gray-800 text-sm truncate">{row.csm}</td>
-                <td className="px-1 py-2.5 text-center"><ContatosCell row={row} /></td>
-                <td className="px-1 py-2.5 text-center"><SemContatoCell row={row} /></td>
-                <td className="px-1 py-2.5 text-center">
-                  <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold"
+                <td className="px-2 py-1.5 font-semibold text-gray-800 text-xs truncate">{row.csm}</td>
+                <td className="px-1 py-1.5 text-center"><ContatosCell row={row} /></td>
+                <td className="px-1 py-1.5 text-center"><SemContatoCell row={row} /></td>
+                <td className="px-1 py-1.5 text-center">
+                  <span className="inline-block px-1.5 py-0.5 rounded-full text-xs font-bold"
                     style={{ backgroundColor: row.bateuMeta ? '#DCFCE7' : '#FEE2E2', color: row.bateuMeta ? '#166534' : '#991B1B' }}>
                     {pct(row.percentual)}
                   </span>
                 </td>
-                <td className="px-1 py-2.5 text-center"><StatusBadge bateu={row.bateuMeta} /></td>
-                <td className="px-1 py-2.5 text-center">
-                  <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700">
+                <td className="px-1 py-1.5 text-center"><StatusBadge bateu={row.bateuMeta} /></td>
+                <td className="px-1 py-1.5 text-center">
+                  <span className="inline-block px-1.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
                     {pctMes.toFixed(0)}%
                   </span>
                 </td>
@@ -353,20 +354,20 @@ function TabelaCobertura({ titulo, cor, dados, total }: {
         </tbody>
         <tfoot>
           <tr style={{ backgroundColor: '#F1F5F9' }}>
-            <td className="px-2 py-2.5 font-bold text-gray-600 text-xs uppercase tracking-wide">Total</td>
-            <td className="px-1 py-2.5 text-center font-bold text-gray-800 text-2xl">{total.contatos}</td>
-            <td className="px-1 py-2.5 text-center font-bold text-gray-800 text-2xl">{total.total}</td>
-            <td className="px-1 py-2.5 text-center">
-              <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold"
+            <td className="px-2 py-1.5 font-bold text-gray-600 text-[10px] uppercase tracking-wide">Total</td>
+            <td className="px-1 py-1.5 text-center font-bold text-gray-800 text-lg">{total.contatos}</td>
+            <td className="px-1 py-1.5 text-center font-bold text-gray-800 text-lg">{total.total}</td>
+            <td className="px-1 py-1.5 text-center">
+              <span className="inline-block px-1.5 py-0.5 rounded-full text-xs font-bold"
                 style={{ backgroundColor: total.bateuMeta ? '#DCFCE7' : '#FEE2E2', color: total.bateuMeta ? '#166534' : '#991B1B' }}>
                 {pct(total.percentual)}
               </span>
             </td>
-            <td className="px-1 py-2.5 text-center"><StatusBadge bateu={total.bateuMeta} /></td>
-            <td className="px-1 py-2.5 text-center">
+            <td className="px-1 py-1.5 text-center"><StatusBadge bateu={total.bateuMeta} /></td>
+            <td className="px-1 py-1.5 text-center">
               {(() => {
                 const p = total.total > 0 ? (total.acumuladoMes / total.total) * 100 : 0;
-                return <span className="inline-block px-1.5 py-0.5 rounded-full text-sm font-bold bg-indigo-100 text-indigo-800">{p.toFixed(0)}%</span>;
+                return <span className="inline-block px-1.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">{p.toFixed(0)}%</span>;
               })()}
             </td>
           </tr>
@@ -468,6 +469,69 @@ function TabelaMigracao() {
             </span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Ranking Geral ───────────────────────────────────────────────────── */
+function RankingGeralPainel({ onboarding, ongoing }: { onboarding: CoberturaCSM[]; ongoing: CoberturaCSM[] }) {
+  const currentYearMonth = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }).slice(0, 7);
+  const { data: scoreRecords } = trpc.analystScores.list.useQuery({ yearMonth: currentYearMonth });
+
+  const ranking = useMemo(() => {
+    const scores = new Map<string, { score: number; penalties: { points: number; reason: string; date: string }[] }>();
+    for (const record of scoreRecords ?? []) {
+      try {
+        scores.set(`${record.analystName}|${record.category}`, {
+          score: record.score,
+          penalties: JSON.parse(record.penaltiesJson || '[]'),
+        });
+      } catch {
+        scores.set(`${record.analystName}|${record.category}`, { score: record.score, penalties: [] });
+      }
+    }
+
+    const aggregated = new Map<string, { scoreTotal: number; count: number; penalties: { points: number; reason: string; date: string }[] }>();
+    for (const [category, analysts] of [['onboarding', onboarding], ['ongoing', ongoing]] as const) {
+      for (const analyst of analysts) {
+        const name = analyst.csm.trim();
+        if (!name) continue;
+        const scoreData = scores.get(`${name}|${category}`) ?? { score: 100, penalties: [] };
+        const current = aggregated.get(name) ?? { scoreTotal: 0, count: 0, penalties: [] };
+        current.scoreTotal += scoreData.score;
+        current.count += 1;
+        current.penalties.push(...scoreData.penalties);
+        aggregated.set(name, current);
+      }
+    }
+
+    return [...aggregated.entries()]
+      .map(([name, value]) => ({ name, score: Math.round(value.scoreTotal / value.count), penalties: value.penalties }))
+      .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  }, [onboarding, ongoing, scoreRecords]);
+
+  return (
+    <div className="bg-white rounded-xl border shadow-sm flex flex-col h-full" style={{ borderColor: '#E0E8F0' }}>
+      <div className="px-3 py-2 shrink-0 flex items-center justify-between" style={{ backgroundColor: '#008F5A' }}>
+        <h3 className="text-xs font-bold text-white tracking-wide">Ranking Geral</h3>
+        <span className="text-[10px] font-semibold text-emerald-100">Pontos</span>
+      </div>
+      <div className="divide-y divide-[#EEF2F6]">
+        {ranking.length === 0 ? (
+          <div className="px-3 py-5 text-center text-xs text-gray-400">Nenhum analista encontrado.</div>
+        ) : ranking.map((analyst, index) => {
+          const history = analyst.penalties.length
+            ? analyst.penalties.map(penalty => `-${penalty.points}: ${penalty.reason} (${penalty.date})`).join('\n')
+            : 'Nenhuma penalização neste mês';
+          return (
+            <div key={analyst.name} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 hover:bg-emerald-50/40">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-700">{index + 1}</span>
+              <span className="truncate text-xs font-semibold text-gray-700" title={analyst.name}>{analyst.name}</span>
+              <span className="cursor-help rounded-md bg-emerald-50 px-2 py-0.5 text-sm font-extrabold text-emerald-700" title={history}>{analyst.score}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -639,21 +703,14 @@ export default function Painel() {
             {/* Card Migrados no Ano - removido daqui */}
             </div>
 
-            {/* ── 4 tabelas em linha única ── */}
-            {/* Onboarding e Ongoing dividem o espaço; Marcos e Migração têm largura mínima fixa */}
-            <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr minmax(300px, 350px) minmax(200px, 240px)' }}>
+            {/* ── Coberturas compactas, Migração e Ranking Geral ── */}
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(190px,230px)_minmax(190px,230px)]">
               <TabelaCobertura titulo="Cobertura Semanal — Onboarding" cor="#2563EB"
                 dados={data.onboarding} total={data.totalOnboarding} />
               <TabelaCobertura titulo="Cobertura Semanal — Ongoing" cor="#7C3AED"
                 dados={data.ongoing} total={data.totalOngoing} />
-              <TabelaMarcos 
-                dados={data.clientesPorMarco} 
-                total={data.totalClientesMarco}
-                startDate=''
-                endDate=''
-                clientes={data.clientesMarcoDetalhado.map(c => ({ codigoCliente: c.nome, nome: String(c.marco) }))}
-              />
               <TabelaMigracao />
+              <RankingGeralPainel onboarding={data.onboarding} ongoing={data.ongoing} />
             </div>
 
             {/* Mapas do Brasil por Estado - Seletor de Abas - Apenas para usuários logados */}

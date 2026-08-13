@@ -405,17 +405,17 @@
 
 
 - [x] Criar tabela analist_scores e analist_score_history para gerenciar pontuação e histórico mensal
-- [ ] Implementar regra de desconto de 8 pontos na sexta-feira às 00h se cobertura < 25%
+- [x] Implementar regra de desconto de 8 pontos na sexta-feira às 00h se cobertura < 25%
 - [x] Exibir tooltip com histórico de penalizações (ex: "-8 pontos : meta de contato") ao passar o mouse sobre a pontuação
-- [ ] Validar as regras de pontuação e salvar checkpoint
+- [x] Validar as regras de pontuação e salvar checkpoint
 
 - [x] Exibir apenas a semana vigente no cabeçalho da aba Performance
 - [x] Tornar a simulação de penalizações reversível sem gravar descontos no banco
 - [x] Validar a reversão da simulação e salvar checkpoint
 
-- [ ] Configurar automação real para aplicar a penalização semanal na sexta-feira às 00h
-- [ ] Salvar o ranking fechado do mês anterior e reiniciar a pontuação no início de cada mês
-- [ ] Validar os jobs automáticos e salvar checkpoint
+- [x] Configurar automação real para aplicar a penalização semanal na sexta-feira às 00h
+- [x] Salvar o ranking fechado do mês anterior e reiniciar a pontuação no início de cada mês
+- [x] Validar os jobs automáticos e salvar checkpoint
 
 - [x] Mover a semana vigente para o topo da aba Performance
 - [x] Reduzir o espaço vertical e aproximar as tabelas de ranking
@@ -439,3 +439,9 @@
 - [x] Adicionar botão Simular mês na aba Performance
 - [x] Exibir prévia reversível de -30 pontos para cobertura mensal abaixo de 90%
 - [x] Validar a simulação mensal e salvar checkpoint
+
+- [x] Compactar as tabelas de cobertura semanal de Onboarding e Ongoing no Painel
+- [x] Remover a seção Marcos ≤ 90 dias do Painel
+- [x] Reposicionar Migração e inserir o ranking Geral ao final do Painel
+- [x] Ativar a penalização semanal e o fechamento mensal do ranking publicado
+- [x] Validar o novo layout, os agendamentos e salvar checkpoint
