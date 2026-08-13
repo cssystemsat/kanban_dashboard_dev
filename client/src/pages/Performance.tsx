@@ -110,7 +110,8 @@ function RankingColumn({ title, subtitle, analysts, accent, softAccent }: Rankin
 export default function Performance() {
   const { data, loading, error, fetchData } = usePainelData();
   const currentYearMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
-  const [simulationActive, setSimulationActive] = useState(false);
+  const [weeklySimulationActive, setWeeklySimulationActive] = useState(false);
+  const [monthlySimulationActive, setMonthlySimulationActive] = useState(false);
 
   const { data: scoresRecords, refetch: refetchScores } = trpc.analystScores.list.useQuery({
     yearMonth: currentYearMonth,
@@ -144,17 +145,22 @@ export default function Performance() {
       const name = item.csm.trim();
       const key = `${name}|onboarding`;
       const record = scoresMap[key];
-      const simulatedPenalty = simulationActive && item.percentual < 0.25
+      const weeklyPenalty = weeklySimulationActive && item.percentual < 0.25
         ? [{ date: `Semana vigente`, points: 8, reason: 'meta de contato (< 25%)' }]
         : [];
+      const monthlyCoverage = item.totalClientes > 0 ? item.acumuladoMes / item.totalClientes : 0;
+      const monthlyPenalty = monthlySimulationActive && monthlyCoverage < 0.9
+        ? [{ date: `Mês vigente`, points: 30, reason: 'meta de cobertura mensal (< 90%)' }]
+        : [];
+      const simulatedPenalties = [...weeklyPenalty, ...monthlyPenalty];
       return {
         name,
-        score: Math.max(0, (record ? record.score : 100) - (simulatedPenalty.length ? 8 : 0)),
-        penalties: [...(record ? record.penalties : []), ...simulatedPenalty],
+        score: Math.max(0, (record ? record.score : 100) - simulatedPenalties.reduce((sum, penalty) => sum + penalty.points, 0)),
+        penalties: [...(record ? record.penalties : []), ...simulatedPenalties],
         cobertura: item,
       };
     }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-  }, [data?.onboarding, scoresMap, simulationActive]);
+  }, [data?.onboarding, scoresMap, weeklySimulationActive, monthlySimulationActive]);
 
   // Processar analistas de Ongoing
   const ongoingList = useMemo(() => {
@@ -163,17 +169,22 @@ export default function Performance() {
       const name = item.csm.trim();
       const key = `${name}|ongoing`;
       const record = scoresMap[key];
-      const simulatedPenalty = simulationActive && item.percentual < 0.25
+      const weeklyPenalty = weeklySimulationActive && item.percentual < 0.25
         ? [{ date: `Semana vigente`, points: 8, reason: 'meta de contato (< 25%)' }]
         : [];
+      const monthlyCoverage = item.totalClientes > 0 ? item.acumuladoMes / item.totalClientes : 0;
+      const monthlyPenalty = monthlySimulationActive && monthlyCoverage < 0.9
+        ? [{ date: `Mês vigente`, points: 30, reason: 'meta de cobertura mensal (< 90%)' }]
+        : [];
+      const simulatedPenalties = [...weeklyPenalty, ...monthlyPenalty];
       return {
         name,
-        score: Math.max(0, (record ? record.score : 100) - (simulatedPenalty.length ? 8 : 0)),
-        penalties: [...(record ? record.penalties : []), ...simulatedPenalty],
+        score: Math.max(0, (record ? record.score : 100) - simulatedPenalties.reduce((sum, penalty) => sum + penalty.points, 0)),
+        penalties: [...(record ? record.penalties : []), ...simulatedPenalties],
         cobertura: item,
       };
     }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-  }, [data?.ongoing, scoresMap, simulationActive]);
+  }, [data?.ongoing, scoresMap, weeklySimulationActive, monthlySimulationActive]);
 
   // Processar analistas Geral (unificado com soma/média de pontuação ou combinados)
   const generalList = useMemo(() => {
@@ -233,12 +244,21 @@ export default function Performance() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setSimulationActive((active) => !active)}
-              aria-pressed={simulationActive}
-              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${simulationActive ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'}`}
-              title={simulationActive ? 'Desfaz a simulação e restaura as notas anteriores' : 'Simula -8 pontos para analistas com cobertura abaixo de 25%'}
+              onClick={() => setWeeklySimulationActive((active) => !active)}
+              aria-pressed={weeklySimulationActive}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${weeklySimulationActive ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'}`}
+              title={weeklySimulationActive ? 'Desfaz a simulação e restaura as notas anteriores' : 'Simula -8 pontos para analistas com cobertura semanal abaixo de 25%'}
             >
-              {simulationActive ? 'Desfazer Simulação' : 'Simular semana'}
+              {weeklySimulationActive ? 'Desfazer semana' : 'Simular semana'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMonthlySimulationActive((active) => !active)}
+              aria-pressed={monthlySimulationActive}
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${monthlySimulationActive ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100'}`}
+              title={monthlySimulationActive ? 'Desfaz a simulação mensal e restaura as notas anteriores' : 'Simula -30 pontos para analistas com cobertura mensal abaixo de 90%'}
+            >
+              {monthlySimulationActive ? 'Desfazer mês' : 'Simular mês'}
             </button>
             <button type="button" onClick={() => { void fetchData(); void refetchScores(); }} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-[#C8D4E0] bg-white px-3 py-2 text-sm font-semibold text-[#24435C] transition hover:bg-[#F4F8FB] disabled:cursor-not-allowed disabled:opacity-60">
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

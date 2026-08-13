@@ -30,11 +30,15 @@ describe('Performance page navigation', () => {
     expect(pageSource).toContain("meta de contato");
   });
 
-  it('shows only the current week summary and keeps the penalty simulation reversible', () => {
+  it('shows the current week summary and keeps weekly and monthly simulations reversible', () => {
     expect(pageSource).toContain('Semana vigente:');
     expect(pageSource).toContain("'Simular semana'");
-    expect(pageSource).toContain('Desfazer Simulação');
-    expect(pageSource).toContain('setSimulationActive((active) => !active)');
+    expect(pageSource).toContain("'Simular mês'");
+    expect(pageSource).toContain('Desfazer semana');
+    expect(pageSource).toContain('Desfazer mês');
+    expect(pageSource).toContain('setWeeklySimulationActive((active) => !active)');
+    expect(pageSource).toContain('setMonthlySimulationActive((active) => !active)');
+    expect(pageSource).toContain('meta de cobertura mensal (< 90%)');
     expect(pageSource).not.toContain('Todos começam com <strong');
   });
 

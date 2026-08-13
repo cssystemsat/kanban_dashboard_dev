@@ -435,3 +435,7 @@
 - [x] Aplicar penalização de 30 pontos no fechamento quando cobertura mensal < 90%
 - [x] Exibir o motivo da penalização mensal no histórico da pontuação
 - [x] Validar a regra mensal e salvar checkpoint
+
+- [x] Adicionar botão Simular mês na aba Performance
+- [x] Exibir prévia reversível de -30 pontos para cobertura mensal abaixo de 90%
+- [x] Validar a simulação mensal e salvar checkpoint
