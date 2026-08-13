@@ -11,6 +11,7 @@ describe('Performance page navigation', () => {
     expect(pageSource).toContain("export default function Performance");
     expect(appSource).toContain("import Performance from './pages/Performance';");
     expect(appSource).toContain("case 'performance':");
+    expect(appSource).toContain("currentPage !== 'performance' && <ChecklistPanel />");
   });
 
   it('places Performance immediately after Painel in the public menu', () => {

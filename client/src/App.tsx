@@ -191,7 +191,7 @@ function AppInner() {
       <DailyLossesAlert />
       <SideMenu currentPage={currentPage} onPageChange={handlePageChange} />
       {renderPage()}
-      {user && currentPage !== 'painel' && <ChecklistPanel />}
+      {user && currentPage !== 'painel' && currentPage !== 'performance' && <ChecklistPanel />}
     </>
   );
 }

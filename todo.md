@@ -427,3 +427,6 @@
 
 - [x] Renomear o botão de simulação para "Simular semana"
 - [x] Validar o novo rótulo e salvar checkpoint
+
+- [x] Remover o ícone flutuante de Meus Checklists da aba Performance
+- [x] Validar a remoção do ícone e salvar checkpoint
