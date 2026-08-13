@@ -391,3 +391,15 @@
 - [x] Adicionar Performance imediatamente abaixo de Painel no menu lateral e integrar a rota
 - [x] Validar a nova aba e salvar checkpoint
 
+
+- [x] Identificar os analistas existentes nos painéis de Ongoing e Onboarding
+- [x] Criar ranking visual da aba Performance com colunas Ongoing, Onboarding e Geral
+- [x] Inicializar todos os analistas com 100 pontos
+- [x] Validar o ranking e salvar checkpoint
+
+
+- [x] Identificar os analistas existentes nos painéis de Ongoing e Onboarding
+- [x] Criar ranking visual da aba Performance com colunas Ongoing, Onboarding e Geral
+- [x] Inicializar todos os analistas com 100 pontos
+- [x] Validar o ranking e salvar checkpoint
+

@@ -20,4 +20,12 @@ describe('Performance page navigation', () => {
     expect(performanceIndex).toBeGreaterThan(painelIndex);
     expect(performanceIndex).toBeLessThan(sideMenuSource.indexOf('];', painelIndex));
   });
+
+  it('renders the three ranking columns with the initial score', () => {
+    expect(pageSource).toContain("title=\"Ongoing\"");
+    expect(pageSource).toContain("title=\"Onboarding\"");
+    expect(pageSource).toContain("title=\"Geral\"");
+    expect(pageSource).toContain("style={{ backgroundColor: softAccent, color: accent }}>100</span>");
+    expect(pageSource).toContain("import { usePainelData } from '@/hooks/usePainelData';");
+  });
 });
