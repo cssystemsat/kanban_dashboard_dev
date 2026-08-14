@@ -448,3 +448,7 @@
 
 - [x] Ajustar a penalização semanal para 23:59 de sexta-feira no horário de Brasília
 - [x] Validar o novo agendamento e salvar checkpoint
+
+- [x] Restaurar em 100 as pontuações afetadas antes do fechamento de sexta às 23:59
+- [x] Limpar o histórico de penalizações antecipadas desta competência
+- [x] Validar o reset e confirmar a próxima execução às 23:59 BRT
