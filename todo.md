@@ -445,3 +445,6 @@
 - [x] Reposicionar Migração e inserir o ranking Geral ao final do Painel
 - [x] Ativar a penalização semanal e o fechamento mensal do ranking publicado
 - [x] Validar o novo layout, os agendamentos e salvar checkpoint
+
+- [x] Ajustar a penalização semanal para 23:59 de sexta-feira no horário de Brasília
+- [x] Validar o novo agendamento e salvar checkpoint
