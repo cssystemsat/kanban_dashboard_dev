@@ -60,3 +60,7 @@
 - [x] Corrigir valores vazios e variações de cabeçalho sem ocultar dados de contato válidos.
 - [x] Adicionar teste de regressão e validar visualmente os contatos na aba Painel.
 - [x] Salvar checkpoint corretivo da exibição de contatos.
+- [x] Remover o decisor, telefone e link azul indevidos dos modais da aba Painel.
+- [x] Preservar a coluna L como única fonte da data de Último contato para cobertura semanal e mensal.
+- [x] Adicionar teste de regressão para datas da semana e do mês, sem depender de campos de contato.
+- [x] Validar a aba Painel e salvar checkpoint corretivo.
