@@ -29,6 +29,35 @@ export async function getDb() {
   return _db;
 }
 
+async function ensureOwnerAccess(user: { openId: string; email?: string | null; name?: string | null }): Promise<void> {
+  if (!ENV.ownerOpenId || user.openId !== ENV.ownerOpenId || !user.email) return;
+
+  const db = await getDb();
+  if (!db) return;
+
+  const email = user.email.toLowerCase();
+  const ownerPermissions: InsertAllowedEmail = {
+    email,
+    label: user.name ?? "Proprietário",
+    isAdmin: 1,
+    canLaunch: 1,
+    allowedPages: null,
+    canMoveAppKanban: 1,
+    onlyAppKanban: 0,
+  };
+
+  await db.insert(allowedEmails).values(ownerPermissions).onDuplicateKeyUpdate({
+    set: {
+      label: ownerPermissions.label,
+      isAdmin: 1,
+      canLaunch: 1,
+      allowedPages: null,
+      canMoveAppKanban: 1,
+      onlyAppKanban: 0,
+    },
+  });
+}
+
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
     throw new Error("User openId is required for upsert");
@@ -82,6 +111,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     await db.insert(users).values(values).onDuplicateKeyUpdate({
       set: updateSet,
     });
+    await ensureOwnerAccess({ openId: user.openId, email: user.email, name: user.name });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -96,8 +126,11 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  const foundUser = result.length > 0 ? result[0] : undefined;
+  if (foundUser) {
+    await ensureOwnerAccess(foundUser);
+  }
+  return foundUser;
 }
 
 // ---- Allowed Emails helpers ----

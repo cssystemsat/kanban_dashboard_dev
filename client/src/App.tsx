@@ -22,8 +22,19 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 
+const VALID_PAGES = new Set([
+  'painel', 'performance', 'dashboard', 'marcos', 'ongoing', 'churns',
+  'configuracoes', 'ferramentas', 'estatisticas', 'migracao', 'migracao2',
+  'atendimentos', 'redflags', 'kpis', 'apppersonalizado',
+]);
+
+function getPageFromUrl(): string {
+  const requestedPage = new URLSearchParams(window.location.search).get('page');
+  return requestedPage && VALID_PAGES.has(requestedPage) ? requestedPage : 'painel';
+}
+
 function AppInner() {
-  const [currentPage, setCurrentPage] = useState('painel');
+  const [currentPage, setCurrentPage] = useState(getPageFromUrl);
   const sessionIdRef = useRef<number | null>(null);
 
   const { data: user, isLoading: authLoading, error: authError } = trpc.auth.me.useQuery();
@@ -98,11 +109,20 @@ function AppInner() {
 
   // Rastrear mudança de página
   const handlePageChange = (page: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.history.pushState({ page }, '', url);
     setCurrentPage(page);
     if (user?.email) {
       trackPage.mutate({ page, sessionId: sessionIdRef.current });
     }
   };
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPage(getPageFromUrl());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const renderPage = () => {
     // Se não está autenticado e tenta acessar Home (marcos), redirecionar para Painel

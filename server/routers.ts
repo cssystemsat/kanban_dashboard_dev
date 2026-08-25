@@ -59,6 +59,11 @@ import { createHeartbeatJob } from "./_core/heartbeat";
 import { eq } from "drizzle-orm";
 import { appKanbanCards, analystScores } from "../drizzle/schema";
 import { getDb } from "./db";
+import { ENV } from "./_core/env";
+
+function isProjectOwner(user: { openId: string } | null | undefined): boolean {
+  return Boolean(ENV.ownerOpenId && user?.openId === ENV.ownerOpenId);
+}
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -192,6 +197,7 @@ export const appRouter = router({
       }),
     checkPermission: publicProcedure.query(async ({ ctx }) => {
       if (!ctx.user || !ctx.user.email) return { allowed: false, isAdmin: false, canLaunch: false };
+      if (isProjectOwner(ctx.user)) return { allowed: true, isAdmin: true, canLaunch: true };
       const [allowed, admin, entry] = await Promise.all([
         isEmailAllowed(ctx.user.email),
         isEmailAdmin(ctx.user.email),
@@ -247,6 +253,9 @@ export const appRouter = router({
     // Retorna as abas permitidas para o usuário atual
     myPermissions: publicProcedure.query(async ({ ctx }) => {
       if (!ctx.user || !ctx.user.email) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
+      if (isProjectOwner(ctx.user)) {
+        return { allowedPages: null, isAdmin: true, isAllowed: true, canMoveAppKanban: true, onlyAppKanban: false };
+      }
       const entry = await getEmailEntry(ctx.user.email);
       if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
       const allowedPages = entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null;

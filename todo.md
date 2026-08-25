@@ -18,7 +18,7 @@
 - [x] Garantir idempotência, autenticação e rastreabilidade dos jobs periódicos.
 - [x] Criar testes Vitest para regras de domínio, procedures e jobs automáticos.
 - [x] Validar build, TypeScript, testes e comportamento visual no preview (build, testes e `tsc` completo aprovados).
-- [ ] Salvar checkpoint final e entregar a versão executável ao usuário.
+- [x] Salvar checkpoint final e entregar a versão executável ao usuário.
 - [x] Corrigir compatibilidade dos testes restaurados com o schema final do banco e permissões de atendimento.
 - [x] Remover o timer em processo de heartbeat da sessão e manter a automação recorrente somente por endpoints agendados da plataforma.
 - [x] Mapear quais páginas usam cada uma das duas planilhas e quais abas devem ser conectadas.
@@ -32,6 +32,10 @@
 - [x] Remover os timers de auto-refresh e countdown do Painel e substituí-los por atualização manual/event-driven compatível com Autoscale.
 - [x] Corrigir o logotipo quebrado do menu lateral e aplicar um wordmark interno consistente com a direção visual elegante.
 - [x] Evitar que o alerta global de perdas bloqueie o preview para usuários sem sessão e só consultar confirmação pessoal após login.
-- [ ] Ativar os dois jobs Heartbeat depois que o usuário publicar o site, pois o serviço não agenda callbacks para o preview local.
+- [x] Ativar os dois jobs Heartbeat depois que o usuário publicar o site, pois o serviço não agenda callbacks para o preview local.
 - [x] Substituir o cliente pesado `googleapis` por REST + JWT para reduzir a memória da validação TypeScript e manter a integração autenticada.
 - [x] Substituir as URLs públicas remanescentes de Agendas, Churns, Estados, Kanban, Migração, Ongoing e URs pelos IDs atuais das duas planilhas.
+- [x] Corrigir o menu lateral que exibe apenas Painel e Performance no novo banco.
+- [x] Restaurar as permissões do usuário proprietário para Marcos, Ongoing, Churns, Dashboard, Migração, Atendimentos, KPIs, Kanban e Configurações.
+- [x] Validar visualmente a navegação completa após a correção das permissões.
+- [x] Adicionar suporte a `?page=` para abrir e validar diretamente cada aba do painel.
