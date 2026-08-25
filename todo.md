@@ -39,3 +39,8 @@
 - [x] Restaurar as permissões do usuário proprietário para Marcos, Ongoing, Churns, Dashboard, Migração, Atendimentos, KPIs, Kanban e Configurações.
 - [x] Validar visualmente a navegação completa após a correção das permissões.
 - [x] Adicionar suporte a `?page=` para abrir e validar diretamente cada aba do painel.
+- [x] Auditar todos os usuários existentes no banco atual e identificar quais ainda não possuem permissão.
+- [x] Conceder acesso completo a todas as abas operacionais para todos os usuários já registrados.
+- [x] Liberar automaticamente novos usuários autenticados com acesso completo às abas operacionais.
+- [x] Manter privilégios administrativos restritos ao proprietário e aos administradores explícitos.
+- [x] Criar testes para a nova política de acesso geral e salvar checkpoint corretivo.

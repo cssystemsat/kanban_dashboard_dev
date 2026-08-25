@@ -1,7 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { TrpcContext } from "./_core/context";
 import { ENV } from "./_core/env";
 import { appRouter } from "./routers";
+
+vi.mock("./db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./db")>();
+  return {
+    ...actual,
+    getEmailEntry: vi.fn().mockResolvedValue(null),
+    isEmailAllowed: vi.fn().mockResolvedValue(false),
+    isEmailAdmin: vi.fn().mockResolvedValue(false),
+  };
+});
 
 function createOwnerContext(): TrpcContext {
   return {
@@ -18,6 +28,21 @@ function createOwnerContext(): TrpcContext {
     },
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: {} as TrpcContext["res"],
+  };
+}
+
+function createAuthenticatedContext(): TrpcContext {
+  const ctx = createOwnerContext();
+  return {
+    ...ctx,
+    user: {
+      ...ctx.user!,
+      id: 2,
+      openId: "regular-user-open-id",
+      email: "regular@example.com",
+      name: "Regular User",
+      role: "user",
+    },
   };
 }
 
@@ -41,6 +66,23 @@ describe("project owner permissions", () => {
     await expect(caller.atendimento.checkPermission()).resolves.toEqual({
       allowed: true,
       isAdmin: true,
+      canLaunch: true,
+    });
+  });
+
+  it("grants all operational pages to any authenticated user without making them admin", async () => {
+    const caller = appRouter.createCaller(createAuthenticatedContext());
+
+    await expect(caller.config.myPermissions()).resolves.toEqual({
+      allowedPages: null,
+      isAdmin: false,
+      isAllowed: true,
+      canMoveAppKanban: true,
+      onlyAppKanban: false,
+    });
+    await expect(caller.atendimento.checkPermission()).resolves.toEqual({
+      allowed: true,
+      isAdmin: false,
       canLaunch: true,
     });
   });

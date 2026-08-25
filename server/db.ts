@@ -29,31 +29,36 @@ export async function getDb() {
   return _db;
 }
 
-async function ensureOwnerAccess(user: { openId: string; email?: string | null; name?: string | null }): Promise<void> {
-  if (!ENV.ownerOpenId || user.openId !== ENV.ownerOpenId || !user.email) return;
+async function ensureUserAccess(user: { openId: string; email?: string | null; name?: string | null }): Promise<void> {
+  if (!user.email) return;
 
   const db = await getDb();
   if (!db) return;
 
   const email = user.email.toLowerCase();
-  const ownerPermissions: InsertAllowedEmail = {
+  const isOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
+  const permissions: InsertAllowedEmail = {
     email,
-    label: user.name ?? "Proprietário",
-    isAdmin: 1,
+    label: user.name ?? email,
+    isAdmin: isOwner ? 1 : 0,
     canLaunch: 1,
     allowedPages: null,
     canMoveAppKanban: 1,
     onlyAppKanban: 0,
   };
 
-  await db.insert(allowedEmails).values(ownerPermissions).onDuplicateKeyUpdate({
+  const updateSet: Partial<InsertAllowedEmail> = {
+    label: permissions.label,
+    canLaunch: 1,
+    allowedPages: null,
+    canMoveAppKanban: 1,
+    onlyAppKanban: 0,
+  };
+  if (isOwner) updateSet.isAdmin = 1;
+
+  await db.insert(allowedEmails).values(permissions).onDuplicateKeyUpdate({
     set: {
-      label: ownerPermissions.label,
-      isAdmin: 1,
-      canLaunch: 1,
-      allowedPages: null,
-      canMoveAppKanban: 1,
-      onlyAppKanban: 0,
+      ...updateSet,
     },
   });
 }
@@ -111,7 +116,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     await db.insert(users).values(values).onDuplicateKeyUpdate({
       set: updateSet,
     });
-    await ensureOwnerAccess({ openId: user.openId, email: user.email, name: user.name });
+    await ensureUserAccess({ openId: user.openId, email: user.email, name: user.name });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -128,7 +133,7 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
   const foundUser = result.length > 0 ? result[0] : undefined;
   if (foundUser) {
-    await ensureOwnerAccess(foundUser);
+    await ensureUserAccess(foundUser);
   }
   return foundUser;
 }

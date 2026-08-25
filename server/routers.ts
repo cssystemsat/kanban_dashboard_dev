@@ -150,10 +150,7 @@ export const appRouter = router({
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Você precisa estar autenticado para lançar atendimentos.' });
         }
         const entry = await getEmailEntry(ctx.user.email);
-        if (!entry) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado. Seu e-mail não está na lista de usuários autorizados.' });
-        }
-        if (entry.canLaunch !== 1) {
+        if (entry && entry.canLaunch !== 1) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado. Você não tem permissão para lançar atendimentos.' });
         }
         const agora = new Date();
@@ -203,8 +200,8 @@ export const appRouter = router({
         isEmailAdmin(ctx.user.email),
         getEmailEntry(ctx.user.email),
       ]);
-      const canLaunch = entry ? entry.canLaunch === 1 : false;
-      return { allowed, isAdmin: admin, canLaunch };
+      const canLaunch = entry ? entry.canLaunch === 1 : true;
+      return { allowed: allowed || !entry, isAdmin: admin, canLaunch };
     }),
   }),
   config: router({
@@ -257,7 +254,7 @@ export const appRouter = router({
         return { allowedPages: null, isAdmin: true, isAllowed: true, canMoveAppKanban: true, onlyAppKanban: false };
       }
       const entry = await getEmailEntry(ctx.user.email);
-      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: false, canMoveAppKanban: false, onlyAppKanban: false };
+      if (!entry) return { allowedPages: null, isAdmin: false, isAllowed: true, canMoveAppKanban: true, onlyAppKanban: false };
       const allowedPages = entry.allowedPages ? JSON.parse(entry.allowedPages) as string[] : null;
       return { allowedPages, isAdmin: entry.isAdmin === 1, isAllowed: true, canMoveAppKanban: entry.canMoveAppKanban === 1, onlyAppKanban: entry.onlyAppKanban === 1 };
     }),
