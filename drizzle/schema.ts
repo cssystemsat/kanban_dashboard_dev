@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date, boolean } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, varchar, date, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -151,6 +151,24 @@ export const clientComments = mysqlTable("client_comments", {
 
 export type ClientComment = typeof clientComments.$inferSelect;
 export type InsertClientComment = typeof clientComments.$inferInsert;
+
+// Histórico imutável de cada comentário/edição usado pelo relatório de Evolução de URs
+export const clientCommentHistory = mysqlTable("client_comment_history", {
+  id: int("id").autoincrement().primaryKey(),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  comment: text("comment").notNull(),
+  monthYear: varchar("monthYear", { length: 7 }).notNull(),
+  authorEmail: varchar("authorEmail", { length: 320 }),
+  authorName: text("authorName"),
+  action: varchar("action", { length: 16 }).default("saved").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  clientMonthIdx: index("client_comment_history_client_month_idx").on(table.clientName, table.monthYear),
+  createdAtIdx: index("client_comment_history_created_at_idx").on(table.createdAt),
+}));
+
+export type ClientCommentHistory = typeof clientCommentHistory.$inferSelect;
+export type InsertClientCommentHistory = typeof clientCommentHistory.$inferInsert;
 
 // Tabela de migrações para controlar movimentações de dados
 export const migrations = mysqlTable("migrations", {

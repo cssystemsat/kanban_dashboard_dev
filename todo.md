@@ -44,3 +44,10 @@
 - [x] Liberar automaticamente novos usuários autenticados com acesso completo às abas operacionais.
 - [x] Manter privilégios administrativos restritos ao proprietário e aos administradores explícitos.
 - [x] Criar testes para a nova política de acesso geral e salvar checkpoint corretivo.
+- [x] Auditar a tabela `client_comments`, as procedures de comentários e o botão Gerar relatórios.
+- [x] Verificar se comentários históricos existem no banco atual ou em alguma aba das planilhas conectadas.
+- [x] Reconstruir a criação e edição de comentários com persistência no banco atual.
+- [x] Reconstruir a consulta consolidada usada pelo relatório de Evolução de URs.
+- [x] Exibir estado vazio claro quando não houver comentários históricos recuperáveis.
+- [x] Criar testes de integração para criação, edição, exclusão auditada e consolidação do histórico de comentários.
+- [x] Validar no preview a abertura do relatório, incluindo a proteção de sessão, e salvar checkpoint corretivo.

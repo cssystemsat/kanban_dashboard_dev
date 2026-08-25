@@ -456,34 +456,48 @@ function TagsTable({ data }: { data: EquipmentCount[] }) {
 export default function Dashboard() {
   const { data, loading, error, fetchData } = useURsDashboard();
   const { data: authData } = trpc.auth.me.useQuery();
+  const utils = trpc.useUtils();
   const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
   const [comments, setComments] = useState<Record<string, CommentData>>({});
   const [insightsModal, setInsightsModal] = useState<{ open: boolean; insights: string; loading: boolean }>({ open: false, insights: '', loading: false });
-  const [reportModal, setReportModal] = useState<{ open: boolean }>({ open: false });
+  const [reportModal, setReportModal] = useState<{ open: boolean }>(() => ({
+    open: new URLSearchParams(window.location.search).get('report') === 'comments',
+  }));
   const contentRef = useRef<HTMLDivElement>(null);
   const generateInsightsMutation = trpc.urs.generateInsights.useMutation();
   
   // Carregar comentários do banco ao inicializar
   const monthYear = new Date().toISOString().slice(0, 7); // "YYYY-MM"
-  const { data: dbComments } = trpc.clientComments.list.useQuery({ monthYear });
-  const { data: allComments = [] } = trpc.clientComments.listWithComments.useQuery({ monthYear: monthYear || undefined });
+  const { data: dbComments } = trpc.clientComments.list.useQuery({ monthYear }, { enabled: !!authData });
+  const { data: commentHistory = [] } = trpc.clientComments.history.useQuery({ monthYear }, { enabled: !!authData });
+  const {
+    data: reportComments = [],
+    isLoading: reportLoading,
+    error: reportError,
+  } = trpc.clientComments.listWithComments.useQuery({}, { enabled: !!authData && reportModal.open });
 
   useEffect(() => {
-    if (dbComments && dbComments.length > 0) {
-      const commentsMap: Record<string, CommentData> = {};
-      dbComments.forEach(comment => {
-        commentsMap[comment.clientName] = {
-          current: {
-            text: comment.comment,
-            user: comment.authorName || 'Usuário',
-            date: comment.updatedAt?.toISOString() || new Date().toISOString(),
-          },
-          history: [],
-        };
-      });
-      setComments(commentsMap);
-    }
-  }, [dbComments]);
+    const commentsMap: Record<string, CommentData> = {};
+    (dbComments ?? []).forEach(comment => {
+      const savedHistory = commentHistory
+        .filter(entry => entry.clientName === comment.clientName && entry.action !== 'deleted')
+        .slice(1)
+        .map(entry => ({
+          text: entry.comment,
+          user: entry.authorName || 'Usuário',
+          date: new Date(entry.createdAt).toISOString(),
+        }));
+      commentsMap[comment.clientName] = {
+        current: {
+          text: comment.comment,
+          user: comment.authorName || 'Usuário',
+          date: new Date(comment.updatedAt).toISOString(),
+        },
+        history: savedHistory,
+      };
+    });
+    setComments(commentsMap);
+  }, [dbComments, commentHistory]);
 
   const handleScreenshot = async () => {
     if (!contentRef.current) return;
@@ -605,6 +619,11 @@ export default function Dashboard() {
         comment: text,
         monthYear,
       });
+      await Promise.all([
+        utils.clientComments.list.invalidate({ monthYear }),
+        utils.clientComments.history.invalidate({ monthYear }),
+        utils.clientComments.listWithComments.invalidate(),
+      ]);
     } catch (err) {
       console.error('Erro ao salvar comentário:', err);
     }
@@ -627,6 +646,11 @@ export default function Dashboard() {
         clientName,
         monthYear,
       });
+      await Promise.all([
+        utils.clientComments.list.invalidate({ monthYear }),
+        utils.clientComments.history.invalidate({ monthYear }),
+        utils.clientComments.listWithComments.invalidate(),
+      ]);
     } catch (err) {
       console.error('Erro ao deletar comentário:', err);
     }
@@ -800,13 +824,32 @@ export default function Dashboard() {
               </button>
             </div>
             
-            {allComments.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>Nenhum comentário de cliente encontrado</p>
+            {!authData ? (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 px-6 py-10 text-center">
+                <p className="font-medium text-blue-900">Entre para consultar o relatório de comentários</p>
+                <p className="mt-2 text-sm text-blue-700">
+                  O histórico é restrito a usuários autenticados do painel.
+                </p>
+              </div>
+            ) : reportLoading ? (
+              <div className="flex items-center justify-center py-10 text-gray-500">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Carregando histórico de comentários...
+              </div>
+            ) : reportError ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                Não foi possível carregar o relatório. Tente fechar e abrir novamente.
+              </div>
+            ) : reportComments.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
+                <p className="font-medium text-gray-700">Nenhum comentário histórico encontrado</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Os comentários do projeto anterior não estavam no GitHub nem nas planilhas. Novos comentários serão preservados neste relatório a partir de agora.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {allComments.map((comment) => (
+                {reportComments.map((comment) => (
                   <div
                     key={comment.id}
                     className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 p-4"
@@ -814,8 +857,13 @@ export default function Dashboard() {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="font-semibold text-gray-900">{comment.clientName}</p>
-                        <p className="text-xs text-gray-600">{new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
+                        <p className="text-xs text-gray-600">
+                          {comment.monthYear} · {new Date(comment.createdAt).toLocaleString('pt-BR')}
+                        </p>
                       </div>
+                      <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${comment.action === 'deleted' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {comment.action === 'deleted' ? 'Removido' : comment.action === 'imported' ? 'Importado' : 'Salvo'}
+                      </span>
                     </div>
                     <div className="bg-white rounded p-3 mb-2 border border-purple-100">
                       <p className="text-sm text-gray-800 whitespace-pre-wrap">{comment.comment}</p>
@@ -831,14 +879,15 @@ export default function Dashboard() {
             <div className="flex justify-between gap-2 mt-6 pt-4 border-t">
               <button
                 onClick={() => {
-                  const text = allComments.map(c => `${c.clientName}\n${c.comment}\nPor: ${c.authorName || 'N/A'}\nData: ${new Date(c.createdAt).toLocaleDateString('pt-BR')}\n`).join('\n---\n\n');
+                  const text = reportComments.map(c => `${c.clientName}\n${c.comment}\nStatus: ${c.action === 'deleted' ? 'Removido' : c.action === 'imported' ? 'Importado' : 'Salvo'}\nCompetência: ${c.monthYear}\nPor: ${c.authorName || 'N/A'}\nData: ${new Date(c.createdAt).toLocaleString('pt-BR')}\n`).join('\n---\n\n');
                   navigator.clipboard.writeText(text).then(() => {
                     alert('Comentários copiados para a área de transferência!');
                   }).catch(() => {
                     alert('Erro ao copiar comentários');
                   });
                 }}
-                className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
+                disabled={reportComments.length === 0}
+                className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Copiar Tudo
               </button>

@@ -6,7 +6,7 @@ import {
   InsertChecklist, InsertChecklistItem,
   userSessions, pageViews, userActions,
   InsertUserSession, InsertPageView, InsertUserAction,
-  clientComments, InsertClientComment,
+  clientComments, clientCommentHistory, InsertClientComment,
   appKanbanCards, appKanbanHistory, appKanbanChecklist,
   InsertAppKanbanCard, InsertAppKanbanHistory, InsertAppKanbanChecklist,
   dailyLossesAcknowledgments, InsertDailyLossesAcknowledgment,
@@ -428,6 +428,17 @@ export async function getClientComments(monthYear: string) {
   return db.select().from(clientComments).where(eq(clientComments.monthYear, monthYear));
 }
 
+export async function getClientCommentHistory(monthYear?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (monthYear) {
+    return db.select().from(clientCommentHistory)
+      .where(eq(clientCommentHistory.monthYear, monthYear))
+      .orderBy(desc(clientCommentHistory.createdAt));
+  }
+  return db.select().from(clientCommentHistory).orderBy(desc(clientCommentHistory.createdAt));
+}
+
 export async function upsertClientComment(data: {
   clientName: string;
   comment: string;
@@ -450,7 +461,15 @@ export async function upsertClientComment(data: {
     await db.update(clientComments)
       .set({ comment: data.comment, authorEmail: data.authorEmail, authorName: data.authorName })
       .where(eq(clientComments.id, existing[0].id));
-    return { ...existing[0], comment: data.comment };
+    await db.insert(clientCommentHistory).values({
+      clientName: data.clientName,
+      comment: data.comment,
+      monthYear: data.monthYear,
+      authorEmail: data.authorEmail || null,
+      authorName: data.authorName || null,
+      action: 'saved',
+    });
+    return { ...existing[0], comment: data.comment, authorEmail: data.authorEmail ?? null, authorName: data.authorName ?? null };
   } else {
     // Insert new
     const result = await db.insert(clientComments).values({
@@ -460,13 +479,37 @@ export async function upsertClientComment(data: {
       authorEmail: data.authorEmail || null,
       authorName: data.authorName || null,
     });
+    await db.insert(clientCommentHistory).values({
+      clientName: data.clientName,
+      comment: data.comment,
+      monthYear: data.monthYear,
+      authorEmail: data.authorEmail || null,
+      authorName: data.authorName || null,
+      action: 'saved',
+    });
     return { id: result[0].insertId, ...data };
   }
 }
 
-export async function deleteClientComment(clientName: string, monthYear: string) {
+export async function deleteClientComment(clientName: string, monthYear: string, actor?: { email?: string; name?: string }) {
   const db = await getDb();
   if (!db) return false;
+  const existing = await db.select().from(clientComments).where(
+    and(
+      eq(clientComments.clientName, clientName),
+      eq(clientComments.monthYear, monthYear)
+    )
+  ).limit(1);
+  if (existing[0]) {
+    await db.insert(clientCommentHistory).values({
+      clientName,
+      comment: existing[0].comment,
+      monthYear,
+      authorEmail: actor?.email || existing[0].authorEmail,
+      authorName: actor?.name || existing[0].authorName,
+      action: 'deleted',
+    });
+  }
   await db.delete(clientComments).where(
     and(
       eq(clientComments.clientName, clientName),
@@ -616,14 +659,7 @@ export async function checkLossesAcknowledged(userId: number, acknowledgedDate: 
 }
 
 export async function getClientsWithComments(monthYear?: string) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  if (monthYear) {
-    return db.select().from(clientComments).where(eq(clientComments.monthYear, monthYear)).orderBy(desc(clientComments.createdAt));
-  } else {
-    return db.select().from(clientComments).orderBy(desc(clientComments.createdAt));
-  }
+  return getClientCommentHistory(monthYear);
 }
 
 export type AnalystScoreScheduleType = "weekly_penalty" | "monthly_reset";

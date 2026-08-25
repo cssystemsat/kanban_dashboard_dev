@@ -36,6 +36,7 @@ import {
   getRecentActions,
   getMostVisitedPages,
   getClientComments,
+  getClientCommentHistory,
   getClientsWithComments,
   upsertClientComment,
   deleteClientComment,
@@ -453,17 +454,20 @@ export const appRouter = router({
     }),
   }),
   clientComments: router({
-    listWithComments: publicProcedure
+    listWithComments: protectedProcedure
       .input(z.object({ monthYear: z.string().optional() }))
       .query(async ({ input }) => {
         return getClientsWithComments(input.monthYear);
       }),
-    list: publicProcedure
+    history: protectedProcedure
+      .input(z.object({ monthYear: z.string().optional() }))
+      .query(async ({ input }) => getClientCommentHistory(input.monthYear)),
+    list: protectedProcedure
       .input(z.object({ monthYear: z.string() }))
       .query(async ({ input }) => {
         return getClientComments(input.monthYear);
       }),
-    upsert: publicProcedure
+    upsert: protectedProcedure
       .input(z.object({
         clientName: z.string(),
         comment: z.string(),
@@ -478,13 +482,16 @@ export const appRouter = router({
           authorName: ctx.user?.name || undefined,
         });
       }),
-    delete: publicProcedure
+    delete: protectedProcedure
       .input(z.object({
         clientName: z.string(),
         monthYear: z.string(),
       }))
-      .mutation(async ({ input }) => {
-        return deleteClientComment(input.clientName, input.monthYear);
+      .mutation(async ({ input, ctx }) => {
+        return deleteClientComment(input.clientName, input.monthYear, {
+          email: ctx.user.email ?? undefined,
+          name: ctx.user.name ?? undefined,
+        });
       }),
   }),
   appKanban: router({
