@@ -549,15 +549,21 @@ export default function Painel() {
   const estadosData = useEstadosData();
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
   const [secondsRemaining, setSecondsRemaining] = useState(PANEL_AUTO_REFRESH_SECONDS);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
 
   const refreshData = useCallback(async () => {
-    clearSheetsCache();
-    await Promise.all([fetchData(), fetchMig(), estadosData.refetch()]);
-    setLastRefreshTime(new Date());
-    setSecondsRemaining(PANEL_AUTO_REFRESH_SECONDS);
+    setIsRefreshing(true);
+    try {
+      clearSheetsCache();
+      await Promise.all([fetchData(), fetchMig(), estadosData.refetch()]);
+      setLastRefreshTime(new Date());
+      setSecondsRemaining(PANEL_AUTO_REFRESH_SECONDS);
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [estadosData.refetch, fetchData, fetchMig]);
 
   useEffect(() => {
@@ -590,16 +596,18 @@ export default function Painel() {
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs text-gray-400">Próxima atualização em {formatPanelRefreshCountdown(secondsRemaining)}</span>
+          <span className="text-xs text-gray-400">
+            {isRefreshing ? "Atualizando dados..." : `Próxima atualização em ${formatPanelRefreshCountdown(secondsRemaining)}`}
+          </span>
           {lastRefreshTime && (
             <span className="text-xs text-gray-400">
               Atualizado às {lastRefreshTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
-          <Button size="sm" variant="outline" onClick={refreshData} disabled={loading}
+          <Button size="sm" variant="outline" onClick={refreshData} disabled={loading || isRefreshing}
             className="gap-1.5 border-white/30 text-white hover:bg-white/10 bg-transparent">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Atualizar
+            {isRefreshing ? "Atualizando..." : "Atualizar"}
           </Button>
         </div>
       </header>

@@ -9,7 +9,9 @@ interface SheetRequest {
 }
 
 const cache = new Map<string, CacheEntry>();
-const CACHE_DURATION = 5 * 60 * 1000;
+// A aba Painel precisa refletir alterações recentes da operação; o cache local
+// evita leituras duplicadas, mas não deve acrescentar minutos de atraso.
+export const SHEET_CACHE_DURATION_MS = 30 * 1000;
 const pendingRequests = new Map<string, Promise<string>>();
 
 const PRIMARY_ID = "1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc";
@@ -41,7 +43,12 @@ function resolveSheetRequest(rawUrl: string): SheetRequest | null {
 
 async function fetchThroughSheetProxy(request: SheetRequest): Promise<string> {
   const input = encodeURIComponent(JSON.stringify({ json: request }));
-  const response = await fetch(`/api/trpc/sheets.csv?input=${input}`, { credentials: "include" });
+  const cacheBuster = Date.now();
+  const response = await fetch(`/api/trpc/sheets.csv?input=${input}&_=${cacheBuster}`, {
+    credentials: "include",
+    cache: "no-store",
+    headers: { "cache-control": "no-cache" },
+  });
   const body = await response.json().catch(() => null) as any;
   if (!response.ok) {
     throw new Error(body?.error?.json?.message ?? body?.error?.message ?? `HTTP ${response.status}`);
@@ -58,7 +65,7 @@ async function fetchThroughSheetProxy(request: SheetRequest): Promise<string> {
 export async function cachedFetch(url: string, _options?: RequestInit): Promise<Response> {
   const now = Date.now();
   const cached = cache.get(url);
-  if (cached && now - cached.timestamp < CACHE_DURATION) {
+  if (cached && now - cached.timestamp < SHEET_CACHE_DURATION_MS) {
     return new Response(cached.data, { status: 200, statusText: "OK" });
   }
 
