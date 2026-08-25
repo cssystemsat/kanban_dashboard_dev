@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { TrpcContext } from "./_core/context";
 import { ENV } from "./_core/env";
 import { appRouter } from "./routers";
+import * as db from "./db";
 
 vi.mock("./db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./db")>();
@@ -84,6 +85,29 @@ describe("project owner permissions", () => {
       allowed: true,
       isAdmin: false,
       canLaunch: true,
+    });
+  });
+
+  it("keeps registered users on the same unrestricted operational policy", async () => {
+    vi.mocked(db.getEmailEntry).mockResolvedValue({
+      id: 1,
+      email: "regular@example.com",
+      label: "Regular User",
+      isAdmin: 0,
+      canLaunch: 1,
+      canMoveAppKanban: 1,
+      onlyAppKanban: 0,
+      allowedPages: null,
+      createdAt: new Date(),
+    } as never);
+
+    const caller = appRouter.createCaller(createAuthenticatedContext());
+    await expect(caller.config.myPermissions()).resolves.toEqual({
+      allowedPages: null,
+      isAdmin: false,
+      isAllowed: true,
+      canMoveAppKanban: true,
+      onlyAppKanban: false,
     });
   });
 });

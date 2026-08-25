@@ -1,7 +1,12 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats, ClienteMarcoDetalhado } from '@/hooks/usePainelData';
 import { clearSheetsCache } from '@/lib/sheetsCache';
-import { schedulePanelAutoRefresh } from '@/lib/panelRefresh';
+import {
+  formatPanelRefreshCountdown,
+  nextPanelRefreshSecond,
+  PANEL_AUTO_REFRESH_SECONDS,
+  refreshPanelWhenVisible,
+} from '@/lib/panelRefresh';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { useEstadosData } from '@/hooks/useEstadosData';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -543,6 +548,7 @@ export default function Painel() {
   const { data: mig, loading: migLoading, fetchData: fetchMig } = useMigracaoData();
   const estadosData = useEstadosData();
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState(PANEL_AUTO_REFRESH_SECONDS);
   const { user, loading: authLoading } = useAuth();
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
@@ -551,13 +557,24 @@ export default function Painel() {
     clearSheetsCache();
     await Promise.all([fetchData(), fetchMig(), estadosData.refetch()]);
     setLastRefreshTime(new Date());
+    setSecondsRemaining(PANEL_AUTO_REFRESH_SECONDS);
   }, [estadosData.refetch, fetchData, fetchMig]);
 
   useEffect(() => {
     void refreshData();
-    return schedulePanelAutoRefresh(() => {
+    const countdown = window.setInterval(() => {
+      setSecondsRemaining(previous => {
+        if (previous <= 1) void refreshData();
+        return nextPanelRefreshSecond(previous);
+      });
+    }, 1000);
+    const stopVisibilityRefresh = refreshPanelWhenVisible(() => {
       void refreshData();
     });
+    return () => {
+      window.clearInterval(countdown);
+      stopVisibilityRefresh();
+    };
   }, [refreshData]);
 
   return (
@@ -573,7 +590,7 @@ export default function Painel() {
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs text-gray-400">Atualização automática a cada 10 min</span>
+          <span className="text-xs text-gray-400">Próxima atualização em {formatPanelRefreshCountdown(secondsRemaining)}</span>
           {lastRefreshTime && (
             <span className="text-xs text-gray-400">
               Atualizado às {lastRefreshTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}

@@ -72,3 +72,13 @@
 - [x] Comparar o script e a interface da prévia com o domínio publicado.
 - [x] Confirmar que a versão com atualização automática está publicada no domínio de produção.
 - [x] Validar no domínio publicado um ciclo completo de atualização automática de dez minutos e salvar checkpoint corretivo.
+- [x] Auditar todos os usuários cadastrados, permissões e preferências persistidas por sessão.
+- [x] Padronizar o acesso operacional e as configurações de Painel para todos os usuários existentes e futuros.
+- [x] Verificar que não existem preferências persistidas de Painel ou refresh específicas por usuário.
+- [x] Validar a atualização automática de forma independente do perfil do usuário e salvar checkpoint corretivo.
+- [x] Criar teste de regressão para a política operacional padrão de usuários atuais e futuros.
+- [x] Atualizar o Painel ao retornar à aba quando o navegador tiver reduzido o timer em segundo plano.
+- [x] Adicionar cronômetro regressivo de 10:00 no cabeçalho do Painel.
+- [x] Sincronizar o contador com a atualização automática e reiniciá-lo após cada recarga manual ou automática.
+- [x] Criar testes de regressão para a passagem de 00:00 e a reinicialização do ciclo.
+- [x] Validar visualmente o cronômetro e salvar uma versão pronta para publicação.
