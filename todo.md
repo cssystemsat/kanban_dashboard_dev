@@ -69,3 +69,6 @@
 - [x] Exibir a data/hora da última atualização automática e manter o botão Atualizar manual.
 - [x] Criar testes para a atualização recorrente e validar o painel com os dados das planilhas.
 - [x] Salvar checkpoint e documentar as fontes de dados do Painel.
+- [x] Comparar o script e a interface da prévia com o domínio publicado.
+- [x] Confirmar que a versão com atualização automática está publicada no domínio de produção.
+- [x] Validar no domínio publicado um ciclo completo de atualização automática de dez minutos e salvar checkpoint corretivo.
