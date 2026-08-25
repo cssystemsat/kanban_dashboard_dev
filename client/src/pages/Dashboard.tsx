@@ -6,6 +6,7 @@ import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/u
 import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { domToPng } from 'modern-screenshot';
+import { sameCommentMap, type CommentData, type CommentEntry } from '@/lib/commentState';
 
 /* ─── Gráfico de linha simples com SVG ─── */
 function EvolutionChart({ data }: { data: DailyUR[] }) {
@@ -86,18 +87,6 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
       </svg>
     </div>
   );
-}
-
-/* ─── Tipos de Comentário ─── */
-interface CommentEntry {
-  text: string;
-  user: string;
-  date: string;
-}
-
-interface CommentData {
-  current: CommentEntry | null;
-  history: CommentEntry[];
 }
 
 /* ─── Modal de Comentário ─── */
@@ -469,7 +458,7 @@ export default function Dashboard() {
   // Carregar comentários do banco ao inicializar
   const monthYear = new Date().toISOString().slice(0, 7); // "YYYY-MM"
   const { data: dbComments } = trpc.clientComments.list.useQuery({ monthYear }, { enabled: !!authData });
-  const { data: commentHistory = [] } = trpc.clientComments.history.useQuery({ monthYear }, { enabled: !!authData });
+  const { data: commentHistory } = trpc.clientComments.history.useQuery({ monthYear }, { enabled: !!authData });
   const {
     data: reportComments = [],
     isLoading: reportLoading,
@@ -478,8 +467,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const commentsMap: Record<string, CommentData> = {};
+    const historyEntries = commentHistory ?? [];
     (dbComments ?? []).forEach(comment => {
-      const savedHistory = commentHistory
+      const savedHistory = historyEntries
         .filter(entry => entry.clientName === comment.clientName && entry.action !== 'deleted')
         .slice(1)
         .map(entry => ({
@@ -496,7 +486,7 @@ export default function Dashboard() {
         history: savedHistory,
       };
     });
-    setComments(commentsMap);
+    setComments(current => sameCommentMap(current, commentsMap) ? current : commentsMap);
   }, [dbComments, commentHistory]);
 
   const handleScreenshot = async () => {

@@ -51,3 +51,7 @@
 - [x] Exibir estado vazio claro quando não houver comentários históricos recuperáveis.
 - [x] Criar testes de integração para criação, edição, exclusão auditada e consolidação do histórico de comentários.
 - [x] Validar no preview a abertura do relatório, incluindo a proteção de sessão, e salvar checkpoint corretivo.
+- [x] Localizar o efeito da página Evolução de URs que provoca Maximum update depth exceeded.
+- [x] Estabilizar os dados de comentários e impedir atualizações de estado redundantes.
+- [x] Adicionar teste de regressão para o ciclo de atualização e validar a página carregada.
+- [x] Salvar checkpoint corretivo do erro Maximum update depth exceeded.
