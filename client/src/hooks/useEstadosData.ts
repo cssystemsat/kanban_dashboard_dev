@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { cachedFetch } from '@/lib/sheetsCache';
 
 interface ClienteEstado {
@@ -15,7 +15,10 @@ interface EstadosData {
   geral: ClienteEstado[];
   loading: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
+
+type EstadosState = Omit<EstadosData, "refetch">;
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
@@ -46,7 +49,7 @@ function parseCSVLine(line: string): string[] {
 }
 
 export function useEstadosData(): EstadosData {
-  const [data, setData] = useState<EstadosData>({
+  const [data, setData] = useState<EstadosState>({
     onboarding: [],
     ongoing: [],
     geral: [],
@@ -54,8 +57,7 @@ export function useEstadosData(): EstadosData {
     error: null,
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = useCallback(async () => {
       try {
         // Onboarding (gid=0)
         const onboardingUrl = `https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=0`;
@@ -125,10 +127,11 @@ export function useEstadosData(): EstadosData {
           error: err instanceof Error ? err.message : 'Erro ao buscar dados',
         }));
       }
-    };
-
-    fetchData();
   }, []);
 
-  return data;
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  return { ...data, refetch: fetchData };
 }

@@ -1,0 +1,24 @@
+# Fontes de dados — Aba Painel
+
+> Todas as leituras das planilhas passam pelo backend autenticado do projeto. A aba Painel consulta as fontes abaixo a cada carregamento e a cada atualização automática de dez minutos enquanto a página estiver aberta.
+
+| Área exibida | Origem | Aba / células ou colunas | Regra aplicada |
+|---|---|---|---|
+| Período exibido no cabeçalho | Planilha principal | Calendário local do painel + datas de Último contato na coluna L | A semana é segunda a domingo; o mês segue o mês-calendário atual. |
+| Card Onboarding | Planilha principal | Aba **Onboarding** (`gid=0`) | Total de clientes por CSM (coluna C) e contatos pela data da coluna L. |
+| Card Ongoing | Planilha principal | Aba **ongoing** (`gid=1152476970`) | Total de clientes por CSM (coluna C) e contatos pela data da coluna L. |
+| Card Geral | Onboarding + ongoing | Mesmas abas acima | Soma os totais e os contatos das duas bases. |
+| Cobertura Semanal — Onboarding | Planilha principal | Onboarding: cliente B, CSM C, faturamento F, Último contato L, flag O | Uma data da coluna L dentro da semana atual conta em **Cont.** e em **% Sem.**. |
+| Cobertura Semanal — Ongoing | Planilha principal | ongoing: cliente B, CSM C, faturamento F, Último contato L, flag O | Uma data da coluna L dentro da semana atual conta em **Cont.** e em **% Sem.**. |
+| Acumulado mensal | Planilha principal | Onboarding e ongoing, coluna L | Uma data da coluna L dentro do mês atual conta em **% Mês**. |
+| Lista aberta ao clicar em Cont. | Planilha principal | Nome B, data L, faturamento F e flag O | Mostra somente clientes cuja data L pertence à semana atual. |
+| Lista aberta ao clicar em Total | Planilha principal | Nome B, data L, faturamento F e flag O | Mostra toda a carteira do CSM, destacando quem foi ou não contatado na semana. |
+| Meta e status | Dados calculados | Cobertura semanal calculada | Meta semanal fixa de 25%; o status é Atingiu ou Abaixo da meta. |
+| Migração: Em migração | Planilha principal | Aba de migração (`gid=1590626518`), célula G6 | Leitura direta do indicador. |
+| Migração: Migrado hoje | Planilha principal | Aba de migração (`gid=1590626518`), célula G4 | Leitura direta do indicador. |
+| Migração: Migrados no ano | Planilha principal | Aba de migração (`gid=1590626518`), célula G5 | Leitura direta do indicador. |
+| Migração: Finalizadas | Planilha principal | Aba de migração (`gid=1590626518`), célula I3 | Leitura direta do indicador. |
+| Card Migrado no mês | Planilha principal | Aba de migração (`gid=1590626518`), célula I4 | Leitura direta do indicador. |
+| Ranking Geral | Banco do projeto | Tabela de pontuação de analistas | Soma pontuação de Onboarding e Ongoing do mês corrente. |
+| Mapas por estado | Planilha principal | Onboarding e ongoing: cliente B, faturamento F, CSM C, estado AJ, comercial X | Ongoing exclui registros cujo status de churn em V é `churn`; Geral une as duas listas. |
+| Alertas de perdas de URs | Planilha secundária | Aba de perdas (`gid=1969284070`): cliente A, perda B, quantidade atual C e percentual D | Exibe apenas perdas negativas, ordenadas da maior perda para a menor; há cache de 5 minutos no servidor. |

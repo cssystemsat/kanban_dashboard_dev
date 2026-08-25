@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { usePainelData, CoberturaCSM, ClienteContato, FlagTipo, MarcoStats, ClienteMarcoDetalhado } from '@/hooks/usePainelData';
+import { clearSheetsCache } from '@/lib/sheetsCache';
+import { schedulePanelAutoRefresh } from '@/lib/panelRefresh';
 import { useMigracaoData } from '@/hooks/useMigracaoData';
 import { useEstadosData } from '@/hooks/useEstadosData';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -545,14 +547,17 @@ export default function Painel() {
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
 
-  const refreshData = useCallback(() => {
-    void fetchData();
-    void fetchMig();
+  const refreshData = useCallback(async () => {
+    clearSheetsCache();
+    await Promise.all([fetchData(), fetchMig(), estadosData.refetch()]);
     setLastRefreshTime(new Date());
-  }, [fetchData, fetchMig]);
+  }, [estadosData.refetch, fetchData, fetchMig]);
 
   useEffect(() => {
-    refreshData();
+    void refreshData();
+    return schedulePanelAutoRefresh(() => {
+      void refreshData();
+    });
   }, [refreshData]);
 
   return (
@@ -568,7 +573,7 @@ export default function Painel() {
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs text-gray-400">Atualização manual</span>
+          <span className="text-xs text-gray-400">Atualização automática a cada 10 min</span>
           {lastRefreshTime && (
             <span className="text-xs text-gray-400">
               Atualizado às {lastRefreshTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}

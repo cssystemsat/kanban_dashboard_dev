@@ -64,3 +64,8 @@
 - [x] Preservar a coluna L como única fonte da data de Último contato para cobertura semanal e mensal.
 - [x] Adicionar teste de regressão para datas da semana e do mês, sem depender de campos de contato.
 - [x] Validar a aba Painel e salvar checkpoint corretivo.
+- [x] Mapear, item por item, as fontes de cada indicador, tabela e card exibido na aba Painel.
+- [x] Implementar atualização recorrente a cada dez minutos de forma compatível com a hospedagem gerenciada.
+- [x] Exibir a data/hora da última atualização automática e manter o botão Atualizar manual.
+- [x] Criar testes para a atualização recorrente e validar o painel com os dados das planilhas.
+- [x] Salvar checkpoint e documentar as fontes de dados do Painel.
