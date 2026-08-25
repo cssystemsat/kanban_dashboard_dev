@@ -60,6 +60,16 @@ function TooltipClientes({ clientes }: { clientes: ClienteContato[] }) {
                 <span>{c.faturamento}</span>
               </div>
             )}
+            {(c.decisor || c.telefone) && (
+              <div className="flex items-center gap-2 pl-5 text-xs text-gray-600">
+                {c.decisor && <span className="font-semibold">{c.decisor}</span>}
+                {c.telefone && (
+                  <a className="text-blue-600 hover:underline" href={`tel:${c.telefone.replace(/\D/g, '')}`}>
+                    {c.telefone}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         );
       })}

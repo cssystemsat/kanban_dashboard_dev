@@ -55,3 +55,8 @@
 - [x] Estabilizar os dados de comentários e impedir atualizações de estado redundantes.
 - [x] Adicionar teste de regressão para o ciclo de atualização e validar a página carregada.
 - [x] Salvar checkpoint corretivo do erro Maximum update depth exceeded.
+- [x] Inspecionar as colunas reais de contato disponíveis na aba Onboarding da planilha principal.
+- [x] Mapear campos de contato da planilha para os cards e detalhes exibidos na aba Painel.
+- [x] Corrigir valores vazios e variações de cabeçalho sem ocultar dados de contato válidos.
+- [x] Adicionar teste de regressão e validar visualmente os contatos na aba Painel.
+- [x] Salvar checkpoint corretivo da exibição de contatos.

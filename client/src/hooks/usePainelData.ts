@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { cachedFetch } from '@/lib/sheetsCache';
+import { getContactFields } from '@/lib/contactFields';
 
 // Planilha principal fornecida pelo usuário; as leituras passam pelo proxy autenticado.
 const PRIMARY_SPREADSHEET_ID = '1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc';
@@ -15,6 +16,8 @@ export interface ClienteContato {
   faturamento: string; // coluna F
   cidade: string; // coluna AI
   estado: string; // coluna AJ
+  decisor: string; // coluna AE
+  telefone: string; // coluna AF
 }
 
 export interface CoberturaCSM {
@@ -45,6 +48,8 @@ export interface ClienteMarcoDetalhado {
   faturamento: string;
   cidade: string;
   estado: string;
+  decisor: string;
+  telefone: string;
 }
 
 export interface PainelData {
@@ -140,7 +145,7 @@ function normalizeFlag(raw: string): FlagTipo {
 }
 
 function calcularCobertura(
-  rows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[],
+  rows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string; decisor: string; telefone: string }[],
   semana: { inicio: Date; fim: Date },
   mes: { inicio: Date; fim: Date }
 ): CoberturaCSM[] {
@@ -171,6 +176,8 @@ function calcularCobertura(
         faturamento: row.faturamento,
         cidade: row.cidade,
         estado: row.estado,
+        decisor: row.decisor,
+        telefone: row.telefone,
       });
     } else {
       // Clientes SEM contato na semana
@@ -181,6 +188,8 @@ function calcularCobertura(
         faturamento: row.faturamento,
         cidade: row.cidade,
         estado: row.estado,
+        decisor: row.decisor,
+        telefone: row.telefone,
       });
     }
 
@@ -261,7 +270,7 @@ export function usePainelData() {
       // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col D (idx 3) = Entrada
       // Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
       // Marcos: AK(36), AL(37), AM(38), AN(39), AO(40)
-      const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[] = [];
+      const marcosRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string; decisor: string; telefone: string }[] = [];
       const marcosRowsMarco: { nome: string; entrada: string; marcos: string[]; ultimoBoleto: number; quantidadeURs: number }[] = [];
       const marcosLines = marcosCsv.split('\n');
       for (let i = 1; i < marcosLines.length; i++) {
@@ -276,13 +285,14 @@ export function usePainelData() {
         const faturamento = row[5]?.trim() || '';
         const cidade = row[34]?.trim() || ''; // AI (índice 34)
         const estado = row[35]?.trim() || ''; // AJ (índice 35)
+        const { decisor, telefone } = getContactFields(row);
         const entrada = row[3]?.trim() || '';
         const marcos = [row[36]?.trim() || '', row[37]?.trim() || '', row[38]?.trim() || '', row[39]?.trim() || '', row[40]?.trim() || ''];
         const ultimoBoletoStr = row[5]?.trim() || '0';
         const ultimoBoleto = parseFloat(ultimoBoletoStr.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
         const quantidadeURsStr = row[6]?.trim() || '0';
         const quantidadeURs = parseInt(quantidadeURsStr, 10) || 0;
-        if (csm) marcosRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado });
+        if (csm) marcosRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado, decisor, telefone });
         if (entrada) marcosRowsMarco.push({ nome, entrada, marcos, ultimoBoleto, quantidadeURs });
       }
 
@@ -325,7 +335,9 @@ export function usePainelData() {
             ultimoContato: clienteInfo.ultimoContato,
             faturamento: clienteInfo.faturamento,
             cidade: clienteInfo.cidade,
-            estado: clienteInfo.estado
+            estado: clienteInfo.estado,
+            decisor: clienteInfo.decisor,
+            telefone: clienteInfo.telefone,
           });
         }
       }
@@ -338,7 +350,7 @@ export function usePainelData() {
 
       // Processar Ongoing
       // Col A (idx 0) = Código, Col B (idx 1) = Nome, Col C (idx 2) = CSM, Col F (idx 5) = Faturamento, Col AI (idx 34) = Cidade, Col AJ (idx 35) = Estado, Col L (idx 11) = Último Contato, Col O (idx 14) = Flag
-      const ongoingRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string }[] = [];
+      const ongoingRows: { nome: string; csm: string; ultimoContato: string; flag: FlagTipo; faturamento: string; cidade: string; estado: string; decisor: string; telefone: string }[] = [];
       const ongoingLines = ongoingCsv.split('\n');
       for (let i = 1; i < ongoingLines.length; i++) {
         const line = ongoingLines[i].trim();
@@ -353,7 +365,8 @@ export function usePainelData() {
         const faturamento = row[5]?.trim() || '';
         const cidade = row[34]?.trim() || ''; // AI (índice 34)
         const estado = row[35]?.trim() || ''; // AJ (índice 35)
-        if (csm) ongoingRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado });
+        const { decisor, telefone } = getContactFields(row);
+        if (csm) ongoingRows.push({ nome, csm, ultimoContato, flag, faturamento, cidade, estado, decisor, telefone });
       }
 
       const onboarding = calcularCobertura(marcosRows, semana, mes);
