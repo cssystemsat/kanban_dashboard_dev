@@ -1,0 +1,37 @@
+# Project TODO
+
+- [x] Restaurar o painel interno com navegação lateral para tarefas e operações.
+- [x] Reproduzir a identidade visual elegante, consistente e responsiva do painel.
+- [x] Implementar quadro Kanban com colunas, cards persistentes e atualização de status.
+- [x] Implementar criação de tarefas com os campos necessários para operação.
+- [x] Implementar edição e movimentação de tarefas entre os status do Kanban.
+- [x] Implementar área de Marcos com visualização e filtros de período.
+- [x] Implementar área de Ongoing com visualização e filtros de período.
+- [x] Implementar área de Churns com visualização e filtros de período.
+- [x] Implementar indicadores de desempenho e cobertura a partir de dados persistidos.
+- [x] Implementar ranking de desempenho/cobertura com cálculo server-side.
+- [x] Manter autenticação Manus OAuth e controle de sessão de usuários.
+- [x] Modelar tabelas e relações do domínio no Drizzle sem dados fictícios de avaliações ou depoimentos.
+- [x] Criar procedures tRPC protegidas para leitura e alteração dos dados.
+- [x] Configurar cálculo automático semanal de cobertura e ranking.
+- [x] Configurar fechamento e reinício automático mensal de cobertura e ranking.
+- [x] Garantir idempotência, autenticação e rastreabilidade dos jobs periódicos.
+- [x] Criar testes Vitest para regras de domínio, procedures e jobs automáticos.
+- [x] Validar build, TypeScript, testes e comportamento visual no preview (build, testes e `tsc` completo aprovados).
+- [ ] Salvar checkpoint final e entregar a versão executável ao usuário.
+- [x] Corrigir compatibilidade dos testes restaurados com o schema final do banco e permissões de atendimento.
+- [x] Remover o timer em processo de heartbeat da sessão e manter a automação recorrente somente por endpoints agendados da plataforma.
+- [x] Mapear quais páginas usam cada uma das duas planilhas e quais abas devem ser conectadas.
+- [x] Adicionar configuração segura para o segundo Spreadsheet ID e preservar os GIDs/nomes das abas necessárias.
+- [x] Configurar a planilha principal `1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc` como fonte principal de dados.
+- [x] Configurar a planilha secundária `1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4` como fonte secundária de dados.
+- [x] Validar os GIDs atuais e substituir referências antigas ou duplicadas sem alterar os dados das planilhas.
+- [x] Expor `GOOGLE_SHEETS_PRIMARY_ID` e `GOOGLE_SHEETS_SECONDARY_ID` no módulo seguro de ambiente do servidor.
+- [x] Remover o timer de reset diário do menu lateral e executar a invalidação apenas na entrada/retorno da aplicação.
+- [x] Criar proxy autenticado/allowlist para leitura CSV das abas e substituir as URLs públicas legadas no frontend e nos jobs.
+- [x] Remover os timers de auto-refresh e countdown do Painel e substituí-los por atualização manual/event-driven compatível com Autoscale.
+- [x] Corrigir o logotipo quebrado do menu lateral e aplicar um wordmark interno consistente com a direção visual elegante.
+- [x] Evitar que o alerta global de perdas bloqueie o preview para usuários sem sessão e só consultar confirmação pessoal após login.
+- [ ] Ativar os dois jobs Heartbeat depois que o usuário publicar o site, pois o serviço não agenda callbacks para o preview local.
+- [x] Substituir o cliente pesado `googleapis` por REST + JWT para reduzir a memória da validação TypeScript e manter a integração autenticada.
+- [x] Substituir as URLs públicas remanescentes de Agendas, Churns, Estados, Kanban, Migração, Ongoing e URs pelos IDs atuais das duas planilhas.

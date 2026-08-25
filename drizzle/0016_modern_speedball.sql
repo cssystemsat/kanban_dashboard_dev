@@ -1,0 +1,1 @@
+ALTER TABLE `app_kanban_cards` ADD `priority` int DEFAULT 0 NOT NULL;

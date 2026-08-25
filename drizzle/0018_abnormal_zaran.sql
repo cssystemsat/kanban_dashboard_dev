@@ -1,0 +1,1 @@
+ALTER TABLE `allowed_emails` ADD `lastDailyAlertSeen` date;

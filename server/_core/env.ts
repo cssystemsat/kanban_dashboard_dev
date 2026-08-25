@@ -7,4 +7,9 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  googleServiceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ?? "",
+  googlePrivateKey: process.env.GOOGLE_PRIVATE_KEY ?? "",
+  googleSheetsSpreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID ?? "",
+  googleSheetsPrimaryId: process.env.GOOGLE_SHEETS_PRIMARY_ID ?? process.env.GOOGLE_SHEETS_SPREADSHEET_ID ?? "",
+  googleSheetsSecondaryId: process.env.GOOGLE_SHEETS_SECONDARY_ID ?? "",
 };

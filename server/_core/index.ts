@@ -4,10 +4,11 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
-import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { sdk } from "./sdk";
+import { closePreviousMonthAndResetScores, isRegisteredScoreSchedule, runWeeklyCoveragePenalty } from "../analystScoring";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -34,8 +35,35 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  registerStorageProxy(app);
+  // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Jobs automáticos do ranking de Performance. A plataforma chama estas rotas com uma identidade de cron autenticada.
+  app.post("/api/scheduled/performance/weekly-penalty", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid || !(await isRegisteredScoreSchedule("weekly_penalty", user.taskUid))) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const result = await runWeeklyCoveragePenalty();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("[Scheduled][weekly-penalty]", error);
+      return res.status(500).json({ error: String(error), timestamp: new Date().toISOString() });
+    }
+  });
+  app.post("/api/scheduled/performance/monthly-reset", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid || !(await isRegisteredScoreSchedule("monthly_reset", user.taskUid))) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const result = await closePreviousMonthAndResetScores();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("[Scheduled][monthly-reset]", error);
+      return res.status(500).json({ error: String(error), timestamp: new Date().toISOString() });
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",

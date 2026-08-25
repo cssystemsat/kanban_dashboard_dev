@@ -1,0 +1,1 @@
+ALTER TABLE `app_kanban_cards` MODIFY COLUMN `comercial` varchar(255) NOT NULL DEFAULT '';
