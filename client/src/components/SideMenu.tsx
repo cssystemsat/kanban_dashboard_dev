@@ -21,7 +21,7 @@ const PROTECTED_ITEMS = [
   { id: 'marcos', label: 'Marcos', icon: CheckSquare },
   { id: 'ongoing', label: 'Ongoing', icon: Users },
   { id: 'churns', label: 'CHURNs', icon: TrendingDown },
-  { id: 'redflags', label: 'Red Flags', icon: AlertCircle },
+  { id: 'migracao-externa', label: 'Migração', icon: AlertCircle, href: 'https://migracao-web.onrender.com/' },
   { id: 'apppersonalizado', label: 'App Personalizado', icon: Smartphone },
   { id: 'ferramentas', label: 'Ferramentas', icon: Wrench },
 ];
@@ -95,18 +95,39 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
     return ADMIN_ONLY_ITEMS;
   })();
 
-  const renderItem = (item: { id: string; label: string; icon: React.ElementType }) => {
+  const renderItem = (item: { id: string; label: string; icon: React.ElementType; href?: string }) => {
     const Icon = item.icon;
     const isActive = currentPage === item.id;
+    const itemStyle = {
+      backgroundColor: isActive ? '#00DD00' : undefined,
+      color: isActive ? '#001F3F' : '#D1D5DB',
+    };
+
+    if (item.href) {
+      return (
+        <a
+          key={item.id}
+          href={item.href}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
+          style={itemStyle}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
+          title={!isExpanded ? item.label : ''}
+        >
+          <Icon className="w-5 h-5 flex-shrink-0" />
+          {isExpanded && <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>}
+        </a>
+      );
+    }
+
     return (
       <button
         key={item.id}
         onClick={() => onPageChange(item.id)}
         className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
-        style={{
-          backgroundColor: isActive ? '#00DD00' : undefined,
-          color: isActive ? '#001F3F' : '#D1D5DB',
-        }}
+        style={itemStyle}
         onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
         onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
         title={!isExpanded ? item.label : ''}

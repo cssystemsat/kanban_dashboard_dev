@@ -90,3 +90,6 @@
 - [x] Exibir a atualização em curso e validar a propagação no ambiente de desenvolvimento.
 - [x] Criar teste de regressão do cache e salvar checkpoint corretivo.
 - [ ] Confirmar no domínio publicado a propagação rápida após publicar esta versão.
+- [x] Remover a opção Red Flags do menu lateral.
+- [x] Adicionar a opção Migração apontando para https://migracao-web.onrender.com/ em nova aba segura.
+- [x] Validar o novo item no menu lateral e salvar checkpoint.
