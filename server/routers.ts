@@ -903,6 +903,7 @@ export const appRouter = router({
           },
           tempoMedio: {
             value: 0,
+            details: [],
             source: "primary:KPI's!AL" as const,
           },
         };

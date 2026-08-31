@@ -90,6 +90,11 @@ describe("Métricas reais de Onboarding", () => {
     expect(result.concluidos.periodStart).toBe("2026-08-24");
     expect(result.concluidos.periodEnd).toBe("2026-08-30");
     expect(result.tempoMedio.value).toBeCloseTo(449.3333, 3);
+    expect(result.tempoMedio.details).toEqual([
+      "BVTRACKER — implantação em 24/08/2026 — 415.0 dias",
+      "Fênix Sat — implantação em 30/08/2026 — 427.0 dias",
+      "FORT SERVIÇOS — implantação em 31/08/2026 — 506.0 dias",
+    ]);
   });
 
   it("calcula Dentro do prazo sem marco atrasado e entrega a lista do modal", () => {

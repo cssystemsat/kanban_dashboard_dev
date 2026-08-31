@@ -121,3 +121,6 @@
 - [x] Criar testes para prazo, lista do modal e média em dias.
 - [x] Validar os novos cards com dados reais, TypeScript, build e salvar checkpoint.
 - [ ] Salvar checkpoint específico após a integração real de Dentro do prazo e Tempo médio em Onboarding.
+- [x] Exibir no modal de Tempo médio as empresas da coluna AK, a data de implantação da coluna AM e os dias da coluna AL.
+- [x] Criar teste de contrato para os detalhes empresa-data-dias do modal de Tempo médio.
+- [ ] Validar o modal com dados reais, TypeScript, build e salvar checkpoint.

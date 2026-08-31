@@ -25,6 +25,7 @@ export interface OnboardingKpiMetrics {
   };
   tempoMedio: {
     value: number;
+    details: string[];
     source: "primary:KPI's!AL";
   };
 }
@@ -119,6 +120,12 @@ function parseSheetNumber(value: string): number | null {
 function isMarcoOverdue(value: string, referenceDate: Date): boolean {
   const dateKey = dateKeyFromSheetDate(value);
   return dateKey !== null && dateKey < brtDateKey(referenceDate);
+}
+
+function formatDateKeyForDisplay(dateKey: string | null): string {
+  if (!dateKey) return "Sem data";
+  const [year, month, day] = dateKey.split("-");
+  return `${day}/${month}/${year}`;
 }
 
 function shiftDateKey(dateKey: string, days: number): string {
@@ -227,6 +234,17 @@ export function parseOnboardingKpiMetrics(
           ? values.reduce((sum, value) => sum + value, 0) / values.length
           : 0;
       })(),
+      details: kpiRecords
+        .filter(
+          row =>
+            Boolean(row.name) &&
+            !isStructuralClientName(row.name) &&
+            row.averageDays !== null
+        )
+        .map(
+          row =>
+            `${row.name} — implantação em ${formatDateKeyForDisplay(row.implantedDate)} — ${row.averageDays?.toFixed(1)} dias`
+        ),
       source: "primary:KPI's!AL",
     },
   };

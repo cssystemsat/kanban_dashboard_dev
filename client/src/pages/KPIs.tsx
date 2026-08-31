@@ -64,6 +64,8 @@ export default function KPIs() {
         return {
           ...kpi,
           value: `${(onboardingMetrics?.tempoMedio.value ?? 0).toFixed(1)}d`,
+          details: onboardingMetrics?.tempoMedio.details ?? [],
+          detailsTitle: "Empresa — implantação — tempo de onboarding",
         };
       }
       return kpi;

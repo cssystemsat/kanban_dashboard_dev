@@ -52,6 +52,8 @@ export async function getCurrentKpiValues(
         return {
           ...card,
           value: `${metrics.tempoMedio.value.toFixed(1)}d`,
+          details: metrics.tempoMedio.details,
+          detailsTitle: "Empresa — implantação — tempo de onboarding",
         };
       }
       return card;

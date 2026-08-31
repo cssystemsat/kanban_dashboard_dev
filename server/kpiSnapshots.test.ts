@@ -118,6 +118,7 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
       },
       tempoMedio: {
         value: 521.65,
+        details: ["ALPHA TECNOLOGIA — implantação em 24/08/2026 — 521.0 dias"],
         source: "primary:KPI's!AL",
       },
     });

@@ -17,8 +17,9 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain(
       "trpc.kpis.getOnboardingKpiMetrics.useQuery()"
     );
+    expect(pageSource).toContain("onboardingMetrics?.tempoMedio.value ?? 0");
     expect(pageSource).toContain(
-      "onboardingMetrics?.clientesAtivos.value ?? 0"
+      "details: onboardingMetrics?.tempoMedio.details ?? []"
     );
     expect(pageSource).toContain("onboardingMetrics?.concluidos.value ?? 0");
     expect(pageSource).toContain(
@@ -38,6 +39,7 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain("Clientes na aba Marcos");
     expect(pageSource).toContain("Implantados na semana passada");
     expect(pageSource).toContain("Clientes sem marco atrasado");
+    expect(pageSource).toContain("Empresa — implantação — tempo de onboarding");
     expect(pageSource).toContain("selectedKPI.details.map");
   });
 
