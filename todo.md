@@ -114,4 +114,10 @@
 - [x] Validar visualmente os cards e modais corrigidos e salvar checkpoint.
 - [x] Endurecer o parser de Concluídos para ignorar linhas extras de cabeçalho/estrutura e aceitar variações comuns de data em AM sem depender de uma única linha de cabeçalho.
 - [x] Adicionar testes executáveis cobrindo linhas extras de cabeçalho, linhas vazias/estruturais e formatos alternativos de data para AK/AM.
-- [ ] Salvar checkpoint específico após a correção das comparações e da leitura robusta de Concluídos.
+- [x] Salvar checkpoint específico após a correção das comparações e da leitura robusta de Concluídos.
+- [x] Calcular Dentro do prazo como o percentual de clientes de Onboarding sem marco atrasado.
+- [x] Exibir no modal de Dentro do prazo os clientes sem marco atrasado.
+- [x] Calcular Tempo médio de onboarding pela média numérica da coluna AL da aba KPI’s, em dias.
+- [x] Criar testes para prazo, lista do modal e média em dias.
+- [x] Validar os novos cards com dados reais, TypeScript, build e salvar checkpoint.
+- [ ] Salvar checkpoint específico após a integração real de Dentro do prazo e Tempo médio em Onboarding.

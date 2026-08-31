@@ -103,12 +103,22 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
         clients: ["ALPHA TECNOLOGIA", "ALTOTRAK"],
         source: "primary:Marcos",
       },
+      dentroDoPrazo: {
+        value: 62,
+        percentage: 39.74,
+        clients: ["ALPHA TECNOLOGIA", "ALTOTRAK"],
+        source: "primary:Marcos!AK:AO",
+      },
       concluidos: {
         value: 2,
         clients: ["BVTRACKER", "Fênix Sat"],
         source: "primary:KPI's!AK/AM",
         periodStart: "2026-08-24",
         periodEnd: "2026-08-30",
+      },
+      tempoMedio: {
+        value: 521.65,
+        source: "primary:KPI's!AL",
       },
     });
     saveKpiWeeklySnapshot

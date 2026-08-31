@@ -21,6 +21,10 @@ describe("Página de KPI’s de Onboarding", () => {
       "onboardingMetrics?.clientesAtivos.value ?? 0"
     );
     expect(pageSource).toContain("onboardingMetrics?.concluidos.value ?? 0");
+    expect(pageSource).toContain(
+      "onboardingMetrics?.dentroDoPrazo.percentage ?? 0"
+    );
+    expect(pageSource).toContain("onboardingMetrics?.tempoMedio.value ?? 0");
     expect(routerSource).toContain("getOnboardingKpiMetrics: publicProcedure");
   });
 
@@ -33,6 +37,7 @@ describe("Página de KPI’s de Onboarding", () => {
     );
     expect(pageSource).toContain("Clientes na aba Marcos");
     expect(pageSource).toContain("Implantados na semana passada");
+    expect(pageSource).toContain("Clientes sem marco atrasado");
     expect(pageSource).toContain("selectedKPI.details.map");
   });
 

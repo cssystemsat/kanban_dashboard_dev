@@ -52,6 +52,20 @@ export default function KPIs() {
           detailsTitle: "Implantados na semana passada",
         };
       }
+      if (index === 2) {
+        return {
+          ...kpi,
+          value: `${(onboardingMetrics?.dentroDoPrazo.percentage ?? 0).toFixed(0)}%`,
+          details: onboardingMetrics?.dentroDoPrazo.clients ?? [],
+          detailsTitle: "Clientes sem marco atrasado",
+        };
+      }
+      if (index === 3) {
+        return {
+          ...kpi,
+          value: `${(onboardingMetrics?.tempoMedio.value ?? 0).toFixed(1)}d`,
+        };
+      }
       return kpi;
     }),
     onboardingRetrasada

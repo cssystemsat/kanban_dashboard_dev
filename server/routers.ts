@@ -888,12 +888,22 @@ export const appRouter = router({
             clients: [],
             source: "primary:Marcos" as const,
           },
+          dentroDoPrazo: {
+            value: 0,
+            percentage: 0,
+            clients: [],
+            source: "primary:Marcos!AK:AO" as const,
+          },
           concluidos: {
             value: 0,
             clients: [],
             source: "primary:KPI's!AK/AM" as const,
             periodStart: "",
             periodEnd: "",
+          },
+          tempoMedio: {
+            value: 0,
+            source: "primary:KPI's!AL" as const,
           },
         };
       }

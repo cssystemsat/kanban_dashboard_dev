@@ -10,12 +10,22 @@ export interface OnboardingKpiMetrics {
     clients: string[];
     source: "primary:Marcos";
   };
+  dentroDoPrazo: {
+    value: number;
+    percentage: number;
+    clients: string[];
+    source: "primary:Marcos!AK:AO";
+  };
   concluidos: {
     value: number;
     clients: string[];
     source: "primary:KPI's!AK/AM";
     periodStart: string;
     periodEnd: string;
+  };
+  tempoMedio: {
+    value: number;
+    source: "primary:KPI's!AL";
   };
 }
 
@@ -93,6 +103,24 @@ function isStructuralClientName(value: string): boolean {
   );
 }
 
+function parseSheetNumber(value: string): number | null {
+  const numericText = value
+    .trim()
+    .replace(/[^\d,.-]/g, "")
+    .trim();
+  if (!numericText) return null;
+  const normalized = numericText.includes(",")
+    ? numericText.replace(/\./g, "").replace(",", ".")
+    : numericText;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isMarcoOverdue(value: string, referenceDate: Date): boolean {
+  const dateKey = dateKeyFromSheetDate(value);
+  return dateKey !== null && dateKey < brtDateKey(referenceDate);
+}
+
 function shiftDateKey(dateKey: string, days: number): string {
   const date = new Date(`${dateKey}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
@@ -129,15 +157,38 @@ export function parseOnboardingKpiMetrics(
   kpisCsv: string,
   referenceDate = new Date()
 ): OnboardingKpiMetrics {
-  const clients = parseCsv(marcosCsv)
-    .map(row => row[1]?.trim() ?? "")
-    .filter(name => Boolean(name) && !isStructuralClientName(name));
+  const marcoRecords = parseCsv(marcosCsv)
+    .map(row => ({
+      name: row[1]?.trim() ?? "",
+      marcos: row.slice(36, 41).map(value => value?.trim() ?? ""),
+    }))
+    .filter(row => Boolean(row.name) && !isStructuralClientName(row.name));
+  const clients = marcoRecords.map(row => row.name);
+  const withinDeadlineClients = marcoRecords
+    .filter(row => {
+      const firstIncompleteMarco = row.marcos.find(
+        value => value.toUpperCase() !== "OK"
+      );
+      return (
+        !firstIncompleteMarco ||
+        !isMarcoOverdue(firstIncompleteMarco, referenceDate)
+      );
+    })
+    .map(row => row.name);
+  const withinDeadlinePercentage = clients.length
+    ? (withinDeadlineClients.length / clients.length) * 100
+    : 0;
 
   const { start, end } = getPreviousOnboardingWeek(referenceDate);
-  const completedClients = parseCsv(kpisCsv)
+  const kpiRecords = parseCsv(kpisCsv).map(row => ({
+    name: row[36]?.trim() ?? "",
+    averageDays: parseSheetNumber(row[37] ?? ""),
+    implantedDate: dateKeyFromSheetDate(row[38] ?? ""),
+  }));
+  const completedClients = kpiRecords
     .map(row => ({
-      name: row[36]?.trim() ?? "",
-      implantedDate: dateKeyFromSheetDate(row[38] ?? ""),
+      name: row.name,
+      implantedDate: row.implantedDate,
     }))
     .filter(
       row =>
@@ -153,12 +204,30 @@ export function parseOnboardingKpiMetrics(
       clients,
       source: "primary:Marcos",
     },
+    dentroDoPrazo: {
+      value: withinDeadlineClients.length,
+      percentage: withinDeadlinePercentage,
+      clients: withinDeadlineClients,
+      source: "primary:Marcos!AK:AO",
+    },
     concluidos: {
       value: completedClients.length,
       clients: completedClients,
       source: "primary:KPI's!AK/AM",
       periodStart: start,
       periodEnd: end,
+    },
+    tempoMedio: {
+      value: (() => {
+        const values = kpiRecords
+          .filter(row => row.name && !isStructuralClientName(row.name))
+          .map(row => row.averageDays)
+          .filter((value): value is number => value !== null);
+        return values.length
+          ? values.reduce((sum, value) => sum + value, 0) / values.length
+          : 0;
+      })(),
+      source: "primary:KPI's!AL",
     },
   };
 }

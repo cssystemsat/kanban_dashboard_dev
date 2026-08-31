@@ -40,6 +40,20 @@ export async function getCurrentKpiValues(
           detailsTitle: `Implantados de ${metrics.concluidos.periodStart} a ${metrics.concluidos.periodEnd}`,
         };
       }
+      if (index === 2) {
+        return {
+          ...card,
+          value: `${metrics.dentroDoPrazo.percentage.toFixed(0)}%`,
+          details: metrics.dentroDoPrazo.clients,
+          detailsTitle: "Clientes sem marco atrasado",
+        };
+      }
+      if (index === 3) {
+        return {
+          ...card,
+          value: `${metrics.tempoMedio.value.toFixed(1)}d`,
+        };
+      }
       return card;
     }),
   };

@@ -25,13 +25,34 @@ function placeKpiColumns(rows: string[][]): string {
     .map(row => {
       const padded = [...row];
       const name = padded[3] ?? "";
+      const averageDays = padded[4] ?? "";
       const date = padded[5] ?? "";
       padded.length = 39;
       padded[36] = name;
+      padded[37] = averageDays;
       padded[38] = date;
       return padded.map(value => value ?? "").join(",");
     })
     .join("\n");
+}
+
+function makeMarcosCsv(
+  records: Array<{ name: string; marcos: string[] }>
+): string {
+  const header = Array.from({ length: 41 }, (_, index) => {
+    if (index === 1) return "2 - Cliente";
+    if (index >= 36 && index <= 40) return `Marco ${index - 35}`;
+    return "";
+  });
+  const rows = records.map(record => {
+    const row = Array.from({ length: 41 }, () => "");
+    row[1] = record.name;
+    record.marcos.forEach((value, index) => {
+      row[36 + index] = value;
+    });
+    return row;
+  });
+  return [header, ...rows].map(row => row.join(",")).join("\n");
 }
 
 describe("Métricas reais de Onboarding", () => {
@@ -68,6 +89,27 @@ describe("Métricas reais de Onboarding", () => {
     expect(result.concluidos.clients).toEqual(["BVTRACKER", "Fênix Sat"]);
     expect(result.concluidos.periodStart).toBe("2026-08-24");
     expect(result.concluidos.periodEnd).toBe("2026-08-30");
+    expect(result.tempoMedio.value).toBeCloseTo(449.3333, 3);
+  });
+
+  it("calcula Dentro do prazo sem marco atrasado e entrega a lista do modal", () => {
+    const result = parseOnboardingKpiMetrics(
+      makeMarcosCsv([
+        { name: "ATRASADO", marcos: ["30/08/2026", "", "", "", ""] },
+        { name: "PRAZO", marcos: ["31/08/2026", "", "", "", ""] },
+        { name: "PENDENTE", marcos: ["", "", "", "", ""] },
+        { name: "COMPLETO", marcos: ["OK", "OK", "OK", "OK", "OK"] },
+      ]),
+      placeKpiColumns([kpisCsv.split("\n")[0].split(",")]),
+      new Date("2026-08-31T12:00:00.000Z")
+    );
+    expect(result.dentroDoPrazo.value).toBe(3);
+    expect(result.dentroDoPrazo.percentage).toBe(75);
+    expect(result.dentroDoPrazo.clients).toEqual([
+      "PRAZO",
+      "PENDENTE",
+      "COMPLETO",
+    ]);
   });
 
   it("ignora registros sem cliente em AK e datas inválidas em AM", () => {
