@@ -83,4 +83,26 @@ describe("Métricas reais de Onboarding", () => {
     expect(result.concluidos.value).toBe(0);
     expect(result.concluidos.clients).toEqual([]);
   });
+
+  it("ignora cabeçalhos extras e aceita datas ISO, com hífen, ponto e horário", () => {
+    const rows = [
+      ["A", "B", "C", "KPI", "", "AM"],
+      ["A", "B", "C", "Quantidade", "", "Data de implantação"],
+      ["", "", "", "", "", ""],
+      ["A", "B", "C", "CLIENTE ISO", "", "2026-08-24T00:00:00"],
+      ["A", "B", "C", "CLIENTE HIFEN", "", "24-08-2026"],
+      ["A", "B", "C", "CLIENTE PONTO", "", "24.08.2026 12:00:00"],
+    ];
+    const result = parseOnboardingKpiMetrics(
+      marcosCsv,
+      placeKpiColumns(rows),
+      new Date("2026-08-31T12:00:00.000Z")
+    );
+    expect(result.concluidos.value).toBe(3);
+    expect(result.concluidos.clients).toEqual([
+      "CLIENTE ISO",
+      "CLIENTE HIFEN",
+      "CLIENTE PONTO",
+    ]);
+  });
 });

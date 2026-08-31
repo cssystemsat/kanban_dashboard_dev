@@ -900,14 +900,10 @@ export const appRouter = router({
     }),
     getOnboardingKpis: publicProcedure.query(async () => {
       try {
-        // Clientes ativos no onboarding: linhas de dados da aba Onboarding da planilha principal.
-        const painelData = await getSheetCsv("primary", 0);
-        const painelLines = painelData
-          .split(/\r?\n/)
-          .filter(line => line.trim());
-        const clientesAtivos = String(Math.max(0, painelLines.length - 1));
+        // Os dois indicadores já usam a regra real das abas Marcos e KPI’s.
+        const onboardingMetrics = await getOnboardingKpiMetrics();
 
-        // Dados da aba KPI's da planilha principal (AB3, AB5, AB7, AB8).
+        // Os demais indicadores legados continuam vindo do resumo da aba KPI’s.
         const kpisData = await getSheetCsv("primary", 1590626518);
         const kpisLines = kpisData.split("\n");
 
@@ -918,8 +914,8 @@ export const appRouter = router({
         const tempoValor = kpisLines[7]?.split(",")[27]?.trim() || "0";
 
         return {
-          clientesAtivos: parseInt(clientesAtivos) || 172,
-          concluidos: parseInt(concluidos) || 0,
+          clientesAtivos: onboardingMetrics.clientesAtivos.value,
+          concluidos: onboardingMetrics.concluidos.value,
           tempoMedio: parseFloat(tempoMedio) || 0,
           taxaAtivacao: parseFloat(taxaAtivacao) || 0,
           tempoValor: parseFloat(tempoValor) || 0,
@@ -927,7 +923,7 @@ export const appRouter = router({
       } catch (error: any) {
         console.error("[getOnboardingKpis] Erro:", error?.message);
         return {
-          clientesAtivos: 172,
+          clientesAtivos: 0,
           concluidos: 0,
           tempoMedio: 0,
           taxaAtivacao: 0,

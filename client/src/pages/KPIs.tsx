@@ -5,6 +5,7 @@ import {
   KPI_MANUAL_WEEK_VALUES,
   KPI_ZERO_WEEK_VALUES,
 } from "@shared/kpiDefinitions";
+import { applyKpiComparisons } from "@shared/kpiComparisons";
 
 interface KPICard {
   label: string;
@@ -33,8 +34,8 @@ export default function KPIs() {
     previousSnapshot?.values.migracao ?? KPI_ZERO_WEEK_VALUES.migracao;
 
   // Semana passada: valores reais de Onboarding e valores manuais dos demais KPI’s.
-  const onboardingPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.onboarding.map(
-    (kpi, index) => {
+  const onboardingPassada: KPICard[] = applyKpiComparisons(
+    KPI_MANUAL_WEEK_VALUES.onboarding.map((kpi, index) => {
       if (index === 0) {
         return {
           ...kpi,
@@ -52,10 +53,17 @@ export default function KPIs() {
         };
       }
       return kpi;
-    }
+    }),
+    onboardingRetrasada
   );
-  const ongoingPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.ongoing;
-  const migracaoPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.migracao;
+  const ongoingPassada: KPICard[] = applyKpiComparisons(
+    KPI_MANUAL_WEEK_VALUES.ongoing,
+    ongoingRetrasada
+  );
+  const migracaoPassada: KPICard[] = applyKpiComparisons(
+    KPI_MANUAL_WEEK_VALUES.migracao,
+    migracaoRetrasada
+  );
 
   const getStatusColor = (status?: string) => {
     if (status === "good") return "bg-green-50 border-green-200";

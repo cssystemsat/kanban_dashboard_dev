@@ -98,7 +98,7 @@
 - [x] Criar o fechamento automático dos KPI’s toda sexta-feira às 23:59 no horário de Brasília.
 - [x] Atualizar a aba KPI’s para exibir o snapshot fechado da semana anterior e manter a semana retrasada zerada até o próximo fechamento.
 - [x] Criar testes para zeragem, fechamento idempotente e transição semanal dos KPI’s.
-- [ ] Validar visualmente a aba KPI’s, TypeScript, build e testes; salvar checkpoint antes da ativação do job em produção.
+- [x] Validar visualmente a aba KPI’s, TypeScript, build e testes; salvar checkpoint antes da ativação do job em produção.
 - [ ] Publicar a versão com o callback de fechamento semanal de KPI’s antes de criar o schedule em produção.
 - [ ] Ativar as automações pela aba Performance após a publicação e registrar o taskUid do job `kpi_weekly_snapshot`.
 - [ ] Confirmar em produção que o schedule de sexta-feira às 23:59 BRT aparece como ativo e que o callback responde com sucesso.
@@ -108,3 +108,10 @@
 - [x] Exibir no modal de Concluídos a lista dos clientes implantados na semana passada.
 - [x] Criar testes de regressão para as contagens, filtro semanal e listas dos modais de Onboarding.
 - [x] Validar a aba KPI’s com dados reais, TypeScript, build e salvar checkpoint da integração de Onboarding.
+- [x] Corrigir as comparações dos KPI’s para considerar exclusivamente a Semana Retrasada como referência, sem mostrar comparação contra a Semana Passada quando a base estiver zerada.
+- [x] Corrigir a leitura dos concluídos para localizar AK e AM mesmo quando a exportação ou a planilha tiver linhas de cabeçalho, células mescladas ou formato de data diferente.
+- [x] Adicionar testes de regressão para comparação contra base zerada e leitura real dos concluídos.
+- [x] Validar visualmente os cards e modais corrigidos e salvar checkpoint.
+- [x] Endurecer o parser de Concluídos para ignorar linhas extras de cabeçalho/estrutura e aceitar variações comuns de data em AM sem depender de uma única linha de cabeçalho.
+- [x] Adicionar testes executáveis cobrindo linhas extras de cabeçalho, linhas vazias/estruturais e formatos alternativos de data para AK/AM.
+- [ ] Salvar checkpoint específico após a correção das comparações e da leitura robusta de Concluídos.

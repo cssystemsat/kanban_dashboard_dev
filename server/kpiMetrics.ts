@@ -58,11 +58,39 @@ function brtDateKey(date: Date): string {
   return date.toLocaleDateString("sv-SE", { timeZone: BRAZIL_TIME_ZONE });
 }
 
-function dateKeyFromBrazilianDate(value: string): string | null {
-  const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (!match) return null;
-  const [, day, month, year] = match;
-  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+function dateKeyFromSheetDate(value: string): string | null {
+  const normalized = value.trim().replace(/^"|"$/g, "");
+  if (!normalized) return null;
+
+  const dateText = normalized.split(/[T\s]/, 1)[0];
+  const brazilian = dateText.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})$/);
+  if (brazilian) {
+    const [, day, month, year] = brazilian;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+
+  const iso = dateText.match(/^(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})$/);
+  if (iso) {
+    const [, year, month, day] = iso;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+
+  // Google Sheets pode exportar uma data como número serial do Excel.
+  const serial = Number(dateText);
+  if (Number.isInteger(serial) && serial >= 20000 && serial <= 60000) {
+    const excelEpoch = Date.UTC(1899, 11, 30);
+    return new Date(excelEpoch + serial * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+  }
+
+  return null;
+}
+
+function isStructuralClientName(value: string): boolean {
+  return /^(?:kpi|valor|quantidade|cliente|2\s*-\s*cliente|true|false|n\/a|-)$/i.test(
+    value.trim()
+  );
 }
 
 function shiftDateKey(dateKey: string, days: number): string {
@@ -101,17 +129,22 @@ export function parseOnboardingKpiMetrics(
   kpisCsv: string,
   referenceDate = new Date()
 ): OnboardingKpiMetrics {
-  const marcosRows = parseCsv(marcosCsv).slice(1);
-  const clients = marcosRows.map(row => row[1]?.trim() ?? "").filter(Boolean);
+  const clients = parseCsv(marcosCsv)
+    .map(row => row[1]?.trim() ?? "")
+    .filter(name => Boolean(name) && !isStructuralClientName(name));
 
   const { start, end } = getPreviousOnboardingWeek(referenceDate);
   const completedClients = parseCsv(kpisCsv)
-    .slice(1)
     .map(row => ({
       name: row[36]?.trim() ?? "",
-      implantedDate: dateKeyFromBrazilianDate(row[38] ?? ""),
+      implantedDate: dateKeyFromSheetDate(row[38] ?? ""),
     }))
-    .filter(row => row.name && isWithinPeriod(row.implantedDate, start, end))
+    .filter(
+      row =>
+        Boolean(row.name) &&
+        !isStructuralClientName(row.name) &&
+        isWithinPeriod(row.implantedDate, start, end)
+    )
     .map(row => row.name);
 
   return {

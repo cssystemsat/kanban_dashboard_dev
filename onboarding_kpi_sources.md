@@ -12,3 +12,9 @@ A aba com gid `0` aparece como `Onboarding` no Google Sheets e contém os regist
 A aba com gid `1590626518` aparece como `KPI's`. Na exportação CSV, `AK` é o índice zero-based 36 e `AM` é o índice zero-based 38. Os dados visíveis em `AK`/`AM` começam na linha 2 da exportação, com nomes de clientes e datas de implantação, por exemplo `BVTRACKER` / `26/07/2026`, `Fênix Sat` / `26/07/2026` e `FORT SERVIÇOS` / `26/07/2026`. A área de indicadores usa `AA`/`AB`, incluindo `AA = Clientes ativos no onboarding` e `AB = 156`, além de `AA = Concluídos na semana` e `AB = 23`; porém a regra solicitada para o novo fluxo é contar diretamente os registros de `AK` e filtrar a data em `AM` pela semana passada.
 
 A página atual ainda usa valores manuais, mas a implementação deverá substituir apenas os dois indicadores de Onboarding solicitados. A consulta deve ignorar linhas sem nome em `AK`, interpretar datas brasileiras em `AM` e retornar também os nomes para os modais.
+
+## Auditoria de 31/08/2026
+
+A exportação real da aba `KPI’s` contém 22 registros com nome em `AK`; todos têm `AM = 26/07/2026`. A semana passada calculada para o ambiente é `24/08/2026` a `30/08/2026`, portanto o indicador `Concluídos` retorna `0` e o modal fica vazio pela regra solicitada.
+
+A célula de resumo `AB3` exibe `23`, mas ela não é usada para o indicador atualizado: a fonte operacional definida é o nome em `AK` combinado com a data de implantação em `AM`. Quando a planilha receber registros com `AM` dentro da semana passada, eles serão contados automaticamente e seus nomes aparecerão no modal.
