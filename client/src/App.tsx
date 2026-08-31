@@ -49,6 +49,7 @@ function getPageFromUrl(): string {
 
 function AppInner() {
   const [currentPage, setCurrentPage] = useState(getPageFromUrl);
+  const [isSideMenuExpanded, setIsSideMenuExpanded] = useState(false);
   const sessionIdRef = useRef<number | null>(null);
 
   const {
@@ -219,7 +220,7 @@ function AppInner() {
           </div>
         );
       case "kpis":
-        return <KPIs />;
+        return <KPIs sidebarExpanded={isSideMenuExpanded} />;
       case "apppersonalizado":
         return <AppPersonalizado />;
       default:
@@ -231,7 +232,11 @@ function AppInner() {
     <>
       <Toaster />
       <DailyLossesAlert />
-      <SideMenu currentPage={currentPage} onPageChange={handlePageChange} />
+      <SideMenu
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+        onExpandedChange={setIsSideMenuExpanded}
+      />
       {renderPage()}
       {user && currentPage !== "painel" && currentPage !== "performance" && (
         <ChecklistPanel />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import {
@@ -18,8 +19,13 @@ interface KPICard {
   detailsTitle?: string;
 }
 
-export default function KPIs() {
+export default function KPIs({
+  sidebarExpanded = false,
+}: {
+  sidebarExpanded?: boolean;
+}) {
   const [selectedKPI, setSelectedKPI] = useState<KPICard | null>(null);
+  const sidebarOffsetClass = sidebarExpanded ? "md:ml-[200px]" : "md:ml-20";
   const { data: previousSnapshot } =
     trpc.kpis.getPreviousWeeklySnapshot.useQuery();
   const { data: onboardingMetrics } =
@@ -250,7 +256,9 @@ export default function KPIs() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white px-6 py-6">
+    <div
+      className={`${sidebarOffsetClass} min-h-screen overflow-x-hidden bg-white px-6 py-6`}
+    >
       <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)_1px_minmax(0,1fr)]">
         {renderCategory(
           "Onboarding",

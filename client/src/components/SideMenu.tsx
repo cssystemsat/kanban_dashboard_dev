@@ -23,6 +23,7 @@ import { getLoginUrl } from "@/const";
 interface SideMenuProps {
   currentPage: string;
   onPageChange: (page: string) => void;
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
 // Aba pública — visível para todos sem login
@@ -60,7 +61,11 @@ function getTodayBRT(): string {
   });
 }
 
-export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
+export default function SideMenu({
+  currentPage,
+  onPageChange,
+  onExpandedChange,
+}: SideMenuProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { data: user } = trpc.auth.me.useQuery();
@@ -198,8 +203,14 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
         width: isExpanded ? "200px" : "80px",
         backgroundColor: "#001F3F",
       }}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
+      onMouseEnter={() => {
+        setIsExpanded(true);
+        onExpandedChange?.(true);
+      }}
+      onMouseLeave={() => {
+        setIsExpanded(false);
+        onExpandedChange?.(false);
+      }}
     >
       {/* Wordmark */}
       <div

@@ -155,5 +155,9 @@
 - [x] Orientar o usuário a clicar em Publish no cartão de checkpoint, sem exigir login no domínio público.
 - [x] Adicionar divisões visuais em linha entre Onboarding, Ongoing e Migração.
 - [x] Garantir que os separadores sejam responsivos e não criem overflow no mobile.
-- [ ] Validar a divisão no preview e salvar checkpoint visual.
-- [ ] Salvar um novo checkpoint específico após a implementação das divisões visuais em linha entre Onboarding, Ongoing e Migração e confirmar que os separadores estão incluídos nele.
+- [x] Validar a divisão no preview e salvar checkpoint visual.
+- [x] Salvar um novo checkpoint específico após a implementação das divisões visuais em linha entre Onboarding, Ongoing e Migração e confirmar que os separadores estão incluídos nele.
+- [x] Corrigir o recorte horizontal que oculta o início de Onboarding — Semana Retrasada.
+- [x] Preservar os separadores entre categorias sem sobreposição com o conteúdo.
+- [x] Validar desktop/mobile, executar testes e salvar checkpoint corretivo.
+- [ ] Salvar checkpoint corretivo após a integração da margem dinâmica do menu lateral e confirmar Onboarding — Semana Retrasada totalmente visível.
