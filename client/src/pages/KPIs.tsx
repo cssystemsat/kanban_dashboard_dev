@@ -13,12 +13,16 @@ interface KPICard {
   trend?: "up" | "down" | "neutral";
   trendValue?: string;
   status?: "good" | "warning" | "critical" | "neutral";
+  details?: string[];
+  detailsTitle?: string;
 }
 
 export default function KPIs() {
   const [selectedKPI, setSelectedKPI] = useState<KPICard | null>(null);
   const { data: previousSnapshot } =
     trpc.kpis.getPreviousWeeklySnapshot.useQuery();
+  const { data: onboardingMetrics } =
+    trpc.kpis.getOnboardingKpiMetrics.useQuery();
 
   // Semana retrasada: começa zerada e passa a exibir o último fechamento semanal.
   const onboardingRetrasada: KPICard[] =
@@ -28,8 +32,28 @@ export default function KPIs() {
   const migracaoRetrasada: KPICard[] =
     previousSnapshot?.values.migracao ?? KPI_ZERO_WEEK_VALUES.migracao;
 
-  // Semana passada: valores manuais editáveis em shared/kpiDefinitions.ts.
-  const onboardingPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.onboarding;
+  // Semana passada: valores reais de Onboarding e valores manuais dos demais KPI’s.
+  const onboardingPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.onboarding.map(
+    (kpi, index) => {
+      if (index === 0) {
+        return {
+          ...kpi,
+          value: onboardingMetrics?.clientesAtivos.value ?? 0,
+          details: onboardingMetrics?.clientesAtivos.clients ?? [],
+          detailsTitle: "Clientes na aba Marcos",
+        };
+      }
+      if (index === 1) {
+        return {
+          ...kpi,
+          value: onboardingMetrics?.concluidos.value ?? 0,
+          details: onboardingMetrics?.concluidos.clients ?? [],
+          detailsTitle: "Implantados na semana passada",
+        };
+      }
+      return kpi;
+    }
+  );
   const ongoingPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.ongoing;
   const migracaoPassada: KPICard[] = KPI_MANUAL_WEEK_VALUES.migracao;
 
@@ -205,10 +229,34 @@ export default function KPIs() {
               )}
             </div>
 
-            <div className="bg-gray-50 rounded p-4 mb-4 min-h-[100px]">
-              <p className="text-sm text-gray-600">
-                Informações do KPI serão adicionadas aqui...
-              </p>
+            <div className="bg-gray-50 rounded p-4 mb-4 min-h-[100px] max-h-64 overflow-y-auto">
+              {selectedKPI.details ? (
+                <>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    {selectedKPI.detailsTitle ?? "Clientes relacionados"}
+                  </p>
+                  {selectedKPI.details.length > 0 ? (
+                    <ul className="space-y-1 text-sm text-gray-600">
+                      {selectedKPI.details.map((client, index) => (
+                        <li
+                          key={`${client}-${index}`}
+                          className="border-b border-gray-200 pb-1 last:border-0"
+                        >
+                          {client}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-600">
+                      Nenhum cliente encontrado para este período.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  Informações do KPI serão adicionadas aqui...
+                </p>
+              )}
             </div>
 
             <button

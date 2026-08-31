@@ -62,6 +62,7 @@ import { appKanbanCards, analystScores } from "../drizzle/schema";
 import { getDb } from "./db";
 import { ENV } from "./_core/env";
 import { getPreviousKpiWeeklyValues } from "./kpiSnapshots";
+import { getOnboardingKpiMetrics } from "./kpiMetrics";
 
 function isProjectOwner(user: { openId: string } | null | undefined): boolean {
   return Boolean(ENV.ownerOpenId && user?.openId === ENV.ownerOpenId);
@@ -876,6 +877,27 @@ export const appRouter = router({
     getPreviousWeeklySnapshot: publicProcedure.query(async () =>
       getPreviousKpiWeeklyValues()
     ),
+    getOnboardingKpiMetrics: publicProcedure.query(async () => {
+      try {
+        return await getOnboardingKpiMetrics();
+      } catch (error: any) {
+        console.error("[getOnboardingKpiMetrics] Erro:", error?.message);
+        return {
+          clientesAtivos: {
+            value: 0,
+            clients: [],
+            source: "primary:Marcos" as const,
+          },
+          concluidos: {
+            value: 0,
+            clients: [],
+            source: "primary:KPI's!AK/AM" as const,
+            periodStart: "",
+            periodEnd: "",
+          },
+        };
+      }
+    }),
     getOnboardingKpis: publicProcedure.query(async () => {
       try {
         // Clientes ativos no onboarding: linhas de dados da aba Onboarding da planilha principal.

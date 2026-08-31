@@ -8,6 +8,8 @@ export interface KPICard {
   trend?: KPITrend;
   trendValue?: string;
   status?: KPIStatus;
+  details?: string[];
+  detailsTitle?: string;
 }
 
 export type KPICategory = "onboarding" | "ongoing" | "migracao";

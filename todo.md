@@ -102,3 +102,9 @@
 - [ ] Publicar a versão com o callback de fechamento semanal de KPI’s antes de criar o schedule em produção.
 - [ ] Ativar as automações pela aba Performance após a publicação e registrar o taskUid do job `kpi_weekly_snapshot`.
 - [ ] Confirmar em produção que o schedule de sexta-feira às 23:59 BRT aparece como ativo e que o callback responde com sucesso.
+- [x] Contar os clientes ativos de Onboarding a partir da aba Marcos e usar o total real no card.
+- [x] Contar os concluídos na coluna AK da aba KPI’s, filtrando pela semana passada usando a coluna AM.
+- [x] Exibir no modal de Clientes ativos a lista dos clientes da aba Marcos.
+- [x] Exibir no modal de Concluídos a lista dos clientes implantados na semana passada.
+- [x] Criar testes de regressão para as contagens, filtro semanal e listas dos modais de Onboarding.
+- [x] Validar a aba KPI’s com dados reais, TypeScript, build e salvar checkpoint da integração de Onboarding.

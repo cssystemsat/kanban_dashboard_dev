@@ -1,4 +1,8 @@
-import { KPI_MANUAL_WEEK_VALUES } from "@shared/kpiDefinitions";
+import {
+  KPI_MANUAL_WEEK_VALUES,
+  type KpiManualValues,
+} from "@shared/kpiDefinitions";
+import { getOnboardingKpiMetrics } from "./kpiMetrics";
 import { getLatestKpiWeeklySnapshot, saveKpiWeeklySnapshot } from "./db";
 
 function brtDateKey(date = new Date()): string {
@@ -13,11 +17,40 @@ export function getKpiClosingPeriodKey(date = new Date()): string {
   return brtDate.toISOString().slice(0, 10);
 }
 
+export async function getCurrentKpiValues(
+  referenceDate = new Date()
+): Promise<KpiManualValues> {
+  const metrics = await getOnboardingKpiMetrics(referenceDate);
+  return {
+    ...KPI_MANUAL_WEEK_VALUES,
+    onboarding: KPI_MANUAL_WEEK_VALUES.onboarding.map((card, index) => {
+      if (index === 0) {
+        return {
+          ...card,
+          value: metrics.clientesAtivos.value,
+          details: metrics.clientesAtivos.clients,
+          detailsTitle: "Clientes na aba Marcos",
+        };
+      }
+      if (index === 1) {
+        return {
+          ...card,
+          value: metrics.concluidos.value,
+          details: metrics.concluidos.clients,
+          detailsTitle: `Implantados de ${metrics.concluidos.periodStart} a ${metrics.concluidos.periodEnd}`,
+        };
+      }
+      return card;
+    }),
+  };
+}
+
 export async function closeKpiWeeklySnapshot(date = new Date()) {
   const periodKey = getKpiClosingPeriodKey(date);
+  const values = await getCurrentKpiValues(date);
   const result = await saveKpiWeeklySnapshot({
     periodKey,
-    valuesJson: JSON.stringify(KPI_MANUAL_WEEK_VALUES),
+    valuesJson: JSON.stringify(values),
     closedAt: date,
   });
   const snapshot = result.snapshot;

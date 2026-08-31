@@ -6,20 +6,28 @@ import {
   KPI_ZERO_WEEK_VALUES,
 } from "../shared/kpiDefinitions";
 
-const { saveKpiWeeklySnapshot, getLatestKpiWeeklySnapshot } = vi.hoisted(
-  () => ({
-    saveKpiWeeklySnapshot: vi.fn(),
-    getLatestKpiWeeklySnapshot: vi.fn(),
-  })
-);
+const {
+  saveKpiWeeklySnapshot,
+  getLatestKpiWeeklySnapshot,
+  getOnboardingKpiMetrics,
+} = vi.hoisted(() => ({
+  saveKpiWeeklySnapshot: vi.fn(),
+  getLatestKpiWeeklySnapshot: vi.fn(),
+  getOnboardingKpiMetrics: vi.fn(),
+}));
 
 vi.mock("./db", () => ({
   saveKpiWeeklySnapshot,
   getLatestKpiWeeklySnapshot,
 }));
 
+vi.mock("./kpiMetrics", () => ({
+  getOnboardingKpiMetrics,
+}));
+
 import {
   closeKpiWeeklySnapshot,
+  getCurrentKpiValues,
   getKpiClosingPeriodKey,
   getPreviousKpiWeeklyValues,
 } from "./kpiSnapshots";
@@ -45,6 +53,7 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
   beforeEach(() => {
     saveKpiWeeklySnapshot.mockReset();
     getLatestKpiWeeklySnapshot.mockReset();
+    getOnboardingKpiMetrics.mockReset();
   });
 
   it("inicia todos os indicadores da semana retrasada em zero", () => {
@@ -88,10 +97,25 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
       closedAt,
       createdAt: closedAt,
     };
+    getOnboardingKpiMetrics.mockResolvedValue({
+      clientesAtivos: {
+        value: 156,
+        clients: ["ALPHA TECNOLOGIA", "ALTOTRAK"],
+        source: "primary:Marcos",
+      },
+      concluidos: {
+        value: 2,
+        clients: ["BVTRACKER", "Fênix Sat"],
+        source: "primary:KPI's!AK/AM",
+        periodStart: "2026-08-24",
+        periodEnd: "2026-08-30",
+      },
+    });
     saveKpiWeeklySnapshot
       .mockResolvedValueOnce({ snapshot: stored, created: true })
       .mockResolvedValueOnce({ snapshot: stored, created: false });
 
+    const expectedValues = await getCurrentKpiValues(closedAt);
     const first = await closeKpiWeeklySnapshot(closedAt);
     const retry = await closeKpiWeeklySnapshot(closedAt);
 
@@ -100,7 +124,7 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
     expect(saveKpiWeeklySnapshot).toHaveBeenCalledTimes(2);
     expect(saveKpiWeeklySnapshot.mock.calls[0][0]).toMatchObject({
       periodKey: "2026-08-28",
-      valuesJson: JSON.stringify(KPI_MANUAL_WEEK_VALUES),
+      valuesJson: JSON.stringify(expectedValues),
     });
   });
 
