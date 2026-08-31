@@ -143,12 +143,7 @@ export default function KPIs() {
     migracaoRetrasada
   );
 
-  const getStatusColor = (status?: string) => {
-    if (status === "good") return "bg-green-50 border-green-200";
-    if (status === "warning") return "bg-yellow-50 border-yellow-200";
-    if (status === "critical") return "bg-red-50 border-red-200";
-    return "bg-gray-50 border-gray-200";
-  };
+  const getStatusColor = () => "bg-transparent border-gray-300";
 
   const getStatusTextColor = (status?: string) => {
     if (status === "good") return "text-green-700";
@@ -170,25 +165,25 @@ export default function KPIs() {
     kpiRetrasada: KPICard,
     index: number
   ) => (
-    <div key={`kpi-row-${index}`} className="flex gap-1 mb-1">
+    <div key={`kpi-row-${index}`} className="flex gap-3 mb-3">
       {/* Semana Retrasada */}
       <div
         onClick={() => setSelectedKPI(kpiRetrasada)}
-        className={`flex-1 p-1.5 rounded border text-xs cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(kpiRetrasada.status)}`}
+        className={`min-w-0 min-h-[72px] flex-1 p-3 rounded-lg border text-sm cursor-pointer hover:shadow-md transition-shadow ${getStatusColor()}`}
       >
-        <p className="font-medium text-gray-700 truncate text-xs">
+        <p className="font-medium text-gray-700 truncate text-sm leading-tight">
           {kpiRetrasada.label}
         </p>
-        <div className="flex items-center justify-between mt-0.5">
+        <div className="flex items-center justify-between mt-2">
           <span
-            className={`font-bold text-xs ${getStatusTextColor(kpiRetrasada.status)}`}
+            className={`font-bold text-base ${getStatusTextColor(kpiRetrasada.status)}`}
           >
             {kpiRetrasada.value}
           </span>
           {kpiRetrasada.trend && (
             <div className="flex items-center gap-0.5">
               {getTrendIcon(kpiRetrasada.trend)}{" "}
-              <span className="text-xs text-gray-600">
+              <span className="text-sm text-gray-600">
                 {kpiRetrasada.trendValue}
               </span>
             </div>
@@ -199,21 +194,21 @@ export default function KPIs() {
       {/* Semana Passada */}
       <div
         onClick={() => setSelectedKPI(kpiPassada)}
-        className={`flex-1 p-1.5 rounded border text-xs cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(kpiPassada.status)}`}
+        className={`min-w-0 min-h-[72px] flex-1 p-3 rounded-lg border text-sm cursor-pointer hover:shadow-md transition-shadow ${getStatusColor()}`}
       >
-        <p className="font-medium text-gray-700 truncate text-xs">
+        <p className="font-medium text-gray-700 truncate text-sm leading-tight">
           {kpiPassada.label}
         </p>
-        <div className="flex items-center justify-between mt-0.5">
+        <div className="flex items-center justify-between mt-2">
           <span
-            className={`font-bold text-xs ${getStatusTextColor(kpiPassada.status)}`}
+            className={`font-bold text-base ${getStatusTextColor(kpiPassada.status)}`}
           >
             {kpiPassada.value}
           </span>
           {kpiPassada.trend && (
             <div className="flex items-center gap-0.5">
               {getTrendIcon(kpiPassada.trend)}{" "}
-              <span className="text-xs text-gray-600">
+              <span className="text-sm text-gray-600">
                 {kpiPassada.trendValue}
               </span>
             </div>
@@ -230,22 +225,22 @@ export default function KPIs() {
     retrasada: KPICard[],
     borderColor: string
   ) => (
-    <div className="flex-1">
+    <div className="min-w-0">
       <h2
-        className={`text-sm font-bold text-gray-900 mb-2 pb-1 border-b-2 ${borderColor}`}
+        className={`text-lg font-bold text-gray-900 mb-4 pb-2 border-b-2 ${borderColor}`}
       >
         {icon} {categoryTitle}
       </h2>
 
       {/* Headers das colunas */}
-      <div className="flex gap-1 mb-1">
+      <div className="flex gap-3 mb-3">
         <div className="flex-1">
-          <p className="text-xs font-semibold text-gray-700">
+          <p className="text-sm font-semibold text-gray-700">
             Semana Retrasada
           </p>
         </div>
         <div className="flex-1">
-          <p className="text-xs font-semibold text-gray-700">Semana Passada</p>
+          <p className="text-sm font-semibold text-gray-700">Semana Passada</p>
         </div>
       </div>
 
@@ -255,40 +250,37 @@ export default function KPIs() {
   );
 
   return (
-    <div
-      className="ml-20 p-3"
-      style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
-    >
-      <div className="flex gap-3 w-full">
+    <div className="ml-20 min-h-screen overflow-x-hidden bg-white px-6 py-6">
+      <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-3">
         {renderCategory(
           "Onboarding",
           "🚀",
           onboardingPassada,
           onboardingRetrasada,
-          "border-blue-500"
+          "border-gray-300"
         )}
-        <div key="divider-1" className="border-l-2 border-gray-300"></div>
+        <div key="divider-1" className="hidden"></div>
         {renderCategory(
           "Ongoing",
           "📈",
           ongoingPassada,
           ongoingRetrasada,
-          "border-purple-500"
+          "border-gray-300"
         )}
-        <div key="divider-2" className="border-l-2 border-gray-300"></div>
+        <div key="divider-2" className="hidden"></div>
         {renderCategory(
           "Migração",
           "🔄",
           migracaoPassada,
           migracaoRetrasada,
-          "border-teal-500"
+          "border-gray-300"
         )}
       </div>
 
       {/* Modal de KPI */}
       {selectedKPI && (
         <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-xl shadow-2xl p-7 max-w-2xl w-full mx-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-900">
                 {selectedKPI.label}
@@ -315,7 +307,7 @@ export default function KPIs() {
               )}
             </div>
 
-            <div className="bg-gray-50 rounded p-4 mb-4 min-h-[100px] max-h-64 overflow-y-auto">
+            <div className="bg-transparent rounded-lg border border-gray-200 p-5 mb-5 min-h-[120px] max-h-72 overflow-y-auto">
               {selectedKPI.details ? (
                 <>
                   <p className="text-sm font-semibold text-gray-700 mb-2">

@@ -79,4 +79,17 @@ describe("Página de KPI’s de Onboarding", () => {
   it("não usa mais a procedure manual como origem dos dois valores reais", () => {
     expect(pageSource).not.toContain("trpc.kpis.getOnboardingKpis.useQuery");
   });
+
+  it("usa cards ampliados, grade responsiva e painéis sem fundo colorido", () => {
+    expect(pageSource).toContain("min-w-0 min-h-[72px]");
+    expect(pageSource).toContain("p-3 rounded-lg border text-sm");
+    expect(pageSource).toContain(
+      "grid w-full grid-cols-1 gap-6 xl:grid-cols-3"
+    );
+    expect(pageSource).toContain("overflow-x-hidden bg-white px-6 py-6");
+    expect(pageSource).toContain("bg-transparent border-gray-300");
+    expect(pageSource).not.toContain("bg-green-50");
+    expect(pageSource).not.toContain("bg-yellow-50");
+    expect(pageSource).not.toContain("bg-red-50");
+  });
 });

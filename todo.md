@@ -141,5 +141,15 @@
 - [x] Exibir no modal de Clientes bloqueados as empresas com status Paralisado.
 - [x] Preservar os novos campos nos snapshots semanais de KPI’s.
 - [x] Criar testes de regressão para AB29, status Paralisado e conteúdo do modal.
-- [ ] Validar visualmente, executar TypeScript, build e testes, e salvar checkpoint da alteração.
+- [x] Validar visualmente, executar TypeScript, build e testes, e salvar checkpoint da alteração.
 - [x] Corrigir o bloco de teste de cronômetro em `client/src/pages/Painel.test.ts`, que está fora do `describe` e interrompe o formatador/test runner.
+- [x] Aumentar a escala visual da tela de KPI’s para melhorar leitura em desktop.
+- [x] Reduzir o espaçamento vazio e ampliar cards, títulos, valores e modais sem alterar o fluxo de dados.
+- [x] Remover temporariamente as cores de fundo dos painéis e manter uma base neutra.
+- [x] Validar desktop, responsividade e preservação dos modais; executar testes e salvar checkpoint visual.
+- [ ] Salvar um checkpoint específico da revisão visual da aba KPI’s após os ajustes de escala e neutralização dos painéis.
+- [ ] Validar explicitamente um modal da aba KPI’s após o ajuste visual para confirmar que a interação e o conteúdo permanecem intactos.
+- [ ] Abrir explicitamente o card Clientes ativos após o ajuste visual e confirmar que o modal mantém conteúdo e lista.
+- [ ] Salvar checkpoint específico após a validação explícita do modal na versão ampliada e neutra.
+- [ ] Salvar o checkpoint visual final antes de orientar a publicação pela interface.
+- [ ] Orientar o usuário a clicar em Publish no cartão de checkpoint, sem exigir login no domínio público.
