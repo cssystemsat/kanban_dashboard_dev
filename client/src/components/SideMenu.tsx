@@ -1,7 +1,24 @@
-import { LayoutDashboard, CheckSquare, Users, AlertCircle, TrendingDown, TrendingUp, Settings, LogIn, LogOut, Wrench, BarChart2, BarChart3, LayoutGrid, Phone, PieChart, Smartphone } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { trpc } from '@/lib/trpc';
-import { getLoginUrl } from '@/const';
+import {
+  LayoutDashboard,
+  CheckSquare,
+  Users,
+  AlertCircle,
+  TrendingDown,
+  TrendingUp,
+  Settings,
+  LogIn,
+  LogOut,
+  Wrench,
+  BarChart2,
+  BarChart3,
+  LayoutGrid,
+  Phone,
+  PieChart,
+  Smartphone,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
+import { getLoginUrl } from "@/const";
 
 interface SideMenuProps {
   currentPage: string;
@@ -10,30 +27,37 @@ interface SideMenuProps {
 
 // Aba pública — visível para todos sem login
 const PUBLIC_ITEMS = [
-  { id: 'painel', label: 'Painel', icon: LayoutGrid },
-  { id: 'performance', label: 'Performance', icon: BarChart3 },
+  { id: "painel", label: "Painel", icon: LayoutGrid },
+  { id: "performance", label: "Performance", icon: BarChart3 },
 ];
 
 // Abas que requerem login e permissao
 const PROTECTED_ITEMS = [
-  { id: 'dashboard', label: "Evolução de UR's", icon: BarChart2 },
-  { id: 'kpis', label: "KPI's de Gestão CS", icon: TrendingUp },
-  { id: 'marcos', label: 'Marcos', icon: CheckSquare },
-  { id: 'ongoing', label: 'Ongoing', icon: Users },
-  { id: 'churns', label: 'CHURNs', icon: TrendingDown },
-  { id: 'migracao-externa', label: 'Migração', icon: AlertCircle, href: 'https://migracao-web.onrender.com/' },
-  { id: 'apppersonalizado', label: 'App Personalizado', icon: Smartphone },
-  { id: 'ferramentas', label: 'Ferramentas', icon: Wrench },
+  { id: "dashboard", label: "Evolução de UR's", icon: BarChart2 },
+  { id: "kpis", label: "KPI's de Gestão CS", icon: TrendingUp },
+  { id: "marcos", label: "Marcos", icon: CheckSquare },
+  { id: "ongoing", label: "Ongoing", icon: Users },
+  { id: "churns", label: "CHURNs", icon: TrendingDown },
+  {
+    id: "migracao-externa",
+    label: "Migração",
+    icon: AlertCircle,
+    href: "https://migracao-web.onrender.com/",
+  },
+  { id: "apppersonalizado", label: "App Personalizado", icon: Smartphone },
+  { id: "ferramentas", label: "Ferramentas", icon: Wrench },
 ];
 
 // Abas apenas para admin
 const ADMIN_ONLY_ITEMS = [
-  { id: 'atendimentos', label: 'Atendimentos', icon: Phone },
-  { id: 'estatisticas', label: 'Estatísticas', icon: PieChart },
+  { id: "atendimentos", label: "Atendimentos", icon: Phone },
+  { id: "estatisticas", label: "Estatísticas", icon: PieChart },
 ];
 
 function getTodayBRT(): string {
-  return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+  return new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
 }
 
 export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
@@ -59,28 +83,32 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
     if (!user) return;
 
     const refreshDailyChecklist = () => {
-      const stored = localStorage.getItem('checklist_last_date');
+      const stored = localStorage.getItem("checklist_last_date");
       const today = getTodayBRT();
       if (stored !== today) {
-        localStorage.setItem('checklist_last_date', today);
+        localStorage.setItem("checklist_last_date", today);
         void utils.checklists.list.invalidate();
       }
     };
 
     refreshDailyChecklist();
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') refreshDailyChecklist();
+      if (document.visibilityState === "visible") refreshDailyChecklist();
     };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [user, utils]);
   // Abas protegidas visíveis para o usuário logado
   const visibleProtectedItems = (() => {
     if (!isLoggedIn || !isAllowed) return [];
     // Se o usuário tem onlyAppKanban, mostrar apenas App Personalizado
-    if (myPerms?.onlyAppKanban) return PROTECTED_ITEMS.filter(item => item.id === 'apppersonalizado');
+    if (myPerms?.onlyAppKanban)
+      return PROTECTED_ITEMS.filter(item => item.id === "apppersonalizado");
     if (myPerms?.allowedPages === null) return PROTECTED_ITEMS; // acesso total
-    return PROTECTED_ITEMS.filter(item => myPerms?.allowedPages?.includes(item.id));
+    return PROTECTED_ITEMS.filter(item =>
+      myPerms?.allowedPages?.includes(item.id)
+    );
   })();
 
   // Ábas públicas visíveis (Home só para autenticados)
@@ -95,12 +123,17 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
     return ADMIN_ONLY_ITEMS;
   })();
 
-  const renderItem = (item: { id: string; label: string; icon: React.ElementType; href?: string }) => {
+  const renderItem = (item: {
+    id: string;
+    label: string;
+    icon: React.ElementType;
+    href?: string;
+  }) => {
     const Icon = item.icon;
     const isActive = currentPage === item.id;
     const itemStyle = {
-      backgroundColor: isActive ? '#00DD00' : undefined,
-      color: isActive ? '#001F3F' : '#D1D5DB',
+      backgroundColor: isActive ? "#00DD00" : undefined,
+      color: isActive ? "#001F3F" : "#D1D5DB",
     };
 
     if (item.href) {
@@ -112,12 +145,21 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
           rel="noreferrer"
           className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
           style={itemStyle}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
-          title={!isExpanded ? item.label : ''}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.backgroundColor =
+              "rgba(255,255,255,0.08)";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = "";
+          }}
+          title={!isExpanded ? item.label : ""}
         >
           <Icon className="w-5 h-5 flex-shrink-0" />
-          {isExpanded && <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>}
+          {isExpanded && (
+            <span className="text-sm font-medium whitespace-nowrap">
+              {item.label}
+            </span>
+          )}
         </a>
       );
     }
@@ -128,13 +170,22 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
         onClick={() => onPageChange(item.id)}
         className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
         style={itemStyle}
-        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
-        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
-        title={!isExpanded ? item.label : ''}
+        onMouseEnter={e => {
+          if (!isActive)
+            (e.currentTarget as HTMLElement).style.backgroundColor =
+              "rgba(255,255,255,0.08)";
+        }}
+        onMouseLeave={e => {
+          if (!isActive)
+            (e.currentTarget as HTMLElement).style.backgroundColor = "";
+        }}
+        title={!isExpanded ? item.label : ""}
       >
         <Icon className="w-5 h-5 flex-shrink-0" />
         {isExpanded && (
-          <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>
+          <span className="text-sm font-medium whitespace-nowrap">
+            {item.label}
+          </span>
         )}
       </button>
     );
@@ -143,22 +194,46 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
   return (
     <div
       className="fixed left-0 top-0 h-screen z-50 transition-all duration-300 hidden md:flex md:flex-col"
-      style={{ width: isExpanded ? '200px' : '80px', backgroundColor: '#001F3F' }}
+      style={{
+        width: isExpanded ? "200px" : "80px",
+        backgroundColor: "#001F3F",
+      }}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Wordmark */}
-      <div className="px-3 py-3 border-b flex items-center justify-center" style={{ borderColor: '#1a3a5c', minHeight: '72px' }}>
+      <div
+        className="px-3 py-3 border-b flex items-center justify-center"
+        style={{ borderColor: "#1a3a5c", minHeight: "72px" }}
+      >
         {isExpanded ? (
-          <div className="flex items-center gap-2.5 w-full px-1" aria-label="Systemsat CS Operations">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black tracking-tight" style={{ backgroundColor: '#00DD00', color: '#001F3F' }}>CS</span>
+          <div
+            className="flex items-center gap-2.5 w-full px-1"
+            aria-label="Systemsat CS Operations"
+          >
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black tracking-tight"
+              style={{ backgroundColor: "#00DD00", color: "#001F3F" }}
+            >
+              CS
+            </span>
             <div className="min-w-0">
-              <div className="text-[15px] font-extrabold tracking-[0.16em] text-white leading-none">SYSTEMSAT</div>
-              <div className="mt-1 text-[9px] font-semibold tracking-[0.2em] text-slate-400">CS OPERATIONS</div>
+              <div className="text-[15px] font-extrabold tracking-[0.16em] text-white leading-none">
+                SYSTEMSAT
+              </div>
+              <div className="mt-1 text-[9px] font-semibold tracking-[0.2em] text-slate-400">
+                CS OPERATIONS
+              </div>
             </div>
           </div>
         ) : (
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black tracking-tight" aria-label="Systemsat" style={{ backgroundColor: '#00DD00', color: '#001F3F' }}>CS</span>
+          <span
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black tracking-tight"
+            aria-label="Systemsat"
+            style={{ backgroundColor: "#00DD00", color: "#001F3F" }}
+          >
+            CS
+          </span>
         )}
       </div>
 
@@ -168,7 +243,7 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
 
         {/* Separador se houver abas protegidas visíveis */}
         {visibleProtectedItems.length > 0 && (
-          <div className="my-1 border-t" style={{ borderColor: '#1a3a5c' }} />
+          <div className="my-1 border-t" style={{ borderColor: "#1a3a5c" }} />
         )}
 
         {/* Abas protegidas */}
@@ -177,11 +252,15 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
         {/* Separador + abas admin */}
         {(isAdmin || visibleAdminItems.length > 0) && (
           <>
-            <div className="my-1 border-t" style={{ borderColor: '#1a3a5c' }} />
+            <div className="my-1 border-t" style={{ borderColor: "#1a3a5c" }} />
             {visibleAdminItems.map(renderItem)}
             {isAdmin && (
               <>
-                {renderItem({ id: 'configuracoes', label: 'Configurações', icon: Settings })}
+                {renderItem({
+                  id: "configuracoes",
+                  label: "Configurações",
+                  icon: Settings,
+                })}
               </>
             )}
           </>
@@ -189,36 +268,50 @@ export default function SideMenu({ currentPage, onPageChange }: SideMenuProps) {
       </nav>
 
       {/* Rodapé login/logout */}
-      <div className="p-3 border-t" style={{ borderColor: '#1a3a5c' }}>
+      <div className="p-3 border-t" style={{ borderColor: "#1a3a5c" }}>
         {user ? (
           <button
             onClick={() => logout.mutate()}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-colors"
-            style={{ color: '#D1D5DB' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
-            title={!isExpanded ? 'Sair' : ''}
+            style={{ color: "#D1D5DB" }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor =
+                "rgba(255,255,255,0.08)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = "";
+            }}
+            title={!isExpanded ? "Sair" : ""}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {isExpanded && (
               <div className="min-w-0">
-                <p className="text-xs font-medium text-white truncate">{user.name || user.email}</p>
+                <p className="text-xs font-medium text-white truncate">
+                  {user.name || user.email}
+                </p>
                 <p className="text-[10px] text-gray-400">Sair</p>
               </div>
             )}
           </button>
         ) : (
           <button
-            onClick={() => window.location.href = getLoginUrl()}
+            onClick={() => (window.location.href = getLoginUrl())}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-colors"
-            style={{ color: '#D1D5DB' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
-            title={!isExpanded ? 'Entrar' : ''}
+            style={{ color: "#D1D5DB" }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor =
+                "rgba(255,255,255,0.08)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = "";
+            }}
+            title={!isExpanded ? "Entrar" : ""}
           >
             <LogIn className="w-5 h-5 flex-shrink-0" />
             {isExpanded && (
-              <span className="text-sm font-medium whitespace-nowrap">Entrar</span>
+              <span className="text-sm font-medium whitespace-nowrap">
+                Entrar
+              </span>
             )}
           </button>
         )}

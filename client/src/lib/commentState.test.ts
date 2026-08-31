@@ -4,8 +4,18 @@ import { sameCommentMap } from "./commentState";
 describe("sameCommentMap", () => {
   const original = {
     ClienteA: {
-      current: { text: "Acompanhar consumo", user: "Ana", date: "2026-08-25T10:00:00.000Z" },
-      history: [{ text: "Primeiro contato", user: "Carlos", date: "2026-08-24T10:00:00.000Z" }],
+      current: {
+        text: "Acompanhar consumo",
+        user: "Ana",
+        date: "2026-08-25T10:00:00.000Z",
+      },
+      history: [
+        {
+          text: "Primeiro contato",
+          user: "Carlos",
+          date: "2026-08-24T10:00:00.000Z",
+        },
+      ],
     },
   };
 

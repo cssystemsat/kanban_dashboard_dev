@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, X } from 'lucide-react';
-import { ClientData } from '@/hooks/useKanbanData';
-import { trpc } from '@/lib/trpc';
+import { useState, useRef, useEffect } from "react";
+import { Send, Loader2, X } from "lucide-react";
+import { ClientData } from "@/hooks/useKanbanData";
+import { trpc } from "@/lib/trpc";
 
 interface AISearchBoxProps {
   clients: ClientData[];
@@ -9,8 +9,10 @@ interface AISearchBoxProps {
 
 export default function AISearchBox({ clients }: AISearchBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [query, setQuery] = useState("");
+  const [messages, setMessages] = useState<
+    Array<{ role: "user" | "assistant"; content: string }>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -18,7 +20,7 @@ export default function AISearchBox({ clients }: AISearchBoxProps) {
   const analyzeMutation = trpc.system.analyzeWithLLM.useMutation();
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -40,32 +42,44 @@ export default function AISearchBox({ clients }: AISearchBoxProps) {
     const clienteMaisAntigo = clients.reduce((prev, current) => {
       const parseDate = (dateStr: string | undefined) => {
         if (!dateStr) return new Date(0);
-        const parts = dateStr.trim().split('/');
+        const parts = dateStr.trim().split("/");
         if (parts.length !== 3) return new Date(0);
-        return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        return new Date(
+          parseInt(parts[2]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[0])
+        );
       };
-      return parseDate(current.entrada) < parseDate(prev.entrada) ? current : prev;
+      return parseDate(current.entrada) < parseDate(prev.entrada)
+        ? current
+        : prev;
     });
 
     const clienteMaisNovo = clients.reduce((prev, current) => {
       const parseDate = (dateStr: string | undefined) => {
         if (!dateStr) return new Date(0);
-        const parts = dateStr.trim().split('/');
+        const parts = dateStr.trim().split("/");
         if (parts.length !== 3) return new Date(0);
-        return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        return new Date(
+          parseInt(parts[2]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[0])
+        );
       };
-      return parseDate(current.entrada) > parseDate(prev.entrada) ? current : prev;
+      return parseDate(current.entrada) > parseDate(prev.entrada)
+        ? current
+        : prev;
     });
 
     const clienteMaisUrs = clients.reduce((prev, current) => {
-      const ursA = parseInt(prev.urs || '0', 10);
-      const ursB = parseInt(current.urs || '0', 10);
+      const ursA = parseInt(prev.urs || "0", 10);
+      const ursB = parseInt(current.urs || "0", 10);
       return ursB > ursA ? current : prev;
     });
 
     const clienteMaiorDelta = clients.reduce((prev, current) => {
-      const deltaA = parseFloat(prev.deltaConsumo || '0');
-      const deltaB = parseFloat(current.deltaConsumo || '0');
+      const deltaA = parseFloat(prev.deltaConsumo || "0");
+      const deltaB = parseFloat(current.deltaConsumo || "0");
       return Math.abs(deltaB) > Math.abs(deltaA) ? current : prev;
     });
 
@@ -88,8 +102,8 @@ Responda as perguntas do usuário de forma concisa e amigável, baseado nos dado
     if (!query.trim() || isLoading) return;
 
     const userMessage = query;
-    setQuery('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setQuery("");
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
     try {
@@ -98,13 +112,17 @@ Responda as perguntas do usuário de forma concisa e amigável, baseado nos dado
         userMessage: userMessage,
       });
 
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      setMessages(prev => [...prev, { role: "assistant", content: response }]);
     } catch (error) {
-      console.error('Erro ao chamar LLM:', error);
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'Desculpe, ocorreu um erro ao processar sua pergunta. Tente novamente.' 
-      }]);
+      console.error("Erro ao chamar LLM:", error);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Desculpe, ocorreu um erro ao processar sua pergunta. Tente novamente.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -118,8 +136,18 @@ Responda as perguntas do usuário de forma concisa e amigável, baseado nos dado
         className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-40"
         title="Abrir busca com IA"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
       </button>
     );
@@ -142,7 +170,9 @@ Responda as perguntas do usuário de forma concisa e amigável, baseado nos dado
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <div className="text-center text-gray-500 text-sm py-8">
-            <p className="font-semibold mb-2">Faça perguntas sobre seus clientes!</p>
+            <p className="font-semibold mb-2">
+              Faça perguntas sobre seus clientes!
+            </p>
             <p className="text-xs">Exemplos:</p>
             <ul className="text-xs mt-2 space-y-1">
               <li>• Qual é o cliente mais antigo?</li>
@@ -155,13 +185,13 @@ Responda as perguntas do usuário de forma concisa e amigável, baseado nos dado
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                msg.role === 'user'
-                  ? 'bg-green-500 text-white rounded-br-none'
-                  : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                msg.role === "user"
+                  ? "bg-green-500 text-white rounded-br-none"
+                  : "bg-gray-100 text-gray-800 rounded-bl-none"
               }`}
             >
               {msg.content}
@@ -185,8 +215,8 @@ Responda as perguntas do usuário de forma concisa e amigável, baseado nos dado
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          onChange={e => setQuery(e.target.value)}
+          onKeyPress={e => e.key === "Enter" && handleSendMessage()}
           placeholder="Faça uma pergunta..."
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           disabled={isLoading}

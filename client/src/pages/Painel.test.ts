@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 /**
  * Teste para validar o auto-refresh a cada 10 minutos na aba Painel
- * 
+ *
  * Nota: Este é um teste unitário que valida a lógica do hook useAutoRefresh
  * e a integração com o componente Painel. O teste real de auto-refresh seria
  * melhor validado com um teste de integração ou e2e que simule o tempo passando.
  */
 
-describe('Painel Auto-Refresh', () => {
+describe("Painel Auto-Refresh", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -18,7 +18,7 @@ describe('Painel Auto-Refresh', () => {
     vi.useRealTimers();
   });
 
-  it('deve chamar callback a cada 10 minutos (600000ms)', () => {
+  it("deve chamar callback a cada 10 minutos (600000ms)", () => {
     const callback = vi.fn();
     const intervalMs = 600000; // 10 minutos
 
@@ -37,7 +37,7 @@ describe('Painel Auto-Refresh', () => {
     clearInterval(interval);
   });
 
-  it('deve permitir atualização manual além do auto-refresh', () => {
+  it("deve permitir atualização manual além do auto-refresh", () => {
     const callback = vi.fn();
     const manualCallback = vi.fn();
 
@@ -55,8 +55,8 @@ describe('Painel Auto-Refresh', () => {
     clearInterval(interval);
   });
 
-  it('deve limpar o intervalo quando o componente desmontar', () => {
-    const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+  it("deve limpar o intervalo quando o componente desmontar", () => {
+    const clearIntervalSpy = vi.spyOn(global, "clearInterval");
     const callback = vi.fn();
 
     const interval = setInterval(callback, 600000);
@@ -68,8 +68,8 @@ describe('Painel Auto-Refresh', () => {
     clearIntervalSpy.mockRestore();
   });
 
-  it('deve atualizar lastRefreshTime ao fazer refresh manual', () => {
-    const now = new Date('2026-04-10T15:00:00Z');
+  it("deve atualizar lastRefreshTime ao fazer refresh manual", () => {
+    const now = new Date("2026-04-10T15:00:00Z");
     vi.setSystemTime(now);
 
     // Simular o comportamento de setLastRefreshTime
@@ -85,7 +85,7 @@ describe('Painel Auto-Refresh', () => {
     expect(lastRefreshTime?.getTime()).toBe(now.getTime());
   });
 
-  it('deve chamar fetchData e fetchMig no auto-refresh', () => {
+  it("deve chamar fetchData e fetchMig no auto-refresh", () => {
     const fetchData = vi.fn();
     const fetchMig = vi.fn();
     const setLastRefreshTime = vi.fn();
@@ -108,9 +108,8 @@ describe('Painel Auto-Refresh', () => {
 
     clearInterval(interval);
   });
-});
 
-  it('cronometro deve contar regressivamente de 600 segundos', () => {
+  it("cronometro deve contar regressivamente de 600 segundos", () => {
     let timeLeft = 600;
     const onComplete = vi.fn();
 
@@ -141,7 +140,7 @@ describe('Painel Auto-Refresh', () => {
     clearInterval(countdownInterval);
   });
 
-  it('cronometro deve resetar após completar', () => {
+  it("cronometro deve resetar após completar", () => {
     let timeLeft = 600;
     const onComplete = vi.fn();
 

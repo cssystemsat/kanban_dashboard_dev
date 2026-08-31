@@ -15,14 +15,22 @@ const clientName = `CLIENT_TEST_COMMENT_${Date.now()}`;
 async function cleanup() {
   const db = await getDb();
   if (!db) return;
-  await db.delete(clientCommentHistory).where(and(
-    eq(clientCommentHistory.clientName, clientName),
-    eq(clientCommentHistory.monthYear, monthYear),
-  ));
-  await db.delete(clientComments).where(and(
-    eq(clientComments.clientName, clientName),
-    eq(clientComments.monthYear, monthYear),
-  ));
+  await db
+    .delete(clientCommentHistory)
+    .where(
+      and(
+        eq(clientCommentHistory.clientName, clientName),
+        eq(clientCommentHistory.monthYear, monthYear)
+      )
+    );
+  await db
+    .delete(clientComments)
+    .where(
+      and(
+        eq(clientComments.clientName, clientName),
+        eq(clientComments.monthYear, monthYear)
+      )
+    );
 }
 
 describe("client comments persistence integration", () => {
@@ -48,13 +56,20 @@ describe("client comments persistence integration", () => {
     });
 
     const current = await getClientComments(monthYear);
-    expect(current.find(comment => comment.clientName === clientName)?.comment).toBe("Acompanhamento atualizado");
+    expect(
+      current.find(comment => comment.clientName === clientName)?.comment
+    ).toBe("Acompanhamento atualizado");
 
-    const savedHistory = (await getClientCommentHistory(monthYear))
-      .filter(comment => comment.clientName === clientName && comment.action === "saved");
+    const savedHistory = (await getClientCommentHistory(monthYear)).filter(
+      comment => comment.clientName === clientName && comment.action === "saved"
+    );
     expect(savedHistory).toHaveLength(2);
-    expect(savedHistory.map(comment => comment.comment)).toContain("Primeiro acompanhamento");
-    expect(savedHistory.map(comment => comment.comment)).toContain("Acompanhamento atualizado");
+    expect(savedHistory.map(comment => comment.comment)).toContain(
+      "Primeiro acompanhamento"
+    );
+    expect(savedHistory.map(comment => comment.comment)).toContain(
+      "Acompanhamento atualizado"
+    );
 
     await deleteClientComment(clientName, monthYear, {
       email: "gestor@example.com",
@@ -62,10 +77,15 @@ describe("client comments persistence integration", () => {
     });
 
     const remaining = await getClientComments(monthYear);
-    expect(remaining.find(comment => comment.clientName === clientName)).toBeUndefined();
+    expect(
+      remaining.find(comment => comment.clientName === clientName)
+    ).toBeUndefined();
 
-    const auditHistory = (await getClientCommentHistory(monthYear))
-      .filter(comment => comment.clientName === clientName);
-    expect(auditHistory.some(comment => comment.action === "deleted")).toBe(true);
+    const auditHistory = (await getClientCommentHistory(monthYear)).filter(
+      comment => comment.clientName === clientName
+    );
+    expect(auditHistory.some(comment => comment.action === "deleted")).toBe(
+      true
+    );
   });
 });

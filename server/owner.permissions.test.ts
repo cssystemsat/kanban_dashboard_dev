@@ -4,7 +4,7 @@ import { ENV } from "./_core/env";
 import { appRouter } from "./routers";
 import * as db from "./db";
 
-vi.mock("./db", async (importOriginal) => {
+vi.mock("./db", async importOriginal => {
   const actual = await importOriginal<typeof import("./db")>();
   return {
     ...actual,

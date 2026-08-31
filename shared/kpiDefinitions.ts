@@ -169,11 +169,11 @@ export const KPI_MANUAL_WEEK_VALUES: KpiManualValues = {
       trendValue: "-1.1d",
     },
     {
-      label: "Erros/Retrabalho",
-      value: 1,
-      status: "good",
-      trend: "down",
-      trendValue: "-1",
+      label: "Migrados na semana",
+      value: 0,
+      status: "neutral",
+      trend: "neutral",
+      trendValue: "0",
     },
     {
       label: "Clientes bloqueados",

@@ -1,5 +1,5 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { useURsEvolution } from '@/hooks/useURsEvolution';
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useURsEvolution } from "@/hooks/useURsEvolution";
 
 interface URsTrendIndicatorProps {
   codigoCliente: string;

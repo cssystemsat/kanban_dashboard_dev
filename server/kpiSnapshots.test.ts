@@ -144,6 +144,10 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
         value: 0,
         source: "manual:temporário",
       },
+      migradosNaSemana: {
+        value: 52,
+        source: "primary:KPI's!AB29",
+      },
       atrasadas: {
         value: 16,
         clients: ["SUMARÉ SAT"],
@@ -153,6 +157,11 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
         value: 115.88372093023256,
         details: ["Empresa — início em 01/02/2026 — 100.0 dias"],
         source: "primary:Migração!C/D",
+      },
+      clientesBloqueados: {
+        value: 4,
+        clients: ["CAMELCM / TECH GUARD", "Empresa bloqueada"],
+        source: "primary:Migração!T=Paralisado",
       },
     });
     saveKpiWeeklySnapshot
@@ -186,6 +195,15 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
     expect(expectedValues.migracao[3]).toMatchObject({
       label: "Tempo médio",
       value: "115.9d",
+    });
+    expect(expectedValues.migracao[4]).toMatchObject({
+      label: "Migrados na semana",
+      value: 52,
+    });
+    expect(expectedValues.migracao[5]).toMatchObject({
+      label: "Clientes bloqueados",
+      value: 4,
+      details: ["CAMELCM / TECH GUARD", "Empresa bloqueada"],
     });
   });
 

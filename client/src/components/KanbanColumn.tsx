@@ -1,6 +1,6 @@
-import { ClientData } from '@/hooks/useKanbanData';
-import ClientCard from './ClientCard';
-import URsTrendIndicator from './URsTrendIndicator';
+import { ClientData } from "@/hooks/useKanbanData";
+import ClientCard from "./ClientCard";
+import URsTrendIndicator from "./URsTrendIndicator";
 
 interface KanbanColumnProps {
   marcoNumber: number;
@@ -12,28 +12,43 @@ interface KanbanColumnProps {
   trendEndDate?: Date | null;
 }
 
-export default function KanbanColumn({ marcoNumber, marcoName, clients, onClientClick, onAtendimento, trendStartDate, trendEndDate }: KanbanColumnProps) {
+export default function KanbanColumn({
+  marcoNumber,
+  marcoName,
+  clients,
+  onClientClick,
+  onAtendimento,
+  trendStartDate,
+  trendEndDate,
+}: KanbanColumnProps) {
   // Para a coluna 100% Implantados (marcoNumber === 6), mostrar todos os clientes com isComplete
-  const columnClients = marcoNumber === 6 
-    ? clients.filter(c => c.isComplete)
-    : clients.filter(c => c.marco === marcoNumber);
+  const columnClients =
+    marcoNumber === 6
+      ? clients.filter(c => c.isComplete)
+      : clients.filter(c => c.marco === marcoNumber);
 
   return (
-    <div className="flex flex-col gap-3 bg-white rounded-lg border p-3 md:p-4" style={{ borderColor: '#E0E8F0', height: '700px' }}>
+    <div
+      className="flex flex-col gap-3 bg-white rounded-lg border p-3 md:p-4"
+      style={{ borderColor: "#E0E8F0", height: "700px" }}
+    >
       {/* Header da coluna */}
       <div className="flex-shrink-0">
-        <h2 className="font-bold text-lg" style={{ color: '#001F3F' }}>
-          {marcoName || (marcoNumber === 6 ? '100% Implantados' : `Marco ${marcoNumber}`)}
+        <h2 className="font-bold text-lg" style={{ color: "#001F3F" }}>
+          {marcoName ||
+            (marcoNumber === 6 ? "100% Implantados" : `Marco ${marcoNumber}`)}
         </h2>
         <div className="flex gap-4 mt-1">
-          <p className="text-xs" style={{ color: '#4A5F7F' }}>
-            {columnClients.length} {columnClients.length === 1 ? 'cliente' : 'clientes'}
+          <p className="text-xs" style={{ color: "#4A5F7F" }}>
+            {columnClients.length}{" "}
+            {columnClients.length === 1 ? "cliente" : "clientes"}
           </p>
-          <p className="text-xs" style={{ color: '#4A5F7F' }}>
+          <p className="text-xs" style={{ color: "#4A5F7F" }}>
             {columnClients.reduce((total, client) => {
-              const ursCount = parseInt(client.urs || '0', 10);
+              const ursCount = parseInt(client.urs || "0", 10);
               return total + (isNaN(ursCount) ? 0 : ursCount);
-            }, 0)} placas
+            }, 0)}{" "}
+            placas
           </p>
         </div>
       </div>
@@ -43,7 +58,9 @@ export default function KanbanColumn({ marcoNumber, marcoName, clients, onClient
         <div className="flex flex-col gap-3 pr-2">
           {columnClients.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-center">
-              <p className="text-sm" style={{ color: '#9CA3AF' }}>Nenhum cliente neste marco</p>
+              <p className="text-sm" style={{ color: "#9CA3AF" }}>
+                Nenhum cliente neste marco
+              </p>
             </div>
           ) : (
             columnClients.map(client => (
@@ -55,7 +72,10 @@ export default function KanbanColumn({ marcoNumber, marcoName, clients, onClient
                     endDate={trendEndDate}
                   />
                 )}
-                <div onClick={() => onClientClick?.(client)} className="cursor-pointer">
+                <div
+                  onClick={() => onClientClick?.(client)}
+                  className="cursor-pointer"
+                >
                   <ClientCard client={client} onAtendimento={onAtendimento} />
                 </div>
               </div>

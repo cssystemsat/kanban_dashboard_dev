@@ -104,6 +104,23 @@ export async function getCurrentKpiValues(
           detailsTitle: "Empresa — início — duração da migração",
         };
       }
+      if (index === 4) {
+        return {
+          ...card,
+          label: "Migrados na semana",
+          value: migrationMetrics.migradosNaSemana.value,
+          details: [],
+          detailsTitle: "Valor da célula AB29 da aba KPI's",
+        };
+      }
+      if (index === 5) {
+        return {
+          ...card,
+          value: migrationMetrics.clientesBloqueados.value,
+          details: migrationMetrics.clientesBloqueados.clients,
+          detailsTitle: "Empresas com status Paralisado",
+        };
+      }
       return card;
     }),
   };

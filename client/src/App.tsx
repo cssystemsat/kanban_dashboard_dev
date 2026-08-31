@@ -5,47 +5,65 @@ import SideMenu from "./components/SideMenu";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Ongoing from "./pages/Ongoing";
-import Churns from './pages/Churns';
-import Configuracoes from './pages/Configuracoes';
-import Ferramentas from './pages/Ferramentas';
-import Estatisticas from './pages/Estatisticas';
-import Painel from './pages/Painel';
-import { Migracao } from './pages/Migracao';
-import Migration from './pages/Migration';
-import AtendimentosPage from './pages/AtendimentosPage';
-import AppPersonalizado from './pages/AppPersonalizado';
-import KPIs from './pages/KPIs';
-import Performance from './pages/Performance';
-import ChecklistPanel from './components/ChecklistPanel';
-import { DailyLossesAlert } from './components/DailyLossesAlert';
-import ErrorBoundary from './components/ErrorBoundary';
+import Churns from "./pages/Churns";
+import Configuracoes from "./pages/Configuracoes";
+import Ferramentas from "./pages/Ferramentas";
+import Estatisticas from "./pages/Estatisticas";
+import Painel from "./pages/Painel";
+import { Migracao } from "./pages/Migracao";
+import Migration from "./pages/Migration";
+import AtendimentosPage from "./pages/AtendimentosPage";
+import AppPersonalizado from "./pages/AppPersonalizado";
+import KPIs from "./pages/KPIs";
+import Performance from "./pages/Performance";
+import ChecklistPanel from "./components/ChecklistPanel";
+import { DailyLossesAlert } from "./components/DailyLossesAlert";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 
 const VALID_PAGES = new Set([
-  'painel', 'performance', 'dashboard', 'marcos', 'ongoing', 'churns',
-  'configuracoes', 'ferramentas', 'estatisticas', 'migracao', 'migracao2',
-  'atendimentos', 'redflags', 'kpis', 'apppersonalizado',
+  "painel",
+  "performance",
+  "dashboard",
+  "marcos",
+  "ongoing",
+  "churns",
+  "configuracoes",
+  "ferramentas",
+  "estatisticas",
+  "migracao",
+  "migracao2",
+  "atendimentos",
+  "redflags",
+  "kpis",
+  "apppersonalizado",
 ]);
 
 function getPageFromUrl(): string {
-  const requestedPage = new URLSearchParams(window.location.search).get('page');
-  return requestedPage && VALID_PAGES.has(requestedPage) ? requestedPage : 'painel';
+  const requestedPage = new URLSearchParams(window.location.search).get("page");
+  return requestedPage && VALID_PAGES.has(requestedPage)
+    ? requestedPage
+    : "painel";
 }
 
 function AppInner() {
   const [currentPage, setCurrentPage] = useState(getPageFromUrl);
   const sessionIdRef = useRef<number | null>(null);
 
-  const { data: user, isLoading: authLoading, error: authError } = trpc.auth.me.useQuery();
+  const {
+    data: user,
+    isLoading: authLoading,
+    error: authError,
+  } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery(undefined, {
     enabled: !!user,
   });
-  
+
   // Debug: log auth errors
   useEffect(() => {
     if (authError) {
-      console.error('[Auth] Error fetching user:', authError);
+      console.error("[Auth] Error fetching user:", authError);
     }
   }, [authError]);
 
@@ -56,8 +74,8 @@ function AppInner() {
 
   // Redirecionar usuários com onlyAppKanban para App Personalizado
   useEffect(() => {
-    if (myPerms?.onlyAppKanban && currentPage !== 'apppersonalizado') {
-      setCurrentPage('apppersonalizado');
+    if (myPerms?.onlyAppKanban && currentPage !== "apppersonalizado") {
+      setCurrentPage("apppersonalizado");
     }
   }, [myPerms?.onlyAppKanban, currentPage]);
 
@@ -66,23 +84,23 @@ function AppInner() {
     if (!user?.email) return;
     if (sessionIdRef.current !== null) return; // já tem sessão ativa
 
-    console.log('[Session] Starting session for user:', user.email);
+    console.log("[Session] Starting session for user:", user.email);
     startSession.mutate(
       { userAgent: navigator.userAgent },
       {
-        onSuccess: (data) => {
+        onSuccess: data => {
           if (data.sessionId) {
             sessionIdRef.current = data.sessionId;
-            console.log('[Session] Session started:', data.sessionId);
+            console.log("[Session] Session started:", data.sessionId);
             trackAction.mutate({
-              actionType: 'login',
+              actionType: "login",
               description: `Login de ${user.name ?? user.email}`,
               sessionId: data.sessionId,
             });
           }
         },
-        onError: (error) => {
-          console.error('[Session] Failed to start session:', error);
+        onError: error => {
+          console.error("[Session] Failed to start session:", error);
         },
       }
     );
@@ -99,19 +117,19 @@ function AppInner() {
           const url = `/api/trpc/tracking.endSession?input=${encodedInput}`;
           navigator.sendBeacon?.(url);
         } catch (error) {
-          console.error('[Session] Failed to end session on unload:', error);
+          console.error("[Session] Failed to end session on unload:", error);
         }
       }
     };
-    window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
   }, []);
 
   // Rastrear mudança de página
   const handlePageChange = (page: string) => {
     const url = new URL(window.location.href);
-    url.searchParams.set('page', page);
-    window.history.pushState({ page }, '', url);
+    url.searchParams.set("page", page);
+    window.history.pushState({ page }, "", url);
     setCurrentPage(page);
     if (user?.email) {
       trackPage.mutate({ page, sessionId: sessionIdRef.current });
@@ -120,60 +138,76 @@ function AppInner() {
 
   useEffect(() => {
     const handlePopState = () => setCurrentPage(getPageFromUrl());
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const renderPage = () => {
     // Se não está autenticado e tenta acessar Home (marcos), redirecionar para Painel
-    if (!user && currentPage === 'marcos') {
+    if (!user && currentPage === "marcos") {
       return <Painel />;
     }
 
     switch (currentPage) {
-      case 'painel':
+      case "painel":
         return <Painel />;
-      case 'performance':
+      case "performance":
         return <Performance />;
-      case 'dashboard':
+      case "dashboard":
         return <Dashboard />;
-      case 'marcos':
+      case "marcos":
         return <Home />;
-      case 'ongoing':
+      case "ongoing":
         return <Ongoing />;
-      case 'churns':
+      case "churns":
         return <Churns />;
-      case 'configuracoes':
+      case "configuracoes":
         return <Configuracoes />;
-      case 'ferramentas':
+      case "ferramentas":
         return <Ferramentas />;
-      case 'estatisticas':
+      case "estatisticas":
         return (
-          <div className="ml-20" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+          <div
+            className="ml-20"
+            style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
+          >
             <Estatisticas />
           </div>
         );
-      case 'migracao':
+      case "migracao":
         return (
-          <div className="ml-20" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+          <div
+            className="ml-20"
+            style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
+          >
             <Migracao />
           </div>
         );
-      case 'migracao2':
+      case "migracao2":
         return (
-          <div className="ml-20" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+          <div
+            className="ml-20"
+            style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
+          >
             <Migration />
           </div>
         );
-      case 'atendimentos':
+      case "atendimentos":
         return <AtendimentosPage />;
-      case 'redflags':
+      case "redflags":
         return (
-          <div className="ml-20 p-8" style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+          <div
+            className="ml-20 p-8"
+            style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
+          >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold" style={{ color: '#001F3F' }}>Red Flags</h1>
-                <p className="text-gray-600 mt-2">Página de Red Flags (em construção)</p>
+                <h1 className="text-4xl font-bold" style={{ color: "#001F3F" }}>
+                  Red Flags
+                </h1>
+                <p className="text-gray-600 mt-2">
+                  Página de Red Flags (em construção)
+                </p>
               </div>
               <button
                 onClick={() => window.location.reload()}
@@ -184,9 +218,9 @@ function AppInner() {
             </div>
           </div>
         );
-      case 'kpis':
+      case "kpis":
         return <KPIs />;
-      case 'apppersonalizado':
+      case "apppersonalizado":
         return <AppPersonalizado />;
       default:
         return <Painel />;
@@ -199,7 +233,9 @@ function AppInner() {
       <DailyLossesAlert />
       <SideMenu currentPage={currentPage} onPageChange={handlePageChange} />
       {renderPage()}
-      {user && currentPage !== 'painel' && currentPage !== 'performance' && <ChecklistPanel />}
+      {user && currentPage !== "painel" && currentPage !== "performance" && (
+        <ChecklistPanel />
+      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useState, useCallback } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface ClientData {
   id: string;
@@ -16,7 +16,7 @@ export interface ClientData {
   comercial: string;
   saude: string;
   marco: number;
-  marcoStatus: 'ok' | 'atrasado' | 'pendente';
+  marcoStatus: "ok" | "atrasado" | "pendente";
   marcoData: string;
   bitrixLink?: string;
   ganhoUrs?: string;
@@ -47,10 +47,10 @@ export const useKanbanData = () => {
   const [error, setError] = useState<string | null>(null);
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr || dateStr.trim() === '') return null;
-    
+    if (!dateStr || dateStr.trim() === "") return null;
+
     // Tenta formato DD/MM/YYYY
-    const parts = dateStr.trim().split('/');
+    const parts = dateStr.trim().split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
@@ -68,57 +68,66 @@ export const useKanbanData = () => {
     return date < today;
   };
 
-  const getMarcoStatus = (marcoValue: string): 'ok' | 'atrasado' | 'pendente' => {
-    if (!marcoValue || marcoValue.trim() === '') return 'pendente';
-    if (marcoValue.trim().toUpperCase() === 'OK') return 'ok';
-    if (isDateOverdue(marcoValue)) return 'atrasado';
-    return 'ok';
+  const getMarcoStatus = (
+    marcoValue: string
+  ): "ok" | "atrasado" | "pendente" => {
+    if (!marcoValue || marcoValue.trim() === "") return "pendente";
+    if (marcoValue.trim().toUpperCase() === "OK") return "ok";
+    if (isDateOverdue(marcoValue)) return "atrasado";
+    return "ok";
   };
 
-  const getCurrentMarco = (marcos: string[]): { marco: number; status: 'ok' | 'atrasado' | 'pendente'; data: string; isComplete: boolean } => {
+  const getCurrentMarco = (
+    marcos: string[]
+  ): {
+    marco: number;
+    status: "ok" | "atrasado" | "pendente";
+    data: string;
+    isComplete: boolean;
+  } => {
     // Encontra o primeiro marco que não é OK
     for (let i = 0; i < marcos.length; i++) {
       const marcoValue = marcos[i].trim();
-      if (marcoValue === '' || marcoValue.toUpperCase() !== 'OK') {
+      if (marcoValue === "" || marcoValue.toUpperCase() !== "OK") {
         return {
           marco: i + 1,
           status: getMarcoStatus(marcoValue),
           data: marcoValue,
-          isComplete: false
+          isComplete: false,
         };
       }
     }
     // Se todos são OK, cliente completou todos os marcos
     return {
       marco: 5,
-      status: 'ok',
-      data: marcos[4] || '',
-      isComplete: true
+      status: "ok",
+      data: marcos[4] || "",
+      isComplete: true,
     };
   };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await cachedFetch(
-        'https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=0'
+        "https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=0"
       );
-      
+
       if (!response.ok) {
-        throw new Error('Erro ao buscar dados da planilha');
+        throw new Error("Erro ao buscar dados da planilha");
       }
 
       const csv = await response.text();
-      const lines = csv.split('\n');
-      
+      const lines = csv.split("\n");
+
       if (lines.length < 2) {
-        throw new Error('Planilha vazia ou inválida');
+        throw new Error("Planilha vazia ou inválida");
       }
 
-      const header = lines[0].split(',');
-      
+      const header = lines[0].split(",");
+
       // Encontrar indices das colunas
       const codigoClienteIdx = 0; // Coluna A
       const clienteIdx = 1; // Coluna B
@@ -161,28 +170,35 @@ export const useKanbanData = () => {
 
         // Parse CSV com suporte a campos com aspas
         const row = parseCSVLine(line);
-        
+
         if (row.length <= clienteIdx) continue;
 
-        const nome = row[clienteIdx]?.trim() || '';
+        const nome = row[clienteIdx]?.trim() || "";
         if (!nome) continue;
 
         const marcos = [
-          row[marco1Idx]?.trim() || '',
-          row[marco2Idx]?.trim() || '',
-          row[marco3Idx]?.trim() || '',
-          row[marco4Idx]?.trim() || '',
-          row[marco5Idx]?.trim() || ''
+          row[marco1Idx]?.trim() || "",
+          row[marco2Idx]?.trim() || "",
+          row[marco3Idx]?.trim() || "",
+          row[marco4Idx]?.trim() || "",
+          row[marco5Idx]?.trim() || "",
         ];
 
-        const { marco, status, data: marcoData, isComplete } = getCurrentMarco(marcos);
-        
+        const {
+          marco,
+          status,
+          data: marcoData,
+          isComplete,
+        } = getCurrentMarco(marcos);
+
         // Calcular dias corridos desde a entrada
-        const entradaDate = parseDate(row[entradaIdx]?.trim() || '');
+        const entradaDate = parseDate(row[entradaIdx]?.trim() || "");
         let diasCorridos = 0;
         if (entradaDate) {
           const today = new Date();
-          diasCorridos = Math.floor((today.getTime() - entradaDate.getTime()) / (1000 * 60 * 60 * 24));
+          diasCorridos = Math.floor(
+            (today.getTime() - entradaDate.getTime()) / (1000 * 60 * 60 * 24)
+          );
         }
 
         const bitrixLink = row[bitrixIdx]?.trim() || undefined;
@@ -191,8 +207,8 @@ export const useKanbanData = () => {
         const decisor = row[decisorIdx]?.trim() || undefined;
         const whatsapp = row[whatsappIdx]?.trim() || undefined;
         const whatsappGrupo = row[whatsappGrupoIdx]?.trim() || undefined;
-        const tagsRaw = row[tagsIdx]?.trim() || '';
-        const tags = tagsRaw 
+        const tagsRaw = row[tagsIdx]?.trim() || "";
+        const tags = tagsRaw
           ? tagsRaw
               .split(/[,\n\r]+/)
               .map(t => t.trim())
@@ -200,9 +216,11 @@ export const useKanbanData = () => {
           : [];
         const estado = row[estadoIdx]?.trim().toUpperCase() || undefined;
         const deltaConsumo = row[deltaConsumoIdx]?.trim() || undefined;
-        const percentualDesatualizadoStr = row[percentualDesatualizadoIdx]?.trim() || '0';
-        const percentualDesatualizado = parseFloat(percentualDesatualizadoStr.replace('%', '')) || 0;
-        const diasUltimoContatoStr = row[diasUltimoContatoIdx]?.trim() || '0';
+        const percentualDesatualizadoStr =
+          row[percentualDesatualizadoIdx]?.trim() || "0";
+        const percentualDesatualizado =
+          parseFloat(percentualDesatualizadoStr.replace("%", "")) || 0;
+        const diasUltimoContatoStr = row[diasUltimoContatoIdx]?.trim() || "0";
         const diasUltimoContato = parseInt(diasUltimoContatoStr) || 0;
         const tipoCliente = row[tipoClienteIdx]?.trim() || undefined;
         const persona = row[personaIdx]?.trim() || undefined;
@@ -211,21 +229,21 @@ export const useKanbanData = () => {
         const consumo = row[consumoIdx]?.trim() || undefined;
 
         const codigoCliente = row[codigoClienteIdx]?.trim() || nome;
-        
+
         clients.push({
           id: `${nome}-${i}`,
           nome,
           codigoCliente,
-          entrada: row[entradaIdx]?.trim() || '',
+          entrada: row[entradaIdx]?.trim() || "",
           diasCorridos,
-          urs: row[ursIdx]?.trim() || '',
-          rastreadores: row[rastreadoresIdx]?.trim() || '',
-          ultimoBoleto: row[ultimoBoletoIdx]?.trim() || '',
-          atendente: row[atendenteIdx]?.trim() || '',
-          flag: row[flagIdx]?.trim() || '',
-          estrela: row[estrelaIdx]?.trim().toUpperCase() === 'TRUE',
-          comercial: row[comercialIdx]?.trim() || '',
-          saude: row[saudeIdx]?.trim() || '',
+          urs: row[ursIdx]?.trim() || "",
+          rastreadores: row[rastreadoresIdx]?.trim() || "",
+          ultimoBoleto: row[ultimoBoletoIdx]?.trim() || "",
+          atendente: row[atendenteIdx]?.trim() || "",
+          flag: row[flagIdx]?.trim() || "",
+          estrela: row[estrelaIdx]?.trim().toUpperCase() === "TRUE",
+          comercial: row[comercialIdx]?.trim() || "",
+          saude: row[saudeIdx]?.trim() || "",
           marco,
           marcoStatus: status,
           marcoData,
@@ -245,13 +263,13 @@ export const useKanbanData = () => {
           persona,
           tagsCliente,
           cidade,
-          isComplete
+          isComplete,
         });
       }
 
       setData(clients);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }
@@ -263,7 +281,7 @@ export const useKanbanData = () => {
 // Helper para fazer parse correto de CSV com campos entre aspas
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let insideQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -277,9 +295,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }

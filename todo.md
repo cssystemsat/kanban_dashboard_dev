@@ -134,5 +134,12 @@
 - [x] Contar Atrasadas na aba Migração quando a coluna D for maior que 365.
 - [x] Calcular Tempo médio de Migração pela média da coluna D nas linhas com data na coluna C.
 - [x] Criar testes para as métricas, filtros e modais de Migração.
-- [ ] Validar os cards de Migração, TypeScript, build e salvar checkpoint.
-- [ ] Salvar checkpoint específico após a integração dos KPI’s de Migração, já com cards validados, TypeScript, build e 145 testes aprovados.
+- [x] Validar os cards de Migração, TypeScript, build e salvar checkpoint.
+- [x] Salvar checkpoint específico após a integração dos KPI’s de Migração, já com cards validados, TypeScript, build e 145 testes aprovados.
+- [x] Substituir Erros/Retrabalho por Migrados na semana usando o valor da célula AB29 da aba KPI’s.
+- [x] Contar Clientes bloqueados pelos registros com status Paralisado na coluna T da aba Migração.
+- [x] Exibir no modal de Clientes bloqueados as empresas com status Paralisado.
+- [x] Preservar os novos campos nos snapshots semanais de KPI’s.
+- [x] Criar testes de regressão para AB29, status Paralisado e conteúdo do modal.
+- [ ] Validar visualmente, executar TypeScript, build e testes, e salvar checkpoint da alteração.
+- [x] Corrigir o bloco de teste de cronômetro em `client/src/pages/Painel.test.ts`, que está fora do `describe` e interrompe o formatador/test runner.

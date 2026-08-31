@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useState, useCallback } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface ChurnData {
   id: string;
@@ -14,8 +14,8 @@ export interface ChurnData {
   vendedor: string;
   farm: string;
   motivoCancelamento: string;
-  motivoDeclarado: string;   // Coluna P - Motivo declarado pelo cliente
-  analiseInterna: string;    // Coluna Q - Análise interna do caso
+  motivoDeclarado: string; // Coluna P - Motivo declarado pelo cliente
+  analiseInterna: string; // Coluna Q - Análise interna do caso
 }
 
 export const useChurnsData = () => {
@@ -24,10 +24,10 @@ export const useChurnsData = () => {
   const [error, setError] = useState<string | null>(null);
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr || dateStr.trim() === '') return null;
-    
+    if (!dateStr || dateStr.trim() === "") return null;
+
     // Tenta formato DD/MM/YYYY
-    const parts = dateStr.trim().split('/');
+    const parts = dateStr.trim().split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
@@ -40,26 +40,26 @@ export const useChurnsData = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // URL da aba CHURNS com gid=1060737054
       const response = await cachedFetch(
-        'https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1060737054'
+        "https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1060737054"
       );
-      
+
       if (!response.ok) {
-        throw new Error('Erro ao buscar dados da aba CHURNS');
+        throw new Error("Erro ao buscar dados da aba CHURNS");
       }
 
       const csv = await response.text();
-      const lines = csv.split('\n');
-      
+      const lines = csv.split("\n");
+
       if (lines.length < 2) {
-        throw new Error('Aba CHURNS vazia ou inválida');
+        throw new Error("Aba CHURNS vazia ou inválida");
       }
 
-      const header = lines[0].split(',');
-      
+      const header = lines[0].split(",");
+
       // Mapeamento de colunas conforme informado
       const nomeIdx = 0; // Coluna A
       const tipoIdx = 1; // Coluna B
@@ -70,9 +70,9 @@ export const useChurnsData = () => {
       const atendenteIdx = 11; // Coluna L
       const vendedorIdx = 12; // Coluna M
       const farmIdx = 13; // Coluna N
-      const motivoIdx = 14;          // Coluna O
-      const motivoDeclaradoIdx = 15;  // Coluna P - Motivo declarado pelo cliente
-      const analiseInternaIdx = 16;   // Coluna Q - Análise interna
+      const motivoIdx = 14; // Coluna O
+      const motivoDeclaradoIdx = 15; // Coluna P - Motivo declarado pelo cliente
+      const analiseInternaIdx = 16; // Coluna Q - Análise interna
 
       const churns: ChurnData[] = [];
 
@@ -81,39 +81,39 @@ export const useChurnsData = () => {
         if (!line) continue;
 
         const row = parseCSVLine(line);
-        
+
         if (row.length <= nomeIdx) continue;
 
-        const nome = row[nomeIdx]?.trim() || '';
+        const nome = row[nomeIdx]?.trim() || "";
         if (!nome) continue;
 
-        const mesesCasaStr = row[mesesCasaIdx]?.trim() || '0';
+        const mesesCasaStr = row[mesesCasaIdx]?.trim() || "0";
         const mesesCasa = parseInt(mesesCasaStr, 10) || 0;
 
-        const dataSaidaStr = row[dataSaidaIdx]?.trim() || '';
+        const dataSaidaStr = row[dataSaidaIdx]?.trim() || "";
         const dataSaidaParsed = parseDate(dataSaidaStr);
 
         churns.push({
           id: `${nome}-${i}`,
           nome,
-          tipo: row[tipoIdx]?.trim() || '',
-          dataEntrada: row[dataEntradaIdx]?.trim() || '',
+          tipo: row[tipoIdx]?.trim() || "",
+          dataEntrada: row[dataEntradaIdx]?.trim() || "",
           dataSaida: dataSaidaStr,
           dataSaidaParsed,
           mesesCasa,
-          persona: row[personaIdx]?.trim() || '',
-          atendente: row[atendenteIdx]?.trim() || '',
-          vendedor: row[vendedorIdx]?.trim() || '',
-          farm: row[farmIdx]?.trim() || '',
-          motivoCancelamento: row[motivoIdx]?.trim() || '',
-          motivoDeclarado: row[motivoDeclaradoIdx]?.trim() || '',
-          analiseInterna: row[analiseInternaIdx]?.trim() || ''
+          persona: row[personaIdx]?.trim() || "",
+          atendente: row[atendenteIdx]?.trim() || "",
+          vendedor: row[vendedorIdx]?.trim() || "",
+          farm: row[farmIdx]?.trim() || "",
+          motivoCancelamento: row[motivoIdx]?.trim() || "",
+          motivoDeclarado: row[motivoDeclaradoIdx]?.trim() || "",
+          analiseInterna: row[analiseInternaIdx]?.trim() || "",
         });
       }
 
       setData(churns);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ export const useChurnsData = () => {
 // Helper para fazer parse correto de CSV com campos entre aspas
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let insideQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -139,9 +139,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }

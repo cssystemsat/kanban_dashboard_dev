@@ -21,7 +21,10 @@ function parseCsvLine(line: string): string[] {
   return result;
 }
 
-for (const [label, gid] of [["Onboarding", 0], ["ongoing", 1152476970]] as const) {
+for (const [label, gid] of [
+  ["Onboarding", 0],
+  ["ongoing", 1152476970],
+] as const) {
   const [sheetName, csv] = await Promise.all([
     getSheetNameByGid(gid, "primary"),
     getSheetCsv("primary", gid),
@@ -30,10 +33,32 @@ for (const [label, gid] of [["Onboarding", 0], ["ongoing", 1152476970]] as const
   const headers = rows[0] ?? [];
   const contactColumns = headers
     .map((header, index) => ({ index, header }))
-    .filter(({ header }) => /contato|telefone|celular|whatsapp|email|decisor|respons[aá]vel/i.test(header));
+    .filter(({ header }) =>
+      /contato|telefone|celular|whatsapp|email|decisor|respons[aá]vel/i.test(
+        header
+      )
+    );
   const examples = rows.slice(1, 8).map(row => ({
     cliente: row[1] ?? "",
-    contatos: Object.fromEntries(contactColumns.map(({ index, header }) => [header || `col_${index + 1}`, row[index] ?? ""])),
+    contatos: Object.fromEntries(
+      contactColumns.map(({ index, header }) => [
+        header || `col_${index + 1}`,
+        row[index] ?? "",
+      ])
+    ),
   }));
-  console.log(JSON.stringify({ label, gid, sheetName, headers: headers.map((header, index) => ({ index, header })), contactColumns, examples }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        label,
+        gid,
+        sheetName,
+        headers: headers.map((header, index) => ({ index, header })),
+        contactColumns,
+        examples,
+      },
+      null,
+      2
+    )
+  );
 }

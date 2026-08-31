@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
-import { useURsEvolution, URsEvolutionData } from './useURsEvolution';
+import { useEffect, useState } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
+import { useURsEvolution, URsEvolutionData } from "./useURsEvolution";
 
 export interface URsTrendData {
   clientName: string;
@@ -96,14 +96,14 @@ export function useMultipleURsTrends(
       try {
         // Usar o cache global do useURsEvolution
         const response = await cachedFetch(
-          'https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=1250838098',
-          { redirect: 'follow', cache: 'force-cache' }
+          "https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=1250838098",
+          { redirect: "follow", cache: "force-cache" }
         );
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const csv = await response.text();
-        const lines = csv.split('\n');
+        const lines = csv.split("\n");
         const clientsMap = new Map<string, URsEvolutionData[]>();
 
         // Parser CSV
@@ -114,13 +114,13 @@ export function useMultipleURsTrends(
           const parts = parseCSVLine(line);
           if (parts.length < 11) continue;
 
-          const clientName = parts[0]?.trim() || '';
-          const quantity = parseInt(parts[4]?.trim() || '0', 10);
-          const dateStr = parts[10]?.trim() || '';
+          const clientName = parts[0]?.trim() || "";
+          const quantity = parseInt(parts[4]?.trim() || "0", 10);
+          const dateStr = parts[10]?.trim() || "";
 
           if (!clientName || !dateStr || isNaN(quantity)) continue;
 
-          const [day, month, year] = dateStr.split('/');
+          const [day, month, year] = dateStr.split("/");
           if (!day || !month || !year) continue;
 
           const date = new Date(`${year}-${month}-${day}`);
@@ -148,14 +148,18 @@ export function useMultipleURsTrends(
           const clientData = clientsMap.get(cliente.nome);
           if (!clientData || clientData.length < 2) return;
 
-          const sorted = [...clientData].sort((a, b) => a.timestamp - b.timestamp);
+          const sorted = [...clientData].sort(
+            (a, b) => a.timestamp - b.timestamp
+          );
           const periodData = sorted.filter(
             item => item.timestamp >= startTime && item.timestamp <= endTime
           );
 
           if (periodData.length < 2) return;
 
-          const periodSorted = [...periodData].sort((a, b) => a.timestamp - b.timestamp);
+          const periodSorted = [...periodData].sort(
+            (a, b) => a.timestamp - b.timestamp
+          );
           const firstEntry = periodSorted[0];
           const lastEntry = periodSorted[periodSorted.length - 1];
 
@@ -179,7 +183,7 @@ export function useMultipleURsTrends(
 
         setTrends(calculatedTrends);
       } catch (error) {
-        console.error('Erro ao calcular tendências de URs:', error);
+        console.error("Erro ao calcular tendências de URs:", error);
         setTrends([]);
       } finally {
         setLoading(false);
@@ -195,7 +199,7 @@ export function useMultipleURsTrends(
 // Parser CSV otimizado
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -209,9 +213,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (char === ',' && !inQuotes) {
+    } else if (char === "," && !inQuotes) {
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }

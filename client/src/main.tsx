@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { UNAUTHED_ERR_MSG } from '@shared/const';
+import { UNAUTHED_ERR_MSG } from "@shared/const";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
@@ -18,12 +18,18 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  console.warn('[Auth] Unauthorized error detected, redirecting to login:', error.message);
-  console.warn('[Auth] Current URL:', window.location.href);
-  
+  console.warn(
+    "[Auth] Unauthorized error detected, redirecting to login:",
+    error.message
+  );
+  console.warn("[Auth] Current URL:", window.location.href);
+
   // Evitar redirect infinito se já estamos na página de login
-  if (window.location.href.includes('/api/oauth/callback') || window.location.href.includes('manus.im/app-auth')) {
-    console.warn('[Auth] Already in OAuth flow, skipping redirect');
+  if (
+    window.location.href.includes("/api/oauth/callback") ||
+    window.location.href.includes("manus.im/app-auth")
+  ) {
+    console.warn("[Auth] Already in OAuth flow, skipping redirect");
     return;
   }
 

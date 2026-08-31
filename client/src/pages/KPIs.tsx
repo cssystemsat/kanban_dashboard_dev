@@ -121,6 +121,23 @@ export default function KPIs() {
           detailsTitle: "Empresa — início — duração da migração",
         };
       }
+      if (index === 4) {
+        return {
+          ...kpi,
+          label: "Migrados na semana",
+          value: migrationMetrics?.migradosNaSemana.value ?? 0,
+          details: [],
+          detailsTitle: "Valor da célula AB29 da aba KPI's",
+        };
+      }
+      if (index === 5) {
+        return {
+          ...kpi,
+          value: migrationMetrics?.clientesBloqueados.value ?? 0,
+          details: migrationMetrics?.clientesBloqueados.clients ?? [],
+          detailsTitle: "Empresas com status Paralisado",
+        };
+      }
       return kpi;
     }),
     migracaoRetrasada

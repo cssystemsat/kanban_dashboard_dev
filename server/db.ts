@@ -871,15 +871,13 @@ export async function upsertAppKanbanChecklist(
       .where(eq(appKanbanChecklist.cardId, cardId));
     return updated[0];
   } else {
-    await db
-      .insert(appKanbanChecklist)
-      .values({
-        cardId,
-        logomarca: data.logomarca ?? false,
-        descricaoCurta: data.descricaoCurta ?? false,
-        descricaoLonga: data.descricaoLonga ?? false,
-        politicaPrivacidade: data.politicaPrivacidade ?? false,
-      });
+    await db.insert(appKanbanChecklist).values({
+      cardId,
+      logomarca: data.logomarca ?? false,
+      descricaoCurta: data.descricaoCurta ?? false,
+      descricaoLonga: data.descricaoLonga ?? false,
+      politicaPrivacidade: data.politicaPrivacidade ?? false,
+    });
     const inserted = await db
       .select()
       .from(appKanbanChecklist)

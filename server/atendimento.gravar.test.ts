@@ -4,17 +4,21 @@ import type { TrpcContext } from "./_core/context";
 
 // Mock do módulo googleSheets para não fazer chamadas reais à API
 vi.mock("./googleSheets", () => ({
-  appendAtendimento: vi.fn().mockResolvedValue({ row: 300, sheetName: "Agendas" }),
+  appendAtendimento: vi
+    .fn()
+    .mockResolvedValue({ row: 300, sheetName: "Agendas" }),
 }));
 
 // Mock do db para simular e-mail permitido
-vi.mock("./db", async (importOriginal) => {
+vi.mock("./db", async importOriginal => {
   const actual = await importOriginal<typeof import("./db")>();
   return {
     ...actual,
     isEmailAllowed: vi.fn().mockResolvedValue(true),
     isEmailAdmin: vi.fn().mockResolvedValue(false),
-    getEmailEntry: vi.fn().mockResolvedValue({ allowedPages: null, isAdmin: 0, canLaunch: 1 }),
+    getEmailEntry: vi
+      .fn()
+      .mockResolvedValue({ allowedPages: null, isAdmin: 0, canLaunch: 1 }),
   };
 });
 
@@ -31,7 +35,9 @@ function createPublicContext(): TrpcContext {
   };
 }
 
-function createAuthenticatedContext(email = "test@systemsat.com.br"): TrpcContext {
+function createAuthenticatedContext(
+  email = "test@systemsat.com.br"
+): TrpcContext {
   return {
     user: {
       id: 1,

@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useState, useCallback } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface Atendimento {
   id: string;
@@ -24,8 +24,8 @@ export interface AtendimentosStats {
   atendentesComMaisAtendimentos: Array<{ atendente: string; count: number }>;
 }
 
-const SPREADSHEET_ID = '1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc';
-const GID = '1655169262';
+const SPREADSHEET_ID = "1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc";
+const GID = "1655169262";
 
 export function useAtendimentosData() {
   const [data, setData] = useState<Atendimento[]>([]);
@@ -41,7 +41,7 @@ export function useAtendimentosData() {
       const response = await cachedFetch(url);
       const csv = await response.text();
 
-      const lines = csv.split('\n').filter(line => line.trim());
+      const lines = csv.split("\n").filter(line => line.trim());
       const atendimentos: Atendimento[] = [];
 
       // Pular header (linha 0) e sub-header (linha 1)
@@ -52,14 +52,14 @@ export function useAtendimentosData() {
         const values = parseCSVLine(line);
         if (values.length < 9) continue;
 
-        const dia = values[0]?.trim() || '';
-        const cliente = values[1]?.trim() || '';
-        const origem = values[2]?.trim() || '';
-        const tipo = values[3]?.trim() || '';
-        const detalhes = values[4]?.trim() || '';
-        const tempoStr = values[5]?.trim() || '0';
-        const assunto = values[6]?.trim() || '';
-        const atendente = values[8]?.trim() || '';
+        const dia = values[0]?.trim() || "";
+        const cliente = values[1]?.trim() || "";
+        const origem = values[2]?.trim() || "";
+        const tipo = values[3]?.trim() || "";
+        const detalhes = values[4]?.trim() || "";
+        const tempoStr = values[5]?.trim() || "0";
+        const assunto = values[6]?.trim() || "";
+        const atendente = values[8]?.trim() || "";
 
         // Converter tempo para minutos (já deve estar em minutos)
         let tempo = 0;
@@ -87,7 +87,7 @@ export function useAtendimentosData() {
       setData(atendimentos);
       calculateStats(atendimentos);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+      setError(err instanceof Error ? err.message : "Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
@@ -176,7 +176,7 @@ export function useAtendimentosData() {
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let insideQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -190,9 +190,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       result.push(current.trim());
-      current = '';
+      current = "";
     } else {
       current += char;
     }

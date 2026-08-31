@@ -15,13 +15,21 @@ const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
 
 function getSpreadsheetId(source: SheetSource = "primary"): string {
-  const spreadsheetId = source === "primary" ? ENV.googleSheetsPrimaryId : ENV.googleSheetsSecondaryId;
-  if (!spreadsheetId) throw new Error(`ID da planilha ${source} não configurado.`);
+  const spreadsheetId =
+    source === "primary"
+      ? ENV.googleSheetsPrimaryId
+      : ENV.googleSheetsSecondaryId;
+  if (!spreadsheetId)
+    throw new Error(`ID da planilha ${source} não configurado.`);
   return spreadsheetId;
 }
 
 async function getAccessToken(forceRefresh = false): Promise<string> {
-  if (!forceRefresh && tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
+  if (
+    !forceRefresh &&
+    tokenCache &&
+    tokenCache.expiresAt > Date.now() + 60_000
+  ) {
     return tokenCache.accessToken;
   }
 
@@ -48,9 +56,15 @@ async function getAccessToken(forceRefresh = false): Promise<string> {
       assertion,
     }),
   });
-  const body = await response.json().catch(() => ({})) as { access_token?: string; expires_in?: number; error_description?: string };
+  const body = (await response.json().catch(() => ({}))) as {
+    access_token?: string;
+    expires_in?: number;
+    error_description?: string;
+  };
   if (!response.ok || !body.access_token) {
-    throw new Error(`Falha ao autenticar na Google Sheets API: ${body.error_description ?? response.statusText}`);
+    throw new Error(
+      `Falha ao autenticar na Google Sheets API: ${body.error_description ?? response.statusText}`
+    );
   }
 
   tokenCache = {
@@ -60,7 +74,11 @@ async function getAccessToken(forceRefresh = false): Promise<string> {
   return body.access_token;
 }
 
-async function sheetsRequest<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+async function sheetsRequest<T>(
+  path: string,
+  init: RequestInit = {},
+  retry = true
+): Promise<T> {
   const accessToken = await getAccessToken();
   const headers = new Headers(init.headers);
   headers.set("authorization", `Bearer ${accessToken}`);
@@ -75,11 +93,16 @@ async function sheetsRequest<T>(path: string, init: RequestInit = {}, retry = tr
 
   const text = await response.text();
   let body: unknown = {};
-  try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    body = { raw: text };
+  }
   if (!response.ok) {
-    const message = typeof body === "object" && body !== null && "error" in body
-      ? JSON.stringify((body as { error?: unknown }).error)
-      : response.statusText;
+    const message =
+      typeof body === "object" && body !== null && "error" in body
+        ? JSON.stringify((body as { error?: unknown }).error)
+        : response.statusText;
     throw new Error(`Google Sheets API ${response.status}: ${message}`);
   }
   return body as T;
@@ -90,9 +113,17 @@ function valuesPath(spreadsheetId: string, range: string): string {
 }
 
 /** Obtém o nome de uma aba pelo gid (sheetId). */
-export async function getSheetNameByGid(gid: number, source: SheetSource = "primary"): Promise<string | null> {
-  const spreadsheet = await sheetsRequest<SheetsResponse>(`/${encodeURIComponent(getSpreadsheetId(source))}?fields=sheets.properties(sheetId,title)`);
-  return spreadsheet.sheets?.find(sheet => sheet.properties?.sheetId === gid)?.properties?.title ?? null;
+export async function getSheetNameByGid(
+  gid: number,
+  source: SheetSource = "primary"
+): Promise<string | null> {
+  const spreadsheet = await sheetsRequest<SheetsResponse>(
+    `/${encodeURIComponent(getSpreadsheetId(source))}?fields=sheets.properties(sheetId,title)`
+  );
+  return (
+    spreadsheet.sheets?.find(sheet => sheet.properties?.sheetId === gid)
+      ?.properties?.title ?? null
+  );
 }
 
 function csvCell(value: unknown): string {
@@ -100,32 +131,73 @@ function csvCell(value: unknown): string {
   return /[",\n\r]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell;
 }
 
-/** Lê uma aba por GID e devolve CSV compatível com os hooks restaurados. */
-export async function getSheetCsv(source: SheetSource, gid: number): Promise<string> {
+/** Lê uma célula por GID usando o valor formatado da planilha. */
+export async function getSheetCellByGid(
+  source: SheetSource,
+  gid: number,
+  cell: string
+): Promise<string> {
   const spreadsheetId = getSpreadsheetId(source);
   const sheetName = await getSheetNameByGid(gid, source);
-  if (!sheetName) throw new Error(`Aba com gid=${gid} não encontrada na planilha ${source}.`);
-  const range = `'${sheetName.replace(/'/g, "''")}'`;
-  const result = await sheetsRequest<ValuesResponse>(`${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`);
-  return (result.values ?? []).map(row => row.map(csvCell).join(",")).join("\n");
+  if (!sheetName) {
+    throw new Error(`Aba com gid=${gid} não encontrada na planilha ${source}.`);
+  }
+  const range = `'${sheetName.replace(/'/g, "''")}'!${cell}`;
+  const result = await sheetsRequest<ValuesResponse>(
+    `${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`
+  );
+  return String(result.values?.[0]?.[0] ?? "");
 }
 
-async function getSheetValues(spreadsheetId: string, range: string): Promise<unknown[][]> {
-  const result = await sheetsRequest<ValuesResponse>(`${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`);
+/** Lê uma aba por GID e devolve CSV compatível com os hooks restaurados. */
+export async function getSheetCsv(
+  source: SheetSource,
+  gid: number
+): Promise<string> {
+  const spreadsheetId = getSpreadsheetId(source);
+  const sheetName = await getSheetNameByGid(gid, source);
+  if (!sheetName)
+    throw new Error(`Aba com gid=${gid} não encontrada na planilha ${source}.`);
+  const range = `'${sheetName.replace(/'/g, "''")}'`;
+  const result = await sheetsRequest<ValuesResponse>(
+    `${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`
+  );
+  return (result.values ?? [])
+    .map(row => row.map(csvCell).join(","))
+    .join("\n");
+}
+
+async function getSheetValues(
+  spreadsheetId: string,
+  range: string
+): Promise<unknown[][]> {
+  const result = await sheetsRequest<ValuesResponse>(
+    `${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`
+  );
   return result.values ?? [];
 }
 
 /** Obtém o índice da próxima linha vazia em uma aba da planilha principal. */
 export async function getNextEmptyRow(sheetName: string): Promise<number> {
-  const values = await getSheetValues(getSpreadsheetId("primary"), `${sheetName}!A:A`);
+  const values = await getSheetValues(
+    getSpreadsheetId("primary"),
+    `${sheetName}!A:A`
+  );
   return values.length + 1;
 }
 
-async function updateValues(spreadsheetId: string, range: string, values: unknown[][]): Promise<void> {
-  await sheetsRequest(valuesPath(spreadsheetId, range) + "?valueInputOption=USER_ENTERED", {
-    method: "PUT",
-    body: JSON.stringify({ range, majorDimension: "ROWS", values }),
-  });
+async function updateValues(
+  spreadsheetId: string,
+  range: string,
+  values: unknown[][]
+): Promise<void> {
+  await sheetsRequest(
+    valuesPath(spreadsheetId, range) + "?valueInputOption=USER_ENTERED",
+    {
+      method: "PUT",
+      body: JSON.stringify({ range, majorDimension: "ROWS", values }),
+    }
+  );
 }
 
 /** Grava um atendimento na aba Agendas (gid=1655169262). */
@@ -142,21 +214,26 @@ export async function appendAtendimento(data: {
   const AGENDAS_GID = 1655169262;
   const spreadsheetId = getSpreadsheetId("primary");
   const sheetName = await getSheetNameByGid(AGENDAS_GID, "primary");
-  if (!sheetName) throw new Error(`Aba com gid=${AGENDAS_GID} não encontrada na planilha principal.`);
+  if (!sheetName)
+    throw new Error(
+      `Aba com gid=${AGENDAS_GID} não encontrada na planilha principal.`
+    );
 
   const nextRow = await getNextEmptyRow(sheetName);
   const range = `${sheetName}!A${nextRow}:I${nextRow}`;
-  await updateValues(spreadsheetId, range, [[
-    data.data,
-    data.cliente,
-    data.tipo,
-    data.situacao,
-    data.resumo,
-    data.duracao,
-    data.razao,
-    "",
-    data.usuario ?? "",
-  ]]);
+  await updateValues(spreadsheetId, range, [
+    [
+      data.data,
+      data.cliente,
+      data.tipo,
+      data.situacao,
+      data.resumo,
+      data.duracao,
+      data.razao,
+      "",
+      data.usuario ?? "",
+    ],
+  ]);
   return { row: nextRow, sheetName };
 }
 
@@ -171,7 +248,10 @@ export async function updateMigracao(data: {
   const MIGRACAO_GID = 146618493;
   const spreadsheetId = getSpreadsheetId("primary");
   const sheetName = await getSheetNameByGid(MIGRACAO_GID, "primary");
-  if (!sheetName) throw new Error(`Aba com gid=${MIGRACAO_GID} não encontrada na planilha principal.`);
+  if (!sheetName)
+    throw new Error(
+      `Aba com gid=${MIGRACAO_GID} não encontrada na planilha principal.`
+    );
 
   const values = await getSheetValues(spreadsheetId, `${sheetName}!A:T`);
   let targetRow = -1;
@@ -182,18 +262,39 @@ export async function updateMigracao(data: {
       break;
     }
   }
-  if (targetRow === -1) throw new Error(`Migração não encontrada: ${data.empresa} (${data.dataInicio})`);
+  if (targetRow === -1)
+    throw new Error(
+      `Migração não encontrada: ${data.empresa} (${data.dataInicio})`
+    );
 
   const updates: Array<{ range: string; values: unknown[][] }> = [];
-  if (data.levantamentoDados !== undefined) updates.push({ range: `${sheetName}!L${targetRow}`, values: [[data.levantamentoDados]] });
-  if (data.envioDados !== undefined) updates.push({ range: `${sheetName}!P${targetRow}`, values: [[data.envioDados]] });
-  if (data.situacao !== undefined) updates.push({ range: `${sheetName}!T${targetRow}`, values: [[data.situacao]] });
+  if (data.levantamentoDados !== undefined)
+    updates.push({
+      range: `${sheetName}!L${targetRow}`,
+      values: [[data.levantamentoDados]],
+    });
+  if (data.envioDados !== undefined)
+    updates.push({
+      range: `${sheetName}!P${targetRow}`,
+      values: [[data.envioDados]],
+    });
+  if (data.situacao !== undefined)
+    updates.push({
+      range: `${sheetName}!T${targetRow}`,
+      values: [[data.situacao]],
+    });
 
   if (updates.length > 0) {
-    await sheetsRequest(`/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`, {
-      method: "POST",
-      body: JSON.stringify({ data: updates, valueInputOption: "USER_ENTERED" }),
-    });
+    await sheetsRequest(
+      `/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          data: updates,
+          valueInputOption: "USER_ENTERED",
+        }),
+      }
+    );
   }
   return { success: true, row: targetRow, sheetName };
 }

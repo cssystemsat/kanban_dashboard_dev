@@ -111,6 +111,48 @@ describe("Métricas reais de Migração", () => {
     ]);
   });
 
+  it("usa o valor recebido de AB29 como Migrados na semana", () => {
+    const metrics = parseMigrationKpiMetrics(
+      makeMigrationRow({
+        name: "Empresa migrada",
+        duration: 10,
+        status: "Finalizada",
+      }),
+      52
+    );
+
+    expect(metrics.migradosNaSemana.value).toBe(52);
+    expect(metrics.migradosNaSemana.source).toBe("primary:KPI's!AB29");
+  });
+
+  it("conta Paralisado e devolve as empresas para o modal de Clientes bloqueados", () => {
+    const csv = [
+      makeMigrationRow({
+        name: "Empresa bloqueada 1",
+        duration: 50,
+        status: "Paralisado",
+      }),
+      makeMigrationRow({
+        name: "Empresa bloqueada 2",
+        duration: 60,
+        status: "paralisado",
+      }),
+      makeMigrationRow({
+        name: "Empresa ativa",
+        duration: 20,
+        status: "Em andamento",
+      }),
+    ].join("\n");
+
+    const metrics = parseMigrationKpiMetrics(csv);
+
+    expect(metrics.clientesBloqueados.value).toBe(2);
+    expect(metrics.clientesBloqueados.clients).toEqual([
+      "Empresa bloqueada 1",
+      "Empresa bloqueada 2",
+    ]);
+  });
+
   it("mantém Concluídas em zero temporariamente", () => {
     const metrics = parseMigrationKpiMetrics("");
 

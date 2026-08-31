@@ -3,21 +3,21 @@ import { describe, it, expect } from "vitest";
 // Função de normalização (copiada do routers.ts para teste)
 const normalizarDuracao = (duracao: string): string => {
   const lower = duracao.toLowerCase().trim();
-  
+
   // Verificar se é em horas
   const horasMatch = lower.match(/(\d+)\s*(horas?|h)/);
   if (horasMatch) {
     const horas = parseInt(horasMatch[1], 10);
     return (horas * 60).toString();
   }
-  
+
   // Verificar se é em minutos
   const minutosMatch = lower.match(/(\d+)\s*(minutos?|min)?/);
   if (minutosMatch) {
     return minutosMatch[1];
   }
-  
-  return '0';
+
+  return "0";
 };
 
 describe("duracao.normalize", () => {

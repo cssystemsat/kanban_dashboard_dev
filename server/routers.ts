@@ -930,6 +930,10 @@ export const appRouter = router({
             value: 0 as const,
             source: "manual:temporário" as const,
           },
+          migradosNaSemana: {
+            value: 0,
+            source: "primary:KPI's!AB29" as const,
+          },
           atrasadas: {
             value: 0,
             clients: [],
@@ -939,6 +943,11 @@ export const appRouter = router({
             value: 0,
             details: [],
             source: "primary:Migração!C/D" as const,
+          },
+          clientesBloqueados: {
+            value: 0,
+            clients: [],
+            source: "primary:Migração!T=Paralisado" as const,
           },
         };
       }

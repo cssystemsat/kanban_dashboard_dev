@@ -2,7 +2,9 @@ export const PANEL_AUTO_REFRESH_MS = 10 * 60 * 1000;
 export const PANEL_AUTO_REFRESH_SECONDS = PANEL_AUTO_REFRESH_MS / 1000;
 
 export function nextPanelRefreshSecond(secondsRemaining: number): number {
-  return secondsRemaining <= 1 ? PANEL_AUTO_REFRESH_SECONDS : secondsRemaining - 1;
+  return secondsRemaining <= 1
+    ? PANEL_AUTO_REFRESH_SECONDS
+    : secondsRemaining - 1;
 }
 
 export function formatPanelRefreshCountdown(secondsRemaining: number): string {

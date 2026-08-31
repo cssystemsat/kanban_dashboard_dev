@@ -4,7 +4,9 @@ import { getSheetCsv, getSheetNameByGid } from "./googleSheets";
 
 describe("Google Sheets credentials", () => {
   it("accesses the configured primary and secondary spreadsheets", async () => {
-    expect(ENV.googleServiceAccountEmail).toMatch(/@.*\.iam\.gserviceaccount\.com$/);
+    expect(ENV.googleServiceAccountEmail).toMatch(
+      /@.*\.iam\.gserviceaccount\.com$/
+    );
     expect(ENV.googlePrivateKey).toContain("BEGIN PRIVATE KEY");
     expect(ENV.googleSheetsPrimaryId).toHaveLength(44);
     expect(ENV.googleSheetsSecondaryId).toHaveLength(44);

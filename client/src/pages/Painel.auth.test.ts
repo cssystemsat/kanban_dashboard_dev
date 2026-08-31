@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('Painel - Autenticação para Mapas', () => {
-  it('deve exibir mapas quando usuário está logado', () => {
-    const user = { id: '123', name: 'João Silva', email: 'joao@example.com' };
+describe("Painel - Autenticação para Mapas", () => {
+  it("deve exibir mapas quando usuário está logado", () => {
+    const user = { id: "123", name: "João Silva", email: "joao@example.com" };
     const authLoading = false;
 
     // Simulação: verificar se deve exibir mapas
@@ -11,7 +11,7 @@ describe('Painel - Autenticação para Mapas', () => {
     expect(shouldShowMaps).toBe(true);
   });
 
-  it('deve ocultar mapas quando usuário não está logado', () => {
+  it("deve ocultar mapas quando usuário não está logado", () => {
     const user = null;
     const authLoading = false;
 
@@ -21,7 +21,7 @@ describe('Painel - Autenticação para Mapas', () => {
     expect(shouldShowMaps).toBe(false);
   });
 
-  it('deve exibir mensagem de login quando não autenticado', () => {
+  it("deve exibir mensagem de login quando não autenticado", () => {
     const user = null;
     const authLoading = false;
 
@@ -31,8 +31,8 @@ describe('Painel - Autenticação para Mapas', () => {
     expect(shouldShowLoginMessage).toBe(true);
   });
 
-  it('deve ocultar mensagem de login quando autenticado', () => {
-    const user = { id: '123', name: 'João Silva', email: 'joao@example.com' };
+  it("deve ocultar mensagem de login quando autenticado", () => {
+    const user = { id: "123", name: "João Silva", email: "joao@example.com" };
     const authLoading = false;
 
     // Simulação: verificar se deve exibir mensagem de login
@@ -41,7 +41,7 @@ describe('Painel - Autenticação para Mapas', () => {
     expect(shouldShowLoginMessage).toBe(false);
   });
 
-  it('deve não exibir nada enquanto carregando autenticação', () => {
+  it("deve não exibir nada enquanto carregando autenticação", () => {
     const user = null;
     const authLoading = true;
 
@@ -54,8 +54,8 @@ describe('Painel - Autenticação para Mapas', () => {
     expect(shouldShowLoginMessage).toBe(false);
   });
 
-  it('deve exibir mapas mesmo durante carregamento de dados se usuário está logado', () => {
-    const user = { id: '123', name: 'João Silva', email: 'joao@example.com' };
+  it("deve exibir mapas mesmo durante carregamento de dados se usuário está logado", () => {
+    const user = { id: "123", name: "João Silva", email: "joao@example.com" };
     const authLoading = false;
     const estadosDataLoading = true;
 
@@ -65,8 +65,8 @@ describe('Painel - Autenticação para Mapas', () => {
     expect(shouldShowMaps).toBe(false); // Aguarda dados dos estados
   });
 
-  it('deve exibir mapas quando dados dos estados estão prontos e usuário logado', () => {
-    const user = { id: '123', name: 'João Silva', email: 'joao@example.com' };
+  it("deve exibir mapas quando dados dos estados estão prontos e usuário logado", () => {
+    const user = { id: "123", name: "João Silva", email: "joao@example.com" };
     const authLoading = false;
     const estadosDataLoading = false;
 

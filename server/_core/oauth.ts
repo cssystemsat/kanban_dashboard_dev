@@ -14,7 +14,10 @@ export function registerOAuthRoutes(app: Express) {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
 
-    console.log("[OAuth] Callback received", { code: code ? "***" : "missing", state: state ? "***" : "missing" });
+    console.log("[OAuth] Callback received", {
+      code: code ? "***" : "missing",
+      state: state ? "***" : "missing",
+    });
 
     if (!code || !state) {
       console.error("[OAuth] Missing code or state");
@@ -29,7 +32,10 @@ export function registerOAuthRoutes(app: Express) {
 
       console.log("[OAuth] Getting user info...");
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
-      console.log("[OAuth] User info received", { email: userInfo.email, openId: userInfo.openId });
+      console.log("[OAuth] User info received", {
+        email: userInfo.email,
+        openId: userInfo.openId,
+      });
 
       if (!userInfo.openId) {
         console.error("[OAuth] openId missing from user info");
@@ -56,7 +62,10 @@ export function registerOAuthRoutes(app: Express) {
 
       const cookieOptions = getSessionCookieOptions(req);
       console.log("[OAuth] Setting cookie with options", cookieOptions);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, {
+        ...cookieOptions,
+        maxAge: ONE_YEAR_MS,
+      });
 
       console.log("[OAuth] Redirecting to /");
       res.redirect(302, "/");

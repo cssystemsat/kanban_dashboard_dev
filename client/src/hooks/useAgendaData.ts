@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useEffect, useState } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface AgendaEntry {
-  data: string;       // Coluna A — DD/MM/AAAA
-  cliente: string;    // Coluna B — nome do cliente
-  status: string;     // Coluna C — status operacional (texto livre)
-  timestamp: number;  // Para ordenação
+  data: string; // Coluna A — DD/MM/AAAA
+  cliente: string; // Coluna B — nome do cliente
+  status: string; // Coluna C — status operacional (texto livre)
+  timestamp: number; // Para ordenação
 }
 
 // Cache global em memória (compartilhado entre instâncias do hook)
@@ -15,11 +15,11 @@ let cacheTimestamp = 0;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos
 
 const SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1831685689';
+  "https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1831685689";
 
 function parseDate(dateStr: string): number {
   if (!dateStr) return 0;
-  const parts = dateStr.trim().split('/');
+  const parts = dateStr.trim().split("/");
   if (parts.length !== 3) return 0;
   const [day, month, year] = parts;
   const d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -27,10 +27,10 @@ function parseDate(dateStr: string): number {
 }
 
 async function loadAgendaCache(): Promise<Map<string, AgendaEntry[]>> {
-  const response = await cachedFetch(SHEET_URL, { redirect: 'follow' });
+  const response = await cachedFetch(SHEET_URL, { redirect: "follow" });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const csv = await response.text();
-  const lines = csv.split('\n');
+  const lines = csv.split("\n");
 
   // Mapa: nome_cliente → lista de TODOS os registros
   const map = new Map<string, AgendaEntry[]>();
@@ -39,11 +39,11 @@ async function loadAgendaCache(): Promise<Map<string, AgendaEntry[]>> {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const cols = line.split(',');
-    const data = cols[0]?.trim() || '';
-    const cliente = cols[1]?.trim() || '';
+    const cols = line.split(",");
+    const data = cols[0]?.trim() || "";
+    const cliente = cols[1]?.trim() || "";
     // Coluna C pode conter vírgulas se estiver entre aspas — juntar o restante
-    const statusRaw = cols.slice(2).join(',').trim().replace(/^"|"$/g, '');
+    const statusRaw = cols.slice(2).join(",").trim().replace(/^"|"$/g, "");
 
     if (!data || !cliente || !statusRaw) continue;
 
@@ -58,9 +58,14 @@ async function loadAgendaCache(): Promise<Map<string, AgendaEntry[]>> {
 
   // Ordenar cada lista por timestamp decrescente (mais recente primeiro)
   // Em empate de data, o último que aparece na planilha fica primeiro
-  Array.from(map.keys()).forEach((key) => {
+  Array.from(map.keys()).forEach(key => {
     const entries = map.get(key)!;
-    map.set(key, entries.sort((a: AgendaEntry, b: AgendaEntry) => b.timestamp - a.timestamp));
+    map.set(
+      key,
+      entries.sort(
+        (a: AgendaEntry, b: AgendaEntry) => b.timestamp - a.timestamp
+      )
+    );
   });
 
   return map;
@@ -82,7 +87,10 @@ export function getDaysSinceUpdate(entry: AgendaEntry | null): number | null {
  * Retorna true se o cliente não tem atualização há mais de 30 dias
  * OU se não tem nenhum registro na aba Agendas.
  */
-export function isAgendaOutdated(entry: AgendaEntry | null, loading: boolean): boolean {
+export function isAgendaOutdated(
+  entry: AgendaEntry | null,
+  loading: boolean
+): boolean {
   if (loading) return false;
   if (!entry) return true; // sem registro = sem atualização
   const days = getDaysSinceUpdate(entry);
@@ -124,7 +132,7 @@ export function useAgendaData(nomeCliente?: string) {
         setEntry(entries[0] ?? null);
         setHistory(entries);
       } catch (error) {
-        console.error('[useAgendaData] Erro ao carregar aba Agendas:', error);
+        console.error("[useAgendaData] Erro ao carregar aba Agendas:", error);
         setEntry(null);
         setHistory([]);
       } finally {

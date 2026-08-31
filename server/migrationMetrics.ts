@@ -1,6 +1,7 @@
-import { getSheetCsv } from "./googleSheets";
+import { getSheetCellByGid, getSheetCsv } from "./googleSheets";
 
 export const MIGRATION_GID = 146618493;
+export const KPI_SHEET_GID = 1590626518;
 
 export interface MigrationKpiMetrics {
   emAndamento: {
@@ -12,6 +13,10 @@ export interface MigrationKpiMetrics {
     value: 0;
     source: "manual:temporário";
   };
+  migradosNaSemana: {
+    value: number;
+    source: "primary:KPI's!AB29";
+  };
   atrasadas: {
     value: number;
     clients: string[];
@@ -21,6 +26,11 @@ export interface MigrationKpiMetrics {
     value: number;
     details: string[];
     source: "primary:Migração!C/D";
+  };
+  clientesBloqueados: {
+    value: number;
+    clients: string[];
+    source: "primary:Migração!T=Paralisado";
   };
 }
 
@@ -116,7 +126,10 @@ function formatDate(dateKey: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-export function parseMigrationKpiMetrics(csv: string): MigrationKpiMetrics {
+export function parseMigrationKpiMetrics(
+  csv: string,
+  migratedThisWeek = 0
+): MigrationKpiMetrics {
   const records = parseCsv(csv)
     .map(row => ({
       name: row[4]?.trim() ?? "",
@@ -132,6 +145,10 @@ export function parseMigrationKpiMetrics(csv: string): MigrationKpiMetrics {
 
   const overdueClients = records
     .filter(row => row.durationDays !== null && row.durationDays > 365)
+    .map(row => row.name);
+
+  const blockedClients = records
+    .filter(row => row.status === "paralisado")
     .map(row => row.name);
 
   const averageRecords = records.filter(
@@ -152,6 +169,10 @@ export function parseMigrationKpiMetrics(csv: string): MigrationKpiMetrics {
       value: 0,
       source: "manual:temporário",
     },
+    migradosNaSemana: {
+      value: migratedThisWeek,
+      source: "primary:KPI's!AB29",
+    },
     atrasadas: {
       value: overdueClients.length,
       clients: overdueClients,
@@ -164,6 +185,11 @@ export function parseMigrationKpiMetrics(csv: string): MigrationKpiMetrics {
           `${row.name} — início em ${formatDate(row.startDate)} — ${row.durationDays?.toFixed(1)} dias`
       ),
       source: "primary:Migração!C/D",
+    },
+    clientesBloqueados: {
+      value: blockedClients.length,
+      clients: blockedClients,
+      source: "primary:Migração!T=Paralisado",
     },
   };
 }
@@ -181,9 +207,13 @@ export async function getMigrationKpiMetrics(): Promise<MigrationKpiMetrics> {
   }
   if (migrationMetricsRequest) return migrationMetricsRequest;
 
-  migrationMetricsRequest = getSheetCsv("primary", MIGRATION_GID)
-    .then(csv => {
-      const value = parseMigrationKpiMetrics(csv);
+  migrationMetricsRequest = Promise.all([
+    getSheetCsv("primary", MIGRATION_GID),
+    getSheetCellByGid("primary", KPI_SHEET_GID, "AB29"),
+  ])
+    .then(([csv, migratedThisWeekCell]) => {
+      const migratedThisWeek = parseSheetNumber(migratedThisWeekCell) ?? 0;
+      const value = parseMigrationKpiMetrics(csv, migratedThisWeek);
       cachedMigrationMetrics = {
         value,
         expiresAt: Date.now() + MIGRATION_METRICS_CACHE_TTL_MS,

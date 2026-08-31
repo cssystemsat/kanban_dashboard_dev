@@ -1,14 +1,17 @@
-import { Calendar, X } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, X } from "lucide-react";
+import { useState } from "react";
 
 interface DateFilterProps {
   onDateChange: (startDate: Date | null, endDate: Date | null) => void;
   onPresetChange?: (preset: string) => void;
 }
 
-export default function DateFilter({ onDateChange, onPresetChange }: DateFilterProps) {
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+export default function DateFilter({
+  onDateChange,
+  onPresetChange,
+}: DateFilterProps) {
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [showCustom, setShowCustom] = useState(false);
 
@@ -25,8 +28,8 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
     const { start, end } = getPresetDates(days);
     setActivePreset(`${days}d`);
     setShowCustom(false);
-    setStartDate('');
-    setEndDate('');
+    setStartDate("");
+    setEndDate("");
     onDateChange(start, end);
     onPresetChange?.(`${days}d`);
   };
@@ -34,7 +37,7 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
   // Aplicar filtro customizado
   const applyCustom = () => {
     if (!startDate || !endDate) {
-      alert('Por favor, selecione data inicial e final');
+      alert("Por favor, selecione data inicial e final");
       return;
     }
 
@@ -42,7 +45,7 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
     const end = new Date(endDate);
 
     if (start > end) {
-      alert('Data inicial não pode ser maior que data final');
+      alert("Data inicial não pode ser maior que data final");
       return;
     }
 
@@ -54,22 +57,25 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
   const clearFilter = () => {
     setActivePreset(null);
     setShowCustom(false);
-    setStartDate('');
-    setEndDate('');
+    setStartDate("");
+    setEndDate("");
     onDateChange(null, null);
   };
 
   // Formatar data para display
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('pt-BR');
+    return date.toLocaleDateString("pt-BR");
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 border shadow-sm mb-6" style={{ borderColor: '#E0E8F0' }}>
+    <div
+      className="bg-white rounded-lg p-6 border shadow-sm mb-6"
+      style={{ borderColor: "#E0E8F0" }}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5" style={{ color: '#00DD00' }} />
-          <h3 className="text-lg font-bold" style={{ color: '#001F3F' }}>
+          <Calendar className="w-5 h-5" style={{ color: "#00DD00" }} />
+          <h3 className="text-lg font-bold" style={{ color: "#001F3F" }}>
             Filtro por Data de Entrada
           </h3>
         </div>
@@ -89,9 +95,9 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
         <button
           onClick={() => applyPreset(7)}
           className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-            activePreset === '7d'
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+            activePreset === "7d"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
           }`}
         >
           Últimos 7 dias
@@ -100,9 +106,9 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
         <button
           onClick={() => applyPreset(30)}
           className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-            activePreset === '30d'
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+            activePreset === "30d"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
           }`}
         >
           Últimos 30 dias
@@ -111,9 +117,9 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
         <button
           onClick={() => applyPreset(90)}
           className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-            activePreset === '90d'
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+            activePreset === "90d"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
           }`}
         >
           Últimos 90 dias
@@ -123,8 +129,8 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
           onClick={() => setShowCustom(!showCustom)}
           className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
             showCustom
-              ? 'bg-purple-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+              ? "bg-purple-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
           }`}
         >
           Período Customizado
@@ -142,9 +148,9 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={e => setStartDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ borderColor: '#E0E8F0' }}
+                style={{ borderColor: "#E0E8F0" }}
               />
             </div>
 
@@ -155,9 +161,9 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={e => setEndDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ borderColor: '#E0E8F0' }}
+                style={{ borderColor: "#E0E8F0" }}
               />
             </div>
           </div>
@@ -175,11 +181,16 @@ export default function DateFilter({ onDateChange, onPresetChange }: DateFilterP
       {(activePreset || startDate || endDate) && (
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-gray-700">
-            <span className="font-semibold" style={{ color: '#001F3F' }}>Filtro Ativo:</span>
-            {activePreset === '7d' && ' Últimos 7 dias'}
-            {activePreset === '30d' && ' Últimos 30 dias'}
-            {activePreset === '90d' && ' Últimos 90 dias'}
-            {startDate && endDate && !activePreset && ` ${formatDate(new Date(startDate))} até ${formatDate(new Date(endDate))}`}
+            <span className="font-semibold" style={{ color: "#001F3F" }}>
+              Filtro Ativo:
+            </span>
+            {activePreset === "7d" && " Últimos 7 dias"}
+            {activePreset === "30d" && " Últimos 30 dias"}
+            {activePreset === "90d" && " Últimos 90 dias"}
+            {startDate &&
+              endDate &&
+              !activePreset &&
+              ` ${formatDate(new Date(startDate))} até ${formatDate(new Date(endDate))}`}
           </p>
         </div>
       )}

@@ -1,12 +1,30 @@
-'use client';
-import { cachedFetch } from '@/lib/sheetsCache';
+"use client";
+import { cachedFetch } from "@/lib/sheetsCache";
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { useURsDashboard, DailyUR, ClientDelta, EquipmentCount } from '@/hooks/useURsDashboard';
-import { Loader2, AlertCircle, TrendingDown, TrendingUp, Camera as CameraIcon, Tag, MessageSquarePlus, ArrowUpDown } from 'lucide-react';
-import { trpc } from '@/lib/trpc';
-import { domToPng } from 'modern-screenshot';
-import { sameCommentMap, type CommentData, type CommentEntry } from '@/lib/commentState';
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import {
+  useURsDashboard,
+  DailyUR,
+  ClientDelta,
+  EquipmentCount,
+} from "@/hooks/useURsDashboard";
+import {
+  Loader2,
+  AlertCircle,
+  TrendingDown,
+  TrendingUp,
+  Camera as CameraIcon,
+  Tag,
+  MessageSquarePlus,
+  ArrowUpDown,
+} from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { domToPng } from "modern-screenshot";
+import {
+  sameCommentMap,
+  type CommentData,
+  type CommentEntry,
+} from "@/lib/commentState";
 
 /* ─── Gráfico de linha simples com SVG ─── */
 function EvolutionChart({ data }: { data: DailyUR[] }) {
@@ -29,11 +47,12 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
   const yRange = yMax - yMin;
 
   const getX = (i: number) => padding.left + (i / (data.length - 1)) * chartW;
-  const getY = (q: number) => padding.top + chartH - ((q - yMin) / yRange) * chartH;
+  const getY = (q: number) =>
+    padding.top + chartH - ((q - yMin) / yRange) * chartH;
 
   const linePath = data
-    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.quantity)}`)
-    .join(' ');
+    .map((d, i) => `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(d.quantity)}`)
+    .join(" ");
 
   const areaPath = `${linePath} L ${getX(data.length - 1)} ${padding.top + chartH} L ${getX(0)} ${padding.top + chartH} Z`;
 
@@ -42,38 +61,82 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
 
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-gray-700 bg-gray-900">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto min-w-[700px]">
-        <rect x={padding.left} y={padding.top} width={chartW} height={chartH} fill="#0f0f1e" rx="4" stroke="#444" strokeWidth="1" />
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full h-auto min-w-[700px]"
+      >
+        <rect
+          x={padding.left}
+          y={padding.top}
+          width={chartW}
+          height={chartH}
+          fill="#0f0f1e"
+          rx="4"
+          stroke="#444"
+          strokeWidth="1"
+        />
         {yTicks.map((tick, i) => (
           <g key={i}>
-            <line x1={padding.left} y1={getY(tick)} x2={padding.left + chartW} y2={getY(tick)} stroke="#333" strokeWidth="0.5" strokeDasharray="3,3" />
-            <text x={padding.left - 8} y={getY(tick) + 4} textAnchor="end" fill="#999" fontSize="10">
-              {Math.round(tick).toLocaleString('pt-BR')}
+            <line
+              x1={padding.left}
+              y1={getY(tick)}
+              x2={padding.left + chartW}
+              y2={getY(tick)}
+              stroke="#333"
+              strokeWidth="0.5"
+              strokeDasharray="3,3"
+            />
+            <text
+              x={padding.left - 8}
+              y={getY(tick) + 4}
+              textAnchor="end"
+              fill="#999"
+              fontSize="10"
+            >
+              {Math.round(tick).toLocaleString("pt-BR")}
             </text>
           </g>
         ))}
         <path d={areaPath} fill="url(#areaGradient)" opacity="0.3" />
         <path d={linePath} fill="none" stroke="#ffffff" strokeWidth="2" />
-        {data.length > 5 && (() => {
-          const windowSize = 5;
-          const maData = data.map((_, i) => {
-            if (i < windowSize - 1) return null;
-            const sum = data.slice(i - windowSize + 1, i + 1).reduce((s, d) => s + d.quantity, 0);
-            return sum / windowSize;
-          });
-          const maPath = maData
-            .map((v, i) => {
-              if (v === null) return '';
-              return `${maData.slice(0, i).every(x => x === null) ? 'M' : 'L'} ${getX(i)} ${getY(v)}`;
-            })
-            .filter(Boolean)
-            .join(' ');
-          return <path d={maPath} fill="none" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4,2" />;
-        })()}
+        {data.length > 5 &&
+          (() => {
+            const windowSize = 5;
+            const maData = data.map((_, i) => {
+              if (i < windowSize - 1) return null;
+              const sum = data
+                .slice(i - windowSize + 1, i + 1)
+                .reduce((s, d) => s + d.quantity, 0);
+              return sum / windowSize;
+            });
+            const maPath = maData
+              .map((v, i) => {
+                if (v === null) return "";
+                return `${maData.slice(0, i).every(x => x === null) ? "M" : "L"} ${getX(i)} ${getY(v)}`;
+              })
+              .filter(Boolean)
+              .join(" ");
+            return (
+              <path
+                d={maPath}
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="1.5"
+                strokeDasharray="4,2"
+              />
+            );
+          })()}
         {xLabels.map((d, idx) => {
           const originalIdx = data.indexOf(d);
           return (
-            <text key={idx} x={getX(originalIdx)} y={height - 5} textAnchor="middle" fill="#999" fontSize="9">
+            <text
+              key={idx}
+              x={getX(originalIdx)}
+              y={height - 5}
+              textAnchor="middle"
+              fill="#999"
+              fontSize="9"
+            >
               {d.date.slice(5)}
             </text>
           );
@@ -90,38 +153,49 @@ function EvolutionChart({ data }: { data: DailyUR[] }) {
 }
 
 /* ─── Modal de Comentário ─── */
-function CommentModal({ 
-  clientName, 
-  commentData, 
+function CommentModal({
+  clientName,
+  commentData,
   currentUser,
-  onSave, 
+  onSave,
   onDelete,
-  onClose 
-}: { 
-  clientName: string; 
+  onClose,
+}: {
+  clientName: string;
   commentData: CommentData | null;
   currentUser: string;
   onSave: (comment: string) => void;
   onDelete: () => void;
   onClose: () => void;
 }) {
-  const [text, setText] = useState(commentData?.current?.text || '');
+  const [text, setText] = useState(commentData?.current?.text || "");
   const [showHistory, setShowHistory] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <h3 className="text-sm font-bold text-gray-800 mb-1">Comentário</h3>
         <p className="text-xs text-gray-500 mb-3">{clientName}</p>
-        
+
         {/* Informações do comentário atual */}
         {commentData?.current && (
           <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200 text-xs">
-            <p className="text-gray-600"><strong>Usuário:</strong> {commentData.current.user}</p>
-            <p className="text-gray-600"><strong>Data:</strong> {new Date(commentData.current.date).toLocaleString('pt-BR')}</p>
+            <p className="text-gray-600">
+              <strong>Usuário:</strong> {commentData.current.user}
+            </p>
+            <p className="text-gray-600">
+              <strong>Data:</strong>{" "}
+              {new Date(commentData.current.date).toLocaleString("pt-BR")}
+            </p>
           </div>
         )}
-        
+
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -130,30 +204,41 @@ function CommentModal({
           placeholder="Digite um comentário sobre este cliente..."
           autoFocus
         />
-        
+
         {/* Botão para mostrar histórico */}
         {commentData && commentData.history.length > 0 && (
           <button
             onClick={() => setShowHistory(!showHistory)}
             className="mt-2 text-xs text-blue-600 hover:underline"
           >
-            {showHistory ? 'Ocultar' : 'Mostrar'} histórico ({commentData.history.length})
+            {showHistory ? "Ocultar" : "Mostrar"} histórico (
+            {commentData.history.length})
           </button>
         )}
-        
+
         {/* Histórico de alterações */}
         {showHistory && commentData && commentData.history.length > 0 && (
           <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-[200px] overflow-y-auto">
-            <p className="text-xs font-semibold text-gray-700 mb-2">Histórico de Alterações:</p>
+            <p className="text-xs font-semibold text-gray-700 mb-2">
+              Histórico de Alterações:
+            </p>
             {commentData.history.map((entry, idx) => (
-              <div key={idx} className="mb-2 pb-2 border-b border-gray-200 last:border-b-0">
-                <p className="text-xs text-gray-600"><strong>{entry.user}</strong> - {new Date(entry.date).toLocaleString('pt-BR')}</p>
-                <p className="text-xs text-gray-700 mt-1 whitespace-pre-wrap">{entry.text}</p>
+              <div
+                key={idx}
+                className="mb-2 pb-2 border-b border-gray-200 last:border-b-0"
+              >
+                <p className="text-xs text-gray-600">
+                  <strong>{entry.user}</strong> -{" "}
+                  {new Date(entry.date).toLocaleString("pt-BR")}
+                </p>
+                <p className="text-xs text-gray-700 mt-1 whitespace-pre-wrap">
+                  {entry.text}
+                </p>
               </div>
             ))}
           </div>
         )}
-        
+
         <div className="flex justify-between mt-3">
           <button
             onClick={onDelete}
@@ -183,47 +268,57 @@ function CommentModal({
   );
 }
 
-type SortMode = 'qty' | 'percent';
+type SortMode = "qty" | "percent";
 
 /* ─── Tabela de Piores Clientes ─── */
-function WorstClientsTable({ 
-  clients, 
-  comments, 
-  onAddComment 
-}: { 
-  clients: ClientDelta[]; 
+function WorstClientsTable({
+  clients,
+  comments,
+  onAddComment,
+}: {
+  clients: ClientDelta[];
   comments: Record<string, CommentData>;
   onAddComment: (clientName: string) => void;
 }) {
-  const [sortMode, setSortMode] = useState<SortMode>('qty');
+  const [sortMode, setSortMode] = useState<SortMode>("qty");
 
   const sorted = useMemo(() => {
     return [...clients].sort((a, b) => {
-      if (sortMode === 'qty') return a.delta - b.delta; // mais negativo primeiro
+      if (sortMode === "qty") return a.delta - b.delta; // mais negativo primeiro
       return a.deltaPercent - b.deltaPercent; // mais negativo % primeiro
     });
   }, [clients, sortMode]);
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-4 py-2 border-b flex items-center justify-between" style={{ backgroundColor: '#991B1B', borderColor: '#7F1D1D' }}>
+    <div
+      className="bg-white rounded-lg border shadow-sm overflow-hidden"
+      style={{ borderColor: "#E0E8F0" }}
+    >
+      <div
+        className="px-4 py-2 border-b flex items-center justify-between"
+        style={{ backgroundColor: "#991B1B", borderColor: "#7F1D1D" }}
+      >
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <TrendingDown className="w-4 h-4" />
           Piores clientes no Mês
         </h3>
         <div className="flex gap-1">
           <button
-            onClick={() => setSortMode('qty')}
+            onClick={() => setSortMode("qty")}
             className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
-              sortMode === 'qty' ? 'bg-white text-red-800' : 'bg-red-800/50 text-white hover:bg-red-800/70'
+              sortMode === "qty"
+                ? "bg-white text-red-800"
+                : "bg-red-800/50 text-white hover:bg-red-800/70"
             }`}
           >
             Qtd
           </button>
           <button
-            onClick={() => setSortMode('percent')}
+            onClick={() => setSortMode("percent")}
             className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
-              sortMode === 'percent' ? 'bg-white text-red-800' : 'bg-red-800/50 text-white hover:bg-red-800/70'
+              sortMode === "percent"
+                ? "bg-white text-red-800"
+                : "bg-red-800/50 text-white hover:bg-red-800/70"
             }`}
           >
             %
@@ -234,21 +329,32 @@ function WorstClientsTable({
         <table className="w-full text-[11px]">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              <th className="text-left px-2 py-1 font-semibold text-gray-700 text-[10px]">Central</th>
+              <th className="text-left px-2 py-1 font-semibold text-gray-700 text-[10px]">
+                Central
+              </th>
               <th className="w-5"></th>
-              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">Delta</th>
-              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">Delta %</th>
+              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">
+                Delta
+              </th>
+              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">
+                Delta %
+              </th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((c, i) => {
               const hasComment = !!comments[c.clientName]?.current;
-              const bgClass = c.changedToday ? 'bg-red-100' : 'hover:bg-red-50/50';
+              const bgClass = c.changedToday
+                ? "bg-red-100"
+                : "hover:bg-red-50/50";
               return (
-                <tr key={i} className={`border-t border-gray-100 ${bgClass} relative`}>
+                <tr
+                  key={i}
+                  className={`border-t border-gray-100 ${bgClass} relative`}
+                >
                   <td className="px-2 py-0.5 relative">
-                    <span 
-                      className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}
+                    <span
+                      className={`text-gray-800 font-medium text-[11px] ${hasComment ? "underline decoration-dotted cursor-pointer" : ""}`}
                       onClick={() => hasComment && onAddComment(c.clientName)}
                     >
                       {c.clientName}
@@ -263,13 +369,21 @@ function WorstClientsTable({
                       <MessageSquarePlus className="w-2.5 h-2.5" />
                     </button>
                   </td>
-                  <td className="px-2 py-0.5 text-right text-red-600 font-bold text-[11px]">{c.delta}</td>
-                  <td className="px-2 py-0.5 text-right text-red-600 text-[11px]">{c.deltaPercent.toFixed(2)}%</td>
+                  <td className="px-2 py-0.5 text-right text-red-600 font-bold text-[11px]">
+                    {c.delta}
+                  </td>
+                  <td className="px-2 py-0.5 text-right text-red-600 text-[11px]">
+                    {c.deltaPercent.toFixed(2)}%
+                  </td>
                 </tr>
               );
             })}
             {clients.length === 0 && (
-              <tr><td colSpan={4} className="px-3 py-4 text-center text-gray-400">Nenhum dado</td></tr>
+              <tr>
+                <td colSpan={4} className="px-3 py-4 text-center text-gray-400">
+                  Nenhum dado
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -279,44 +393,54 @@ function WorstClientsTable({
 }
 
 /* ─── Tabela de Melhores Clientes ─── */
-function BestClientsTable({ 
-  clients, 
-  comments, 
-  onAddComment 
-}: { 
-  clients: ClientDelta[]; 
+function BestClientsTable({
+  clients,
+  comments,
+  onAddComment,
+}: {
+  clients: ClientDelta[];
   comments: Record<string, CommentData>;
   onAddComment: (clientName: string) => void;
 }) {
-  const [sortMode, setSortMode] = useState<SortMode>('qty');
+  const [sortMode, setSortMode] = useState<SortMode>("qty");
 
   const sorted = useMemo(() => {
     return [...clients].sort((a, b) => {
-      if (sortMode === 'qty') return b.delta - a.delta; // maior primeiro
+      if (sortMode === "qty") return b.delta - a.delta; // maior primeiro
       return b.deltaPercent - a.deltaPercent; // maior % primeiro
     });
   }, [clients, sortMode]);
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-4 py-2 border-b flex items-center justify-between" style={{ backgroundColor: '#166534', borderColor: '#14532D' }}>
+    <div
+      className="bg-white rounded-lg border shadow-sm overflow-hidden"
+      style={{ borderColor: "#E0E8F0" }}
+    >
+      <div
+        className="px-4 py-2 border-b flex items-center justify-between"
+        style={{ backgroundColor: "#166534", borderColor: "#14532D" }}
+      >
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <TrendingUp className="w-4 h-4" />
           Melhores clientes no Mês
         </h3>
         <div className="flex gap-1">
           <button
-            onClick={() => setSortMode('qty')}
+            onClick={() => setSortMode("qty")}
             className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
-              sortMode === 'qty' ? 'bg-white text-green-800' : 'bg-green-800/50 text-white hover:bg-green-800/70'
+              sortMode === "qty"
+                ? "bg-white text-green-800"
+                : "bg-green-800/50 text-white hover:bg-green-800/70"
             }`}
           >
             Qtd
           </button>
           <button
-            onClick={() => setSortMode('percent')}
+            onClick={() => setSortMode("percent")}
             className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
-              sortMode === 'percent' ? 'bg-white text-green-800' : 'bg-green-800/50 text-white hover:bg-green-800/70'
+              sortMode === "percent"
+                ? "bg-white text-green-800"
+                : "bg-green-800/50 text-white hover:bg-green-800/70"
             }`}
           >
             %
@@ -327,21 +451,32 @@ function BestClientsTable({
         <table className="w-full text-[11px]">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              <th className="text-left px-2 py-1 font-semibold text-gray-700 text-[10px]">Central</th>
+              <th className="text-left px-2 py-1 font-semibold text-gray-700 text-[10px]">
+                Central
+              </th>
               <th className="w-5"></th>
-              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">Delta</th>
-              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">Delta %</th>
+              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">
+                Delta
+              </th>
+              <th className="text-right px-2 py-1 font-semibold text-gray-700 text-[10px]">
+                Delta %
+              </th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((c, i) => {
               const hasComment = !!comments[c.clientName]?.current;
-              const bgClass = c.changedToday ? 'bg-green-100' : 'hover:bg-green-50/50';
+              const bgClass = c.changedToday
+                ? "bg-green-100"
+                : "hover:bg-green-50/50";
               return (
-                <tr key={i} className={`border-t border-gray-100 ${bgClass} relative`}>
+                <tr
+                  key={i}
+                  className={`border-t border-gray-100 ${bgClass} relative`}
+                >
                   <td className="px-2 py-0.5 relative">
-                    <span 
-                      className={`text-gray-800 font-medium text-[11px] ${hasComment ? 'underline decoration-dotted cursor-pointer' : ''}`}
+                    <span
+                      className={`text-gray-800 font-medium text-[11px] ${hasComment ? "underline decoration-dotted cursor-pointer" : ""}`}
                       onClick={() => hasComment && onAddComment(c.clientName)}
                     >
                       {c.clientName}
@@ -356,13 +491,21 @@ function BestClientsTable({
                       <MessageSquarePlus className="w-2.5 h-2.5" />
                     </button>
                   </td>
-                  <td className="px-2 py-0.5 text-right text-green-600 font-bold text-[11px]">{c.delta}</td>
-                  <td className="px-2 py-0.5 text-right text-green-600 text-[11px]">{c.deltaPercent.toFixed(2)}%</td>
+                  <td className="px-2 py-0.5 text-right text-green-600 font-bold text-[11px]">
+                    {c.delta}
+                  </td>
+                  <td className="px-2 py-0.5 text-right text-green-600 text-[11px]">
+                    {c.deltaPercent.toFixed(2)}%
+                  </td>
                 </tr>
               );
             })}
             {clients.length === 0 && (
-              <tr><td colSpan={4} className="px-3 py-4 text-center text-gray-400">Nenhum dado</td></tr>
+              <tr>
+                <td colSpan={4} className="px-3 py-4 text-center text-gray-400">
+                  Nenhum dado
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -374,8 +517,14 @@ function BestClientsTable({
 /* ─── Tabela de Câmeras ─── */
 function CamerasTable({ data }: { data: EquipmentCount[] }) {
   return (
-    <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-2 py-1 border-b" style={{ backgroundColor: '#1E40AF', borderColor: '#1E3A8A' }}>
+    <div
+      className="bg-white rounded-lg border shadow-sm overflow-hidden"
+      style={{ borderColor: "#E0E8F0" }}
+    >
+      <div
+        className="px-2 py-1 border-b"
+        style={{ backgroundColor: "#1E40AF", borderColor: "#1E3A8A" }}
+      >
         <h3 className="text-xs font-bold text-white flex items-center gap-1">
           <CameraIcon className="w-3 h-3" />
           Câmeras
@@ -385,19 +534,37 @@ function CamerasTable({ data }: { data: EquipmentCount[] }) {
         <table className="w-full text-[9px]">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              <th className="text-left px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">Cliente</th>
-              <th className="text-right px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">Qtd</th>
+              <th className="text-left px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">
+                Cliente
+              </th>
+              <th className="text-right px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">
+                Qtd
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map((c, i) => (
-              <tr key={i} className="border-t border-gray-100 hover:bg-blue-50/50">
-                <td className="px-1.5 py-0.5 text-gray-800 font-medium text-[9px] truncate">{c.clientName}</td>
-                <td className="px-1.5 py-0.5 text-right text-blue-700 font-bold text-[9px]">{c.quantity}</td>
+              <tr
+                key={i}
+                className="border-t border-gray-100 hover:bg-blue-50/50"
+              >
+                <td className="px-1.5 py-0.5 text-gray-800 font-medium text-[9px] truncate">
+                  {c.clientName}
+                </td>
+                <td className="px-1.5 py-0.5 text-right text-blue-700 font-bold text-[9px]">
+                  {c.quantity}
+                </td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan={2} className="px-1.5 py-1 text-center text-gray-400 text-[9px]">Nenhum dado</td></tr>
+              <tr>
+                <td
+                  colSpan={2}
+                  className="px-1.5 py-1 text-center text-gray-400 text-[9px]"
+                >
+                  Nenhum dado
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -409,8 +576,14 @@ function CamerasTable({ data }: { data: EquipmentCount[] }) {
 /* ─── Tabela de Tags ─── */
 function TagsTable({ data }: { data: EquipmentCount[] }) {
   return (
-    <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: '#E0E8F0' }}>
-      <div className="px-2 py-1 border-b" style={{ backgroundColor: '#7C3AED', borderColor: '#6D28D9' }}>
+    <div
+      className="bg-white rounded-lg border shadow-sm overflow-hidden"
+      style={{ borderColor: "#E0E8F0" }}
+    >
+      <div
+        className="px-2 py-1 border-b"
+        style={{ backgroundColor: "#7C3AED", borderColor: "#6D28D9" }}
+      >
         <h3 className="text-xs font-bold text-white flex items-center gap-1">
           <Tag className="w-3 h-3" />
           Tags
@@ -420,19 +593,37 @@ function TagsTable({ data }: { data: EquipmentCount[] }) {
         <table className="w-full text-[9px]">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              <th className="text-left px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">Cliente</th>
-              <th className="text-right px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">Qtd</th>
+              <th className="text-left px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">
+                Cliente
+              </th>
+              <th className="text-right px-1.5 py-0.5 font-semibold text-gray-700 text-[8px]">
+                Qtd
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map((c, i) => (
-              <tr key={i} className="border-t border-gray-100 hover:bg-purple-50/50">
-                <td className="px-1.5 py-0.5 text-gray-800 font-medium text-[9px] truncate">{c.clientName}</td>
-                <td className="px-1.5 py-0.5 text-right text-purple-700 font-bold text-[9px]">{c.quantity}</td>
+              <tr
+                key={i}
+                className="border-t border-gray-100 hover:bg-purple-50/50"
+              >
+                <td className="px-1.5 py-0.5 text-gray-800 font-medium text-[9px] truncate">
+                  {c.clientName}
+                </td>
+                <td className="px-1.5 py-0.5 text-right text-purple-700 font-bold text-[9px]">
+                  {c.quantity}
+                </td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan={2} className="px-1.5 py-1 text-center text-gray-400 text-[9px]">Nenhum dado</td></tr>
+              <tr>
+                <td
+                  colSpan={2}
+                  className="px-1.5 py-1 text-center text-gray-400 text-[9px]"
+                >
+                  Nenhum dado
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -446,54 +637,76 @@ export default function Dashboard() {
   const { data, loading, error, fetchData } = useURsDashboard();
   const { data: authData } = trpc.auth.me.useQuery();
   const utils = trpc.useUtils();
-  const [commentModal, setCommentModal] = useState<{ clientName: string } | null>(null);
+  const [commentModal, setCommentModal] = useState<{
+    clientName: string;
+  } | null>(null);
   const [comments, setComments] = useState<Record<string, CommentData>>({});
-  const [insightsModal, setInsightsModal] = useState<{ open: boolean; insights: string; loading: boolean }>({ open: false, insights: '', loading: false });
+  const [insightsModal, setInsightsModal] = useState<{
+    open: boolean;
+    insights: string;
+    loading: boolean;
+  }>({ open: false, insights: "", loading: false });
   const [reportModal, setReportModal] = useState<{ open: boolean }>(() => ({
-    open: new URLSearchParams(window.location.search).get('report') === 'comments',
+    open:
+      new URLSearchParams(window.location.search).get("report") === "comments",
   }));
   const contentRef = useRef<HTMLDivElement>(null);
   const generateInsightsMutation = trpc.urs.generateInsights.useMutation();
-  
+
   // Carregar comentários do banco ao inicializar
   const monthYear = new Date().toISOString().slice(0, 7); // "YYYY-MM"
-  const { data: dbComments } = trpc.clientComments.list.useQuery({ monthYear }, { enabled: !!authData });
-  const { data: commentHistory } = trpc.clientComments.history.useQuery({ monthYear }, { enabled: !!authData });
+  const { data: dbComments } = trpc.clientComments.list.useQuery(
+    { monthYear },
+    { enabled: !!authData }
+  );
+  const { data: commentHistory } = trpc.clientComments.history.useQuery(
+    { monthYear },
+    { enabled: !!authData }
+  );
   const {
     data: reportComments = [],
     isLoading: reportLoading,
     error: reportError,
-  } = trpc.clientComments.listWithComments.useQuery({}, { enabled: !!authData && reportModal.open });
+  } = trpc.clientComments.listWithComments.useQuery(
+    {},
+    { enabled: !!authData && reportModal.open }
+  );
 
   useEffect(() => {
     const commentsMap: Record<string, CommentData> = {};
     const historyEntries = commentHistory ?? [];
     (dbComments ?? []).forEach(comment => {
       const savedHistory = historyEntries
-        .filter(entry => entry.clientName === comment.clientName && entry.action !== 'deleted')
+        .filter(
+          entry =>
+            entry.clientName === comment.clientName &&
+            entry.action !== "deleted"
+        )
         .slice(1)
         .map(entry => ({
           text: entry.comment,
-          user: entry.authorName || 'Usuário',
+          user: entry.authorName || "Usuário",
           date: new Date(entry.createdAt).toISOString(),
         }));
       commentsMap[comment.clientName] = {
         current: {
           text: comment.comment,
-          user: comment.authorName || 'Usuário',
+          user: comment.authorName || "Usuário",
           date: new Date(comment.updatedAt).toISOString(),
         },
         history: savedHistory,
       };
     });
-    setComments(current => sameCommentMap(current, commentsMap) ? current : commentsMap);
+    setComments(current =>
+      sameCommentMap(current, commentsMap) ? current : commentsMap
+    );
   }, [dbComments, commentHistory]);
 
   const handleScreenshot = async () => {
     if (!contentRef.current) return;
     try {
       const dataUrl = await domToPng(contentRef.current, {
-        backgroundColor: '#F0F4F8',
+        backgroundColor: "#F0F4F8",
         scale: 2,
       });
       // Converter data URL para blob
@@ -501,72 +714,83 @@ export default function Dashboard() {
       const blob = await res.blob();
       try {
         await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
+          new ClipboardItem({ "image/png": blob }),
         ]);
-        alert('Screenshot copiado para a área de transferência!');
+        alert("Screenshot copiado para a área de transferência!");
       } catch {
         // Fallback: download
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `controle-urs-${new Date().toISOString().slice(0, 10)}.png`;
         a.click();
         URL.revokeObjectURL(url);
       }
     } catch (err) {
-      console.error('Erro ao capturar screenshot:', err);
-      alert('Erro ao capturar screenshot');
+      console.error("Erro ao capturar screenshot:", err);
+      alert("Erro ao capturar screenshot");
     }
   };
 
-    const handleAddComment = (clientName: string) => {
+  const handleAddComment = (clientName: string) => {
     setCommentModal({ clientName });
   };
 
   const handleGenerateInsights = async () => {
     try {
-      setInsightsModal({ open: true, insights: '', loading: true });
+      setInsightsModal({ open: true, insights: "", loading: true });
       const response = await cachedFetch(
-        'https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=1250838098'
+        "https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=1250838098"
       );
       const csvData = await response.text();
-      
+
       // Filtrar apenas últimos 7 dias
-      const lines = csvData.split('\n');
+      const lines = csvData.split("\n");
       const header = lines[0];
       const dataLines = lines.slice(1);
-      
+
       // Encontrar coluna de data (coluna K = índice 10)
       const today = new Date();
       const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
+
       const filteredLines = dataLines.filter(line => {
         if (!line.trim()) return false;
-        const parts = line.split(',');
+        const parts = line.split(",");
         if (parts.length < 11) return false;
-        
+
         const dateStr = parts[10]?.trim(); // Coluna K (índice 10)
         if (!dateStr) return false;
-        
+
         try {
           // Parse data no formato dd/mm/yyyy
-          const [day, month, year] = dateStr.split('/');
-          const lineDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          const [day, month, year] = dateStr.split("/");
+          const lineDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
           return lineDate >= sevenDaysAgo && lineDate <= today;
         } catch {
           return false;
         }
       });
-      
+
       // Reconstruir CSV com header + últimos 7 dias
-      const filteredCsv = [header, ...filteredLines].join('\n');
-      
-      const result = await generateInsightsMutation.mutateAsync({ csvData: filteredCsv });
-      const insightsText = typeof result.insights === 'string' ? result.insights : '';
+      const filteredCsv = [header, ...filteredLines].join("\n");
+
+      const result = await generateInsightsMutation.mutateAsync({
+        csvData: filteredCsv,
+      });
+      const insightsText =
+        typeof result.insights === "string" ? result.insights : "";
       setInsightsModal({ open: true, insights: insightsText, loading: false });
     } catch (err) {
-      console.error('Erro ao gerar insights:', err);
-      setInsightsModal({ open: true, insights: 'Erro ao gerar insights. Tente novamente.', loading: false });
+      console.error("Erro ao gerar insights:", err);
+      setInsightsModal({
+        open: true,
+        insights: "Erro ao gerar insights. Tente novamente.",
+        loading: false,
+      });
     }
   };
 
@@ -576,32 +800,32 @@ export default function Dashboard() {
 
   const handleSaveComment = async (text: string) => {
     if (!commentModal) return;
-    
+
     const clientName = commentModal.clientName;
     const currentData = comments[clientName] || { current: null, history: [] };
-    
+
     // Adicionar comentário atual ao histórico
-    const newHistory = currentData.current 
+    const newHistory = currentData.current
       ? [...currentData.history, currentData.current]
       : currentData.history;
-    
+
     // Criar novo comentário
     const newComment: CommentEntry = {
       text,
-      user: authData?.name || 'Usuário',
+      user: authData?.name || "Usuário",
       date: new Date().toISOString(),
     };
-    
+
     const updatedComments = {
       ...comments,
       [clientName]: {
         current: newComment,
         history: newHistory,
-      }
+      },
     };
-    
+
     setComments(updatedComments);
-    
+
     // Salvar no banco de dados
     try {
       await upsertCommentMutation.mutateAsync({
@@ -615,21 +839,21 @@ export default function Dashboard() {
         utils.clientComments.listWithComments.invalidate(),
       ]);
     } catch (err) {
-      console.error('Erro ao salvar comentário:', err);
+      console.error("Erro ao salvar comentário:", err);
     }
-    
+
     setCommentModal(null);
   };
 
   const handleDeleteComment = async () => {
     if (!commentModal) return;
-    
+
     const clientName = commentModal.clientName;
     const updated = { ...comments };
     delete updated[clientName];
-    
+
     setComments(updated);
-    
+
     // Deletar do banco de dados
     try {
       await deleteCommentMutation.mutateAsync({
@@ -642,18 +866,24 @@ export default function Dashboard() {
         utils.clientComments.listWithComments.invalidate(),
       ]);
     } catch (err) {
-      console.error('Erro ao deletar comentário:', err);
+      console.error("Erro ao deletar comentário:", err);
     }
-    
+
     setCommentModal(null);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F0F4F8' }}>
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{ backgroundColor: "#F0F4F8" }}
+      >
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: '#001F3F' }} />
-          <p style={{ color: '#001F3F' }}>Carregando dados...</p>
+          <Loader2
+            className="w-8 h-8 animate-spin mx-auto mb-2"
+            style={{ color: "#001F3F" }}
+          />
+          <p style={{ color: "#001F3F" }}>Carregando dados...</p>
         </div>
       </div>
     );
@@ -661,7 +891,10 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F0F4F8' }}>
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{ backgroundColor: "#F0F4F8" }}
+      >
         <div className="text-center">
           <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
           <p className="text-red-600">Erro ao carregar dados: {error}</p>
@@ -677,11 +910,17 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ backgroundColor: '#F0F4F8', minHeight: '100vh', padding: '20px' }}>
+    <div
+      style={{
+        backgroundColor: "#F0F4F8",
+        minHeight: "100vh",
+        padding: "20px",
+      }}
+    >
       <div ref={contentRef} className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold" style={{ color: '#001F3F' }}>
+          <h1 className="text-2xl font-bold" style={{ color: "#001F3F" }}>
             Controle de UR's, Câmeras e Tags no mês de Maio
           </h1>
           <div className="flex gap-2">
@@ -690,7 +929,7 @@ export default function Dashboard() {
               disabled={insightsModal.loading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
             >
-              {insightsModal.loading ? 'Gerando...' : 'Gerar Insights'}
+              {insightsModal.loading ? "Gerando..." : "Gerar Insights"}
             </button>
             <button
               onClick={() => setReportModal({ open: true })}
@@ -714,13 +953,13 @@ export default function Dashboard() {
         {data && (
           <>
             <div className="grid grid-cols-2 gap-4 mt-6">
-              <WorstClientsTable 
-                clients={data.worstClients} 
+              <WorstClientsTable
+                clients={data.worstClients}
                 comments={comments}
                 onAddComment={handleAddComment}
               />
-              <BestClientsTable 
-                clients={data.bestClients} 
+              <BestClientsTable
+                clients={data.bestClients}
                 comments={comments}
                 onAddComment={handleAddComment}
               />
@@ -740,7 +979,7 @@ export default function Dashboard() {
         <CommentModal
           clientName={commentModal.clientName}
           commentData={comments[commentModal.clientName] || null}
-          currentUser={authData?.name || 'Usuário'}
+          currentUser={authData?.name || "Usuário"}
           onSave={handleSaveComment}
           onDelete={handleDeleteComment}
           onClose={() => setCommentModal(null)}
@@ -749,18 +988,28 @@ export default function Dashboard() {
 
       {/* Modal de Insights */}
       {insightsModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setInsightsModal({ ...insightsModal, open: false })}>
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setInsightsModal({ ...insightsModal, open: false })}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Análise de URs com IA</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                Análise de URs com IA
+              </h2>
               <button
-                onClick={() => setInsightsModal({ ...insightsModal, open: false })}
+                onClick={() =>
+                  setInsightsModal({ ...insightsModal, open: false })
+                }
                 className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
               >
                 ×
               </button>
             </div>
-            
+
             {insightsModal.loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -773,10 +1022,12 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
               <button
-                onClick={() => setInsightsModal({ ...insightsModal, open: false })}
+                onClick={() =>
+                  setInsightsModal({ ...insightsModal, open: false })
+                }
                 className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Fechar
@@ -786,9 +1037,9 @@ export default function Dashboard() {
                   const text = insightsModal.insights;
                   try {
                     await navigator.clipboard.writeText(text);
-                    alert('Análise copiada para a área de transferência!');
+                    alert("Análise copiada para a área de transferência!");
                   } catch {
-                    alert('Erro ao copiar');
+                    alert("Erro ao copiar");
                   }
                 }}
                 className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -802,10 +1053,18 @@ export default function Dashboard() {
 
       {/* Modal de Relatório de Comentários */}
       {reportModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setReportModal({ open: false })}>
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setReportModal({ open: false })}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Relatório de Comentários de Clientes</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                Relatório de Comentários de Clientes
+              </h2>
               <button
                 onClick={() => setReportModal({ open: false })}
                 className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
@@ -813,10 +1072,12 @@ export default function Dashboard() {
                 ×
               </button>
             </div>
-            
+
             {!authData ? (
               <div className="rounded-xl border border-blue-200 bg-blue-50 px-6 py-10 text-center">
-                <p className="font-medium text-blue-900">Entre para consultar o relatório de comentários</p>
+                <p className="font-medium text-blue-900">
+                  Entre para consultar o relatório de comentários
+                </p>
                 <p className="mt-2 text-sm text-blue-700">
                   O histórico é restrito a usuários autenticados do painel.
                 </p>
@@ -828,53 +1089,81 @@ export default function Dashboard() {
               </div>
             ) : reportError ? (
               <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                Não foi possível carregar o relatório. Tente fechar e abrir novamente.
+                Não foi possível carregar o relatório. Tente fechar e abrir
+                novamente.
               </div>
             ) : reportComments.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
-                <p className="font-medium text-gray-700">Nenhum comentário histórico encontrado</p>
+                <p className="font-medium text-gray-700">
+                  Nenhum comentário histórico encontrado
+                </p>
                 <p className="mt-2 text-sm text-gray-500">
-                  Os comentários do projeto anterior não estavam no GitHub nem nas planilhas. Novos comentários serão preservados neste relatório a partir de agora.
+                  Os comentários do projeto anterior não estavam no GitHub nem
+                  nas planilhas. Novos comentários serão preservados neste
+                  relatório a partir de agora.
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {reportComments.map((comment) => (
+                {reportComments.map(comment => (
                   <div
                     key={comment.id}
                     className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 p-4"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-semibold text-gray-900">{comment.clientName}</p>
+                        <p className="font-semibold text-gray-900">
+                          {comment.clientName}
+                        </p>
                         <p className="text-xs text-gray-600">
-                          {comment.monthYear} · {new Date(comment.createdAt).toLocaleString('pt-BR')}
+                          {comment.monthYear} ·{" "}
+                          {new Date(comment.createdAt).toLocaleString("pt-BR")}
                         </p>
                       </div>
-                      <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${comment.action === 'deleted' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                        {comment.action === 'deleted' ? 'Removido' : comment.action === 'imported' ? 'Importado' : 'Salvo'}
+                      <span
+                        className={`rounded-full px-2 py-1 text-[10px] font-semibold ${comment.action === "deleted" ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}
+                      >
+                        {comment.action === "deleted"
+                          ? "Removido"
+                          : comment.action === "imported"
+                            ? "Importado"
+                            : "Salvo"}
                       </span>
                     </div>
                     <div className="bg-white rounded p-3 mb-2 border border-purple-100">
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap">{comment.comment}</p>
+                      <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                        {comment.comment}
+                      </p>
                     </div>
                     {comment.authorName && (
-                      <p className="text-xs text-gray-600">Por: {comment.authorName}</p>
+                      <p className="text-xs text-gray-600">
+                        Por: {comment.authorName}
+                      </p>
                     )}
                   </div>
                 ))}
               </div>
             )}
-            
+
             <div className="flex justify-between gap-2 mt-6 pt-4 border-t">
               <button
                 onClick={() => {
-                  const text = reportComments.map(c => `${c.clientName}\n${c.comment}\nStatus: ${c.action === 'deleted' ? 'Removido' : c.action === 'imported' ? 'Importado' : 'Salvo'}\nCompetência: ${c.monthYear}\nPor: ${c.authorName || 'N/A'}\nData: ${new Date(c.createdAt).toLocaleString('pt-BR')}\n`).join('\n---\n\n');
-                  navigator.clipboard.writeText(text).then(() => {
-                    alert('Comentários copiados para a área de transferência!');
-                  }).catch(() => {
-                    alert('Erro ao copiar comentários');
-                  });
+                  const text = reportComments
+                    .map(
+                      c =>
+                        `${c.clientName}\n${c.comment}\nStatus: ${c.action === "deleted" ? "Removido" : c.action === "imported" ? "Importado" : "Salvo"}\nCompetência: ${c.monthYear}\nPor: ${c.authorName || "N/A"}\nData: ${new Date(c.createdAt).toLocaleString("pt-BR")}\n`
+                    )
+                    .join("\n---\n\n");
+                  navigator.clipboard
+                    .writeText(text)
+                    .then(() => {
+                      alert(
+                        "Comentários copiados para a área de transferência!"
+                      );
+                    })
+                    .catch(() => {
+                      alert("Erro ao copiar comentários");
+                    });
                 }}
                 disabled={reportComments.length === 0}
                 className="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"

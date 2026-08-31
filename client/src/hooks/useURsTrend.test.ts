@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { URsEvolutionData, URsTrendData } from './useURsTrend';
+import { describe, it, expect } from "vitest";
+import { URsEvolutionData, URsTrendData } from "./useURsTrend";
 
 // Simular cálculo de tendência (mesma lógica do hook)
 function calculateTrend(
@@ -33,7 +33,7 @@ function calculateTrend(
 
   return {
     clientName: firstEntry.clientName,
-    codigoCliente: 'TEST001',
+    codigoCliente: "TEST001",
     startQuantity: startQty,
     endQuantity: endQty,
     trend: change,
@@ -44,16 +44,31 @@ function calculateTrend(
   };
 }
 
-describe('useURsTrend', () => {
-  it('deve calcular tendência ascendente corretamente', () => {
+describe("useURsTrend", () => {
+  it("deve calcular tendência ascendente corretamente", () => {
     const data: URsEvolutionData[] = [
-      { clientName: 'Cliente A', date: '01/01/2025', quantity: 10, timestamp: new Date('2025-01-01').getTime() },
-      { clientName: 'Cliente A', date: '15/01/2025', quantity: 15, timestamp: new Date('2025-01-15').getTime() },
-      { clientName: 'Cliente A', date: '31/01/2025', quantity: 20, timestamp: new Date('2025-01-31').getTime() },
+      {
+        clientName: "Cliente A",
+        date: "01/01/2025",
+        quantity: 10,
+        timestamp: new Date("2025-01-01").getTime(),
+      },
+      {
+        clientName: "Cliente A",
+        date: "15/01/2025",
+        quantity: 15,
+        timestamp: new Date("2025-01-15").getTime(),
+      },
+      {
+        clientName: "Cliente A",
+        date: "31/01/2025",
+        quantity: 20,
+        timestamp: new Date("2025-01-31").getTime(),
+      },
     ];
 
-    const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date("2025-01-31");
 
     const trend = calculateTrend(data, startDate, endDate);
 
@@ -64,15 +79,30 @@ describe('useURsTrend', () => {
     expect(trend?.percentChange).toBe(100);
   });
 
-  it('deve calcular tendência descendente corretamente', () => {
+  it("deve calcular tendência descendente corretamente", () => {
     const data: URsEvolutionData[] = [
-      { clientName: 'Cliente B', date: '01/01/2025', quantity: 20, timestamp: new Date('2025-01-01').getTime() },
-      { clientName: 'Cliente B', date: '15/01/2025', quantity: 15, timestamp: new Date('2025-01-15').getTime() },
-      { clientName: 'Cliente B', date: '31/01/2025', quantity: 10, timestamp: new Date('2025-01-31').getTime() },
+      {
+        clientName: "Cliente B",
+        date: "01/01/2025",
+        quantity: 20,
+        timestamp: new Date("2025-01-01").getTime(),
+      },
+      {
+        clientName: "Cliente B",
+        date: "15/01/2025",
+        quantity: 15,
+        timestamp: new Date("2025-01-15").getTime(),
+      },
+      {
+        clientName: "Cliente B",
+        date: "31/01/2025",
+        quantity: 10,
+        timestamp: new Date("2025-01-31").getTime(),
+      },
     ];
 
-    const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date("2025-01-31");
 
     const trend = calculateTrend(data, startDate, endDate);
 
@@ -83,15 +113,30 @@ describe('useURsTrend', () => {
     expect(trend?.percentChange).toBe(-50);
   });
 
-  it('deve calcular tendência estável corretamente', () => {
+  it("deve calcular tendência estável corretamente", () => {
     const data: URsEvolutionData[] = [
-      { clientName: 'Cliente C', date: '01/01/2025', quantity: 15, timestamp: new Date('2025-01-01').getTime() },
-      { clientName: 'Cliente C', date: '15/01/2025', quantity: 15, timestamp: new Date('2025-01-15').getTime() },
-      { clientName: 'Cliente C', date: '31/01/2025', quantity: 15, timestamp: new Date('2025-01-31').getTime() },
+      {
+        clientName: "Cliente C",
+        date: "01/01/2025",
+        quantity: 15,
+        timestamp: new Date("2025-01-01").getTime(),
+      },
+      {
+        clientName: "Cliente C",
+        date: "15/01/2025",
+        quantity: 15,
+        timestamp: new Date("2025-01-15").getTime(),
+      },
+      {
+        clientName: "Cliente C",
+        date: "31/01/2025",
+        quantity: 15,
+        timestamp: new Date("2025-01-31").getTime(),
+      },
     ];
 
-    const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date("2025-01-31");
 
     const trend = calculateTrend(data, startDate, endDate);
 
@@ -103,29 +148,54 @@ describe('useURsTrend', () => {
     expect(trend?.percentChange).toBe(0);
   });
 
-  it('deve retornar null se não houver dados suficientes', () => {
+  it("deve retornar null se não houver dados suficientes", () => {
     const data: URsEvolutionData[] = [
-      { clientName: 'Cliente D', date: '01/01/2025', quantity: 10, timestamp: new Date('2025-01-01').getTime() },
+      {
+        clientName: "Cliente D",
+        date: "01/01/2025",
+        quantity: 10,
+        timestamp: new Date("2025-01-01").getTime(),
+      },
     ];
 
-    const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date("2025-01-31");
 
     const trend = calculateTrend(data, startDate, endDate);
 
     expect(trend).toBeNull();
   });
 
-  it('deve filtrar dados corretamente por período', () => {
+  it("deve filtrar dados corretamente por período", () => {
     const data: URsEvolutionData[] = [
-      { clientName: 'Cliente E', date: '01/12/2024', quantity: 5, timestamp: new Date('2024-12-01').getTime() },
-      { clientName: 'Cliente E', date: '01/01/2025', quantity: 10, timestamp: new Date('2025-01-01').getTime() },
-      { clientName: 'Cliente E', date: '15/01/2025', quantity: 15, timestamp: new Date('2025-01-15').getTime() },
-      { clientName: 'Cliente E', date: '01/02/2025', quantity: 20, timestamp: new Date('2025-02-01').getTime() },
+      {
+        clientName: "Cliente E",
+        date: "01/12/2024",
+        quantity: 5,
+        timestamp: new Date("2024-12-01").getTime(),
+      },
+      {
+        clientName: "Cliente E",
+        date: "01/01/2025",
+        quantity: 10,
+        timestamp: new Date("2025-01-01").getTime(),
+      },
+      {
+        clientName: "Cliente E",
+        date: "15/01/2025",
+        quantity: 15,
+        timestamp: new Date("2025-01-15").getTime(),
+      },
+      {
+        clientName: "Cliente E",
+        date: "01/02/2025",
+        quantity: 20,
+        timestamp: new Date("2025-02-01").getTime(),
+      },
     ];
 
-    const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date("2025-01-31");
 
     const trend = calculateTrend(data, startDate, endDate);
 
@@ -135,14 +205,24 @@ describe('useURsTrend', () => {
     expect(trend?.trend).toBe(5);
   });
 
-  it('deve calcular percentual de mudança corretamente', () => {
+  it("deve calcular percentual de mudança corretamente", () => {
     const data: URsEvolutionData[] = [
-      { clientName: 'Cliente F', date: '01/01/2025', quantity: 100, timestamp: new Date('2025-01-01').getTime() },
-      { clientName: 'Cliente F', date: '31/01/2025', quantity: 150, timestamp: new Date('2025-01-31').getTime() },
+      {
+        clientName: "Cliente F",
+        date: "01/01/2025",
+        quantity: 100,
+        timestamp: new Date("2025-01-01").getTime(),
+      },
+      {
+        clientName: "Cliente F",
+        date: "31/01/2025",
+        quantity: 150,
+        timestamp: new Date("2025-01-31").getTime(),
+      },
     ];
 
-    const startDate = new Date('2025-01-01');
-    const endDate = new Date('2025-01-31');
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date("2025-01-31");
 
     const trend = calculateTrend(data, startDate, endDate);
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useEffect, useState } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface OngoingClientData {
   id: string; // Coluna A - Código Cliente
@@ -25,11 +25,11 @@ export interface OngoingClientData {
 }
 
 const SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1152476970';
+  "https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1152476970";
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let insideQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -45,10 +45,10 @@ function parseCSVLine(line: string): string[] {
         // Toggle quote state
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       // Vírgula fora de aspas = separador de coluna
       result.push(current.trim());
-      current = '';
+      current = "";
     } else {
       current += char;
     }
@@ -70,7 +70,7 @@ export function useOngoingData() {
         setLoading(true);
         const response = await cachedFetch(SHEET_URL);
         const csvText = await response.text();
-        const lines = csvText.split('\n');
+        const lines = csvText.split("\n");
 
         const clients: OngoingClientData[] = [];
 
@@ -83,43 +83,49 @@ export function useOngoingData() {
             const row = parseCSVLine(line);
 
             // Mapeamento de colunas (0-indexed)
-            const codigoCliente = String(row[0] || '').trim(); // Coluna A (0)
-            const nome = String(row[1] || '').trim(); // Coluna B (1)
+            const codigoCliente = String(row[0] || "").trim(); // Coluna A (0)
+            const nome = String(row[1] || "").trim(); // Coluna B (1)
 
             // Pular linhas sem nome
             if (!nome) continue;
-            const csm = String(row[2] || '').trim(); // Coluna C (2)
-            const entrada = String(row[3] || '').trim(); // Coluna D (3) - Data de Entrada
-            
+            const csm = String(row[2] || "").trim(); // Coluna C (2)
+            const entrada = String(row[3] || "").trim(); // Coluna D (3) - Data de Entrada
+
             // Extrair valor numérico do formato "R$ XXXX,XX"
             const extractNumber = (str: string): number => {
               if (!str) return 0;
               // Remove aspas se existirem
-              const unquoted = str.replace(/^"|"$/g, '');
+              const unquoted = str.replace(/^"|"$/g, "");
               // Remove "R$" e espaços
-              const cleaned = unquoted.replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.');
+              const cleaned = unquoted
+                .replace(/[^0-9,.-]/g, "")
+                .replace(".", "")
+                .replace(",", ".");
               return parseFloat(cleaned) || 0;
             };
 
-            const ultimoBoleto = extractNumber(row[5] || ''); // Coluna F (5)
-            const placas = parseInt(row[6] || '0'); // Coluna G (6)
-            const valorMedioPorPlaca = extractNumber(row[7] || ''); // Coluna H (7)
-            const percentualDesatualizado = parseFloat((row[8] || '0').replace('%', '')) || 0; // Coluna I (8)
-            const unidadesDesatualizadas = parseInt(row[9] || '0'); // Coluna J (9)
-            const ultimoContato = String(row[11] || '').trim(); // Coluna L (11)
-            const flag = String(row[14] || '').trim(); // Coluna O (14) — texto do nível de flag
-            const estrelaStr = String(row[16] || '').trim().toUpperCase(); // Coluna Q (16)
-            const estrela = estrelaStr === 'TRUE';
-            const situacao = String(row[21] || '').trim(); // Coluna V (21)
-            const comercial = String(row[23] || '').trim(); // Coluna X (23)
-            const decisor = String(row[30] || '').trim(); // Coluna AE (30)
-            const contatoDecissor = String(row[31] || '').trim(); // Coluna AF (31) - Contato do Decisor
-            const deltaConsumo = extractNumber(row[36] || ''); // Coluna BK (36) - Delta Consumo
-            const cidade = String(row[34] || '').trim(); // Coluna AI (34) - Cidade
-            const estado = String(row[35] || '').trim(); // Coluna AJ (35) - Estado
+            const ultimoBoleto = extractNumber(row[5] || ""); // Coluna F (5)
+            const placas = parseInt(row[6] || "0"); // Coluna G (6)
+            const valorMedioPorPlaca = extractNumber(row[7] || ""); // Coluna H (7)
+            const percentualDesatualizado =
+              parseFloat((row[8] || "0").replace("%", "")) || 0; // Coluna I (8)
+            const unidadesDesatualizadas = parseInt(row[9] || "0"); // Coluna J (9)
+            const ultimoContato = String(row[11] || "").trim(); // Coluna L (11)
+            const flag = String(row[14] || "").trim(); // Coluna O (14) — texto do nível de flag
+            const estrelaStr = String(row[16] || "")
+              .trim()
+              .toUpperCase(); // Coluna Q (16)
+            const estrela = estrelaStr === "TRUE";
+            const situacao = String(row[21] || "").trim(); // Coluna V (21)
+            const comercial = String(row[23] || "").trim(); // Coluna X (23)
+            const decisor = String(row[30] || "").trim(); // Coluna AE (30)
+            const contatoDecissor = String(row[31] || "").trim(); // Coluna AF (31) - Contato do Decisor
+            const deltaConsumo = extractNumber(row[36] || ""); // Coluna BK (36) - Delta Consumo
+            const cidade = String(row[34] || "").trim(); // Coluna AI (34) - Cidade
+            const estado = String(row[35] || "").trim(); // Coluna AJ (35) - Estado
 
             // Excluir apenas clientes com situação 'Churn'
-            if (situacao === 'Churn') continue;
+            if (situacao === "Churn") continue;
 
             if (nome) {
               clients.push({
@@ -146,7 +152,7 @@ export function useOngoingData() {
               });
             }
           } catch (err) {
-            console.error('Erro ao processar linha:', line, err);
+            console.error("Erro ao processar linha:", line, err);
           }
         }
 
@@ -156,8 +162,8 @@ export function useOngoingData() {
         setData(clients);
         setLoading(false);
       } catch (err) {
-        console.error('Erro ao buscar dados:', err);
-        setError('Erro ao buscar dados');
+        console.error("Erro ao buscar dados:", err);
+        setError("Erro ao buscar dados");
         setLoading(false);
       }
     };

@@ -59,6 +59,18 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain("migrationMetrics?.atrasadas.value ?? 0");
     expect(pageSource).toContain("migrationMetrics?.atrasadas.clients ?? []");
     expect(pageSource).toContain("Migrações com duração superior a 365 dias");
+    expect(pageSource).toContain("Migrados na semana");
+    expect(pageSource).toContain(
+      "migrationMetrics?.migradosNaSemana.value ?? 0"
+    );
+    expect(pageSource).toContain("Valor da célula AB29 da aba KPI's");
+    expect(pageSource).toContain(
+      "migrationMetrics?.clientesBloqueados.value ?? 0"
+    );
+    expect(pageSource).toContain(
+      "migrationMetrics?.clientesBloqueados.clients ?? []"
+    );
+    expect(pageSource).toContain("Empresas com status Paralisado");
     expect(pageSource).toContain("migrationMetrics?.tempoMedio.value ?? 0");
     expect(pageSource).toContain("migrationMetrics?.tempoMedio.details ?? []");
     expect(routerSource).toContain("getMigrationKpiMetrics: publicProcedure");

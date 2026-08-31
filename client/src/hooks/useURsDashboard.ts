@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useEffect, useState, useCallback } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 // URL da planilha aba D (gid=1250838098)
 const CSV_URL =
-  'https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=1250838098';
+  "https://docs.google.com/spreadsheets/d/1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4/export?format=csv&gid=1250838098";
 
 export interface DailyUR {
   date: string; // yyyy-mm-dd
@@ -35,7 +35,7 @@ export interface URsDashboardData {
   tags: EquipmentCount[];
 }
 
-const TAG_MODELS = ['airtag pb703', 'webtag'];
+const TAG_MODELS = ["airtag pb703", "webtag"];
 
 function isTag(model: string): boolean {
   return TAG_MODELS.includes(model.toLowerCase().trim());
@@ -44,7 +44,7 @@ function isTag(model: string): boolean {
 // Parser CSV que lida com aspas
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -58,9 +58,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (char === ',' && !inQuotes) {
+    } else if (char === "," && !inQuotes) {
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }
@@ -73,18 +73,22 @@ function parseCSVLine(line: string): string[] {
 /**
  * Verifica se uma data no formato dd/mm/aaaa pertence ao mês/ano atual
  */
-function isDateInCurrentMonth(dateStr: string, currentMonth: number, currentYear: number): boolean {
+function isDateInCurrentMonth(
+  dateStr: string,
+  currentMonth: number,
+  currentYear: number
+): boolean {
   if (!dateStr) return false;
   const trimmed = dateStr.trim();
-  
+
   // Formato dd/mm/aaaa
-  const parts = trimmed.split('/');
+  const parts = trimmed.split("/");
   if (parts.length === 3) {
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
     if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-      return (month - 1 === currentMonth && year === currentYear);
+      return month - 1 === currentMonth && year === currentYear;
     }
   }
   return false;
@@ -114,7 +118,7 @@ export function useURsDashboard() {
       }
 
       const csv = await response.text();
-      const lines = csv.split('\n');
+      const lines = csv.split("\n");
 
       // Colunas relevantes (0-indexed):
       // X (23) = data (yyyy-mm-dd) para evolução geral
@@ -134,10 +138,13 @@ export function useURsDashboard() {
       const evolutionMap = new Map<string, number>();
 
       // Dados para piores/melhores clientes (colunas AA, AD, AE)
-      const clientDeltaSet = new Map<string, { delta: number; deltaPercent: number }>(); 
-      
+      const clientDeltaSet = new Map<
+        string,
+        { delta: number; deltaPercent: number }
+      >();
+
       // Rastrear clientes que variaram hoje
-      const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+      const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
       const clientsChangedToday = new Set<string>();
 
       // Dados para equipamentos (filtrado por mês usando coluna AU)
@@ -154,42 +161,59 @@ export function useURsDashboard() {
         const parts = parseCSVLine(line);
 
         // --- Evolução geral (colunas X=23 e Y=24) ---
-        const dateStr = parts[23]?.trim() || '';
-        const quantityStr = parts[24]?.trim() || '';
+        const dateStr = parts[23]?.trim() || "";
+        const quantityStr = parts[24]?.trim() || "";
 
         if (dateStr && quantityStr) {
-          const quantity = parseInt(quantityStr.replace(/\./g, '').replace(/,/g, ''), 10);
+          const quantity = parseInt(
+            quantityStr.replace(/\./g, "").replace(/,/g, ""),
+            10
+          );
           if (!isNaN(quantity) && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
             evolutionMap.set(dateStr, quantity);
           }
         }
 
         // --- Piores/Melhores clientes (colunas AA=26, AD=29, AE=30, AF=31) ---
-        const clientNameAA = parts[26]?.trim() || '';
-        const deltaStr = parts[29]?.trim() || '';
-        const deltaPercentStr = parts[30]?.trim() || '';
-        const lastChangeStr = parts[31]?.trim() || ''; // AF - data da última variação (DD/MM/YYYY)
+        const clientNameAA = parts[26]?.trim() || "";
+        const deltaStr = parts[29]?.trim() || "";
+        const deltaPercentStr = parts[30]?.trim() || "";
+        const lastChangeStr = parts[31]?.trim() || ""; // AF - data da última variação (DD/MM/YYYY)
 
         if (clientNameAA && deltaStr) {
-          const delta = parseFloat(deltaStr.replace(/\./g, '').replace(',', '.'));
+          const delta = parseFloat(
+            deltaStr.replace(/\./g, "").replace(",", ".")
+          );
           const deltaPercent = deltaPercentStr
-            ? parseFloat(deltaPercentStr.replace(/\./g, '').replace(',', '.').replace('%', ''))
+            ? parseFloat(
+                deltaPercentStr
+                  .replace(/\./g, "")
+                  .replace(",", ".")
+                  .replace("%", "")
+              )
             : 0;
 
-          if (!isNaN(delta) && delta !== 0 && !clientDeltaSet.has(clientNameAA)) {
-            clientDeltaSet.set(clientNameAA, { delta, deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent });
+          if (
+            !isNaN(delta) &&
+            delta !== 0 &&
+            !clientDeltaSet.has(clientNameAA)
+          ) {
+            clientDeltaSet.set(clientNameAA, {
+              delta,
+              deltaPercent: isNaN(deltaPercent) ? 0 : deltaPercent,
+            });
           }
-          
+
           // Rastrear se o cliente variou hoje (verificar data em AF - DD/MM/YYYY)
           if (lastChangeStr && clientNameAA) {
             // Converter DD/MM/YYYY para YYYY-MM-DD
-            const dateParts = lastChangeStr.split('/');
+            const dateParts = lastChangeStr.split("/");
             if (dateParts.length === 3) {
               const day = dateParts[0];
               const month = dateParts[1];
               const year = dateParts[2];
               const lastChangeDateStr = `${year}-${month}-${day}`;
-              
+
               if (lastChangeDateStr === today) {
                 clientsChangedToday.add(clientNameAA);
               }
@@ -198,9 +222,9 @@ export function useURsDashboard() {
         }
 
         // --- Equipamentos (colunas AP=41, AQ=42, AU=46) ---
-        const equipClient = parts[41]?.trim() || '';
-        const equipModel = parts[42]?.trim() || '';
-        const equipDate = parts[46]?.trim() || ''; // coluna AU - dd/mm/aaaa
+        const equipClient = parts[41]?.trim() || "";
+        const equipModel = parts[42]?.trim() || "";
+        const equipDate = parts[46]?.trim() || ""; // coluna AU - dd/mm/aaaa
 
         if (equipClient && equipModel) {
           // Filtrar apenas equipamentos do mês atual usando coluna AU
@@ -224,11 +248,11 @@ export function useURsDashboard() {
       // Processar piores e melhores clientes (dados já prontos das colunas AA, AD, AE)
       const allDeltas: ClientDelta[] = [];
       clientDeltaSet.forEach(({ delta, deltaPercent }, clientName) => {
-        allDeltas.push({ 
-          clientName, 
-          delta: Math.round(delta), 
+        allDeltas.push({
+          clientName,
+          delta: Math.round(delta),
           deltaPercent,
-          changedToday: clientsChangedToday.has(clientName)
+          changedToday: clientsChangedToday.has(clientName),
         });
       });
 
@@ -251,8 +275,8 @@ export function useURsDashboard() {
 
       setData({ evolution, worstClients, bestClients, cameras, tags });
     } catch (err) {
-      console.error('Erro ao carregar dados de URs Dashboard:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      console.error("Erro ao carregar dados de URs Dashboard:", err);
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }

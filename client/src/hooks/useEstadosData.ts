@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useCallback, useEffect, useState } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 interface ClienteEstado {
   nome: string;
@@ -22,7 +22,7 @@ type EstadosState = Omit<EstadosData, "refetch">;
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let insideQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -36,9 +36,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }
@@ -58,75 +58,87 @@ export function useEstadosData(): EstadosData {
   });
 
   const fetchData = useCallback(async () => {
-      try {
-        // Onboarding (gid=0)
-        const onboardingUrl = `https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=0`;
-        const onboardingRes = await cachedFetch(onboardingUrl);
-        const onboardingCsv = await onboardingRes.text();
+    try {
+      // Onboarding (gid=0)
+      const onboardingUrl = `https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=0`;
+      const onboardingRes = await cachedFetch(onboardingUrl);
+      const onboardingCsv = await onboardingRes.text();
 
-        // Ongoing (gid=1152476970)
-        const ongoingUrl = `https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1152476970`;
-        const ongoingRes = await cachedFetch(ongoingUrl);
-        const ongoingCsv = await ongoingRes.text();
+      // Ongoing (gid=1152476970)
+      const ongoingUrl = `https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1152476970`;
+      const ongoingRes = await cachedFetch(ongoingUrl);
+      const ongoingCsv = await ongoingRes.text();
 
-        // Processar Onboarding
-        // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col X (idx 23) = Comercial
-        const onboardingClientes: ClienteEstado[] = [];
-        const onboardingLines = onboardingCsv.split('\n');
-        for (let i = 1; i < onboardingLines.length; i++) {
-          const line = onboardingLines[i].trim();
-          if (!line) continue;
-          const row = parseCSVLine(line);
-          const nome = row[1]?.trim() || '';
-          const estado = row[35]?.trim() || '';
-          const faturamento = row[5]?.trim() || '—';
-          const atendente = row[2]?.trim() || '—';
-          const comercial = row[23]?.trim() || '—';
+      // Processar Onboarding
+      // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col X (idx 23) = Comercial
+      const onboardingClientes: ClienteEstado[] = [];
+      const onboardingLines = onboardingCsv.split("\n");
+      for (let i = 1; i < onboardingLines.length; i++) {
+        const line = onboardingLines[i].trim();
+        if (!line) continue;
+        const row = parseCSVLine(line);
+        const nome = row[1]?.trim() || "";
+        const estado = row[35]?.trim() || "";
+        const faturamento = row[5]?.trim() || "—";
+        const atendente = row[2]?.trim() || "—";
+        const comercial = row[23]?.trim() || "—";
 
-          if (nome && estado) {
-            onboardingClientes.push({ nome, estado, faturamento, atendente, comercial });
-          }
+        if (nome && estado) {
+          onboardingClientes.push({
+            nome,
+            estado,
+            faturamento,
+            atendente,
+            comercial,
+          });
         }
-
-        // Processar Ongoing
-        // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col V (idx 21) = Churn, Col X (idx 23) = Comercial
-        const ongoingClientes: ClienteEstado[] = [];
-        const ongoingLines = ongoingCsv.split('\n');
-        for (let i = 1; i < ongoingLines.length; i++) {
-          const line = ongoingLines[i].trim();
-          if (!line) continue;
-          const row = parseCSVLine(line);
-          const churn = row[21]?.trim() || '';
-          if (churn.toLowerCase() === 'churn') continue; // Excluir Churn
-
-          const nome = row[1]?.trim() || '';
-          const estado = row[35]?.trim() || '';
-          const faturamento = row[5]?.trim() || '—';
-          const atendente = row[2]?.trim() || '—';
-          const comercial = row[23]?.trim() || '—';
-
-          if (nome && estado) {
-            ongoingClientes.push({ nome, estado, faturamento, atendente, comercial });
-          }
-        }
-
-        // Geral = Onboarding + Ongoing
-        const geralClientes = [...onboardingClientes, ...ongoingClientes];
-
-        setData({
-          onboarding: onboardingClientes,
-          ongoing: ongoingClientes,
-          geral: geralClientes,
-          loading: false,
-          error: null,
-        });
-      } catch (err) {
-        setData(prev => ({
-          ...prev,
-          loading: false,
-          error: err instanceof Error ? err.message : 'Erro ao buscar dados',
-        }));
       }
+
+      // Processar Ongoing
+      // Col B (idx 1) = Nome, Col F (idx 5) = Faturamento, Col C (idx 2) = Atendente, Col AJ (idx 35) = Estado, Col V (idx 21) = Churn, Col X (idx 23) = Comercial
+      const ongoingClientes: ClienteEstado[] = [];
+      const ongoingLines = ongoingCsv.split("\n");
+      for (let i = 1; i < ongoingLines.length; i++) {
+        const line = ongoingLines[i].trim();
+        if (!line) continue;
+        const row = parseCSVLine(line);
+        const churn = row[21]?.trim() || "";
+        if (churn.toLowerCase() === "churn") continue; // Excluir Churn
+
+        const nome = row[1]?.trim() || "";
+        const estado = row[35]?.trim() || "";
+        const faturamento = row[5]?.trim() || "—";
+        const atendente = row[2]?.trim() || "—";
+        const comercial = row[23]?.trim() || "—";
+
+        if (nome && estado) {
+          ongoingClientes.push({
+            nome,
+            estado,
+            faturamento,
+            atendente,
+            comercial,
+          });
+        }
+      }
+
+      // Geral = Onboarding + Ongoing
+      const geralClientes = [...onboardingClientes, ...ongoingClientes];
+
+      setData({
+        onboarding: onboardingClientes,
+        ongoing: ongoingClientes,
+        geral: geralClientes,
+        loading: false,
+        error: null,
+      });
+    } catch (err) {
+      setData(prev => ({
+        ...prev,
+        loading: false,
+        error: err instanceof Error ? err.message : "Erro ao buscar dados",
+      }));
+    }
   }, []);
 
   useEffect(() => {

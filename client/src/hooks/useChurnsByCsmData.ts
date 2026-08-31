@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { cachedFetch } from '@/lib/sheetsCache';
+import { useState, useCallback } from "react";
+import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface ChurnByCsmData {
   csm: string;
@@ -14,10 +14,10 @@ export const useChurnsByCsmData = () => {
   const [error, setError] = useState<string | null>(null);
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr || dateStr.trim() === '') return null;
-    
+    if (!dateStr || dateStr.trim() === "") return null;
+
     // Tenta formato DD/MM/YYYY
-    const parts = dateStr.trim().split('/');
+    const parts = dateStr.trim().split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
@@ -30,30 +30,31 @@ export const useChurnsByCsmData = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // URL da aba CHURNS com gid=1060737054
       const response = await cachedFetch(
-        'https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1060737054'
+        "https://docs.google.com/spreadsheets/d/1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc/export?format=csv&gid=1060737054"
       );
-      
+
       if (!response.ok) {
-        throw new Error('Erro ao buscar dados da aba CHURNS');
+        throw new Error("Erro ao buscar dados da aba CHURNS");
       }
 
       const csv = await response.text();
-      const lines = csv.split('\n');
-      
+      const lines = csv.split("\n");
+
       if (lines.length < 2) {
-        throw new Error('Aba CHURNS vazia ou inválida');
+        throw new Error("Aba CHURNS vazia ou inválida");
       }
 
       // Mapeamento de colunas
-      const nomeIdx = 0;      // Coluna A - Nome da empresa
+      const nomeIdx = 0; // Coluna A - Nome da empresa
       const atendenteIdx = 11; // Coluna L - Atendente (CSM)
-      const dataSaidaIdx = 7;  // Coluna H - Data de saída
+      const dataSaidaIdx = 7; // Coluna H - Data de saída
 
-      const csmMap: { [key: string]: { count: number; empresas: string[] } } = {};
+      const csmMap: { [key: string]: { count: number; empresas: string[] } } =
+        {};
       let totalChurans = 0;
 
       for (let i = 1; i < lines.length; i++) {
@@ -61,19 +62,19 @@ export const useChurnsByCsmData = () => {
         if (!line) continue;
 
         const row = parseCSVLine(line);
-        
+
         if (row.length <= nomeIdx) continue;
 
-        const nome = row[nomeIdx]?.trim() || '';
+        const nome = row[nomeIdx]?.trim() || "";
         if (!nome) continue;
 
-        const dataSaidaStr = row[dataSaidaIdx]?.trim() || '';
+        const dataSaidaStr = row[dataSaidaIdx]?.trim() || "";
         const dataSaidaParsed = parseDate(dataSaidaStr);
-        
+
         // Incluir apenas churns com data válida
         if (!dataSaidaParsed) continue;
 
-        const atendente = row[atendenteIdx]?.trim() || 'Sem CSM';
+        const atendente = row[atendenteIdx]?.trim() || "Sem CSM";
 
         if (!csmMap[atendente]) {
           csmMap[atendente] = { count: 0, empresas: [] };
@@ -88,14 +89,17 @@ export const useChurnsByCsmData = () => {
         .map(([csm, data]) => ({
           csm,
           count: data.count,
-          percentage: totalChurans > 0 ? Math.round((data.count / totalChurans) * 100) : 0,
-          empresas: data.empresas.sort()
+          percentage:
+            totalChurans > 0
+              ? Math.round((data.count / totalChurans) * 100)
+              : 0,
+          empresas: data.empresas.sort(),
         }))
         .sort((a, b) => b.count - a.count);
 
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }
@@ -107,7 +111,7 @@ export const useChurnsByCsmData = () => {
 // Helper para fazer parse correto de CSV com campos entre aspas
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let insideQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -121,9 +125,9 @@ function parseCSVLine(line: string): string[] {
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }

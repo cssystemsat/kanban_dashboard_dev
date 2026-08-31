@@ -16,8 +16,10 @@ const pendingRequests = new Map<string, Promise<string>>();
 
 const PRIMARY_ID = "1EJnd8R_3dSSBn9ERl3nRcYcBZWJJiI16tkuaT026Hhc";
 const SECONDARY_ID = "1PYxRbfNVXWoOG9dJaQwb_GSqYhp8WgKF-KjUtYouuS4";
-const LEGACY_PRIMARY_PUBLISH_ID = "2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC";
-const LEGACY_SECONDARY_PUBLISH_ID = "2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj";
+const LEGACY_PRIMARY_PUBLISH_ID =
+  "2PACX-1vR99O_8CQgEAn4-VK_LrJ0T8lJnhYdCkE9gIX68G3vLFmsD6tGhP0WEHaysf_DA7zYscn2nMpTmnUbC";
+const LEGACY_SECONDARY_PUBLISH_ID =
+  "2PACX-1vSLsjnFmBMUVU4KF_uCsoRJ9OF0LyEu_ZNxYUClHITba3sfkjyKz-kdSNzQ6CMtdXTiGwkion6m-XJj";
 
 function resolveSheetRequest(rawUrl: string): SheetRequest | null {
   let parsed: URL;
@@ -35,7 +37,10 @@ function resolveSheetRequest(rawUrl: string): SheetRequest | null {
   if (documentId === PRIMARY_ID || documentId === LEGACY_PRIMARY_PUBLISH_ID) {
     return { source: "primary", gid };
   }
-  if (documentId === SECONDARY_ID || documentId === LEGACY_SECONDARY_PUBLISH_ID) {
+  if (
+    documentId === SECONDARY_ID ||
+    documentId === LEGACY_SECONDARY_PUBLISH_ID
+  ) {
     return { source: "secondary", gid };
   }
   return null;
@@ -44,17 +49,25 @@ function resolveSheetRequest(rawUrl: string): SheetRequest | null {
 async function fetchThroughSheetProxy(request: SheetRequest): Promise<string> {
   const input = encodeURIComponent(JSON.stringify({ json: request }));
   const cacheBuster = Date.now();
-  const response = await fetch(`/api/trpc/sheets.csv?input=${input}&_=${cacheBuster}`, {
-    credentials: "include",
-    cache: "no-store",
-    headers: { "cache-control": "no-cache" },
-  });
-  const body = await response.json().catch(() => null) as any;
+  const response = await fetch(
+    `/api/trpc/sheets.csv?input=${input}&_=${cacheBuster}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+      headers: { "cache-control": "no-cache" },
+    }
+  );
+  const body = (await response.json().catch(() => null)) as any;
   if (!response.ok) {
-    throw new Error(body?.error?.json?.message ?? body?.error?.message ?? `HTTP ${response.status}`);
+    throw new Error(
+      body?.error?.json?.message ??
+        body?.error?.message ??
+        `HTTP ${response.status}`
+    );
   }
   const csv = body?.result?.data?.json?.csv ?? body?.result?.data?.csv;
-  if (typeof csv !== "string") throw new Error("Resposta inválida da integração com Google Sheets");
+  if (typeof csv !== "string")
+    throw new Error("Resposta inválida da integração com Google Sheets");
   return csv;
 }
 
@@ -62,7 +75,10 @@ async function fetchThroughSheetProxy(request: SheetRequest): Promise<string> {
  * Fetch com cache para URLs do Google Sheets.
  * URLs das planilhas conhecidas passam pelo backend autenticado; URLs externas continuam sendo lidas normalmente.
  */
-export async function cachedFetch(url: string, _options?: RequestInit): Promise<Response> {
+export async function cachedFetch(
+  url: string,
+  _options?: RequestInit
+): Promise<Response> {
   const now = Date.now();
   const cached = cache.get(url);
   if (cached && now - cached.timestamp < SHEET_CACHE_DURATION_MS) {
@@ -78,8 +94,9 @@ export async function cachedFetch(url: string, _options?: RequestInit): Promise<
   const sheetRequest = resolveSheetRequest(url);
   const fetchPromise = sheetRequest
     ? fetchThroughSheetProxy(sheetRequest)
-    : fetch(url, { redirect: "follow" }).then(async (response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    : fetch(url, { redirect: "follow" }).then(async response => {
+        if (!response.ok)
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         return response.text();
       });
 

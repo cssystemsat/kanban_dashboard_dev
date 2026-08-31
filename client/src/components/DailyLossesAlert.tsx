@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { trpc } from '@/lib/trpc';
-import { useAuth } from '@/_core/hooks/useAuth';
+import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface LossEntry {
   cliente: string;
@@ -21,7 +21,7 @@ export function DailyLossesAlert() {
   const [isCiente, setIsCiente] = useState(false);
 
   // Data de hoje em formato YYYY-MM-DD
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
   const storageKey = `losses_dismissed_${today}`;
 
   // Verificar se já marcou como ciente hoje (permanente)
@@ -48,7 +48,7 @@ export function DailyLossesAlert() {
     } else if (acknowledged === false) {
       // Ainda não marcou como ciente
       // Verificar se foi dismissido temporariamente
-      const wasDismissed = localStorage.getItem(storageKey) === 'true';
+      const wasDismissed = localStorage.getItem(storageKey) === "true";
       setShow(!wasDismissed);
     }
   }, [acknowledged, storageKey]);
@@ -56,7 +56,7 @@ export function DailyLossesAlert() {
   // Fechar temporariamente (X button)
   const handleTemporaryClose = () => {
     setShow(false);
-    localStorage.setItem(storageKey, 'true');
+    localStorage.setItem(storageKey, "true");
   };
 
   // Confirmar "Ciente" (permanente)
@@ -68,7 +68,7 @@ export function DailyLossesAlert() {
       setShow(false);
       localStorage.removeItem(storageKey);
     } catch (error) {
-      console.error('Erro ao marcar como ciente:', error);
+      console.error("Erro ao marcar como ciente:", error);
     }
   };
 
@@ -103,9 +103,15 @@ export function DailyLossesAlert() {
               <span className="text-red-600 text-xl">&#9888;</span>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Perdas de URs &#8212; Ontem para Hoje</h2>
+              <h2 className="text-lg font-bold text-gray-900">
+                Perdas de URs &#8212; Ontem para Hoje
+              </h2>
               <p className="text-sm text-gray-600">
-                {data.count} cliente{data.count !== 1 ? 's' : ''} com perda &middot; Total: <span className="font-semibold text-red-600">{data.totalPerdas} URs</span>
+                {data.count} cliente{data.count !== 1 ? "s" : ""} com perda
+                &middot; Total:{" "}
+                <span className="font-semibold text-red-600">
+                  {data.totalPerdas} URs
+                </span>
               </p>
             </div>
           </div>
@@ -115,8 +121,18 @@ export function DailyLossesAlert() {
             className="text-gray-400 hover:text-gray-600 transition-colors ml-4 flex-shrink-0"
             title="Fechar temporariamente (reaparece ao trocar de aba)"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -134,11 +150,22 @@ export function DailyLossesAlert() {
             </thead>
             <tbody>
               {data.losses.map((loss: LossEntry, i: number) => (
-                <tr key={i} className="border-b border-gray-100 hover:bg-red-50/50">
-                  <td className="py-2 pr-3 font-medium text-gray-900">{loss.cliente}</td>
-                  <td className="py-2 pr-3 text-right font-semibold text-red-600">{loss.perda}</td>
-                  <td className="py-2 pr-3 text-right text-gray-600">{loss.qtdAtual}</td>
-                  <td className="py-2 text-right text-red-600">{loss.percentual}</td>
+                <tr
+                  key={i}
+                  className="border-b border-gray-100 hover:bg-red-50/50"
+                >
+                  <td className="py-2 pr-3 font-medium text-gray-900">
+                    {loss.cliente}
+                  </td>
+                  <td className="py-2 pr-3 text-right font-semibold text-red-600">
+                    {loss.perda}
+                  </td>
+                  <td className="py-2 pr-3 text-right text-gray-600">
+                    {loss.qtdAtual}
+                  </td>
+                  <td className="py-2 text-right text-red-600">
+                    {loss.percentual}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -151,7 +178,7 @@ export function DailyLossesAlert() {
             <input
               type="checkbox"
               checked={isCiente}
-              onChange={(e) => setIsCiente(e.target.checked)}
+              onChange={e => setIsCiente(e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-sm font-medium text-gray-700">
@@ -163,11 +190,11 @@ export function DailyLossesAlert() {
             disabled={!isCiente || markAcknowledged.isPending}
             className={`px-5 py-2 rounded-lg font-medium transition-colors ${
               isCiente && !markAcknowledged.isPending
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            {markAcknowledged.isPending ? 'Confirmando...' : 'Confirmar'}
+            {markAcknowledged.isPending ? "Confirmando..." : "Confirmar"}
           </button>
         </div>
       </div>

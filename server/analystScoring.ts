@@ -1,5 +1,9 @@
 import { and, eq } from "drizzle-orm";
-import { analystScoreHistory, analystScoreSchedules, analystScores } from "../drizzle/schema";
+import {
+  analystScoreHistory,
+  analystScoreSchedules,
+  analystScores,
+} from "../drizzle/schema";
 import { getDb } from "./db";
 import { getSheetCsv } from "./googleSheets";
 
@@ -86,7 +90,10 @@ function monthWindowForYearMonth(yearMonth: string): DateWindow {
   return { start, end, key: yearMonth };
 }
 
-async function fetchCoverage(gid: number, window: DateWindow): Promise<CoverageRecord[]> {
+async function fetchCoverage(
+  gid: number,
+  window: DateWindow
+): Promise<CoverageRecord[]> {
   const csv = await getSheetCsv("primary", gid);
   const groups = new Map<string, { total: number; contacted: number }>();
 
@@ -100,7 +107,8 @@ async function fetchCoverage(gid: number, window: DateWindow): Promise<CoverageR
     current.total += 1;
 
     const lastContact = parseBrazilianDate(row[11] ?? ""); // coluna L: último contato
-    if (lastContact && lastContact >= window.start && lastContact <= window.end) current.contacted += 1;
+    if (lastContact && lastContact >= window.start && lastContact <= window.end)
+      current.contacted += 1;
     groups.set(analystName, current);
   }
 
@@ -132,18 +140,26 @@ async function applyPenaltyIfNeeded(input: {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível");
 
-  const existing = await db.select().from(analystScores).where(and(
-    eq(analystScores.analystName, input.analystName),
-    eq(analystScores.category, input.category),
-    eq(analystScores.yearMonth, input.yearMonth),
-  ));
+  const existing = await db
+    .select()
+    .from(analystScores)
+    .where(
+      and(
+        eq(analystScores.analystName, input.analystName),
+        eq(analystScores.category, input.category),
+        eq(analystScores.yearMonth, input.yearMonth)
+      )
+    );
 
   const record = existing[0];
   const penalties = record ? parsePenalties(record.penaltiesJson) : [];
-  if (penalties.some((penalty) => penalty.periodKey === input.periodKey)) return false;
+  if (penalties.some(penalty => penalty.periodKey === input.periodKey))
+    return false;
 
   penalties.push({
-    date: input.periodKey.startsWith("monthly-") ? input.yearMonth : input.periodKey.replace("weekly-", "").split("-").reverse().join("/"),
+    date: input.periodKey.startsWith("monthly-")
+      ? input.yearMonth
+      : input.periodKey.replace("weekly-", "").split("-").reverse().join("/"),
     points: input.points,
     reason: input.reason,
     periodKey: input.periodKey,
@@ -153,7 +169,10 @@ async function applyPenaltyIfNeeded(input: {
   const penaltiesJson = JSON.stringify(penalties);
 
   if (record) {
-    await db.update(analystScores).set({ score, penaltiesJson }).where(eq(analystScores.id, record.id));
+    await db
+      .update(analystScores)
+      .set({ score, penaltiesJson })
+      .where(eq(analystScores.id, record.id));
   } else {
     await db.insert(analystScores).values({
       analystName: input.analystName,
@@ -166,7 +185,10 @@ async function applyPenaltyIfNeeded(input: {
   return true;
 }
 
-export async function runWeeklyCoveragePenalty(): Promise<{ applied: number; skipped: number }> {
+export async function runWeeklyCoveragePenalty(): Promise<{
+  applied: number;
+  skipped: number;
+}> {
   const yearMonth = yearMonthForBrt();
   const periodKey = `weekly-${weekWindowForBrt().key}`;
   const window = weekWindowForBrt();
@@ -177,8 +199,13 @@ export async function runWeeklyCoveragePenalty(): Promise<{ applied: number; ski
 
   let applied = 0;
   let skipped = 0;
-  for (const [category, records] of [["onboarding", onboarding], ["ongoing", ongoing]] as const) {
-    for (const analyst of records.filter((record) => record.coverage < WEEKLY_COVERAGE_TARGET)) {
+  for (const [category, records] of [
+    ["onboarding", onboarding],
+    ["ongoing", ongoing],
+  ] as const) {
+    for (const analyst of records.filter(
+      record => record.coverage < WEEKLY_COVERAGE_TARGET
+    )) {
       const wasApplied = await applyPenaltyIfNeeded({
         category,
         analystName: analyst.analystName,
@@ -194,7 +221,9 @@ export async function runWeeklyCoveragePenalty(): Promise<{ applied: number; ski
   return { applied, skipped };
 }
 
-async function applyMonthlyCoveragePenalty(previousMonth: string): Promise<number> {
+async function applyMonthlyCoveragePenalty(
+  previousMonth: string
+): Promise<number> {
   const window = monthWindowForYearMonth(previousMonth);
   const [onboarding, ongoing] = await Promise.all([
     fetchCoverage(ONBOARDING_GID, window),
@@ -202,8 +231,13 @@ async function applyMonthlyCoveragePenalty(previousMonth: string): Promise<numbe
   ]);
 
   let applied = 0;
-  for (const [category, records] of [["onboarding", onboarding], ["ongoing", ongoing]] as const) {
-    for (const analyst of records.filter((record) => record.coverage < MONTHLY_COVERAGE_TARGET)) {
+  for (const [category, records] of [
+    ["onboarding", onboarding],
+    ["ongoing", ongoing],
+  ] as const) {
+    for (const analyst of records.filter(
+      record => record.coverage < MONTHLY_COVERAGE_TARGET
+    )) {
       const wasApplied = await applyPenaltyIfNeeded({
         category,
         analystName: analyst.analystName,
@@ -218,7 +252,12 @@ async function applyMonthlyCoveragePenalty(previousMonth: string): Promise<numbe
   return applied;
 }
 
-export async function closePreviousMonthAndResetScores(): Promise<{ saved: number; monthlyPenalties: number; previousMonth: string; currentMonth: string }> {
+export async function closePreviousMonthAndResetScores(): Promise<{
+  saved: number;
+  monthlyPenalties: number;
+  previousMonth: string;
+  currentMonth: string;
+}> {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível");
 
@@ -228,18 +267,37 @@ export async function closePreviousMonthAndResetScores(): Promise<{ saved: numbe
   const previousMonth = previousDate.toISOString().slice(0, 7);
   const monthlyPenalties = await applyMonthlyCoveragePenalty(previousMonth);
 
-  const previousScores = await db.select().from(analystScores).where(eq(analystScores.yearMonth, previousMonth));
-  const existingHistory = await db.select().from(analystScoreHistory).where(eq(analystScoreHistory.yearMonth, previousMonth));
-  const savedKeys = new Set(existingHistory.map((record) => `${record.analystName}|${record.category}`));
-  const scoreByKey = new Map(previousScores.map((record) => [`${record.analystName}|${record.category}`, record]));
+  const previousScores = await db
+    .select()
+    .from(analystScores)
+    .where(eq(analystScores.yearMonth, previousMonth));
+  const existingHistory = await db
+    .select()
+    .from(analystScoreHistory)
+    .where(eq(analystScoreHistory.yearMonth, previousMonth));
+  const savedKeys = new Set(
+    existingHistory.map(record => `${record.analystName}|${record.category}`)
+  );
+  const scoreByKey = new Map(
+    previousScores.map(record => [
+      `${record.analystName}|${record.category}`,
+      record,
+    ])
+  );
   const monthlyWindow = monthWindowForYearMonth(previousMonth);
   const [onboarding, ongoing] = await Promise.all([
     fetchCoverage(ONBOARDING_GID, monthlyWindow),
     fetchCoverage(ONGOING_GID, monthlyWindow),
   ]);
   const analystsToSnapshot = [
-    ...onboarding.map((analyst) => ({ analystName: analyst.analystName, category: "onboarding" })),
-    ...ongoing.map((analyst) => ({ analystName: analyst.analystName, category: "ongoing" })),
+    ...onboarding.map(analyst => ({
+      analystName: analyst.analystName,
+      category: "onboarding",
+    })),
+    ...ongoing.map(analyst => ({
+      analystName: analyst.analystName,
+      category: "ongoing",
+    })),
   ];
 
   let saved = 0;
@@ -261,12 +319,20 @@ export async function closePreviousMonthAndResetScores(): Promise<{ saved: numbe
   return { saved, monthlyPenalties, previousMonth, currentMonth };
 }
 
-export async function isRegisteredScoreSchedule(jobType: "weekly_penalty" | "monthly_reset", taskUid: string): Promise<boolean> {
+export async function isRegisteredScoreSchedule(
+  jobType: "weekly_penalty" | "monthly_reset",
+  taskUid: string
+): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
-  const schedule = await db.select().from(analystScoreSchedules).where(and(
-    eq(analystScoreSchedules.jobType, jobType),
-    eq(analystScoreSchedules.taskUid, taskUid),
-  ));
+  const schedule = await db
+    .select()
+    .from(analystScoreSchedules)
+    .where(
+      and(
+        eq(analystScoreSchedules.jobType, jobType),
+        eq(analystScoreSchedules.taskUid, taskUid)
+      )
+    );
   return schedule.length > 0;
 }
