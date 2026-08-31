@@ -63,6 +63,7 @@ import { getDb } from "./db";
 import { ENV } from "./_core/env";
 import { getPreviousKpiWeeklyValues } from "./kpiSnapshots";
 import { getOnboardingKpiMetrics } from "./kpiMetrics";
+import { getMigrationKpiMetrics } from "./migrationMetrics";
 
 function isProjectOwner(user: { openId: string } | null | undefined): boolean {
   return Boolean(ENV.ownerOpenId && user?.openId === ENV.ownerOpenId);
@@ -910,6 +911,34 @@ export const appRouter = router({
             value: 0,
             details: [],
             source: "primary:KPI's!AL" as const,
+          },
+        };
+      }
+    }),
+    getMigrationKpiMetrics: publicProcedure.query(async () => {
+      try {
+        return await getMigrationKpiMetrics();
+      } catch (error: any) {
+        console.error("[getMigrationKpiMetrics] Erro:", error?.message);
+        return {
+          emAndamento: {
+            value: 0,
+            clients: [],
+            source: "primary:Migração!T" as const,
+          },
+          concluidas: {
+            value: 0 as const,
+            source: "manual:temporário" as const,
+          },
+          atrasadas: {
+            value: 0,
+            clients: [],
+            source: "primary:Migração!D>365" as const,
+          },
+          tempoMedio: {
+            value: 0,
+            details: [],
+            source: "primary:Migração!C/D" as const,
           },
         };
       }

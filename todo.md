@@ -128,4 +128,11 @@
 - [x] Exibir no modal de Parados/Atrasados a lista dos clientes atrasados.
 - [x] Criar testes para a contagem e a lista de atrasados.
 - [x] Validar o card, modal, TypeScript, build e salvar checkpoint.
-- [ ] Salvar checkpoint específico após a integração real de Parados/Atrasados, com validação visual do modal, TypeScript, build e testes aprovados.
+- [x] Salvar checkpoint específico após a integração real de Parados/Atrasados, com validação visual do modal, TypeScript, build e testes aprovados.
+- [x] Contar a coluna T da aba Migração com status Em andamento e listar as empresas no modal.
+- [x] Renomear Percentual concluído para Concluídas e manter o valor em 0 temporariamente.
+- [x] Contar Atrasadas na aba Migração quando a coluna D for maior que 365.
+- [x] Calcular Tempo médio de Migração pela média da coluna D nas linhas com data na coluna C.
+- [x] Criar testes para as métricas, filtros e modais de Migração.
+- [ ] Validar os cards de Migração, TypeScript, build e salvar checkpoint.
+- [ ] Salvar checkpoint específico após a integração dos KPI’s de Migração, já com cards validados, TypeScript, build e 145 testes aprovados.

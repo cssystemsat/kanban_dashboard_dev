@@ -148,11 +148,11 @@ export const KPI_MANUAL_WEEK_VALUES: KpiManualValues = {
       trendValue: "0",
     },
     {
-      label: "Percentual concluído",
-      value: "68%",
-      status: "good",
-      trend: "up",
-      trendValue: "+12%",
+      label: "Concluídas",
+      value: 0,
+      status: "neutral",
+      trend: "neutral",
+      trendValue: "0",
     },
     {
       label: "Atrasadas",

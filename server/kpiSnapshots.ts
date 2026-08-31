@@ -3,6 +3,7 @@ import {
   type KpiManualValues,
 } from "@shared/kpiDefinitions";
 import { getOnboardingKpiMetrics } from "./kpiMetrics";
+import { getMigrationKpiMetrics } from "./migrationMetrics";
 import { getLatestKpiWeeklySnapshot, saveKpiWeeklySnapshot } from "./db";
 
 function brtDateKey(date = new Date()): string {
@@ -20,7 +21,10 @@ export function getKpiClosingPeriodKey(date = new Date()): string {
 export async function getCurrentKpiValues(
   referenceDate = new Date()
 ): Promise<KpiManualValues> {
-  const metrics = await getOnboardingKpiMetrics(referenceDate);
+  const [metrics, migrationMetrics] = await Promise.all([
+    getOnboardingKpiMetrics(referenceDate),
+    getMigrationKpiMetrics(),
+  ]);
   return {
     ...KPI_MANUAL_WEEK_VALUES,
     onboarding: KPI_MANUAL_WEEK_VALUES.onboarding.map((card, index) => {
@@ -62,6 +66,42 @@ export async function getCurrentKpiValues(
           value: metrics.paradosAtrasados.value,
           details: metrics.paradosAtrasados.clients,
           detailsTitle: "Clientes com marco atrasado",
+        };
+      }
+      return card;
+    }),
+    migracao: KPI_MANUAL_WEEK_VALUES.migracao.map((card, index) => {
+      if (index === 0) {
+        return {
+          ...card,
+          value: migrationMetrics.emAndamento.value,
+          details: migrationMetrics.emAndamento.clients,
+          detailsTitle: "Empresas com status Em andamento",
+        };
+      }
+      if (index === 1) {
+        return {
+          ...card,
+          label: "Concluídas",
+          value: migrationMetrics.concluidas.value,
+          details: [],
+          detailsTitle: "Concluídas — valor temporariamente zerado",
+        };
+      }
+      if (index === 2) {
+        return {
+          ...card,
+          value: migrationMetrics.atrasadas.value,
+          details: migrationMetrics.atrasadas.clients,
+          detailsTitle: "Migrações com duração superior a 365 dias",
+        };
+      }
+      if (index === 3) {
+        return {
+          ...card,
+          value: `${migrationMetrics.tempoMedio.value.toFixed(1)}d`,
+          details: migrationMetrics.tempoMedio.details,
+          detailsTitle: "Empresa — início — duração da migração",
         };
       }
       return card;

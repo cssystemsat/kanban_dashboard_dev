@@ -10,10 +10,12 @@ const {
   saveKpiWeeklySnapshot,
   getLatestKpiWeeklySnapshot,
   getOnboardingKpiMetrics,
+  getMigrationKpiMetrics,
 } = vi.hoisted(() => ({
   saveKpiWeeklySnapshot: vi.fn(),
   getLatestKpiWeeklySnapshot: vi.fn(),
   getOnboardingKpiMetrics: vi.fn(),
+  getMigrationKpiMetrics: vi.fn(),
 }));
 
 vi.mock("./db", () => ({
@@ -23,6 +25,10 @@ vi.mock("./db", () => ({
 
 vi.mock("./kpiMetrics", () => ({
   getOnboardingKpiMetrics,
+}));
+
+vi.mock("./migrationMetrics", () => ({
+  getMigrationKpiMetrics,
 }));
 
 import {
@@ -54,6 +60,7 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
     saveKpiWeeklySnapshot.mockReset();
     getLatestKpiWeeklySnapshot.mockReset();
     getOnboardingKpiMetrics.mockReset();
+    getMigrationKpiMetrics.mockReset();
   });
 
   it("inicia todos os indicadores da semana retrasada em zero", () => {
@@ -127,6 +134,27 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
         source: "primary:KPI's!AL",
       },
     });
+    getMigrationKpiMetrics.mockResolvedValue({
+      emAndamento: {
+        value: 58,
+        clients: ["SUMARÉ SAT", "WTrack"],
+        source: "primary:Migração!T",
+      },
+      concluidas: {
+        value: 0,
+        source: "manual:temporário",
+      },
+      atrasadas: {
+        value: 16,
+        clients: ["SUMARÉ SAT"],
+        source: "primary:Migração!D>365",
+      },
+      tempoMedio: {
+        value: 115.88372093023256,
+        details: ["Empresa — início em 01/02/2026 — 100.0 dias"],
+        source: "primary:Migração!C/D",
+      },
+    });
     saveKpiWeeklySnapshot
       .mockResolvedValueOnce({ snapshot: stored, created: true })
       .mockResolvedValueOnce({ snapshot: stored, created: false });
@@ -141,6 +169,23 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
     expect(saveKpiWeeklySnapshot.mock.calls[0][0]).toMatchObject({
       periodKey: "2026-08-28",
       valuesJson: JSON.stringify(expectedValues),
+    });
+    expect(expectedValues.migracao[0]).toMatchObject({
+      label: "Em andamento",
+      value: 58,
+      details: ["SUMARÉ SAT", "WTrack"],
+    });
+    expect(expectedValues.migracao[1]).toMatchObject({
+      label: "Concluídas",
+      value: 0,
+    });
+    expect(expectedValues.migracao[2]).toMatchObject({
+      label: "Atrasadas",
+      value: 16,
+    });
+    expect(expectedValues.migracao[3]).toMatchObject({
+      label: "Tempo médio",
+      value: "115.9d",
     });
   });
 

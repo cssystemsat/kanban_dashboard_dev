@@ -50,6 +50,20 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain("selectedKPI.details.map");
   });
 
+  it("consulta e exibe as métricas reais de Migração", () => {
+    expect(pageSource).toContain("trpc.kpis.getMigrationKpiMetrics.useQuery()");
+    expect(pageSource).toContain("migrationMetrics?.emAndamento.value ?? 0");
+    expect(pageSource).toContain("migrationMetrics?.emAndamento.clients ?? []");
+    expect(pageSource).toContain("Empresas com status Em andamento");
+    expect(pageSource).toContain('label: "Concluídas"');
+    expect(pageSource).toContain("migrationMetrics?.atrasadas.value ?? 0");
+    expect(pageSource).toContain("migrationMetrics?.atrasadas.clients ?? []");
+    expect(pageSource).toContain("Migrações com duração superior a 365 dias");
+    expect(pageSource).toContain("migrationMetrics?.tempoMedio.value ?? 0");
+    expect(pageSource).toContain("migrationMetrics?.tempoMedio.details ?? []");
+    expect(routerSource).toContain("getMigrationKpiMetrics: publicProcedure");
+  });
+
   it("não usa mais a procedure manual como origem dos dois valores reais", () => {
     expect(pageSource).not.toContain("trpc.kpis.getOnboardingKpis.useQuery");
   });

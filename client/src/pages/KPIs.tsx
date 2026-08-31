@@ -24,6 +24,8 @@ export default function KPIs() {
     trpc.kpis.getPreviousWeeklySnapshot.useQuery();
   const { data: onboardingMetrics } =
     trpc.kpis.getOnboardingKpiMetrics.useQuery();
+  const { data: migrationMetrics } =
+    trpc.kpis.getMigrationKpiMetrics.useQuery();
 
   // Semana retrasada: começa zerada e passa a exibir o último fechamento semanal.
   const onboardingRetrasada: KPICard[] =
@@ -85,7 +87,42 @@ export default function KPIs() {
     ongoingRetrasada
   );
   const migracaoPassada: KPICard[] = applyKpiComparisons(
-    KPI_MANUAL_WEEK_VALUES.migracao,
+    KPI_MANUAL_WEEK_VALUES.migracao.map((kpi, index) => {
+      if (index === 0) {
+        return {
+          ...kpi,
+          value: migrationMetrics?.emAndamento.value ?? 0,
+          details: migrationMetrics?.emAndamento.clients ?? [],
+          detailsTitle: "Empresas com status Em andamento",
+        };
+      }
+      if (index === 1) {
+        return {
+          ...kpi,
+          label: "Concluídas",
+          value: migrationMetrics?.concluidas.value ?? 0,
+          details: [],
+          detailsTitle: "Concluídas — valor temporariamente zerado",
+        };
+      }
+      if (index === 2) {
+        return {
+          ...kpi,
+          value: migrationMetrics?.atrasadas.value ?? 0,
+          details: migrationMetrics?.atrasadas.clients ?? [],
+          detailsTitle: "Migrações com duração superior a 365 dias",
+        };
+      }
+      if (index === 3) {
+        return {
+          ...kpi,
+          value: `${(migrationMetrics?.tempoMedio.value ?? 0).toFixed(1)}d`,
+          details: migrationMetrics?.tempoMedio.details ?? [],
+          detailsTitle: "Empresa — início — duração da migração",
+        };
+      }
+      return kpi;
+    }),
     migracaoRetrasada
   );
 
