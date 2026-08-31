@@ -39,6 +39,13 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain("Clientes na aba Marcos");
     expect(pageSource).toContain("Implantados na semana passada");
     expect(pageSource).toContain("Clientes sem marco atrasado");
+    expect(pageSource).toContain("Clientes com marco atrasado");
+    expect(pageSource).toContain(
+      "onboardingMetrics?.paradosAtrasados.value ?? 0"
+    );
+    expect(pageSource).toContain(
+      "onboardingMetrics?.paradosAtrasados.clients ?? []"
+    );
     expect(pageSource).toContain("Empresa — implantação — tempo de onboarding");
     expect(pageSource).toContain("selectedKPI.details.map");
   });

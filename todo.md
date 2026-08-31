@@ -120,7 +120,12 @@
 - [x] Calcular Tempo médio de onboarding pela média numérica da coluna AL da aba KPI’s, em dias.
 - [x] Criar testes para prazo, lista do modal e média em dias.
 - [x] Validar os novos cards com dados reais, TypeScript, build e salvar checkpoint.
-- [ ] Salvar checkpoint específico após a integração real de Dentro do prazo e Tempo médio em Onboarding.
+- [x] Salvar checkpoint específico após a integração real de Dentro do prazo e Tempo médio em Onboarding.
 - [x] Exibir no modal de Tempo médio as empresas da coluna AK, a data de implantação da coluna AM e os dias da coluna AL.
 - [x] Criar teste de contrato para os detalhes empresa-data-dias do modal de Tempo médio.
-- [ ] Validar o modal com dados reais, TypeScript, build e salvar checkpoint.
+- [x] Validar o modal com dados reais, TypeScript, build e salvar checkpoint.
+- [x] Calcular Parados/Atrasados com os clientes cujo marco está vencido na aba Marcos.
+- [x] Exibir no modal de Parados/Atrasados a lista dos clientes atrasados.
+- [x] Criar testes para a contagem e a lista de atrasados.
+- [x] Validar o card, modal, TypeScript, build e salvar checkpoint.
+- [ ] Salvar checkpoint específico após a integração real de Parados/Atrasados, com validação visual do modal, TypeScript, build e testes aprovados.

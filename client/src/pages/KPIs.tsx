@@ -68,6 +68,14 @@ export default function KPIs() {
           detailsTitle: "Empresa — implantação — tempo de onboarding",
         };
       }
+      if (index === 4) {
+        return {
+          ...kpi,
+          value: onboardingMetrics?.paradosAtrasados.value ?? 0,
+          details: onboardingMetrics?.paradosAtrasados.clients ?? [],
+          detailsTitle: "Clientes com marco atrasado",
+        };
+      }
       return kpi;
     }),
     onboardingRetrasada

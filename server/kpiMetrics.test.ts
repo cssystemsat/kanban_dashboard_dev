@@ -115,6 +115,8 @@ describe("Métricas reais de Onboarding", () => {
       "PENDENTE",
       "COMPLETO",
     ]);
+    expect(result.paradosAtrasados.value).toBe(1);
+    expect(result.paradosAtrasados.clients).toEqual(["ATRASADO"]);
   });
 
   it("ignora registros sem cliente em AK e datas inválidas em AM", () => {

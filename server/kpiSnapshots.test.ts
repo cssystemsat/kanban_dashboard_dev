@@ -109,6 +109,11 @@ describe("Fechamento semanal dos KPI’s de Gestão CS", () => {
         clients: ["ALPHA TECNOLOGIA", "ALTOTRAK"],
         source: "primary:Marcos!AK:AO",
       },
+      paradosAtrasados: {
+        value: 94,
+        clients: ["CLIENTE ATRASADO"],
+        source: "primary:Marcos!AK:AO",
+      },
       concluidos: {
         value: 2,
         clients: ["BVTRACKER", "Fênix Sat"],

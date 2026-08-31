@@ -56,6 +56,14 @@ export async function getCurrentKpiValues(
           detailsTitle: "Empresa — implantação — tempo de onboarding",
         };
       }
+      if (index === 4) {
+        return {
+          ...card,
+          value: metrics.paradosAtrasados.value,
+          details: metrics.paradosAtrasados.clients,
+          detailsTitle: "Clientes com marco atrasado",
+        };
+      }
       return card;
     }),
   };

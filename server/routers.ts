@@ -894,6 +894,11 @@ export const appRouter = router({
             clients: [],
             source: "primary:Marcos!AK:AO" as const,
           },
+          paradosAtrasados: {
+            value: 0,
+            clients: [],
+            source: "primary:Marcos!AK:AO" as const,
+          },
           concluidos: {
             value: 0,
             clients: [],

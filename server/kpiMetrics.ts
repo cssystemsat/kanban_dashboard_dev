@@ -16,6 +16,11 @@ export interface OnboardingKpiMetrics {
     clients: string[];
     source: "primary:Marcos!AK:AO";
   };
+  paradosAtrasados: {
+    value: number;
+    clients: string[];
+    source: "primary:Marcos!AK:AO";
+  };
   concluidos: {
     value: number;
     clients: string[];
@@ -171,15 +176,18 @@ export function parseOnboardingKpiMetrics(
     }))
     .filter(row => Boolean(row.name) && !isStructuralClientName(row.name));
   const clients = marcoRecords.map(row => row.name);
+  const firstIncompleteMarco = (marcos: string[]) =>
+    marcos.find(value => value.toUpperCase() !== "OK") ?? null;
+  const overdueClients = marcoRecords
+    .filter(row => {
+      const firstMarco = firstIncompleteMarco(row.marcos);
+      return firstMarco !== null && isMarcoOverdue(firstMarco, referenceDate);
+    })
+    .map(row => row.name);
   const withinDeadlineClients = marcoRecords
     .filter(row => {
-      const firstIncompleteMarco = row.marcos.find(
-        value => value.toUpperCase() !== "OK"
-      );
-      return (
-        !firstIncompleteMarco ||
-        !isMarcoOverdue(firstIncompleteMarco, referenceDate)
-      );
+      const firstMarco = firstIncompleteMarco(row.marcos);
+      return firstMarco === null || !isMarcoOverdue(firstMarco, referenceDate);
     })
     .map(row => row.name);
   const withinDeadlinePercentage = clients.length
@@ -215,6 +223,11 @@ export function parseOnboardingKpiMetrics(
       value: withinDeadlineClients.length,
       percentage: withinDeadlinePercentage,
       clients: withinDeadlineClients,
+      source: "primary:Marcos!AK:AO",
+    },
+    paradosAtrasados: {
+      value: overdueClients.length,
+      clients: overdueClients,
       source: "primary:Marcos!AK:AO",
     },
     concluidos: {
