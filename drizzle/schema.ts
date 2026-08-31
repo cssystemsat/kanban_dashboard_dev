@@ -1,4 +1,14 @@
-import { index, int, mysqlEnum, mysqlTable, text, timestamp, varchar, date, boolean } from "drizzle-orm/mysql-core";
+import {
+  index,
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+  date,
+  boolean,
+} from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -83,7 +93,8 @@ export const checklistItemHistory = mysqlTable("checklist_item_history", {
 });
 
 export type ChecklistItemHistory = typeof checklistItemHistory.$inferSelect;
-export type InsertChecklistItemHistory = typeof checklistItemHistory.$inferInsert;
+export type InsertChecklistItemHistory =
+  typeof checklistItemHistory.$inferInsert;
 
 // Completions: registro de quais itens foram marcados por qual usuário e em qual data
 export const checklistCompletions = mysqlTable("checklist_completions", {
@@ -95,7 +106,8 @@ export const checklistCompletions = mysqlTable("checklist_completions", {
 });
 
 export type ChecklistCompletion = typeof checklistCompletions.$inferSelect;
-export type InsertChecklistCompletion = typeof checklistCompletions.$inferInsert;
+export type InsertChecklistCompletion =
+  typeof checklistCompletions.$inferInsert;
 
 // Sessões de usuário: login/logout e tempo ativo
 export const userSessions = mysqlTable("user_sessions", {
@@ -153,29 +165,46 @@ export type ClientComment = typeof clientComments.$inferSelect;
 export type InsertClientComment = typeof clientComments.$inferInsert;
 
 // Histórico imutável de cada comentário/edição usado pelo relatório de Evolução de URs
-export const clientCommentHistory = mysqlTable("client_comment_history", {
-  id: int("id").autoincrement().primaryKey(),
-  clientName: varchar("clientName", { length: 255 }).notNull(),
-  comment: text("comment").notNull(),
-  monthYear: varchar("monthYear", { length: 7 }).notNull(),
-  authorEmail: varchar("authorEmail", { length: 320 }),
-  authorName: text("authorName"),
-  action: varchar("action", { length: 16 }).default("saved").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  clientMonthIdx: index("client_comment_history_client_month_idx").on(table.clientName, table.monthYear),
-  createdAtIdx: index("client_comment_history_created_at_idx").on(table.createdAt),
-}));
+export const clientCommentHistory = mysqlTable(
+  "client_comment_history",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientName: varchar("clientName", { length: 255 }).notNull(),
+    comment: text("comment").notNull(),
+    monthYear: varchar("monthYear", { length: 7 }).notNull(),
+    authorEmail: varchar("authorEmail", { length: 320 }),
+    authorName: text("authorName"),
+    action: varchar("action", { length: 16 }).default("saved").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    clientMonthIdx: index("client_comment_history_client_month_idx").on(
+      table.clientName,
+      table.monthYear
+    ),
+    createdAtIdx: index("client_comment_history_created_at_idx").on(
+      table.createdAt
+    ),
+  })
+);
 
 export type ClientCommentHistory = typeof clientCommentHistory.$inferSelect;
-export type InsertClientCommentHistory = typeof clientCommentHistory.$inferInsert;
+export type InsertClientCommentHistory =
+  typeof clientCommentHistory.$inferInsert;
 
 // Tabela de migrações para controlar movimentações de dados
 export const migrations = mysqlTable("migrations", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  status: mysqlEnum("status", ["planejamento", "em_progresso", "concluido", "cancelado"]).default("planejamento").notNull(),
+  status: mysqlEnum("status", [
+    "planejamento",
+    "em_progresso",
+    "concluido",
+    "cancelado",
+  ])
+    .default("planejamento")
+    .notNull(),
   sourceSystem: varchar("sourceSystem", { length: 128 }), // Sistema de origem
   targetSystem: varchar("targetSystem", { length: 128 }), // Sistema de destino
   estimatedRecords: int("estimatedRecords"), // Quantidade estimada de registros
@@ -183,7 +212,9 @@ export const migrations = mysqlTable("migrations", {
   owner: varchar("owner", { length: 320 }), // E-mail do responsável
   startDate: timestamp("startDate"),
   endDate: timestamp("endDate"),
-  priority: mysqlEnum("priority", ["baixa", "media", "alta"]).default("media").notNull(),
+  priority: mysqlEnum("priority", ["baixa", "media", "alta"])
+    .default("media")
+    .notNull(),
   notes: text("notes"), // Notas adicionais
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -196,7 +227,9 @@ export type InsertMigration = typeof migrations.$inferInsert;
 export const migratedVehicles = mysqlTable("migrated_vehicles", {
   id: int("id").autoincrement().primaryKey(),
   migrationId: int("migrationId").notNull(), // FK para migrations
-  status: mysqlEnum("status", ["enviar", "enviado", "aguardando", "comunicou"]).default("enviar").notNull(),
+  status: mysqlEnum("status", ["enviar", "enviado", "aguardando", "comunicou"])
+    .default("enviar")
+    .notNull(),
   clientName: varchar("clientName", { length: 255 }).notNull(),
   vehicleName: varchar("vehicleName", { length: 255 }).notNull(),
   model: varchar("model", { length: 128 }),
@@ -230,8 +263,10 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
     "desenvolvimento",
     "envio_lojas",
     "teste_liberacao",
-    "app_entregue"
-  ]).default("venda_feita").notNull(),
+    "app_entregue",
+  ])
+    .default("venda_feita")
+    .notNull(),
   order: int("order").default(0).notNull(), // Para ordenação dentro de cada etapa
   priority: int("priority").default(0).notNull(), // Prioridade (1 até N) apenas para estágio "desenvolvimento"
   refusalReason: text("refusalReason"), // Motivo da recusa quando em "teste_liberacao"
@@ -271,16 +306,21 @@ export type AppKanbanChecklist = typeof appKanbanChecklist.$inferSelect;
 export type InsertAppKanbanChecklist = typeof appKanbanChecklist.$inferInsert;
 
 // Tabela para rastrear reconhecimento diário de perdas de URs
-export const dailyLossesAcknowledgments = mysqlTable("daily_losses_acknowledgments", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(), // FK para users
-  acknowledgedDate: date("acknowledgedDate").notNull(), // data do reconhecimento (YYYY-MM-DD)
-  acknowledgedAt: timestamp("acknowledgedAt").defaultNow().notNull(), // timestamp do reconhecimento
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+export const dailyLossesAcknowledgments = mysqlTable(
+  "daily_losses_acknowledgments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(), // FK para users
+    acknowledgedDate: date("acknowledgedDate").notNull(), // data do reconhecimento (YYYY-MM-DD)
+    acknowledgedAt: timestamp("acknowledgedAt").defaultNow().notNull(), // timestamp do reconhecimento
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  }
+);
 
-export type DailyLossesAcknowledgment = typeof dailyLossesAcknowledgments.$inferSelect;
-export type InsertDailyLossesAcknowledgment = typeof dailyLossesAcknowledgments.$inferInsert;
+export type DailyLossesAcknowledgment =
+  typeof dailyLossesAcknowledgments.$inferSelect;
+export type InsertDailyLossesAcknowledgment =
+  typeof dailyLossesAcknowledgments.$inferInsert;
 
 // Tabela de pontuação atual e histórico dos analistas para o ranking
 export const analystScores = mysqlTable("analyst_scores", {
@@ -309,7 +349,19 @@ export const analystScoreHistory = mysqlTable("analyst_score_history", {
 export type AnalystScoreHistory = typeof analystScoreHistory.$inferSelect;
 export type InsertAnalystScoreHistory = typeof analystScoreHistory.$inferInsert;
 
-// Registra os IDs dos jobs automáticos responsáveis pelo ranking
+// Snapshot imutável dos KPI’s manuais fechados ao final de cada semana.
+export const kpiWeeklySnapshots = mysqlTable("kpi_weekly_snapshots", {
+  id: int("id").autoincrement().primaryKey(),
+  periodKey: varchar("periodKey", { length: 10 }).notNull().unique(), // sexta-feira de fechamento: YYYY-MM-DD
+  valuesJson: text("valuesJson").notNull(), // KpiManualValues serializado
+  closedAt: timestamp("closedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type KpiWeeklySnapshot = typeof kpiWeeklySnapshots.$inferSelect;
+export type InsertKpiWeeklySnapshot = typeof kpiWeeklySnapshots.$inferInsert;
+
+// Registra os IDs dos jobs automáticos responsáveis pelo ranking e pelos KPI’s
 export const analystScoreSchedules = mysqlTable("analyst_score_schedules", {
   id: int("id").autoincrement().primaryKey(),
   jobType: varchar("jobType", { length: 32 }).notNull(), // 'weekly_penalty' | 'monthly_reset'
@@ -319,4 +371,5 @@ export const analystScoreSchedules = mysqlTable("analyst_score_schedules", {
 });
 
 export type AnalystScoreSchedule = typeof analystScoreSchedules.$inferSelect;
-export type InsertAnalystScoreSchedule = typeof analystScoreSchedules.$inferInsert;
+export type InsertAnalystScoreSchedule =
+  typeof analystScoreSchedules.$inferInsert;

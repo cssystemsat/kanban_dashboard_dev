@@ -8,7 +8,13 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sdk } from "./sdk";
-import { closePreviousMonthAndResetScores, isRegisteredScoreSchedule, runWeeklyCoveragePenalty } from "../analystScoring";
+import {
+  closePreviousMonthAndResetScores,
+  isRegisteredScoreSchedule,
+  runWeeklyCoveragePenalty,
+} from "../analystScoring";
+import { closeKpiWeeklySnapshot } from "../kpiSnapshots";
+import { isRegisteredKpiSchedule } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -41,27 +47,63 @@ async function startServer() {
   app.post("/api/scheduled/performance/weekly-penalty", async (req, res) => {
     try {
       const user = await sdk.authenticateRequest(req);
-      if (!user.isCron || !user.taskUid || !(await isRegisteredScoreSchedule("weekly_penalty", user.taskUid))) {
+      if (
+        !user.isCron ||
+        !user.taskUid ||
+        !(await isRegisteredScoreSchedule("weekly_penalty", user.taskUid))
+      ) {
         return res.status(403).json({ error: "cron-only" });
       }
       const result = await runWeeklyCoveragePenalty();
       return res.json({ ok: true, ...result });
     } catch (error) {
       console.error("[Scheduled][weekly-penalty]", error);
-      return res.status(500).json({ error: String(error), timestamp: new Date().toISOString() });
+      return res
+        .status(500)
+        .json({ error: String(error), timestamp: new Date().toISOString() });
     }
   });
   app.post("/api/scheduled/performance/monthly-reset", async (req, res) => {
     try {
       const user = await sdk.authenticateRequest(req);
-      if (!user.isCron || !user.taskUid || !(await isRegisteredScoreSchedule("monthly_reset", user.taskUid))) {
+      if (
+        !user.isCron ||
+        !user.taskUid ||
+        !(await isRegisteredScoreSchedule("monthly_reset", user.taskUid))
+      ) {
         return res.status(403).json({ error: "cron-only" });
       }
       const result = await closePreviousMonthAndResetScores();
       return res.json({ ok: true, ...result });
     } catch (error) {
       console.error("[Scheduled][monthly-reset]", error);
-      return res.status(500).json({ error: String(error), timestamp: new Date().toISOString() });
+      return res
+        .status(500)
+        .json({ error: String(error), timestamp: new Date().toISOString() });
+    }
+  });
+  app.post("/api/scheduled/kpis/weekly-snapshot", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (
+        !user.isCron ||
+        !user.taskUid ||
+        !(await isRegisteredKpiSchedule(user.taskUid))
+      ) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const result = await closeKpiWeeklySnapshot();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("[Scheduled][kpis-weekly-snapshot]", error);
+      return res.status(500).json({
+        error: String(error),
+        context: {
+          url: req.originalUrl,
+          taskUid: req.headers["x-task-uid"] ?? null,
+        },
+        timestamp: new Date().toISOString(),
+      });
     }
   });
   // tRPC API

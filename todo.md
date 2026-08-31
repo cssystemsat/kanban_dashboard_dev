@@ -93,3 +93,12 @@
 - [x] Remover a opção Red Flags do menu lateral.
 - [x] Adicionar a opção Migração apontando para https://migracao-web.onrender.com/ em nova aba segura.
 - [x] Validar o novo item no menu lateral e salvar checkpoint.
+- [x] Zerar todos os indicadores da coluna Semana Retrasada dos KPI’s de Gestão CS para iniciar o mês com base zero.
+- [x] Modelar o snapshot semanal dos KPI’s de Gestão CS para preservar os valores fechados sem alterar o modal.
+- [x] Criar o fechamento automático dos KPI’s toda sexta-feira às 23:59 no horário de Brasília.
+- [x] Atualizar a aba KPI’s para exibir o snapshot fechado da semana anterior e manter a semana retrasada zerada até o próximo fechamento.
+- [x] Criar testes para zeragem, fechamento idempotente e transição semanal dos KPI’s.
+- [ ] Validar visualmente a aba KPI’s, TypeScript, build e testes; salvar checkpoint antes da ativação do job em produção.
+- [ ] Publicar a versão com o callback de fechamento semanal de KPI’s antes de criar o schedule em produção.
+- [ ] Ativar as automações pela aba Performance após a publicação e registrar o taskUid do job `kpi_weekly_snapshot`.
+- [ ] Confirmar em produção que o schedule de sexta-feira às 23:59 BRT aparece como ativo e que o callback responde com sucesso.

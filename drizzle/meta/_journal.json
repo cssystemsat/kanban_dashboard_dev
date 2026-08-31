@@ -169,6 +169,13 @@
       "when": 1787678065820,
       "tag": "0023_magenta_kat_farrell",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1788179307031,
+      "tag": "0024_striped_drax",
+      "breakpoints": true
     }
   ]
 }
