@@ -250,8 +250,8 @@ export default function KPIs() {
   );
 
   return (
-    <div className="ml-20 min-h-screen overflow-x-hidden bg-white px-6 py-6">
-      <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-3">
+    <div className="min-h-screen overflow-x-hidden bg-white px-6 py-6">
+      <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)_1px_minmax(0,1fr)]">
         {renderCategory(
           "Onboarding",
           "🚀",
@@ -259,7 +259,11 @@ export default function KPIs() {
           onboardingRetrasada,
           "border-gray-300"
         )}
-        <div key="divider-1" className="hidden"></div>
+        <div
+          key="divider-1"
+          aria-hidden="true"
+          className="hidden self-stretch bg-gray-200 xl:block"
+        ></div>
         {renderCategory(
           "Ongoing",
           "📈",
@@ -267,7 +271,11 @@ export default function KPIs() {
           ongoingRetrasada,
           "border-gray-300"
         )}
-        <div key="divider-2" className="hidden"></div>
+        <div
+          key="divider-2"
+          aria-hidden="true"
+          className="hidden self-stretch bg-gray-200 xl:block"
+        ></div>
         {renderCategory(
           "Migração",
           "🔄",

@@ -147,9 +147,13 @@
 - [x] Reduzir o espaçamento vazio e ampliar cards, títulos, valores e modais sem alterar o fluxo de dados.
 - [x] Remover temporariamente as cores de fundo dos painéis e manter uma base neutra.
 - [x] Validar desktop, responsividade e preservação dos modais; executar testes e salvar checkpoint visual.
-- [ ] Salvar um checkpoint específico da revisão visual da aba KPI’s após os ajustes de escala e neutralização dos painéis.
+- [x] Salvar um checkpoint específico da revisão visual da aba KPI’s após os ajustes de escala e neutralização dos painéis.
 - [ ] Validar explicitamente um modal da aba KPI’s após o ajuste visual para confirmar que a interação e o conteúdo permanecem intactos.
 - [ ] Abrir explicitamente o card Clientes ativos após o ajuste visual e confirmar que o modal mantém conteúdo e lista.
 - [ ] Salvar checkpoint específico após a validação explícita do modal na versão ampliada e neutra.
-- [ ] Salvar o checkpoint visual final antes de orientar a publicação pela interface.
-- [ ] Orientar o usuário a clicar em Publish no cartão de checkpoint, sem exigir login no domínio público.
+- [x] Salvar o checkpoint visual final antes de orientar a publicação pela interface.
+- [x] Orientar o usuário a clicar em Publish no cartão de checkpoint, sem exigir login no domínio público.
+- [x] Adicionar divisões visuais em linha entre Onboarding, Ongoing e Migração.
+- [x] Garantir que os separadores sejam responsivos e não criem overflow no mobile.
+- [ ] Validar a divisão no preview e salvar checkpoint visual.
+- [ ] Salvar um novo checkpoint específico após a implementação das divisões visuais em linha entre Onboarding, Ongoing e Migração e confirmar que os separadores estão incluídos nele.

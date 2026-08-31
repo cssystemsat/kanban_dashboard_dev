@@ -84,12 +84,23 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain("min-w-0 min-h-[72px]");
     expect(pageSource).toContain("p-3 rounded-lg border text-sm");
     expect(pageSource).toContain(
-      "grid w-full grid-cols-1 gap-6 xl:grid-cols-3"
+      "grid w-full grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)_1px_minmax(0,1fr)]"
     );
     expect(pageSource).toContain("overflow-x-hidden bg-white px-6 py-6");
     expect(pageSource).toContain("bg-transparent border-gray-300");
     expect(pageSource).not.toContain("bg-green-50");
     expect(pageSource).not.toContain("bg-yellow-50");
     expect(pageSource).not.toContain("bg-red-50");
+  });
+
+  it("separa visualmente as categorias no layout desktop", () => {
+    expect(pageSource).toContain(
+      "xl:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)_1px_minmax(0,1fr)]"
+    );
+    expect(pageSource).toContain(
+      'className="hidden self-stretch bg-gray-200 xl:block"'
+    );
+    expect(pageSource).toContain('aria-hidden="true"');
+    expect(pageSource).not.toContain('className="ml-20 min-h-screen');
   });
 });
