@@ -8,6 +8,7 @@ import URsTrendIndicator from "@/components/URsTrendIndicator";
 
 import { useKanbanData, ClientData } from "@/hooks/useKanbanData";
 import { useMultipleURsTrends } from "@/hooks/useURsTrend";
+import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
 import { Flag, RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -53,6 +54,9 @@ export default function Home() {
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(
     null
   );
+  const [selectedComercial, setSelectedComercial] = useState<string | null>(
+    null
+  );
   const [searchCliente, setSearchCliente] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ok" | "atrasado">(
     "all"
@@ -96,6 +100,9 @@ export default function Home() {
     filteredData = filteredData.filter(
       client => client.atendente === selectedAtendente
     );
+  }
+  if (selectedComercial) {
+    filteredData = filterByCommercial(filteredData, selectedComercial);
   }
   if (searchCliente.trim()) {
     filteredData = filteredData.filter(client =>
@@ -191,6 +198,12 @@ export default function Home() {
       client => client.atendente === selectedAtendente
     );
   }
+  if (selectedComercial) {
+    baseDataForCounts = filterByCommercial(
+      baseDataForCounts,
+      selectedComercial
+    );
+  }
   if (dateFilterStart && dateFilterEnd) {
     baseDataForCounts = baseDataForCounts.filter(client => {
       if (!client.entrada) return false;
@@ -229,6 +242,7 @@ export default function Home() {
   const csms = Array.from(
     new Set(data.map(c => c.atendente).filter(Boolean))
   ).sort();
+  const comerciais = listCommercials(data);
 
   // Ordenar clientes por data de entrada (mais antigos em cima)
   const sortedData = [...filteredData].sort((a, b) => {
@@ -289,6 +303,7 @@ export default function Home() {
     statusFilter !== "all" ||
     flagFilter ||
     selectedAtendente ||
+    selectedComercial ||
     percentualDesatualizadoFilter !== null ||
     diferencaActive ||
     topBoleto > 0 ||
@@ -325,12 +340,25 @@ export default function Home() {
               <select
                 value={selectedAtendente || ""}
                 onChange={e => setSelectedAtendente(e.target.value || null)}
-                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 <option value="">CSM: Todos</option>
                 {csms.map(csm => (
                   <option key={csm} value={csm}>
                     {csm}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedComercial || ""}
+                onChange={e => setSelectedComercial(e.target.value || null)}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="">Comercial: Todos</option>
+                {comerciais.map(comercial => (
+                  <option key={comercial} value={comercial}>
+                    {comercial}
                   </option>
                 ))}
               </select>
@@ -486,6 +514,11 @@ export default function Home() {
           {selectedAtendente && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
               CSM: {selectedAtendente}
+            </span>
+          )}
+          {selectedComercial && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Comercial: {selectedComercial}
             </span>
           )}
           {percentualDesatualizadoFilter !== null && (

@@ -78,6 +78,25 @@ function AccessRestrictedScreen() {
   );
 }
 
+function AdminOnlyScreen() {
+  return (
+    <main className="min-h-screen bg-background px-6 py-16 text-foreground">
+      <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 text-center shadow-sm">
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-border text-2xl font-semibold">
+          !
+        </div>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Área exclusiva para administradores
+        </h1>
+        <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
+          O painel Performance está disponível somente para usuários com perfil
+          administrativo autorizado.
+        </p>
+      </div>
+    </main>
+  );
+}
+
 function AppInner() {
   const [currentPage, setCurrentPage] = useState(getPageFromUrl);
   const [isSideMenuExpanded, setIsSideMenuExpanded] = useState(false);
@@ -89,6 +108,7 @@ function AppInner() {
     error: authError,
   } = trpc.auth.me.useQuery();
   const { data: accessStatus } = trpc.auth.accessStatus.useQuery();
+  const { data: permission } = trpc.atendimento.checkPermission.useQuery();
   const restrictedRedirect =
     new URLSearchParams(window.location.search).get("access") === "restricted";
   const accessRestricted = Boolean(
@@ -190,7 +210,8 @@ function AppInner() {
       case "painel":
         return <Painel />;
       case "performance":
-        return <Performance />;
+        if (permission === undefined) return null;
+        return permission.isAdmin ? <Performance /> : <AdminOnlyScreen />;
       case "dashboard":
         return <Dashboard />;
       case "marcos":

@@ -5,6 +5,7 @@ import OngoingCard from "@/components/OngoingCard";
 import OngoingClientModal from "@/components/OngoingClientModal";
 import AtendimentoModal from "@/components/AtendimentoModal";
 import URsTrendIndicator from "@/components/URsTrendIndicator";
+import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
 import type { ClientData } from "@/hooks/useKanbanData";
 
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
@@ -55,6 +56,9 @@ export default function Ongoing() {
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(
     null
   );
+  const [selectedComercial, setSelectedComercial] = useState<string | null>(
+    null
+  );
   const [searchCliente, setSearchCliente] = useState<string>("");
   const [ultimoBoletoMin, setUltimoBoletoMin] = useState<number | null>(null);
   const [ultimoBoletoMax, setUltimoBoletoMax] = useState<number | null>(null);
@@ -74,6 +78,9 @@ export default function Ongoing() {
     filteredData = filteredData.filter(
       client => client.csm === selectedAtendente
     );
+  }
+  if (selectedComercial) {
+    filteredData = filterByCommercial(filteredData, selectedComercial);
   }
   if (searchCliente.trim()) {
     filteredData = filteredData.filter(client =>
@@ -133,6 +140,12 @@ export default function Ongoing() {
       client => client.csm === selectedAtendente
     );
   }
+  if (selectedComercial) {
+    baseDataForCounts = filterByCommercial(
+      baseDataForCounts,
+      selectedComercial
+    );
+  }
 
   const flagCounts: Record<FlagLevel, number> = {
     "Red Flag": baseDataForCounts.filter(c => c.flag === "Red Flag").length,
@@ -143,6 +156,7 @@ export default function Ongoing() {
 
   // Obter lista única de CSMs e Situações
   const csms = Array.from(new Set(data.map(c => c.csm).filter(Boolean))).sort();
+  const comerciais = listCommercials(data);
   const situacoes = Array.from(
     new Set(data.map(c => c.situacao).filter(Boolean))
   ).sort();
@@ -155,6 +169,7 @@ export default function Ongoing() {
     searchCliente ||
     flagFilter ||
     selectedAtendente ||
+    selectedComercial ||
     selectedSituacao ||
     deltaActive
   );
@@ -249,6 +264,28 @@ export default function Ongoing() {
                 {csms.map(csm => (
                   <option key={csm} value={csm}>
                     {csm}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                Comercial
+              </label>
+              <select
+                value={selectedComercial || "todos"}
+                onChange={e =>
+                  setSelectedComercial(
+                    e.target.value === "todos" ? null : e.target.value
+                  )
+                }
+                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              >
+                <option value="todos">Todos</option>
+                {comerciais.map(comercial => (
+                  <option key={comercial} value={comercial}>
+                    {comercial}
                   </option>
                 ))}
               </select>
@@ -391,6 +428,7 @@ export default function Ongoing() {
                 setSearchCliente("");
                 setFlagFilter(null);
                 setSelectedAtendente(null);
+                setSelectedComercial(null);
                 setUltimoBoletoMin(null);
                 setUltimoBoletoMax(null);
                 setSelectedSituacao(null);
@@ -436,6 +474,11 @@ export default function Ongoing() {
             {selectedAtendente && (
               <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                 CSM: {selectedAtendente}
+              </span>
+            )}
+            {selectedComercial && (
+              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                Comercial: {selectedComercial}
               </span>
             )}
             {selectedSituacao && (

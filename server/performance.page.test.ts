@@ -22,17 +22,29 @@ describe("Performance page navigation", () => {
       'import Performance from "./pages/Performance";'
     );
     expect(appSource).toContain('case "performance":');
-    expect(appSource).toContain('currentPage !== "performance"');
-    expect(appSource).toContain("<ChecklistPanel />");
+    expect(appSource).toContain("permission.isAdmin");
+    expect(appSource).toContain("AdminOnlyScreen");
   });
 
-  it("places Performance immediately after Painel in the public menu", () => {
-    const painelIndex = sideMenuSource.indexOf('id: "painel"');
-    const performanceIndex = sideMenuSource.indexOf('id: "performance"');
-    expect(painelIndex).toBeGreaterThanOrEqual(0);
-    expect(performanceIndex).toBeGreaterThan(painelIndex);
-    expect(performanceIndex).toBeLessThan(
-      sideMenuSource.indexOf("];", painelIndex)
+  it("places Performance after Painel only in the admin menu group", () => {
+    const publicStart = sideMenuSource.indexOf("const PUBLIC_ITEMS");
+    const publicEnd = sideMenuSource.indexOf("];", publicStart);
+    const painelIndex = sideMenuSource.indexOf('id: "painel"', publicStart);
+    const adminTopIndex = sideMenuSource.indexOf("const ADMIN_TOP_ITEMS");
+    const performanceIndex = sideMenuSource.indexOf(
+      'id: "performance"',
+      adminTopIndex
+    );
+
+    expect(painelIndex).toBeGreaterThanOrEqual(publicStart);
+    expect(painelIndex).toBeLessThan(publicEnd);
+    expect(sideMenuSource.slice(publicStart, publicEnd)).not.toContain(
+      'id: "performance"'
+    );
+    expect(adminTopIndex).toBeGreaterThan(publicEnd);
+    expect(performanceIndex).toBeGreaterThan(adminTopIndex);
+    expect(sideMenuSource).toContain(
+      "isAdmin && ADMIN_TOP_ITEMS.map(renderItem)"
     );
   });
 

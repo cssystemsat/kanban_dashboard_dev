@@ -177,3 +177,9 @@
 - [x] Substituir o erro bruto do Zod por uma mensagem clara no formulário.
 - [x] Criar testes para e-mail válido com espaços/caixa variada e e-mail inválido.
 - [x] Validar o cadastro no preview, executar TypeScript, build e testes e salvar checkpoint corretivo.
+- [x] Mostrar o item Performance no menu lateral somente para usuários administradores.
+- [x] Adicionar filtro de Comercial na aba Marcos.
+- [x] Adicionar filtro de Comercial na aba Ongoing.
+- [x] Identificar e documentar a origem do campo Comercial em cada aba.
+- [x] Criar testes para visibilidade administrativa e filtros de Comercial.
+- [x] Validar menu e filtros no preview, executar TypeScript, build e testes e salvar checkpoint.

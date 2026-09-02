@@ -27,8 +27,10 @@ interface SideMenuProps {
 }
 
 // Aba pública — visível para todos sem login
-const PUBLIC_ITEMS = [
-  { id: "painel", label: "Painel", icon: LayoutGrid },
+const PUBLIC_ITEMS = [{ id: "painel", label: "Painel", icon: LayoutGrid }];
+
+// Segundo item do menu, visível somente para administradores.
+const ADMIN_TOP_ITEMS = [
   { id: "performance", label: "Performance", icon: BarChart3 },
 ];
 
@@ -251,6 +253,9 @@ export default function SideMenu({
       <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
         {/* Ába pública — apenas para autenticados */}
         {visiblePublicItems.map(renderItem)}
+
+        {/* Performance fica logo após Painel e somente para administradores */}
+        {isAdmin && ADMIN_TOP_ITEMS.map(renderItem)}
 
         {/* Separador se houver abas protegidas visíveis */}
         {visibleProtectedItems.length > 0 && (

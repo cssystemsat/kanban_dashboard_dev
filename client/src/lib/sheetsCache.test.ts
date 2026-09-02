@@ -21,16 +21,14 @@ describe("sheet proxy cache policy", () => {
   });
 
   it("consulta o proxy autenticado sem cache HTTP e com um cache-buster", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            result: { data: { json: { csv: "cabecalho\nvalor" } } },
-          }),
-          { status: 200 }
-        )
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          result: { data: { json: { csv: "cabecalho\nvalor" } } },
+        }),
+        { status: 200 }
+      )
+    );
     vi.stubGlobal("fetch", fetchMock);
 
     await cachedFetch(
