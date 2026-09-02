@@ -167,4 +167,8 @@
 - [x] Preservar o acesso dos usuários autorizados e dos administradores já cadastrados.
 - [x] Criar testes para login autorizado, login restrito e proteção das procedures.
 - [x] Validar o fluxo no preview, executar TypeScript, build e testes e salvar checkpoint.
-- [x] Salvar checkpoint específico após validar a política de allowlist, a tela Acesso restrito e as rotas operacionais protegidas.
+- [ ] Salvar checkpoint específico após validar a política de allowlist, a tela Acesso restrito e as rotas operacionais protegidas.
+- [x] Restaurar a procedure `auth.me` no router tRPC para eliminar o erro No procedure found.
+- [x] Preservar `auth.accessStatus` e o bloqueio de usuários fora da allowlist.
+- [x] Criar teste de regressão para `auth.me` e o carregamento inicial do App.
+- [x] Validar preview, TypeScript, build e testes e salvar checkpoint corretivo.

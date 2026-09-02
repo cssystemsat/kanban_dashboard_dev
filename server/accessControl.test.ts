@@ -171,6 +171,15 @@ function createCallerContext(accessRestricted: boolean): TrpcContext {
 }
 
 describe("restricted UI status", () => {
+  it("keeps auth.me registered and returns no user without a session", async () => {
+    const { appRouter } = await import("./routers");
+    const result = await appRouter
+      .createCaller(createCallerContext(false))
+      .auth.me();
+
+    expect(result).toBeNull();
+  });
+
   it("exposes the restricted flag without exposing an operational user", async () => {
     const { appRouter } = await import("./routers");
     const result = await appRouter
