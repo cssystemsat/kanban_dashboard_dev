@@ -183,3 +183,6 @@
 - [x] Identificar e documentar a origem do campo Comercial em cada aba.
 - [x] Criar testes para visibilidade administrativa e filtros de Comercial.
 - [x] Validar menu e filtros no preview, executar TypeScript, build e testes e salvar checkpoint.
+- [x] Remover o título “Dashboard Ongoing” e o subtítulo “Cliente em acompanhamento contínuo” da aba Ongoing.
+- [x] Subir e compactar o bloco de filtros para aproveitar o espaço vertical.
+- [x] Validar que filtros, cards e layout responsivo continuam funcionando e salvar checkpoint visual.

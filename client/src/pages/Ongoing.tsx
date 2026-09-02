@@ -176,334 +176,324 @@ export default function Ongoing() {
 
   return (
     <div
-      className="md:ml-20 p-4 md:p-8"
+      className="md:ml-20 p-4 md:p-6"
       style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
     >
-      {/* Header */}
-      <header className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold" style={{ color: "#001F3F" }}>
-              Dashboard Ongoing
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Clientes em acompanhamento contínuo
-            </p>
+      {/* Topo compacto: os filtros ocupam a primeira área útil da aba. */}
+      <header className="mb-2 flex justify-end">
+        <button
+          disabled={loading}
+          className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors flex items-center gap-2"
+        >
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          {loading ? "Atualizando..." : "Atualizar"}
+        </button>
+      </header>
+
+      {/* Filtros */}
+      <div
+        className="bg-white rounded-xl p-3 border shadow-sm"
+        style={{ borderColor: "#E0E8F0" }}
+      >
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Cliente
+            </label>
+            <input
+              type="text"
+              placeholder="Buscar cliente..."
+              value={searchCliente}
+              onChange={e => setSearchCliente(e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              style={{ width: "150px" }}
+            />
           </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Flags
+            </label>
+            <div className="flex gap-1">
+              {FLAG_LEVELS.map(level => {
+                const s = FLAG_STYLES[level];
+                const isActive = flagFilter === level;
+                return (
+                  <button
+                    key={level}
+                    onClick={() => setFlagFilter(isActive ? null : level)}
+                    className="flex items-center gap-1 h-8 px-2 rounded-md text-xs font-semibold transition-all whitespace-nowrap"
+                    style={{
+                      backgroundColor: isActive ? s.activeBg : "#F9FAFB",
+                      color: isActive ? s.activeText : s.color,
+                      border: `1px solid ${isActive ? s.border : "#E5E7EB"}`,
+                    }}
+                  >
+                    <Flag size={12} />
+                    {level.replace(" Flag", "")}{" "}
+                    {flagCounts[level] > 0 && `(${flagCounts[level]})`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              CSM
+            </label>
+            <select
+              value={selectedAtendente || "todos"}
+              onChange={e =>
+                setSelectedAtendente(
+                  e.target.value === "todos" ? null : e.target.value
+                )
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="todos">Todos</option>
+              {csms.map(csm => (
+                <option key={csm} value={csm}>
+                  {csm}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Comercial
+            </label>
+            <select
+              value={selectedComercial || "todos"}
+              onChange={e =>
+                setSelectedComercial(
+                  e.target.value === "todos" ? null : e.target.value
+                )
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="todos">Todos</option>
+              {comerciais.map(comercial => (
+                <option key={comercial} value={comercial}>
+                  {comercial}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Boleto Mín
+            </label>
+            <input
+              type="number"
+              placeholder="R$ Mín"
+              value={ultimoBoletoMin ?? ""}
+              onChange={e =>
+                setUltimoBoletoMin(
+                  e.target.value ? parseFloat(e.target.value) : null
+                )
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              style={{ width: "100px" }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Boleto Máx
+            </label>
+            <input
+              type="number"
+              placeholder="R$ Máx"
+              value={ultimoBoletoMax ?? ""}
+              onChange={e =>
+                setUltimoBoletoMax(
+                  e.target.value ? parseFloat(e.target.value) : null
+                )
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              style={{ width: "100px" }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Situação
+            </label>
+            <select
+              value={selectedSituacao || "todos"}
+              onChange={e =>
+                setSelectedSituacao(
+                  e.target.value === "todos" ? null : e.target.value
+                )
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="todos">Todas</option>
+              {situacoes.map(situacao => (
+                <option key={situacao} value={situacao}>
+                  {situacao}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              className="text-[10px] font-semibold uppercase tracking-wider"
+              style={{ color: "#DC2626" }}
+            >
+              Delta ≤ -R$
+            </label>
+            <input
+              type="number"
+              placeholder="Ex: 1000"
+              value={deltaMaxInput}
+              onChange={e => setDeltaMaxInput(e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-red-300 focus:bg-white"
+              style={{ borderColor: "#FCA5A5", width: "100px" }}
+              min="0"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Top Boletos
+            </label>
+            <input
+              type="number"
+              value={topBoleto}
+              onChange={e =>
+                setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              style={{ width: "80px" }}
+              min="0"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Top Volume
+            </label>
+            <input
+              type="number"
+              value={topVolume}
+              onChange={e =>
+                setTopVolume(Math.max(0, parseInt(e.target.value) || 0))
+              }
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+              style={{ width: "80px" }}
+              min="0"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Tendencia De
+            </label>
+            <input
+              type="date"
+              value={trendStartDate}
+              onChange={e => setTrendStartDate(e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Tendencia Ate
+            </label>
+            <input
+              type="date"
+              value={trendEndDate}
+              onChange={e => setTrendEndDate(e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            />
+          </div>
+
           <button
-            disabled={loading}
-            className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center gap-2"
+            onClick={() => {
+              setSearchCliente("");
+              setFlagFilter(null);
+              setSelectedAtendente(null);
+              setSelectedComercial(null);
+              setUltimoBoletoMin(null);
+              setUltimoBoletoMax(null);
+              setSelectedSituacao(null);
+              setDeltaMaxInput("");
+              setTopBoleto(0);
+              setTopVolume(0);
+              setTrendStartDate("");
+              setTrendEndDate("");
+            }}
+            className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
           >
-            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-            {loading ? "Atualizando..." : "Atualizar"}
+            Limpar
           </button>
         </div>
+      </div>
 
-        {/* Filtros */}
-        <div
-          className="bg-white rounded-xl p-4 border shadow-sm"
-          style={{ borderColor: "#E0E8F0" }}
-        >
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Cliente
-              </label>
-              <input
-                type="text"
-                placeholder="Buscar cliente..."
-                value={searchCliente}
-                onChange={e => setSearchCliente(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                style={{ width: "150px" }}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Flags
-              </label>
-              <div className="flex gap-1">
-                {FLAG_LEVELS.map(level => {
-                  const s = FLAG_STYLES[level];
-                  const isActive = flagFilter === level;
-                  return (
-                    <button
-                      key={level}
-                      onClick={() => setFlagFilter(isActive ? null : level)}
-                      className="flex items-center gap-1 h-8 px-2 rounded-md text-xs font-semibold transition-all whitespace-nowrap"
-                      style={{
-                        backgroundColor: isActive ? s.activeBg : "#F9FAFB",
-                        color: isActive ? s.activeText : s.color,
-                        border: `1px solid ${isActive ? s.border : "#E5E7EB"}`,
-                      }}
-                    >
-                      <Flag size={12} />
-                      {level.replace(" Flag", "")}{" "}
-                      {flagCounts[level] > 0 && `(${flagCounts[level]})`}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                CSM
-              </label>
-              <select
-                value={selectedAtendente || "todos"}
-                onChange={e =>
-                  setSelectedAtendente(
-                    e.target.value === "todos" ? null : e.target.value
-                  )
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-              >
-                <option value="todos">Todos</option>
-                {csms.map(csm => (
-                  <option key={csm} value={csm}>
-                    {csm}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Comercial
-              </label>
-              <select
-                value={selectedComercial || "todos"}
-                onChange={e =>
-                  setSelectedComercial(
-                    e.target.value === "todos" ? null : e.target.value
-                  )
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-              >
-                <option value="todos">Todos</option>
-                {comerciais.map(comercial => (
-                  <option key={comercial} value={comercial}>
-                    {comercial}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Boleto Mín
-              </label>
-              <input
-                type="number"
-                placeholder="R$ Mín"
-                value={ultimoBoletoMin ?? ""}
-                onChange={e =>
-                  setUltimoBoletoMin(
-                    e.target.value ? parseFloat(e.target.value) : null
-                  )
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                style={{ width: "100px" }}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Boleto Máx
-              </label>
-              <input
-                type="number"
-                placeholder="R$ Máx"
-                value={ultimoBoletoMax ?? ""}
-                onChange={e =>
-                  setUltimoBoletoMax(
-                    e.target.value ? parseFloat(e.target.value) : null
-                  )
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                style={{ width: "100px" }}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Situação
-              </label>
-              <select
-                value={selectedSituacao || "todos"}
-                onChange={e =>
-                  setSelectedSituacao(
-                    e.target.value === "todos" ? null : e.target.value
-                  )
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-              >
-                <option value="todos">Todas</option>
-                {situacoes.map(situacao => (
-                  <option key={situacao} value={situacao}>
-                    {situacao}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label
-                className="text-[10px] font-semibold uppercase tracking-wider"
-                style={{ color: "#DC2626" }}
-              >
-                Delta ≤ -R$
-              </label>
-              <input
-                type="number"
-                placeholder="Ex: 1000"
-                value={deltaMaxInput}
-                onChange={e => setDeltaMaxInput(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-red-300 focus:bg-white"
-                style={{ borderColor: "#FCA5A5", width: "100px" }}
-                min="0"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-white uppercase tracking-wider">
-                Top Boletos
-              </label>
-              <input
-                type="number"
-                value={topBoleto}
-                onChange={e =>
-                  setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                style={{ width: "80px" }}
-                min="0"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-white uppercase tracking-wider">
-                Top Volume
-              </label>
-              <input
-                type="number"
-                value={topVolume}
-                onChange={e =>
-                  setTopVolume(Math.max(0, parseInt(e.target.value) || 0))
-                }
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-                style={{ width: "80px" }}
-                min="0"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Tendencia De
-              </label>
-              <input
-                type="date"
-                value={trendStartDate}
-                onChange={e => setTrendStartDate(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                Tendencia Ate
-              </label>
-              <input
-                type="date"
-                value={trendEndDate}
-                onChange={e => setTrendEndDate(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
-              />
-            </div>
-
-            <button
-              onClick={() => {
-                setSearchCliente("");
-                setFlagFilter(null);
-                setSelectedAtendente(null);
-                setSelectedComercial(null);
-                setUltimoBoletoMin(null);
-                setUltimoBoletoMax(null);
-                setSelectedSituacao(null);
-                setDeltaMaxInput("");
-                setTopBoleto(0);
-                setTopVolume(0);
-                setTrendStartDate("");
-                setTrendEndDate("");
-              }}
-              className="h-8 px-3 rounded-md text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
-            >
-              Limpar
-            </button>
-          </div>
-        </div>
-
-        {/* Resumo de Filtros Ativos */}
-        {(hasActiveFilter || topBoleto > 0 || topVolume > 0) && (
-          <div className="px-4 py-2 bg-blue-50 border border-blue-200 mt-3 rounded-lg flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold" style={{ color: "#001F3F" }}>
-              Filtros:
+      {/* Resumo de Filtros Ativos */}
+      {(hasActiveFilter || topBoleto > 0 || topVolume > 0) && (
+        <div className="px-4 py-2 bg-blue-50 border border-blue-200 mt-3 rounded-lg flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold" style={{ color: "#001F3F" }}>
+            Filtros:
+          </span>
+          {ultimoBoletoMin !== null && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Boleto Mín: R$ {ultimoBoletoMin.toFixed(2)}
             </span>
-            {ultimoBoletoMin !== null && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                Boleto Mín: R$ {ultimoBoletoMin.toFixed(2)}
-              </span>
-            )}
-            {ultimoBoletoMax !== null && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                Máx: R$ {ultimoBoletoMax.toFixed(2)}
-              </span>
-            )}
-            {searchCliente && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                Cliente: {searchCliente}
-              </span>
-            )}
-            {flagFilter && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                {flagFilter}
-              </span>
-            )}
-            {selectedAtendente && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                CSM: {selectedAtendente}
-              </span>
-            )}
-            {selectedComercial && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                Comercial: {selectedComercial}
-              </span>
-            )}
-            {selectedSituacao && (
-              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                Situação: {selectedSituacao}
-              </span>
-            )}
-            {deltaActive && (
-              <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">
-                Delta ≤ -R$ {parseFloat(deltaMaxInput).toFixed(2)}
-              </span>
-            )}
-            {topBoleto > 0 && (
-              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
-                Top Boletos: {topBoleto}
-              </span>
-            )}
-            {topVolume > 0 && (
-              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
-                Top Volume: {topVolume}
-              </span>
-            )}
-          </div>
-        )}
-      </header>
+          )}
+          {ultimoBoletoMax !== null && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Máx: R$ {ultimoBoletoMax.toFixed(2)}
+            </span>
+          )}
+          {searchCliente && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Cliente: {searchCliente}
+            </span>
+          )}
+          {flagFilter && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              {flagFilter}
+            </span>
+          )}
+          {selectedAtendente && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              CSM: {selectedAtendente}
+            </span>
+          )}
+          {selectedComercial && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Comercial: {selectedComercial}
+            </span>
+          )}
+          {selectedSituacao && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Situação: {selectedSituacao}
+            </span>
+          )}
+          {deltaActive && (
+            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">
+              Delta ≤ -R$ {parseFloat(deltaMaxInput).toFixed(2)}
+            </span>
+          )}
+          {topBoleto > 0 && (
+            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+              Top Boletos: {topBoleto}
+            </span>
+          )}
+          {topVolume > 0 && (
+            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+              Top Volume: {topVolume}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Conteúdo Principal */}
       <main>
