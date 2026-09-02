@@ -43,6 +43,16 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
+      const email = userInfo.email?.trim().toLowerCase();
+      const allowed = email ? await db.isEmailAllowed(email) : false;
+      if (!allowed) {
+        console.warn("[OAuth] Access denied for non-allowlisted email", {
+          email: email ?? "missing",
+        });
+        res.redirect(302, "/?access=restricted");
+        return;
+      }
+
       console.log("[OAuth] Upserting user...");
       await db.upsertUser({
         openId: userInfo.openId,

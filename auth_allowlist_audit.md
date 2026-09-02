@@ -1,0 +1,3 @@
+# Auditoria da política de acesso
+
+A sessão é filtrada no callback OAuth antes de `upsertUser` e `createSessionToken`: o e-mail precisa existir em `allowed_emails`. Sessões antigas fora da lista são descartadas pelo contexto e recebem `accessRestricted: true`. O router expõe `auth.me` apenas como identidade pública (null para sessão rejeitada) e `auth.accessStatus` para informar o estado restrito sem dados operacionais. As rotas de painel usam `allowlistedProcedure`; login, status de acesso e logout continuam públicos. O proprietário também precisa estar na allowlist, enquanto o perfil admin continua dependente do registro autorizado.

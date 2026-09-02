@@ -3,7 +3,12 @@ import { COOKIE_NAME } from "@shared/const";
 import { parse as parseCookie } from "cookie";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import {
+  allowlistedProcedure,
+  publicProcedure,
+  protectedProcedure,
+  router,
+} from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { appendAtendimento, getSheetCsv, updateMigracao } from "./googleSheets";
 import {
@@ -94,7 +99,7 @@ export const appRouter = router({
       }),
   }),
   sheets: router({
-    csv: publicProcedure
+    csv: allowlistedProcedure
       .input(
         z.object({
           source: z.enum(["primary", "secondary"]),
@@ -115,7 +120,7 @@ export const appRouter = router({
       }),
   }),
   migracao: router({
-    atualizar: publicProcedure
+    atualizar: allowlistedProcedure
       .input(
         z.object({
           empresa: z.string(),
@@ -148,7 +153,7 @@ export const appRouter = router({
       }),
   }),
   atendimento: router({
-    gravar: publicProcedure
+    gravar: allowlistedProcedure
       .input(
         z.object({
           cliente: z.string(),
@@ -168,7 +173,7 @@ export const appRouter = router({
           });
         }
         const entry = await getEmailEntry(ctx.user.email);
-        if (entry && entry.canLaunch !== 1) {
+        if (!entry || entry.canLaunch !== 1) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message:
@@ -217,19 +222,18 @@ export const appRouter = router({
     checkPermission: publicProcedure.query(async ({ ctx }) => {
       if (!ctx.user || !ctx.user.email)
         return { allowed: false, isAdmin: false, canLaunch: false };
-      if (isProjectOwner(ctx.user))
-        return { allowed: true, isAdmin: true, canLaunch: true };
-      const [allowed, admin, entry] = await Promise.all([
-        isEmailAllowed(ctx.user.email),
-        isEmailAdmin(ctx.user.email),
-        getEmailEntry(ctx.user.email),
-      ]);
-      const canLaunch = entry ? entry.canLaunch === 1 : true;
-      return { allowed: allowed || !entry, isAdmin: admin, canLaunch };
+      const entry = await getEmailEntry(ctx.user.email);
+      if (!entry) return { allowed: false, isAdmin: false, canLaunch: false };
+      const owner = isProjectOwner(ctx.user);
+      return {
+        allowed: true,
+        isAdmin: owner || entry.isAdmin === 1,
+        canLaunch: owner || entry.canLaunch === 1,
+      };
     }),
   }),
   config: router({
-    listEmails: publicProcedure.query(async ({ ctx }) => {
+    listEmails: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user || !ctx.user.email)
         throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
@@ -237,7 +241,7 @@ export const appRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado." });
       return getAllowedEmails();
     }),
-    addEmail: publicProcedure
+    addEmail: allowlistedProcedure
       .input(
         z.object({
           email: z.string().email(),
@@ -263,7 +267,7 @@ export const appRouter = router({
         });
         return { success: true };
       }),
-    updateEmail: publicProcedure
+    updateEmail: allowlistedProcedure
       .input(
         z.object({
           id: z.number(),
@@ -305,7 +309,7 @@ export const appRouter = router({
         );
         return { success: true };
       }),
-    deleteEmail: publicProcedure
+    deleteEmail: allowlistedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email)
@@ -337,27 +341,28 @@ export const appRouter = router({
       const entry = await getEmailEntry(ctx.user.email);
       if (!entry)
         return {
-          allowedPages: null,
+          allowedPages: [],
           isAdmin: false,
-          isAllowed: true,
-          canMoveAppKanban: true,
+          isAllowed: false,
+          canMoveAppKanban: false,
           onlyAppKanban: false,
         };
+      const owner = isProjectOwner(ctx.user);
       const allowedPages = entry.allowedPages
         ? (JSON.parse(entry.allowedPages) as string[])
         : null;
       return {
         allowedPages,
-        isAdmin: entry.isAdmin === 1,
+        isAdmin: owner || entry.isAdmin === 1,
         isAllowed: true,
-        canMoveAppKanban: entry.canMoveAppKanban === 1,
-        onlyAppKanban: entry.onlyAppKanban === 1,
+        canMoveAppKanban: owner || entry.canMoveAppKanban === 1,
+        onlyAppKanban: owner ? false : entry.onlyAppKanban === 1,
       };
     }),
   }),
   checklists: router({
     // Listar checklists visíveis para o usuário
-    list: publicProcedure.query(async ({ ctx }) => {
+    list: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user || !ctx.user.email)
         throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
@@ -385,7 +390,7 @@ export const appRouter = router({
       );
       return result;
     }),
-    create: publicProcedure
+    create: allowlistedProcedure
       .input(
         z.object({
           title: z.string().min(1).max(255),
@@ -421,7 +426,7 @@ export const appRouter = router({
         }
         return { success: true, id: checklistId };
       }),
-    update: publicProcedure
+    update: allowlistedProcedure
       .input(
         z.object({
           id: z.number(),
@@ -453,7 +458,7 @@ export const appRouter = router({
         );
         return { success: true };
       }),
-    delete: publicProcedure
+    delete: allowlistedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email)
@@ -465,7 +470,7 @@ export const appRouter = router({
         await deleteChecklist(input.id);
         return { success: true };
       }),
-    addItem: publicProcedure
+    addItem: allowlistedProcedure
       .input(
         z.object({
           checklistId: z.number(),
@@ -487,7 +492,7 @@ export const appRouter = router({
         });
         return { success: true, id };
       }),
-    updateItem: publicProcedure
+    updateItem: allowlistedProcedure
       .input(
         z.object({
           id: z.number(),
@@ -502,7 +507,7 @@ export const appRouter = router({
         await updateChecklistItem(id, data);
         return { success: true };
       }),
-    deleteItem: publicProcedure
+    deleteItem: allowlistedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email)
@@ -510,7 +515,7 @@ export const appRouter = router({
         await deleteChecklistItem(input.id);
         return { success: true };
       }),
-    toggleItem: publicProcedure
+    toggleItem: allowlistedProcedure
       .input(z.object({ itemId: z.number(), completed: z.boolean() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user || !ctx.user.email)
@@ -529,7 +534,7 @@ export const appRouter = router({
   }),
   // ---- Tracking procedures ----
   tracking: router({
-    startSession: publicProcedure
+    startSession: allowlistedProcedure
       .input(z.object({ userAgent: z.string().optional() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user?.email) return { sessionId: null };
@@ -547,21 +552,21 @@ export const appRouter = router({
         });
         return { sessionId };
       }),
-    endSession: publicProcedure
+    endSession: allowlistedProcedure
       .input(z.object({ sessionId: z.number() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user?.email) return { success: false };
         await closeSession(input.sessionId, new Date());
         return { success: true };
       }),
-    heartbeat: publicProcedure
+    heartbeat: allowlistedProcedure
       .input(z.object({ sessionId: z.number() }))
       .mutation(async ({ input, ctx }) => {
         if (!ctx.user?.email) return { success: false };
         await heartbeatSession(input.sessionId);
         return { success: true };
       }),
-    trackPage: publicProcedure
+    trackPage: allowlistedProcedure
       .input(
         z.object({
           page: z.string(),
@@ -577,7 +582,7 @@ export const appRouter = router({
         });
         return { success: true };
       }),
-    trackAction: publicProcedure
+    trackAction: allowlistedProcedure
       .input(
         z.object({
           actionType: z.string(),
@@ -600,31 +605,31 @@ export const appRouter = router({
   }),
   // ---- Statistics procedures (admin only) ----
   stats: router({
-    overview: publicProcedure.query(async ({ ctx }) => {
+    overview: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user?.email) throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
       if (!admin) throw new TRPCError({ code: "FORBIDDEN" });
       return getStatsOverview();
     }),
-    userList: publicProcedure.query(async ({ ctx }) => {
+    userList: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user?.email) throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
       if (!admin) throw new TRPCError({ code: "FORBIDDEN" });
       return getUserStatsList();
     }),
-    recentSessions: publicProcedure.query(async ({ ctx }) => {
+    recentSessions: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user?.email) throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
       if (!admin) throw new TRPCError({ code: "FORBIDDEN" });
       return getRecentSessions(50);
     }),
-    recentActions: publicProcedure.query(async ({ ctx }) => {
+    recentActions: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user?.email) throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
       if (!admin) throw new TRPCError({ code: "FORBIDDEN" });
       return getRecentActions(100);
     }),
-    topPages: publicProcedure.query(async ({ ctx }) => {
+    topPages: allowlistedProcedure.query(async ({ ctx }) => {
       if (!ctx.user?.email) throw new TRPCError({ code: "UNAUTHORIZED" });
       const admin = await isEmailAdmin(ctx.user.email);
       if (!admin) throw new TRPCError({ code: "FORBIDDEN" });
@@ -875,10 +880,10 @@ export const appRouter = router({
       }),
   }),
   kpis: router({
-    getPreviousWeeklySnapshot: publicProcedure.query(async () =>
+    getPreviousWeeklySnapshot: allowlistedProcedure.query(async () =>
       getPreviousKpiWeeklyValues()
     ),
-    getOnboardingKpiMetrics: publicProcedure.query(async () => {
+    getOnboardingKpiMetrics: allowlistedProcedure.query(async () => {
       try {
         return await getOnboardingKpiMetrics();
       } catch (error: any) {
@@ -915,7 +920,7 @@ export const appRouter = router({
         };
       }
     }),
-    getMigrationKpiMetrics: publicProcedure.query(async () => {
+    getMigrationKpiMetrics: allowlistedProcedure.query(async () => {
       try {
         return await getMigrationKpiMetrics();
       } catch (error: any) {
@@ -952,7 +957,7 @@ export const appRouter = router({
         };
       }
     }),
-    getOnboardingKpis: publicProcedure.query(async () => {
+    getOnboardingKpis: allowlistedProcedure.query(async () => {
       try {
         // Os dois indicadores já usam a regra real das abas Marcos e KPI’s.
         const onboardingMetrics = await getOnboardingKpiMetrics();
@@ -988,6 +993,10 @@ export const appRouter = router({
   }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    accessStatus: publicProcedure.query(opts => ({
+      user: opts.ctx.user,
+      accessRestricted: opts.ctx.accessRestricted,
+    })),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -1131,7 +1140,7 @@ export const appRouter = router({
   }),
   // === Aviso de Perdas de URs (primeira entrada do dia) ===
   dailyLosses: router({
-    getAlert: publicProcedure.query(async () => {
+    getAlert: allowlistedProcedure.query(async () => {
       // Cache server-side de 5 minutos
       const CACHE_KEY = "__dailyLossesCache";
       const CACHE_DURATION = 5 * 60 * 1000;
@@ -1297,7 +1306,7 @@ export const appRouter = router({
     }),
   }),
   analystScores: router({
-    list: publicProcedure
+    list: allowlistedProcedure
       .input(z.object({ yearMonth: z.string() }))
       .query(async ({ input }) => {
         const db = await getDb();

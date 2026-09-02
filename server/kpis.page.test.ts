@@ -26,7 +26,9 @@ describe("Página de KPI’s de Onboarding", () => {
       "onboardingMetrics?.dentroDoPrazo.percentage ?? 0"
     );
     expect(pageSource).toContain("onboardingMetrics?.tempoMedio.value ?? 0");
-    expect(routerSource).toContain("getOnboardingKpiMetrics: publicProcedure");
+    expect(routerSource).toContain(
+      "getOnboardingKpiMetrics: allowlistedProcedure"
+    );
   });
 
   it("mantém as listas reais nos dois modais de Onboarding", () => {
@@ -73,7 +75,9 @@ describe("Página de KPI’s de Onboarding", () => {
     expect(pageSource).toContain("Empresas com status Paralisado");
     expect(pageSource).toContain("migrationMetrics?.tempoMedio.value ?? 0");
     expect(pageSource).toContain("migrationMetrics?.tempoMedio.details ?? []");
-    expect(routerSource).toContain("getMigrationKpiMetrics: publicProcedure");
+    expect(routerSource).toContain(
+      "getMigrationKpiMetrics: allowlistedProcedure"
+    );
   });
 
   it("não usa mais a procedure manual como origem dos dois valores reais", () => {

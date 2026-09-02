@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcContext } from "./_core/context";
 import { ENV } from "./_core/env";
 import { appRouter } from "./routers";
@@ -47,9 +47,36 @@ function createAuthenticatedContext(): TrpcContext {
   };
 }
 
+function allowEntry(email: string, isAdmin = false) {
+  return {
+    id: 1,
+    email,
+    label: email,
+    isAdmin: isAdmin ? 1 : 0,
+    canLaunch: 1,
+    canMoveAppKanban: 1,
+    onlyAppKanban: 0,
+    allowedPages: null,
+    createdAt: new Date(),
+  } as never;
+}
+
 describe("project owner permissions", () => {
-  it("returns unrestricted page access for the project owner", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(db.getEmailEntry).mockResolvedValue(null);
+    vi.mocked(db.isEmailAllowed).mockResolvedValue(false);
+    vi.mocked(db.isEmailAdmin).mockResolvedValue(false);
+  });
+
+  it("returns unrestricted page access for an allowlisted project owner", async () => {
     expect(ENV.ownerOpenId).not.toBe("");
+    vi.mocked(db.getEmailEntry).mockResolvedValue(
+      allowEntry("owner@example.com", true)
+    );
+    vi.mocked(db.isEmailAllowed).mockResolvedValue(true);
+    vi.mocked(db.isEmailAdmin).mockResolvedValue(true);
+
     const caller = appRouter.createCaller(createOwnerContext());
 
     await expect(caller.config.myPermissions()).resolves.toEqual({
@@ -61,7 +88,13 @@ describe("project owner permissions", () => {
     });
   });
 
-  it("allows the project owner to launch and administer operations", async () => {
+  it("allows an allowlisted project owner to launch and administer operations", async () => {
+    vi.mocked(db.getEmailEntry).mockResolvedValue(
+      allowEntry("owner@example.com", true)
+    );
+    vi.mocked(db.isEmailAllowed).mockResolvedValue(true);
+    vi.mocked(db.isEmailAdmin).mockResolvedValue(true);
+
     const caller = appRouter.createCaller(createOwnerContext());
 
     await expect(caller.atendimento.checkPermission()).resolves.toEqual({
@@ -71,7 +104,29 @@ describe("project owner permissions", () => {
     });
   });
 
-  it("grants all operational pages to any authenticated user without making them admin", async () => {
+  it("denies an authenticated user whose email is not allowlisted", async () => {
+    const caller = appRouter.createCaller(createAuthenticatedContext());
+
+    await expect(caller.config.myPermissions()).resolves.toEqual({
+      allowedPages: [],
+      isAdmin: false,
+      isAllowed: false,
+      canMoveAppKanban: false,
+      onlyAppKanban: false,
+    });
+    await expect(caller.atendimento.checkPermission()).resolves.toEqual({
+      allowed: false,
+      isAdmin: false,
+      canLaunch: false,
+    });
+  });
+
+  it("preserves configured operational permissions for an allowlisted user", async () => {
+    vi.mocked(db.getEmailEntry).mockResolvedValue(
+      allowEntry("regular@example.com")
+    );
+    vi.mocked(db.isEmailAllowed).mockResolvedValue(true);
+
     const caller = appRouter.createCaller(createAuthenticatedContext());
 
     await expect(caller.config.myPermissions()).resolves.toEqual({
@@ -85,29 +140,6 @@ describe("project owner permissions", () => {
       allowed: true,
       isAdmin: false,
       canLaunch: true,
-    });
-  });
-
-  it("keeps registered users on the same unrestricted operational policy", async () => {
-    vi.mocked(db.getEmailEntry).mockResolvedValue({
-      id: 1,
-      email: "regular@example.com",
-      label: "Regular User",
-      isAdmin: 0,
-      canLaunch: 1,
-      canMoveAppKanban: 1,
-      onlyAppKanban: 0,
-      allowedPages: null,
-      createdAt: new Date(),
-    } as never);
-
-    const caller = appRouter.createCaller(createAuthenticatedContext());
-    await expect(caller.config.myPermissions()).resolves.toEqual({
-      allowedPages: null,
-      isAdmin: false,
-      isAllowed: true,
-      canMoveAppKanban: true,
-      onlyAppKanban: false,
     });
   });
 });

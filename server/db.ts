@@ -58,35 +58,14 @@ async function ensureUserAccess(user: {
   const db = await getDb();
   if (!db) return;
 
+  // A lista de permissões é uma allowlist explícita. O login não pode
+  // criar uma entrada nova nem ampliar as permissões de um usuário existente.
+  // Apenas atualizamos o rótulo para refletir o nome mais recente do OAuth.
   const email = user.email.toLowerCase();
-  const isOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
-  const permissions: InsertAllowedEmail = {
-    email,
-    label: user.name ?? email,
-    isAdmin: isOwner ? 1 : 0,
-    canLaunch: 1,
-    allowedPages: null,
-    canMoveAppKanban: 1,
-    onlyAppKanban: 0,
-  };
-
-  const updateSet: Partial<InsertAllowedEmail> = {
-    label: permissions.label,
-    canLaunch: 1,
-    allowedPages: null,
-    canMoveAppKanban: 1,
-    onlyAppKanban: 0,
-  };
-  if (isOwner) updateSet.isAdmin = 1;
-
   await db
-    .insert(allowedEmails)
-    .values(permissions)
-    .onDuplicateKeyUpdate({
-      set: {
-        ...updateSet,
-      },
-    });
+    .update(allowedEmails)
+    .set({ label: user.name ?? email })
+    .where(eq(allowedEmails.email, email));
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {

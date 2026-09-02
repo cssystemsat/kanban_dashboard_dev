@@ -136,7 +136,7 @@ describe("migracao.atualizar", () => {
         dataInicio: "01/01/2026",
         levantamentoDados: "Test",
       })
-    ).rejects.toThrow("autenticado");
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
   it("should update migration with all fields", async () => {

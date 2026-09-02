@@ -160,4 +160,11 @@
 - [x] Corrigir o recorte horizontal que oculta o início de Onboarding — Semana Retrasada.
 - [x] Preservar os separadores entre categorias sem sobreposição com o conteúdo.
 - [x] Validar desktop/mobile, executar testes e salvar checkpoint corretivo.
-- [ ] Salvar checkpoint corretivo após a integração da margem dinâmica do menu lateral e confirmar Onboarding — Semana Retrasada totalmente visível.
+- [x] Salvar checkpoint corretivo após a integração da margem dinâmica do menu lateral e confirmar Onboarding — Semana Retrasada totalmente visível.
+- [x] Exigir que o e-mail autenticado exista na lista de permissões antes de conceder sessão operacional.
+- [x] Impedir que usuários fora da lista recebam perfil admin ou permissões automáticas.
+- [x] Exibir a mensagem Acesso restrito para e-mails não autorizados e permitir sair/tentar outra conta.
+- [x] Preservar o acesso dos usuários autorizados e dos administradores já cadastrados.
+- [x] Criar testes para login autorizado, login restrito e proteção das procedures.
+- [x] Validar o fluxo no preview, executar TypeScript, build e testes e salvar checkpoint.
+- [x] Salvar checkpoint específico após validar a política de allowlist, a tela Acesso restrito e as rotas operacionais protegidas.
