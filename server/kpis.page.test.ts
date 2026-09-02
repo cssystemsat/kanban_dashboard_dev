@@ -13,6 +13,15 @@ const routerSource = readFileSync(
 );
 
 describe("Página de KPI’s de Onboarding", () => {
+  it("preserva o contrato de abertura e fechamento do modal de KPI", () => {
+    expect(pageSource).toContain("onClick={() => setSelectedKPI(kpiPassada)}");
+    expect(pageSource).toContain("{selectedKPI && (");
+    expect(pageSource).toContain("{selectedKPI.label}");
+    expect(pageSource).toContain("{selectedKPI.details.map");
+    expect(pageSource).toContain("onClick={() => setSelectedKPI(null)}");
+    expect(pageSource).toContain("Clientes na aba Marcos");
+  });
+
   it("consulta a fonte real para clientes ativos e concluídos", () => {
     expect(pageSource).toContain(
       "trpc.kpis.getOnboardingKpiMetrics.useQuery()"

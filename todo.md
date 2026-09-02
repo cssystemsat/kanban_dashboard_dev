@@ -148,9 +148,9 @@
 - [x] Remover temporariamente as cores de fundo dos painéis e manter uma base neutra.
 - [x] Validar desktop, responsividade e preservação dos modais; executar testes e salvar checkpoint visual.
 - [x] Salvar um checkpoint específico da revisão visual da aba KPI’s após os ajustes de escala e neutralização dos painéis.
-- [ ] Validar explicitamente um modal da aba KPI’s após o ajuste visual para confirmar que a interação e o conteúdo permanecem intactos.
-- [ ] Abrir explicitamente o card Clientes ativos após o ajuste visual e confirmar que o modal mantém conteúdo e lista.
-- [ ] Salvar checkpoint específico após a validação explícita do modal na versão ampliada e neutra.
+- [x] Validar explicitamente um modal da aba KPI’s após o ajuste visual para confirmar que a interação e o conteúdo permanecem intactos.
+- [x] Abrir explicitamente o card Clientes ativos após o ajuste visual e confirmar que o modal mantém conteúdo e lista.
+- [x] Salvar checkpoint específico após a validação explícita do modal na versão ampliada e neutra.
 - [x] Salvar o checkpoint visual final antes de orientar a publicação pela interface.
 - [x] Orientar o usuário a clicar em Publish no cartão de checkpoint, sem exigir login no domínio público.
 - [x] Adicionar divisões visuais em linha entre Onboarding, Ongoing e Migração.
@@ -186,3 +186,4 @@
 - [x] Remover o título “Dashboard Ongoing” e o subtítulo “Cliente em acompanhamento contínuo” da aba Ongoing.
 - [x] Subir e compactar o bloco de filtros para aproveitar o espaço vertical.
 - [x] Validar que filtros, cards e layout responsivo continuam funcionando e salvar checkpoint visual.
+- [x] Validar sem login a integridade do modal de Clientes ativos por contrato automatizado, preservando abertura, título, lista, rolagem e fechamento.
