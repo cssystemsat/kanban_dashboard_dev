@@ -244,7 +244,10 @@ export const appRouter = router({
     addEmail: allowlistedProcedure
       .input(
         z.object({
-          email: z.string().email(),
+          email: z
+            .string()
+            .trim()
+            .email("Informe um e-mail válido, como usuario@gmail.com."),
           label: z.string().optional(),
           isAdmin: z.boolean().default(false),
           canLaunch: z.boolean().default(true),
@@ -271,7 +274,11 @@ export const appRouter = router({
       .input(
         z.object({
           id: z.number(),
-          email: z.string().email().optional(),
+          email: z
+            .string()
+            .trim()
+            .email("Informe um e-mail válido, como usuario@gmail.com.")
+            .optional(),
           label: z.string().optional(),
           isAdmin: z.boolean().optional(),
           canLaunch: z.boolean().optional(),

@@ -167,8 +167,13 @@
 - [x] Preservar o acesso dos usuários autorizados e dos administradores já cadastrados.
 - [x] Criar testes para login autorizado, login restrito e proteção das procedures.
 - [x] Validar o fluxo no preview, executar TypeScript, build e testes e salvar checkpoint.
-- [ ] Salvar checkpoint específico após validar a política de allowlist, a tela Acesso restrito e as rotas operacionais protegidas.
+- [x] Salvar checkpoint específico após validar a política de allowlist, a tela Acesso restrito e as rotas operacionais protegidas.
 - [x] Restaurar a procedure `auth.me` no router tRPC para eliminar o erro No procedure found.
 - [x] Preservar `auth.accessStatus` e o bloqueio de usuários fora da allowlist.
 - [x] Criar teste de regressão para `auth.me` e o carregamento inicial do App.
 - [x] Validar preview, TypeScript, build e testes e salvar checkpoint corretivo.
+- [x] Auditar por que o formulário de e-mails autorizados rejeita o valor informado como invalid_format.
+- [x] Normalizar espaços e caixa do e-mail antes da validação e do salvamento, sem aceitar formatos inválidos.
+- [x] Substituir o erro bruto do Zod por uma mensagem clara no formulário.
+- [x] Criar testes para e-mail válido com espaços/caixa variada e e-mail inválido.
+- [x] Validar o cadastro no preview, executar TypeScript, build e testes e salvar checkpoint corretivo.

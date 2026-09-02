@@ -22,6 +22,10 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  getEmailValidationMessage,
+  normalizeEmailInput,
+} from "@shared/emailValidation";
 
 // Abas disponíveis para controle de acesso
 const ALL_PAGES = [
@@ -72,7 +76,7 @@ export default function Configuracoes() {
       setNewOnlyAppKanban(false);
       setNewAllowedPages(null);
     },
-    onError: e => toast("Erro: " + e.message),
+    onError: e => toast(getEmailValidationMessage(e)),
   });
 
   const updateMutation = trpc.config.updateEmail.useMutation({
@@ -82,7 +86,7 @@ export default function Configuracoes() {
       setEditOpen(false);
       setEditEntry(null);
     },
-    onError: e => toast("Erro: " + e.message),
+    onError: e => toast(getEmailValidationMessage(e)),
   });
 
   const deleteMutation = trpc.config.deleteEmail.useMutation({
@@ -90,7 +94,7 @@ export default function Configuracoes() {
       utils.config.listEmails.invalidate();
       toast("E-mail removido.");
     },
-    onError: e => toast("Erro: " + e.message),
+    onError: e => toast(getEmailValidationMessage(e)),
   });
 
   const [addOpen, setAddOpen] = useState(false);
@@ -479,8 +483,8 @@ export default function Configuracoes() {
             <Button
               onClick={() =>
                 addMutation.mutate({
-                  email: newEmail,
-                  label: newLabel || undefined,
+                  email: normalizeEmailInput(newEmail),
+                  label: newLabel.trim() || undefined,
                   isAdmin: newIsAdmin,
                   canLaunch: newCanLaunch,
                   canMoveAppKanban: newCanMoveAppKanban,
@@ -638,8 +642,8 @@ export default function Configuracoes() {
                 editEntry &&
                 updateMutation.mutate({
                   id: editEntry.id,
-                  email: editEmail,
-                  label: editLabel || undefined,
+                  email: normalizeEmailInput(editEmail),
+                  label: editLabel.trim() || undefined,
                   isAdmin: editIsAdmin,
                   canLaunch: editCanLaunch,
                   canMoveAppKanban: editCanMoveAppKanban,
