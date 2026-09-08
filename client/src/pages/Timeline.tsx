@@ -81,6 +81,7 @@ export default function Timeline({
 }) {
   const { data: clients, loading, error, fetchData } = useKanbanData();
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [openEventKey, setOpenEventKey] = useState<string | null>(null);
 
   useEffect(() => {
     void fetchData();
@@ -215,51 +216,78 @@ export default function Timeline({
                         {date}
                       </h3>
                       <div className="mt-2 space-y-2 border-l border-[#E5E7EB] pl-4">
-                        {events.map((event, index) => (
-                          <div
-                            key={`${event.title}-${index}`}
-                            tabIndex={0}
-                            className="group relative rounded-lg border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] outline-none transition hover:border-[#B8C7D8] focus:border-[#001F3F] focus:ring-2 focus:ring-[#001F3F]/10"
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <span>{event.title}</span>
-                              <Info className="h-4 w-4 shrink-0 text-[#6B7280]" />
+                        {events.map((event, index) => {
+                          const eventKey = `${date}-${event.title}-${index}`;
+                          const isOpen = openEventKey === eventKey;
+                          const detailsId = `friccao-details-${index}-${date.replace(/\\D/g, "")}`;
+                          return (
+                            <div
+                              key={eventKey}
+                              role="button"
+                              tabIndex={0}
+                              aria-expanded={isOpen}
+                              aria-controls={detailsId}
+                              onClick={() =>
+                                setOpenEventKey(current =>
+                                  current === eventKey ? null : eventKey
+                                )
+                              }
+                              onKeyDown={keyboardEvent => {
+                                if (
+                                  keyboardEvent.key === "Enter" ||
+                                  keyboardEvent.key === " "
+                                ) {
+                                  keyboardEvent.preventDefault();
+                                  setOpenEventKey(current =>
+                                    current === eventKey ? null : eventKey
+                                  );
+                                }
+                              }}
+                              className="relative cursor-pointer rounded-lg border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] outline-none transition hover:border-[#B8C7D8] focus:border-[#001F3F] focus:ring-2 focus:ring-[#001F3F]/10"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <span>{event.title}</span>
+                                <Info className="h-4 w-4 shrink-0 text-[#6B7280]" />
+                              </div>
+                              <div
+                                id={detailsId}
+                                className={`${isOpen ? "block" : "hidden"} mt-3 rounded-lg border border-[#CBD5E1] bg-[#001F3F] p-4 text-left text-xs text-white shadow-inner`}
+                              >
+                                <p className="mb-2 text-sm font-semibold text-white">
+                                  Detalhes da Fricção
+                                </p>
+                                <dl className="space-y-1.5 leading-5">
+                                  <div>
+                                    <dt className="inline font-semibold text-[#B9D7F5]">
+                                      Setor:{" "}
+                                    </dt>
+                                    <dd className="inline">{event.sector}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="inline font-semibold text-[#B9D7F5]">
+                                      Tag:{" "}
+                                    </dt>
+                                    <dd className="inline">{event.tag}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="inline font-semibold text-[#B9D7F5]">
+                                      Descrição:{" "}
+                                    </dt>
+                                    <dd className="inline whitespace-pre-wrap">
+                                      {event.description}
+                                    </dd>
+                                  </div>
+                                  <div>
+                                    <dt className="inline font-semibold text-[#B9D7F5]">
+                                      CSM:{" "}
+                                    </dt>
+                                    <dd className="inline">{event.csm}</dd>
+                                  </div>
+                                </dl>
+                              </div>
                             </div>
-                            <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-full min-w-[280px] rounded-xl border border-[#CBD5E1] bg-[#001F3F] p-4 text-left text-xs text-white shadow-xl group-hover:block group-focus:block">
-                              <p className="mb-2 text-sm font-semibold text-white">
-                                Detalhes da Fricção
-                              </p>
-                              <dl className="space-y-1.5 leading-5">
-                                <div>
-                                  <dt className="inline font-semibold text-[#B9D7F5]">
-                                    Setor:{" "}
-                                  </dt>
-                                  <dd className="inline">{event.sector}</dd>
-                                </div>
-                                <div>
-                                  <dt className="inline font-semibold text-[#B9D7F5]">
-                                    Tag:{" "}
-                                  </dt>
-                                  <dd className="inline">{event.tag}</dd>
-                                </div>
-                                <div>
-                                  <dt className="inline font-semibold text-[#B9D7F5]">
-                                    Descrição:{" "}
-                                  </dt>
-                                  <dd className="inline whitespace-pre-wrap">
-                                    {event.description}
-                                  </dd>
-                                </div>
-                                <div>
-                                  <dt className="inline font-semibold text-[#B9D7F5]">
-                                    CSM:{" "}
-                                  </dt>
-                                  <dd className="inline">{event.csm}</dd>
-                                </div>
-                              </dl>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

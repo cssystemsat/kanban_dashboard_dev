@@ -51,6 +51,12 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("event.description");
     expect(timelineSource).toContain("event.csm");
     expect(timelineSource).toContain("tabIndex={0}");
-    expect(timelineSource).toContain("group-hover:block group-focus:block");
+    expect(timelineSource).toContain("openEventKey");
+    expect(timelineSource).toContain("aria-expanded={isOpen}");
+    expect(timelineSource).toContain("onClick={() =>");
+    expect(timelineSource).toContain(
+      'className={`${isOpen ? "block" : "hidden"}'
+    );
+    expect(timelineSource).not.toContain("group-hover:block group-focus:block");
   });
 });

@@ -201,3 +201,5 @@
 - [x] Validar a seleção do cliente e a leitura dos acontecimentos após a correção, com testes, build e checkpoint corretivo.
 - [x] Mostrar ao passar o mouse ou focar cada acontecimento da Timeline os detalhes de Fricção: setor, tag, descrição e CSM.
 - [x] Validar tooltip acessível, responsividade, TypeScript, testes, build e salvar checkpoint da melhoria.
+- [x] Alterar os detalhes dos acontecimentos da Timeline para abrir e fechar somente por clique, sem hover.
+- [x] Validar clique, fechamento, teclado, TypeScript, testes, build e salvar checkpoint da alteração.
