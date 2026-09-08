@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Loader2, UserRound } from "lucide-react";
+import { CalendarDays, Info, Loader2, UserRound } from "lucide-react";
 import { useKanbanData } from "@/hooks/useKanbanData";
 import { trpc } from "@/lib/trpc";
 
@@ -8,6 +8,10 @@ const FRICCOES_GID = 594161358;
 type FriccaoEvent = {
   date: string;
   title: string;
+  sector: string;
+  tag: string;
+  description: string;
+  csm: string;
 };
 
 function parseCsvLine(line: string): string[] {
@@ -50,7 +54,14 @@ function parseFriccaoEvents(csv: string, clientName: string): FriccaoEvent[] {
         central && central === normalizedClient && row[1] && row[2]
       );
     })
-    .map(row => ({ date: row[1].trim(), title: row[2].trim() }));
+    .map(row => ({
+      date: row[1].trim(),
+      title: row[2].trim(),
+      sector: row[3]?.trim() || "Não informado",
+      tag: row[4]?.trim() || "Não informado",
+      description: row[5]?.trim() || "Não informado",
+      csm: row[6]?.trim() || "Não informado",
+    }));
 }
 
 function dateSortValue(date: string): number {
@@ -207,9 +218,46 @@ export default function Timeline({
                         {events.map((event, index) => (
                           <div
                             key={`${event.title}-${index}`}
-                            className="rounded-lg border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151]"
+                            tabIndex={0}
+                            className="group relative rounded-lg border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] outline-none transition hover:border-[#B8C7D8] focus:border-[#001F3F] focus:ring-2 focus:ring-[#001F3F]/10"
                           >
-                            {event.title}
+                            <div className="flex items-center justify-between gap-3">
+                              <span>{event.title}</span>
+                              <Info className="h-4 w-4 shrink-0 text-[#6B7280]" />
+                            </div>
+                            <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-full min-w-[280px] rounded-xl border border-[#CBD5E1] bg-[#001F3F] p-4 text-left text-xs text-white shadow-xl group-hover:block group-focus:block">
+                              <p className="mb-2 text-sm font-semibold text-white">
+                                Detalhes da Fricção
+                              </p>
+                              <dl className="space-y-1.5 leading-5">
+                                <div>
+                                  <dt className="inline font-semibold text-[#B9D7F5]">
+                                    Setor:{" "}
+                                  </dt>
+                                  <dd className="inline">{event.sector}</dd>
+                                </div>
+                                <div>
+                                  <dt className="inline font-semibold text-[#B9D7F5]">
+                                    Tag:{" "}
+                                  </dt>
+                                  <dd className="inline">{event.tag}</dd>
+                                </div>
+                                <div>
+                                  <dt className="inline font-semibold text-[#B9D7F5]">
+                                    Descrição:{" "}
+                                  </dt>
+                                  <dd className="inline whitespace-pre-wrap">
+                                    {event.description}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="inline font-semibold text-[#B9D7F5]">
+                                    CSM:{" "}
+                                  </dt>
+                                  <dd className="inline">{event.csm}</dd>
+                                </div>
+                              </dl>
+                            </div>
                           </div>
                         ))}
                       </div>

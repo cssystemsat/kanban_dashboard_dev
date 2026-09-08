@@ -199,3 +199,5 @@
 - [x] Validar carregamento, estados vazios, atualização ao trocar cliente, TypeScript, testes, build e salvar checkpoint da Timeline com dados.
 - [x] Corrigir a lista da Timeline que aparece vazia, garantindo que carregue os clientes da aba Marcos.
 - [x] Validar a seleção do cliente e a leitura dos acontecimentos após a correção, com testes, build e checkpoint corretivo.
+- [x] Mostrar ao passar o mouse ou focar cada acontecimento da Timeline os detalhes de Fricção: setor, tag, descrição e CSM.
+- [x] Validar tooltip acessível, responsividade, TypeScript, testes, build e salvar checkpoint da melhoria.

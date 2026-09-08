@@ -46,5 +46,11 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("parseFriccaoEvents");
     expect(timelineSource).toContain("eventsByDay");
     expect(timelineSource).toContain("event.title");
+    expect(timelineSource).toContain("event.sector");
+    expect(timelineSource).toContain("event.tag");
+    expect(timelineSource).toContain("event.description");
+    expect(timelineSource).toContain("event.csm");
+    expect(timelineSource).toContain("tabIndex={0}");
+    expect(timelineSource).toContain("group-hover:block group-focus:block");
   });
 });
