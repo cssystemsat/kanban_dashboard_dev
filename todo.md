@@ -191,3 +191,6 @@
 - [x] Criar modal de Fricção semelhante ao registro de atendimento com Título, Setor, Tag e Descrição.
 - [x] Gravar Fricções na aba indicada do Google Sheets nas colunas A:G, incluindo nome da central, data, CSM autenticado e demais campos.
 - [x] Validar permissões, mensagens de sucesso/erro, testes, TypeScript, build e salvar checkpoint da integração de Fricções.
+- [x] Adicionar a aba Timeline ao menu lateral com ícone de pessoa.
+- [x] Criar a página Timeline com uma lista suspensa alimentada pelos clientes da aba Marcos.
+- [x] Validar a navegação, seleção dos clientes, TypeScript, testes, build e salvar checkpoint da primeira versão da Timeline.

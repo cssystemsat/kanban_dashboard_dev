@@ -16,6 +16,7 @@ import AtendimentosPage from "./pages/AtendimentosPage";
 import AppPersonalizado from "./pages/AppPersonalizado";
 import KPIs from "./pages/KPIs";
 import Performance from "./pages/Performance";
+import Timeline from "./pages/Timeline";
 import ChecklistPanel from "./components/ChecklistPanel";
 import { DailyLossesAlert } from "./components/DailyLossesAlert";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -28,6 +29,7 @@ const VALID_PAGES = new Set([
   "performance",
   "dashboard",
   "marcos",
+  "timeline",
   "ongoing",
   "churns",
   "configuracoes",
@@ -216,6 +218,8 @@ function AppInner() {
         return <Dashboard />;
       case "marcos":
         return <Home />;
+      case "timeline":
+        return <Timeline sidebarExpanded={isSideMenuExpanded} />;
       case "ongoing":
         return <Ongoing />;
       case "churns":

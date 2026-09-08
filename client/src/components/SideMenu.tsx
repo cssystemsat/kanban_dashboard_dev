@@ -15,6 +15,7 @@ import {
   Phone,
   PieChart,
   Smartphone,
+  UserRound,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
@@ -39,6 +40,7 @@ const PROTECTED_ITEMS = [
   { id: "dashboard", label: "Evolução de UR's", icon: BarChart2 },
   { id: "kpis", label: "KPI's de Gestão CS", icon: TrendingUp },
   { id: "marcos", label: "Marcos", icon: CheckSquare },
+  { id: "timeline", label: "Timeline", icon: UserRound },
   { id: "ongoing", label: "Ongoing", icon: Users },
   { id: "churns", label: "CHURNs", icon: TrendingDown },
   {
