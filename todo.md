@@ -203,3 +203,6 @@
 - [x] Validar tooltip acessível, responsividade, TypeScript, testes, build e salvar checkpoint da melhoria.
 - [x] Alterar os detalhes dos acontecimentos da Timeline para abrir e fechar somente por clique, sem hover.
 - [x] Validar clique, fechamento, teclado, TypeScript, testes, build e salvar checkpoint da alteração.
+- [x] Redesenhar a Timeline como um caminho visual contínuo com pontos, curvas, datas e títulos compactos.
+- [x] Otimizar a densidade da tela e manter os detalhes abrindo somente por clique.
+- [x] Validar desktop/mobile, acessibilidade, TypeScript, testes, build e salvar checkpoint visual.
