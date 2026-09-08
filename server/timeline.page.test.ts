@@ -36,5 +36,10 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain('id="timeline-client"');
     expect(timelineSource).toContain("sortedClients.map(client =>");
     expect(timelineSource).toContain("Selecione um cliente...");
+    expect(timelineSource).toContain("FRICCOES_GID = 594161358");
+    expect(timelineSource).toContain("trpc.sheets.csv.useQuery");
+    expect(timelineSource).toContain("parseFriccaoEvents");
+    expect(timelineSource).toContain("eventsByDay");
+    expect(timelineSource).toContain("event.title");
   });
 });

@@ -194,3 +194,6 @@
 - [x] Adicionar a aba Timeline ao menu lateral com ícone de pessoa.
 - [x] Criar a página Timeline com uma lista suspensa alimentada pelos clientes da aba Marcos.
 - [x] Validar a navegação, seleção dos clientes, TypeScript, testes, build e salvar checkpoint da primeira versão da Timeline.
+- [x] Ler os lançamentos da aba de Fricções do Google Sheets e filtrar pelo cliente selecionado na Timeline.
+- [x] Agrupar e exibir por dia os acontecimentos, mostrando ao menos a data e o título.
+- [x] Validar carregamento, estados vazios, atualização ao trocar cliente, TypeScript, testes, build e salvar checkpoint da Timeline com dados.

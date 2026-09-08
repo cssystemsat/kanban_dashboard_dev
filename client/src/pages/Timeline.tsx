@@ -1,6 +1,67 @@
 import { useMemo, useState } from "react";
-import { UserRound } from "lucide-react";
+import { CalendarDays, Loader2, UserRound } from "lucide-react";
 import { useKanbanData } from "@/hooks/useKanbanData";
+import { trpc } from "@/lib/trpc";
+
+const FRICCOES_GID = 594161358;
+
+type FriccaoEvent = {
+  date: string;
+  title: string;
+};
+
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let insideQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    const nextCharacter = line[index + 1];
+
+    if (character === '"') {
+      if (insideQuotes && nextCharacter === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (character === "," && !insideQuotes) {
+      values.push(current.trim());
+      current = "";
+    } else {
+      current += character;
+    }
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+function parseFriccaoEvents(csv: string, clientName: string): FriccaoEvent[] {
+  const normalizedClient = clientName.trim().toLocaleLowerCase("pt-BR");
+  return csv
+    .split(/\r?\n/)
+    .slice(1)
+    .map(parseCsvLine)
+    .filter(row => {
+      const central = row[0]?.trim().toLocaleLowerCase("pt-BR");
+      return Boolean(
+        central && central === normalizedClient && row[1] && row[2]
+      );
+    })
+    .map(row => ({ date: row[1].trim(), title: row[2].trim() }));
+}
+
+function dateSortValue(date: string): number {
+  const match = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return 0;
+  return new Date(
+    Number(match[3]),
+    Number(match[2]) - 1,
+    Number(match[1])
+  ).getTime();
+}
 
 export default function Timeline({
   sidebarExpanded = false,
@@ -10,6 +71,11 @@ export default function Timeline({
   const { data: clients, loading, error } = useKanbanData();
   const [selectedClientId, setSelectedClientId] = useState("");
   const sidebarOffsetClass = sidebarExpanded ? "md:ml-[200px]" : "md:ml-20";
+  const selectedClient = clients.find(client => client.id === selectedClientId);
+  const frictionQuery = trpc.sheets.csv.useQuery(
+    { source: "primary", gid: FRICCOES_GID },
+    { enabled: Boolean(selectedClient) }
+  );
 
   const sortedClients = useMemo(
     () =>
@@ -20,6 +86,26 @@ export default function Timeline({
       ),
     [clients]
   );
+
+  const eventsByDay = useMemo(() => {
+    if (!selectedClient || !frictionQuery.data?.csv) return [];
+
+    const events = parseFriccaoEvents(
+      frictionQuery.data.csv,
+      selectedClient.nome
+    );
+    const grouped = new Map<string, FriccaoEvent[]>();
+    for (const event of events) {
+      const dayEvents = grouped.get(event.date) ?? [];
+      dayEvents.push(event);
+      grouped.set(event.date, dayEvents);
+    }
+
+    return [...grouped.entries()].sort(
+      ([firstDate], [secondDate]) =>
+        dateSortValue(secondDate) - dateSortValue(firstDate)
+    );
+  }, [frictionQuery.data?.csv, selectedClient]);
 
   return (
     <main
@@ -36,8 +122,8 @@ export default function Timeline({
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight">Timeline</h1>
             <p className="mt-2 text-sm leading-6 text-[#6B7280]">
-              Selecione um cliente da aba Marcos para iniciar o acompanhamento
-              da linha do tempo.
+              Selecione um cliente da aba Marcos para visualizar os
+              acontecimentos registrados por dia.
             </p>
           </div>
         </div>
@@ -77,6 +163,58 @@ export default function Timeline({
             </p>
           )}
         </div>
+
+        {selectedClient && (
+          <div className="mt-8 border-t border-[#E5E7EB] pt-6">
+            <div className="mb-5 flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-[#001F3F]" />
+              <h2 className="text-lg font-semibold">Acontecimentos</h2>
+            </div>
+
+            {frictionQuery.isLoading && (
+              <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Carregando acontecimentos...
+              </div>
+            )}
+            {frictionQuery.error && (
+              <p className="text-sm text-red-600">
+                Não foi possível carregar os acontecimentos deste cliente.
+              </p>
+            )}
+            {!frictionQuery.isLoading &&
+              !frictionQuery.error &&
+              eventsByDay.length === 0 && (
+                <p className="text-sm text-[#6B7280]">
+                  Nenhum acontecimento registrado para este cliente.
+                </p>
+              )}
+            {!frictionQuery.isLoading &&
+              !frictionQuery.error &&
+              eventsByDay.length > 0 && (
+                <div className="space-y-6">
+                  {eventsByDay.map(([date, events]) => (
+                    <div key={date} className="relative pl-7">
+                      <span className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-[#DC2626] ring-4 ring-red-50" />
+                      <h3 className="text-sm font-bold text-[#001F3F]">
+                        {date}
+                      </h3>
+                      <div className="mt-2 space-y-2 border-l border-[#E5E7EB] pl-4">
+                        {events.map((event, index) => (
+                          <div
+                            key={`${event.title}-${index}`}
+                            className="rounded-lg border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151]"
+                          >
+                            {event.title}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+          </div>
+        )}
       </section>
     </main>
   );
