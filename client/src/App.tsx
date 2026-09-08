@@ -204,7 +204,7 @@ function AppInner() {
 
   const renderPage = () => {
     // Se não está autenticado e tenta acessar Home (marcos), redirecionar para Painel
-    if (!user && currentPage === "marcos") {
+    if (!user && (currentPage === "marcos" || currentPage === "timeline")) {
       return <Painel />;
     }
 

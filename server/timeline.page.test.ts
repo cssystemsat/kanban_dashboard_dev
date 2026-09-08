@@ -28,11 +28,16 @@ describe("aba Timeline", () => {
     expect(appSource).toContain(
       "<Timeline sidebarExpanded={isSideMenuExpanded} />"
     );
+    expect(appSource).toContain(
+      '!user && (currentPage === "marcos" || currentPage === "timeline")'
+    );
   });
 
   it("usa os clientes reais de Marcos em uma lista suspensa", () => {
     expect(timelineSource).toContain("import { useKanbanData }");
     expect(timelineSource).toContain("const { data: clients");
+    expect(timelineSource).toContain("fetchData");
+    expect(timelineSource).toContain("void fetchData()");
     expect(timelineSource).toContain('id="timeline-client"');
     expect(timelineSource).toContain("sortedClients.map(client =>");
     expect(timelineSource).toContain("Selecione um cliente...");

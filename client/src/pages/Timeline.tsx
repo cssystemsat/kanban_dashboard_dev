@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Loader2, UserRound } from "lucide-react";
 import { useKanbanData } from "@/hooks/useKanbanData";
 import { trpc } from "@/lib/trpc";
@@ -68,8 +68,12 @@ export default function Timeline({
 }: {
   sidebarExpanded?: boolean;
 }) {
-  const { data: clients, loading, error } = useKanbanData();
+  const { data: clients, loading, error, fetchData } = useKanbanData();
   const [selectedClientId, setSelectedClientId] = useState("");
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
   const sidebarOffsetClass = sidebarExpanded ? "md:ml-[200px]" : "md:ml-20";
   const selectedClient = clients.find(client => client.id === selectedClientId);
   const frictionQuery = trpc.sheets.csv.useQuery(

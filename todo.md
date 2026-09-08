@@ -197,3 +197,5 @@
 - [x] Ler os lançamentos da aba de Fricções do Google Sheets e filtrar pelo cliente selecionado na Timeline.
 - [x] Agrupar e exibir por dia os acontecimentos, mostrando ao menos a data e o título.
 - [x] Validar carregamento, estados vazios, atualização ao trocar cliente, TypeScript, testes, build e salvar checkpoint da Timeline com dados.
+- [x] Corrigir a lista da Timeline que aparece vazia, garantindo que carregue os clientes da aba Marcos.
+- [x] Validar a seleção do cliente e a leitura dos acontecimentos após a correção, com testes, build e checkpoint corretivo.
