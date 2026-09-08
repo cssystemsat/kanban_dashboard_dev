@@ -187,3 +187,7 @@
 - [x] Subir e compactar o bloco de filtros para aproveitar o espaço vertical.
 - [x] Validar que filtros, cards e layout responsivo continuam funcionando e salvar checkpoint visual.
 - [x] Validar sem login a integridade do modal de Clientes ativos por contrato automatizado, preservando abertura, título, lista, rolagem e fechamento.
+- [x] Substituir o botão Dashboard dos cards de Marcos por uma bandeira vermelha para lançamento de Fricção.
+- [x] Criar modal de Fricção semelhante ao registro de atendimento com Título, Setor, Tag e Descrição.
+- [x] Gravar Fricções na aba indicada do Google Sheets nas colunas A:G, incluindo nome da central, data, CSM autenticado e demais campos.
+- [x] Validar permissões, mensagens de sucesso/erro, testes, TypeScript, build e salvar checkpoint da integração de Fricções.

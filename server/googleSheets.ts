@@ -237,6 +237,40 @@ export async function appendAtendimento(data: {
   return { row: nextRow, sheetName };
 }
 
+/** Grava uma Fricção na aba indicada da planilha principal (gid=594161358). */
+export async function appendFriccao(data: {
+  central: string;
+  data: string;
+  titulo: string;
+  setor: string;
+  tag: string;
+  descricao: string;
+  usuario: string;
+}): Promise<{ row: number; sheetName: string }> {
+  const FRICCAO_GID = 594161358;
+  const spreadsheetId = getSpreadsheetId("primary");
+  const sheetName = await getSheetNameByGid(FRICCAO_GID, "primary");
+  if (!sheetName)
+    throw new Error(
+      `Aba com gid=${FRICCAO_GID} não encontrada na planilha principal.`
+    );
+
+  const nextRow = await getNextEmptyRow(sheetName);
+  const range = `${sheetName}!A${nextRow}:G${nextRow}`;
+  await updateValues(spreadsheetId, range, [
+    [
+      data.central,
+      data.data,
+      data.titulo,
+      data.setor,
+      data.tag,
+      data.descricao,
+      data.usuario,
+    ],
+  ]);
+  return { row: nextRow, sheetName };
+}
+
 /** Atualiza uma migração na aba Migração (gid=146618493). */
 export async function updateMigracao(data: {
   empresa: string;

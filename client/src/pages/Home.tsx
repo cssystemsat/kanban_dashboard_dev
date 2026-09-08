@@ -3,6 +3,7 @@ import KanbanColumn from "@/components/KanbanColumn";
 import DateFilterCompact from "@/components/DateFilterCompact";
 import ClientDetailsModal from "@/components/ClientDetailsModal";
 import AtendimentoModal from "@/components/AtendimentoModal";
+import FriccaoModal from "@/components/FriccaoModal";
 import AISearchBox from "@/components/AISearchBox";
 import URsTrendIndicator from "@/components/URsTrendIndicator";
 
@@ -68,6 +69,7 @@ export default function Home() {
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(
     null
   );
+  const [friccaoClient, setFriccaoClient] = useState<ClientData | null>(null);
   const [percentualDesatualizadoFilter, setPercentualDesatualizadoFilter] =
     useState<number | null>(null);
   const [diferencaMaxInput, setDiferencaMaxInput] = useState<string>("");
@@ -755,6 +757,7 @@ export default function Home() {
                         setIsModalOpen(true);
                       }}
                       onAtendimento={client => setAtendimentoClient(client)}
+                      onFriccao={client => setFriccaoClient(client)}
                       trendStartDate={
                         marcosTrendStartDate
                           ? new Date(marcosTrendStartDate)
@@ -789,6 +792,14 @@ export default function Home() {
         <AtendimentoModal
           client={atendimentoClient}
           onClose={() => setAtendimentoClient(null)}
+        />
+      )}
+
+      {/* Modal de Fricção */}
+      {friccaoClient && (
+        <FriccaoModal
+          client={friccaoClient}
+          onClose={() => setFriccaoClient(null)}
         />
       )}
 

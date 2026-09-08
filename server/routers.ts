@@ -10,7 +10,12 @@ import {
   router,
 } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
-import { appendAtendimento, getSheetCsv, updateMigracao } from "./googleSheets";
+import {
+  appendAtendimento,
+  appendFriccao,
+  getSheetCsv,
+  updateMigracao,
+} from "./googleSheets";
 import {
   getAllowedEmails,
   isEmailAllowed,
@@ -150,6 +155,59 @@ export const appRouter = router({
           row: result.row,
           sheetName: result.sheetName,
         };
+      }),
+  }),
+  friccao: router({
+    gravar: allowlistedProcedure
+      .input(
+        z.object({
+          cliente: z.string().trim().min(1, "Nome da central é obrigatório."),
+          titulo: z.string().trim().min(1, "Título é obrigatório.").max(300),
+          setor: z.enum([
+            "CSM",
+            "Treinamento",
+            "Financeiro",
+            "Comercial",
+            "Suporte",
+          ]),
+          tag: z.enum(["Problema", "Sugestão de desenvolvimento", "Operação"]),
+          descricao: z
+            .string()
+            .trim()
+            .min(1, "Descrição é obrigatória.")
+            .max(5000),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Você precisa estar autenticado para lançar Fricções.",
+          });
+        }
+        const entry = await getEmailEntry(ctx.user.email);
+        if (!entry || entry.canLaunch !== 1) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "Acesso negado. Você não tem permissão para lançar Fricções.",
+          });
+        }
+        const dataFormatada = new Date().toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        const result = await appendFriccao({
+          central: input.cliente,
+          data: dataFormatada,
+          titulo: input.titulo,
+          setor: input.setor,
+          tag: input.tag,
+          descricao: input.descricao,
+          usuario: ctx.user.name ?? ctx.user.email,
+        });
+        return { success: true, row: result.row, sheetName: result.sheetName };
       }),
   }),
   atendimento: router({

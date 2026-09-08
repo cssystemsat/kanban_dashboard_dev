@@ -8,6 +8,7 @@ interface KanbanColumnProps {
   clients: ClientData[];
   onClientClick?: (client: ClientData) => void;
   onAtendimento?: (client: ClientData) => void;
+  onFriccao?: (client: ClientData) => void;
   trendStartDate?: Date | null;
   trendEndDate?: Date | null;
 }
@@ -18,6 +19,7 @@ export default function KanbanColumn({
   clients,
   onClientClick,
   onAtendimento,
+  onFriccao,
   trendStartDate,
   trendEndDate,
 }: KanbanColumnProps) {
@@ -76,7 +78,11 @@ export default function KanbanColumn({
                   onClick={() => onClientClick?.(client)}
                   className="cursor-pointer"
                 >
-                  <ClientCard client={client} onAtendimento={onAtendimento} />
+                  <ClientCard
+                    client={client}
+                    onAtendimento={onAtendimento}
+                    onFriccao={onFriccao}
+                  />
                 </div>
               </div>
             ))

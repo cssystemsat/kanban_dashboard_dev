@@ -14,7 +14,6 @@ import {
   X,
   Headphones,
   Star,
-  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -26,6 +25,7 @@ import {
 interface ClientCardProps {
   client: ClientData;
   onAtendimento?: (client: ClientData) => void;
+  onFriccao?: (client: ClientData) => void;
 }
 
 /** Cor do ícone de bandeira para cada nível */
@@ -42,7 +42,11 @@ function getFlagColor(flag: string): string | null {
   }
 }
 
-export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
+export default function ClientCard({
+  client,
+  onAtendimento,
+  onFriccao,
+}: ClientCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
@@ -316,17 +320,18 @@ export default function ClientCard({ client, onAtendimento }: ClientCardProps) {
             <Headphones className="w-4 h-4" />
           </button>
 
-          {/* Botão Dashboard */}
+          {/* Botão Fricção */}
           <button
             onClick={e => {
               e.stopPropagation();
-              // Ação do dashboard será implementada depois
+              onFriccao?.(client);
             }}
             className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
-            style={{ backgroundColor: "#6B7280", color: "#FFFFFF" }}
-            title="Dashboard"
+            style={{ backgroundColor: "#DC2626", color: "#FFFFFF" }}
+            title="Registrar Fricção"
+            aria-label="Registrar Fricção"
           >
-            <BarChart3 className="w-4 h-4" />
+            <Flag className="w-4 h-4 fill-current" />
           </button>
         </div>
       </div>
