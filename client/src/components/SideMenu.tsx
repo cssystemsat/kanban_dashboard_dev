@@ -36,6 +36,11 @@ const ADMIN_TOP_ITEMS = [
 ];
 
 // Abas que requerem login e permissao
+const SYSTEMSAT_LOGO_WEBDEV =
+  "/manus-storage/systemsat-logo-transparent_6314d1c3.png";
+const SYSTEMSAT_LOGO_FALLBACK =
+  "https://files.manuscdn.com/user_upload_by_module/session_file/310519663388902916/sMtZFYeYnVwpyXZR.png";
+
 const PROTECTED_ITEMS = [
   { id: "dashboard", label: "Evolução de UR's", icon: BarChart2 },
   { id: "kpis", label: "KPI's de Gestão CS", icon: TrendingUp },
@@ -216,39 +221,42 @@ export default function SideMenu({
         onExpandedChange?.(false);
       }}
     >
-      {/* Wordmark */}
+      {/* Logo SYSTEMSAT */}
       <div
-        className="px-3 py-3 border-b flex items-center justify-center"
+        className="flex items-center justify-center border-b px-2 py-3"
         style={{ borderColor: "#1a3a5c", minHeight: "72px" }}
       >
         {isExpanded ? (
           <div
-            className="flex items-center gap-2.5 w-full px-1"
-            aria-label="Systemsat CS Operations"
+            className="flex h-12 w-full items-center justify-center rounded-lg bg-white px-2"
+            aria-label="Systemsat"
           >
-            <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black tracking-tight"
-              style={{ backgroundColor: "#00DD00", color: "#001F3F" }}
-            >
-              CS
-            </span>
-            <div className="min-w-0">
-              <div className="text-[15px] font-extrabold tracking-[0.16em] text-white leading-none">
-                SYSTEMSAT
-              </div>
-              <div className="mt-1 text-[9px] font-semibold tracking-[0.2em] text-slate-400">
-                CS OPERATIONS
-              </div>
-            </div>
+            <img
+              src={SYSTEMSAT_LOGO_WEBDEV}
+              alt="SYSTEMSAT"
+              onError={event => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = SYSTEMSAT_LOGO_FALLBACK;
+              }}
+              className="h-auto max-h-9 w-full object-contain"
+            />
           </div>
         ) : (
-          <span
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black tracking-tight"
+          <div
+            className="flex h-11 w-14 items-center justify-center rounded-lg bg-white px-1"
             aria-label="Systemsat"
-            style={{ backgroundColor: "#00DD00", color: "#001F3F" }}
+            title="SYSTEMSAT"
           >
-            CS
-          </span>
+            <img
+              src={SYSTEMSAT_LOGO_WEBDEV}
+              alt="SYSTEMSAT"
+              onError={event => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = SYSTEMSAT_LOGO_FALLBACK;
+              }}
+              className="h-auto max-h-8 w-full object-contain"
+            />
+          </div>
         )}
       </div>
 

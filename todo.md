@@ -206,3 +206,5 @@
 - [x] Redesenhar a Timeline como um caminho visual contínuo com pontos, curvas, datas e títulos compactos.
 - [x] Otimizar a densidade da tela e manter os detalhes abrindo somente por clique.
 - [x] Validar desktop/mobile, acessibilidade, TypeScript, testes, build e salvar checkpoint visual.
+- [x] Substituir o wordmark atual do menu lateral pela logo SYSTEMSAT enviada pelo usuário.
+- [x] Validar a logo em menu expandido/recolhido, desktop/mobile, TypeScript, testes, build e salvar checkpoint.

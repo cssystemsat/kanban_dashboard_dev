@@ -16,4 +16,15 @@ describe("menu lateral de migração", () => {
     expect(sideMenuSource).toContain('rel="noreferrer"');
     expect(sideMenuSource).not.toContain('label: "Red Flags"');
   });
+
+  it("renderiza a logo SYSTEMSAT no menu expandido e recolhido", () => {
+    expect(sideMenuSource).toContain(
+      '"/manus-storage/systemsat-logo-transparent_6314d1c3.png"'
+    );
+    expect(sideMenuSource).toContain(
+      '"https://files.manuscdn.com/user_upload_by_module/session_file/310519663388902916/sMtZFYeYnVwpyXZR.png"'
+    );
+    expect(sideMenuSource).toContain('alt="SYSTEMSAT"');
+    expect(sideMenuSource).toContain("SYSTEMSAT_LOGO_FALLBACK");
+  });
 });
