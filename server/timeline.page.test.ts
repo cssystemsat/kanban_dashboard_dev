@@ -33,6 +33,13 @@ describe("aba Timeline", () => {
     );
   });
 
+  it("mantém a Timeline maximizada sem overflow lateral ao abrir detalhes", () => {
+    expect(timelineSource).not.toContain("overflow-x-auto");
+    expect(timelineSource).not.toContain("min-w-[760px]");
+    expect(timelineSource).toContain("overflow-x-hidden");
+    expect(timelineSource).toContain("break-words");
+  });
+
   it("usa os clientes reais de Marcos em uma lista suspensa", () => {
     expect(timelineSource).toContain("import { useKanbanData }");
     expect(timelineSource).toContain("const { data: clients");

@@ -140,9 +140,9 @@ export default function Timeline({
 
   return (
     <main
-      className={`${sidebarOffsetClass} min-h-screen bg-[#F5F7FA] px-3 py-4 text-[#001F3F] sm:px-5 md:px-6 md:py-6`}
+      className={`${sidebarOffsetClass} min-h-screen w-full overflow-x-hidden bg-[#F5F7FA] px-2 py-3 text-[#001F3F] sm:px-4 md:px-5 md:py-4`}
     >
-      <section className="mx-auto w-full max-w-[1500px] rounded-2xl border border-[#DDE6F0] bg-white px-4 py-4 shadow-sm sm:px-6 md:px-8">
+      <section className="w-full rounded-2xl border border-[#DDE6F0] bg-white px-3 py-3 shadow-sm sm:px-5 md:px-6">
         <div className="flex flex-col gap-4 border-b border-[#E7EDF4] pb-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#102A72] text-white shadow-sm">
@@ -231,22 +231,22 @@ export default function Timeline({
             {!frictionQuery.isLoading &&
               !frictionQuery.error &&
               eventRows.length > 0 && (
-                <div className="space-y-2 overflow-x-auto pb-2">
+                <div className="space-y-2 overflow-visible pb-2">
                   {eventRows.map((row, rowIndex) => {
                     const isReversed = rowIndex % 2 === 1;
                     const displayRow = isReversed ? [...row].reverse() : row;
                     return (
                       <div
                         key={`timeline-row-${rowIndex}`}
-                        className="relative min-w-[760px] px-3 py-3 sm:px-6"
+                        className="relative px-1 py-3 sm:px-3"
                       >
-                        <div className="absolute left-8 right-8 top-[84px] h-1 rounded-full bg-[#D9E4F3] sm:left-12 sm:right-12" />
+                        <div className="absolute left-6 right-6 top-[84px] hidden h-1 rounded-full bg-[#D9E4F3] xl:block" />
                         {rowIndex < eventRows.length - 1 && (
                           <div
-                            className={`${isReversed ? "right-8 rounded-br-[42px] border-b-4 border-r-4 sm:right-12" : "right-8 rounded-tr-[42px] border-r-4 border-t-4 sm:right-12"} absolute top-[84px] h-14 w-14 border-[#D9E4F3]`}
+                            className={`${isReversed ? "right-6 rounded-br-[42px] border-b-4 border-r-4" : "right-6 rounded-tr-[42px] border-r-4 border-t-4"} absolute top-[84px] hidden h-14 w-14 border-[#D9E4F3] xl:block`}
                           />
                         )}
-                        <div className="relative grid grid-cols-5 gap-3 sm:gap-5">
+                        <div className="relative grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 sm:gap-x-4 xl:grid-cols-5 xl:gap-5">
                           {displayRow.map((event, index) => {
                             const eventKey = `${event.day}-${event.title}-${rowIndex}-${index}`;
                             const isOpen = openEventKey === eventKey;
@@ -292,7 +292,7 @@ export default function Timeline({
                                 </p>
                                 <div
                                   id={detailsId}
-                                  className={`${isOpen ? "block" : "hidden"} absolute left-1/2 top-[118px] z-30 w-[220px] -translate-x-1/2 rounded-xl border border-[#CBD5E1] bg-[#102A72] p-3 text-left text-[11px] leading-4 text-white shadow-xl`}
+                                  className={`${isOpen ? "block" : "hidden"} mt-3 w-full max-w-[220px] break-words rounded-xl border border-[#CBD5E1] bg-[#102A72] p-3 text-left text-[11px] leading-4 text-white shadow-xl`}
                                 >
                                   <p className="mb-2 text-xs font-bold">
                                     Detalhes da Fricção

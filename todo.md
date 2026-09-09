@@ -208,3 +208,5 @@
 - [x] Validar desktop/mobile, acessibilidade, TypeScript, testes, build e salvar checkpoint visual.
 - [x] Substituir o wordmark atual do menu lateral pela logo SYSTEMSAT enviada pelo usuário.
 - [x] Validar a logo em menu expandido/recolhido, desktop/mobile, TypeScript, testes, build e salvar checkpoint.
+- [x] Maximizar a área útil da Timeline e eliminar o scroll lateral ao abrir detalhes de Fricção.
+- [x] Melhorar a densidade visual e a responsividade da Timeline, validando clique, TypeScript, testes, build e checkpoint.
