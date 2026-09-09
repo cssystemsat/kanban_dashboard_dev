@@ -64,9 +64,11 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("getTagColor");
     expect(timelineSource).toContain("TAG_LEGEND");
     expect(timelineSource).toContain('aria-hidden="true"');
-    expect(timelineSource).toContain('case "Migração"');
-    expect(timelineSource).toContain('case "Fricção"');
-    expect(timelineSource).toContain('case "Travamento"');
+    expect(timelineSource).toContain('case "migracao"');
+    expect(timelineSource).toContain('case "friccao"');
+    expect(timelineSource).toContain('case "travamento"');
+    expect(timelineSource).toContain("transitionEvent");
+    expect(timelineSource).toContain("top-[104px]");
     expect(timelineSource).toContain("event.description");
     expect(timelineSource).toContain("event.csm");
     expect(timelineSource).toContain("tabIndex={0}");

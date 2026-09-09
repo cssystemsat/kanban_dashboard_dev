@@ -94,18 +94,25 @@ const TAG_LEGEND = [
 ] as const;
 
 function getTagColor(tag: string): string {
-  switch (tag) {
-    case "Operação":
+  const normalizedTag = tag
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+  switch (normalizedTag) {
+    case "operacao":
       return "#2563EB";
-    case "Migração":
+    case "migracao":
       return "#16A34A";
-    case "Fricção":
+    case "friccao":
       return "#EAB308";
-    case "Sugestão de desenvolvimento":
+    case "sugestao de desenvolvimento":
+    case "sugestao":
       return "#D1D5DB";
-    case "Travamento":
+    case "travamento":
       return "#FCA5A5";
-    case "Problema":
+    case "problema":
       return "#991B1B";
     default:
       return "#2845B8";
@@ -305,6 +312,7 @@ export default function Timeline({
                   {eventRows.map((row, rowIndex) => {
                     const isReversed = rowIndex % 2 === 1;
                     const displayRow = isReversed ? [...row].reverse() : row;
+                    const transitionEvent = eventRows[rowIndex + 1]?.[0];
                     return (
                       <div
                         key={`timeline-row-${rowIndex}`}
@@ -320,9 +328,21 @@ export default function Timeline({
                         )}
                         <div className="absolute left-6 right-6 top-[52px] hidden h-1 rounded-full bg-[#D9E4F3] xl:block" />
                         {rowIndex < eventRows.length - 1 && (
-                          <div
-                            className={`${isReversed ? "left-2 rounded-bl-[42px] border-b-4 border-l-4" : "right-2 rounded-br-[42px] border-b-4 border-r-4"} absolute bottom-[-52px] top-[52px] hidden border-[#D9E4F3] xl:block`}
-                          />
+                          <>
+                            <div
+                              className={`${isReversed ? "left-2 rounded-bl-[42px] border-b-4 border-l-4" : "right-2 rounded-br-[42px] border-b-4 border-r-4"} absolute bottom-[-52px] top-[52px] hidden border-[#D9E4F3] xl:block`}
+                            />
+                            {transitionEvent?.daysSincePrevious !==
+                              undefined && (
+                              <span
+                                className={`pointer-events-none absolute top-[104px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "left-2 -translate-x-1/2" : "right-2 translate-x-1/2"}`}
+                              >
+                                {formatElapsedDays(
+                                  transitionEvent.daysSincePrevious
+                                )}
+                              </span>
+                            )}
+                          </>
                         )}
                         <div className="relative grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 sm:gap-x-4 xl:grid-cols-5 xl:gap-5">
                           {displayRow.map((event, index) => {

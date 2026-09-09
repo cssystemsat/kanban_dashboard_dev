@@ -223,3 +223,5 @@
 - [x] Aplicar as cores das tags nas bolinhas da Timeline, preservar o restante do fluxo e validar TypeScript, testes, build e checkpoint.
 - [x] Adicionar uma legenda pequena no topo da Timeline com as seis Tags e suas cores.
 - [x] Validar a legenda em desktop/mobile, TypeScript, testes, build e salvar checkpoint.
+- [x] Exibir os dias decorridos também nas curvas e conexões verticais da Timeline.
+- [x] Normalizar Tags existentes da planilha para as cores corretas e validar TypeScript, testes, build e checkpoint.
