@@ -318,11 +318,18 @@ export default function Timeline({
                                     {event.title}
                                   </span>
                                 </div>
-                                {event.daysSincePrevious !== undefined && (
-                                  <span className="pointer-events-none absolute left-1/2 top-[68px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm">
-                                    {formatElapsedDays(event.daysSincePrevious)}
-                                  </span>
-                                )}
+                                {event.daysSincePrevious !== undefined &&
+                                  ((!isReversed && index > 0) ||
+                                    (isReversed &&
+                                      index < displayRow.length - 1)) && (
+                                    <span
+                                      className={`pointer-events-none absolute top-[36px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "-right-[0.625rem] translate-x-1/2" : "-left-[0.625rem] -translate-x-1/2"}`}
+                                    >
+                                      {formatElapsedDays(
+                                        event.daysSincePrevious
+                                      )}
+                                    </span>
+                                  )}
                                 <p className="mt-3 line-clamp-3 max-w-[150px] text-xs font-semibold leading-4 text-[#233B72]">
                                   {event.title}
                                 </p>

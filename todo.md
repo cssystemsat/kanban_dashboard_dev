@@ -217,3 +217,5 @@
 - [x] Validar a sequência cronológica, clique, responsividade, TypeScript, testes, build e salvar checkpoint.
 - [x] Calcular o tempo decorrido entre acontecimentos consecutivos da Timeline.
 - [x] Exibir os intervalos entre pontos com boa legibilidade e validar TypeScript, testes, build e checkpoint.
+- [x] Reposicionar as etiquetas de tempo para o meio da linha entre duas bolinhas, removendo-as de baixo dos pontos.
+- [x] Validar legibilidade, responsividade, TypeScript, testes, build e salvar checkpoint da alteração.
