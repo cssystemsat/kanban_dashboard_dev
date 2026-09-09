@@ -212,3 +212,6 @@
 - [x] Melhorar a densidade visual e a responsividade da Timeline, validando clique, TypeScript, testes, build e checkpoint.
 - [x] Corrigir a largura da Timeline para não somar 100% ao deslocamento do menu lateral e eliminar o scroll horizontal em diferentes zooms.
 - [x] Validar menu expandido/recolhido, zooms desktop, mobile, detalhes abertos, TypeScript, testes, build e salvar checkpoint corretivo.
+- [x] Ordenar os acontecimentos da Timeline do dia mais antigo para o mais recente.
+- [x] Adicionar marcador de início, posicionar nomes fora da linha e criar curvas de continuidade entre as linhas.
+- [x] Validar a sequência cronológica, clique, responsividade, TypeScript, testes, build e salvar checkpoint.

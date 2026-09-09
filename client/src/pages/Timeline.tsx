@@ -130,7 +130,7 @@ export default function Timeline({
 
     return [...grouped.entries()].sort(
       ([firstDate], [secondDate]) =>
-        dateSortValue(secondDate) - dateSortValue(firstDate)
+        dateSortValue(firstDate) - dateSortValue(secondDate)
     );
   }, [frictionQuery.data?.csv, selectedClient]);
 
@@ -234,19 +234,27 @@ export default function Timeline({
             {!frictionQuery.isLoading &&
               !frictionQuery.error &&
               eventRows.length > 0 && (
-                <div className="space-y-2 overflow-visible pb-2">
+                <div className="space-y-0 overflow-visible pb-2">
                   {eventRows.map((row, rowIndex) => {
                     const isReversed = rowIndex % 2 === 1;
                     const displayRow = isReversed ? [...row].reverse() : row;
                     return (
                       <div
                         key={`timeline-row-${rowIndex}`}
-                        className="relative px-1 py-3 sm:px-3"
+                        className="relative min-h-[150px] px-1 py-3 sm:px-3"
                       >
-                        <div className="absolute left-6 right-6 top-[84px] hidden h-1 rounded-full bg-[#D9E4F3] xl:block" />
+                        {rowIndex === 0 && (
+                          <div className="absolute left-0 top-[34px] z-20 hidden flex-col items-center gap-1 xl:flex">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#536784]">
+                              Início
+                            </span>
+                            <span className="h-4 w-4 rounded-full border-4 border-white bg-[#F4B942] shadow-[0_0_0_3px_#FDECC2]" />
+                          </div>
+                        )}
+                        <div className="absolute left-6 right-6 top-[52px] hidden h-1 rounded-full bg-[#D9E4F3] xl:block" />
                         {rowIndex < eventRows.length - 1 && (
                           <div
-                            className={`${isReversed ? "right-6 rounded-br-[42px] border-b-4 border-r-4" : "right-6 rounded-tr-[42px] border-r-4 border-t-4"} absolute top-[84px] hidden h-14 w-14 border-[#D9E4F3] xl:block`}
+                            className={`${isReversed ? "left-2 rounded-bl-[42px] border-b-4 border-l-4" : "right-2 rounded-br-[42px] border-b-4 border-r-4"} absolute bottom-[-52px] top-[52px] hidden border-[#D9E4F3] xl:block`}
                           />
                         )}
                         <div className="relative grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 sm:gap-x-4 xl:grid-cols-5 xl:gap-5">
