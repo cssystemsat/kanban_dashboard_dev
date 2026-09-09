@@ -15,9 +15,9 @@ const homeSource = readFileSync(
   "utf8"
 );
 
-describe("interface de lançamento de Fricção", () => {
+describe("interface de lançamento de acontecimento", () => {
   it("substitui o botão Dashboard por uma bandeira vermelha", () => {
-    expect(clientCardSource).toContain('title="Registrar Fricção"');
+    expect(clientCardSource).toContain('title="Registrar acontecimento"');
     expect(clientCardSource).toContain('backgroundColor: "#DC2626"');
     expect(clientCardSource).toContain(
       '<Flag className="w-4 h-4 fill-current" />'
@@ -28,7 +28,8 @@ describe("interface de lançamento de Fricção", () => {
   it("mantém os campos e opções solicitados no modal", () => {
     expect(modalSource).toContain("Título");
     expect(modalSource).toContain("Setor do acontecimento");
-    expect(modalSource).toContain("Tag da Fricção");
+    expect(modalSource).toContain("Tag");
+    expect(modalSource).toContain("Registrar acontecimento");
     expect(modalSource).toContain("Descrição");
     expect(modalSource).toContain('"CSM"');
     expect(modalSource).toContain('"Treinamento"');
@@ -38,6 +39,9 @@ describe("interface de lançamento de Fricção", () => {
     expect(modalSource).toContain('"Problema"');
     expect(modalSource).toContain('"Sugestão de desenvolvimento"');
     expect(modalSource).toContain('"Operação"');
+    expect(modalSource).toContain('"Migração"');
+    expect(modalSource).toContain('"Fricção"');
+    expect(modalSource).toContain('"Travamento"');
   });
 
   it("conecta o modal ao card de Marcos e ao cliente selecionado", () => {

@@ -84,6 +84,25 @@ function formatElapsedDays(days: number): string {
   return days === 1 ? "1 dia" : `${days} dias`;
 }
 
+function getTagColor(tag: string): string {
+  switch (tag) {
+    case "Operação":
+      return "#2563EB";
+    case "Migração":
+      return "#16A34A";
+    case "Fricção":
+      return "#EAB308";
+    case "Sugestão de desenvolvimento":
+      return "#D1D5DB";
+    case "Travamento":
+      return "#FCA5A5";
+    case "Problema":
+      return "#991B1B";
+    default:
+      return "#2845B8";
+  }
+}
+
 function chunkEvents(events: TimelineEvent[], size: number) {
   return Array.from({ length: Math.ceil(events.length / size) }, (_, index) =>
     events.slice(index * size, index * size + size)
@@ -311,7 +330,10 @@ export default function Timeline({
                                       );
                                     }
                                   }}
-                                  className={`relative z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-4 border-white ${isOpen ? "bg-[#F4B942] ring-4 ring-[#FDECC2]" : "bg-[#2845B8] ring-4 ring-[#E8EEFF]"} outline-none transition hover:scale-105 focus:ring-4 focus:ring-[#AFC2FF]`}
+                                  className={`relative z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-4 border-white ring-4 ${isOpen ? "ring-[#FDECC2]" : "ring-[#E8EEFF]"} outline-none transition hover:scale-105 focus:ring-4 focus:ring-[#AFC2FF]`}
+                                  style={{
+                                    backgroundColor: getTagColor(event.tag),
+                                  }}
                                 >
                                   <span className="sr-only">
                                     {isOpen ? "Fechar" : "Abrir"} detalhes:{" "}
@@ -338,7 +360,7 @@ export default function Timeline({
                                   className={`${isOpen ? "block" : "hidden"} mt-3 w-full max-w-[220px] break-words rounded-xl border border-[#CBD5E1] bg-[#102A72] p-3 text-left text-[11px] leading-4 text-white shadow-xl`}
                                 >
                                   <p className="mb-2 text-xs font-bold">
-                                    Detalhes da Fricção
+                                    Detalhes do acontecimento
                                   </p>
                                   <p>
                                     <strong className="text-[#B9D7F5]">

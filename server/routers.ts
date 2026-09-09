@@ -170,7 +170,14 @@ export const appRouter = router({
             "Comercial",
             "Suporte",
           ]),
-          tag: z.enum(["Problema", "Sugestão de desenvolvimento", "Operação"]),
+          tag: z.enum([
+            "Operação",
+            "Migração",
+            "Fricção",
+            "Sugestão de desenvolvimento",
+            "Travamento",
+            "Problema",
+          ]),
           descricao: z
             .string()
             .trim()
@@ -182,7 +189,8 @@ export const appRouter = router({
         if (!ctx.user?.email) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
-            message: "Você precisa estar autenticado para lançar Fricções.",
+            message:
+              "Você precisa estar autenticado para registrar acontecimentos.",
           });
         }
         const entry = await getEmailEntry(ctx.user.email);
@@ -190,7 +198,7 @@ export const appRouter = router({
           throw new TRPCError({
             code: "FORBIDDEN",
             message:
-              "Acesso negado. Você não tem permissão para lançar Fricções.",
+              "Acesso negado. Você não tem permissão para registrar acontecimentos.",
           });
         }
         const dataFormatada = new Date().toLocaleDateString("pt-BR", {

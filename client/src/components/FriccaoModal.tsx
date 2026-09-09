@@ -18,7 +18,14 @@ const SETORES = [
 ] as const;
 type Setor = (typeof SETORES)[number];
 
-const TAGS = ["Problema", "Sugestão de desenvolvimento", "Operação"] as const;
+const TAGS = [
+  "Operação",
+  "Migração",
+  "Fricção",
+  "Sugestão de desenvolvimento",
+  "Travamento",
+  "Problema",
+] as const;
 type Tag = (typeof TAGS)[number];
 
 type FriccaoForm = {
@@ -41,11 +48,13 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
     trpc.atendimento.checkPermission.useQuery();
   const gravar = trpc.friccao.gravar.useMutation({
     onSuccess: data => {
-      toast.success(`Fricção registrada na linha ${data.row} da planilha!`);
+      toast.success(
+        `Acontecimento registrado na linha ${data.row} da planilha!`
+      );
       onClose();
     },
     onError: error =>
-      toast.error(`Erro ao registrar Fricção: ${error.message}`),
+      toast.error(`Erro ao registrar acontecimento: ${error.message}`),
   });
 
   const handleSubmit = () => {
@@ -92,7 +101,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
             </div>
             <div>
               <h2 className="text-sm font-bold" style={{ color: "#001F3F" }}>
-                Registrar Fricção
+                Registrar acontecimento
               </h2>
               <p className="text-xs" style={{ color: "#6B7280" }}>
                 {client.nome}
@@ -123,7 +132,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
                 Acesso negado
               </h3>
               <p className="text-sm text-gray-500">
-                Seu usuário não tem permissão para lançar Fricções.
+                Seu usuário não tem permissão para registrar acontecimentos.
               </p>
             </div>
           </div>
@@ -150,7 +159,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
                     titulo: event.target.value,
                   }))
                 }
-                placeholder="Digite o título da Fricção"
+                placeholder="Digite o título do acontecimento"
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:border-red-600"
               />
             </div>
@@ -182,7 +191,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
 
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-gray-700">
-                Tag da Fricção <span className="text-red-500">*</span>
+                Tag <span className="text-red-500">*</span>
               </label>
               <select
                 value={form.tag}
@@ -240,7 +249,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
                 {gravar.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-                Registrar Fricção
+                Registrar acontecimento
               </button>
             </div>
           </div>

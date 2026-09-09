@@ -320,7 +320,7 @@ export default function ClientCard({
             <Headphones className="w-4 h-4" />
           </button>
 
-          {/* Botão Fricção */}
+          {/* Botão Registrar acontecimento */}
           <button
             onClick={e => {
               e.stopPropagation();
@@ -328,8 +328,8 @@ export default function ClientCard({
             }}
             className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
             style={{ backgroundColor: "#DC2626", color: "#FFFFFF" }}
-            title="Registrar Fricção"
-            aria-label="Registrar Fricção"
+            title="Registrar acontecimento"
+            aria-label="Registrar acontecimento"
           >
             <Flag className="w-4 h-4 fill-current" />
           </button>

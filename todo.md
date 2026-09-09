@@ -219,3 +219,5 @@
 - [x] Exibir os intervalos entre pontos com boa legibilidade e validar TypeScript, testes, build e checkpoint.
 - [x] Reposicionar as etiquetas de tempo para o meio da linha entre duas bolinhas, removendo-as de baixo dos pontos.
 - [x] Validar legibilidade, responsividade, TypeScript, testes, build e salvar checkpoint da alteração.
+- [x] Renomear o lançamento de Fricção para Registrar acontecimento e trocar o campo para Tag com as seis opções solicitadas.
+- [x] Aplicar as cores das tags nas bolinhas da Timeline, preservar o restante do fluxo e validar TypeScript, testes, build e checkpoint.
