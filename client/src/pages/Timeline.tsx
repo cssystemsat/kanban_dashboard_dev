@@ -74,7 +74,15 @@ function dateSortValue(date: string): number {
   ).getTime();
 }
 
-type TimelineEvent = FriccaoEvent & { day: string };
+type TimelineEvent = FriccaoEvent & {
+  day: string;
+  daysSincePrevious?: number;
+};
+
+function formatElapsedDays(days: number): string {
+  if (days === 0) return "No mesmo dia";
+  return days === 1 ? "1 dia" : `${days} dias`;
+}
 
 function chunkEvents(events: TimelineEvent[], size: number) {
   return Array.from({ length: Math.ceil(events.length / size) }, (_, index) =>
@@ -135,9 +143,21 @@ export default function Timeline({
   }, [frictionQuery.data?.csv, selectedClient]);
 
   const eventRows = useMemo(() => {
-    const flatEvents = eventsByDay.flatMap(([date, events]) =>
+    const orderedEvents = eventsByDay.flatMap(([date, events]) =>
       events.map(event => ({ ...event, day: date }))
     );
+    const flatEvents: TimelineEvent[] = orderedEvents.map((event, index) => {
+      if (index === 0) return event;
+      const elapsedDays = Math.max(
+        0,
+        Math.round(
+          (dateSortValue(event.day) -
+            dateSortValue(orderedEvents[index - 1].day)) /
+            (1000 * 60 * 60 * 24)
+        )
+      );
+      return { ...event, daysSincePrevious: elapsedDays };
+    });
     return chunkEvents(flatEvents, 5);
   }, [eventsByDay]);
 
@@ -298,6 +318,11 @@ export default function Timeline({
                                     {event.title}
                                   </span>
                                 </div>
+                                {event.daysSincePrevious !== undefined && (
+                                  <span className="pointer-events-none absolute left-1/2 top-[68px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm">
+                                    {formatElapsedDays(event.daysSincePrevious)}
+                                  </span>
+                                )}
                                 <p className="mt-3 line-clamp-3 max-w-[150px] text-xs font-semibold leading-4 text-[#233B72]">
                                   {event.title}
                                 </p>

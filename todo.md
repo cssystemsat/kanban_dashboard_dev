@@ -215,3 +215,5 @@
 - [x] Ordenar os acontecimentos da Timeline do dia mais antigo para o mais recente.
 - [x] Adicionar marcador de início, posicionar nomes fora da linha e criar curvas de continuidade entre as linhas.
 - [x] Validar a sequência cronológica, clique, responsividade, TypeScript, testes, build e salvar checkpoint.
+- [x] Calcular o tempo decorrido entre acontecimentos consecutivos da Timeline.
+- [x] Exibir os intervalos entre pontos com boa legibilidade e validar TypeScript, testes, build e checkpoint.

@@ -55,6 +55,9 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("trpc.sheets.csv.useQuery");
     expect(timelineSource).toContain("parseFriccaoEvents");
     expect(timelineSource).toContain("eventsByDay");
+    expect(timelineSource).toContain("daysSincePrevious");
+    expect(timelineSource).toContain("formatElapsedDays");
+    expect(timelineSource).toContain('"No mesmo dia"');
     expect(timelineSource).toContain("event.title");
     expect(timelineSource).toContain("event.sector");
     expect(timelineSource).toContain("event.tag");
