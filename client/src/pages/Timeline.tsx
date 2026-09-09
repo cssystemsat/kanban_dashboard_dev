@@ -84,6 +84,15 @@ function formatElapsedDays(days: number): string {
   return days === 1 ? "1 dia" : `${days} dias`;
 }
 
+const TAG_LEGEND = [
+  { label: "Operação", color: "#2563EB" },
+  { label: "Migração", color: "#16A34A" },
+  { label: "Fricção", color: "#EAB308" },
+  { label: "Sugestão de desenvolvimento", color: "#D1D5DB" },
+  { label: "Travamento", color: "#FCA5A5" },
+  { label: "Problema", color: "#991B1B" },
+] as const;
+
 function getTagColor(tag: string): string {
   switch (tag) {
     case "Operação":
@@ -223,6 +232,25 @@ export default function Timeline({
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-[#E7EDF4] py-2.5 text-[10px] text-[#536784]">
+          <span className="font-bold uppercase tracking-[0.12em] text-[#102A72]">
+            Tags
+          </span>
+          {TAG_LEGEND.map(tag => (
+            <span
+              key={tag.label}
+              className="inline-flex items-center gap-1 whitespace-nowrap"
+            >
+              <span
+                aria-hidden="true"
+                className="h-2.5 w-2.5 rounded-full border border-white shadow-[0_0_0_1px_rgba(15,23,42,0.12)]"
+                style={{ backgroundColor: tag.color }}
+              />
+              {tag.label}
+            </span>
+          ))}
         </div>
 
         {error && (

@@ -221,3 +221,5 @@
 - [x] Validar legibilidade, responsividade, TypeScript, testes, build e salvar checkpoint da alteração.
 - [x] Renomear o lançamento de Fricção para Registrar acontecimento e trocar o campo para Tag com as seis opções solicitadas.
 - [x] Aplicar as cores das tags nas bolinhas da Timeline, preservar o restante do fluxo e validar TypeScript, testes, build e checkpoint.
+- [x] Adicionar uma legenda pequena no topo da Timeline com as seis Tags e suas cores.
+- [x] Validar a legenda em desktop/mobile, TypeScript, testes, build e salvar checkpoint.
