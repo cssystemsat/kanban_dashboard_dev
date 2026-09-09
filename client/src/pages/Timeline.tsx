@@ -95,6 +95,9 @@ export default function Timeline({
     void fetchData();
   }, [fetchData]);
   const sidebarOffsetClass = sidebarExpanded ? "md:ml-[200px]" : "md:ml-20";
+  const availableWidthClass = sidebarExpanded
+    ? "md:w-[calc(100%-200px)]"
+    : "md:w-[calc(100%-80px)]";
   const selectedClient = clients.find(client => client.id === selectedClientId);
   const frictionQuery = trpc.sheets.csv.useQuery(
     { source: "primary", gid: FRICCOES_GID },
@@ -140,7 +143,7 @@ export default function Timeline({
 
   return (
     <main
-      className={`${sidebarOffsetClass} min-h-screen w-full overflow-x-hidden bg-[#F5F7FA] px-2 py-3 text-[#001F3F] sm:px-4 md:px-5 md:py-4`}
+      className={`${sidebarOffsetClass} ${availableWidthClass} min-w-0 min-h-screen overflow-x-hidden bg-[#F5F7FA] px-2 py-3 text-[#001F3F] transition-[width,margin] duration-300 sm:px-4 md:px-5 md:py-4`}
     >
       <section className="w-full rounded-2xl border border-[#DDE6F0] bg-white px-3 py-3 shadow-sm sm:px-5 md:px-6">
         <div className="flex flex-col gap-4 border-b border-[#E7EDF4] pb-4 lg:flex-row lg:items-center lg:justify-between">

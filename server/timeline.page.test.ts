@@ -37,6 +37,9 @@ describe("aba Timeline", () => {
     expect(timelineSource).not.toContain("overflow-x-auto");
     expect(timelineSource).not.toContain("min-w-[760px]");
     expect(timelineSource).toContain("overflow-x-hidden");
+    expect(timelineSource).toContain("min-w-0");
+    expect(timelineSource).toContain('"md:w-[calc(100%-80px)]"');
+    expect(timelineSource).toContain('"md:w-[calc(100%-200px)]"');
     expect(timelineSource).toContain("break-words");
   });
 
