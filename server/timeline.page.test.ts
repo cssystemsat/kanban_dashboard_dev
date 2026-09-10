@@ -43,6 +43,16 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("break-words");
   });
 
+  it("expõe refresh manual sem perder cliente ou filtro", () => {
+    expect(timelineSource).toContain('title="Atualizar dados da planilha"');
+    expect(timelineSource).toContain('"Atualizando..."');
+    expect(timelineSource).toContain("clearSheetsCache");
+    expect(timelineSource).toContain("await fetchData()");
+    expect(timelineSource).toContain("frictionQuery.refetch()");
+    expect(timelineSource).toContain("selectedClientId");
+    expect(timelineSource).toContain("selectedTag");
+  });
+
   it("usa os clientes reais de Marcos em uma lista suspensa", () => {
     expect(timelineSource).toContain("import { useKanbanData }");
     expect(timelineSource).toContain("const { data: clients");

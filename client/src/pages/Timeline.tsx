@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Milestone, UserRound } from "lucide-react";
+import { Loader2, Milestone, RefreshCw, UserRound } from "lucide-react";
 import { useKanbanData } from "@/hooks/useKanbanData";
 import { trpc } from "@/lib/trpc";
+import { clearSheetsCache } from "@/lib/sheetsCache";
 
 const FRICCOES_GID = 594161358;
 
@@ -138,6 +139,7 @@ export default function Timeline({
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const [openEventKey, setOpenEventKey] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     void fetchData();
@@ -151,6 +153,19 @@ export default function Timeline({
     { source: "primary", gid: FRICCOES_GID },
     { enabled: Boolean(selectedClient) }
   );
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setOpenEventKey(null);
+    clearSheetsCache();
+    try {
+      await fetchData();
+      if (selectedClient) await frictionQuery.refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const sortedClients = useMemo(
     () =>
@@ -223,7 +238,18 @@ export default function Timeline({
               </h1>
             </div>
           </div>
-          <div className="w-full lg:max-w-md">
+          <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto lg:flex-1 lg:justify-end">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Atualizar dados da planilha"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#CBD5E1] bg-white px-3 py-2.5 text-sm font-semibold text-[#102A72] transition hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              {isRefreshing ? "Atualizando..." : "Atualizar"}
+            </button>
+            <div className="w-full lg:max-w-md">
             <label htmlFor="timeline-client" className="sr-only">
               Cliente
             </label>
@@ -246,6 +272,7 @@ export default function Timeline({
                 </option>
               ))}
             </select>
+            </div>
           </div>
           <div className="w-full lg:max-w-xs">
             <label htmlFor="timeline-tag" className="sr-only">
