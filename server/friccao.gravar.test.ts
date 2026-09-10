@@ -51,6 +51,7 @@ describe("friccao.gravar", () => {
 
     const result = await caller.friccao.gravar({
       cliente: "SSX CENTRAL TESTE",
+      data: "2026-09-10",
       titulo: "Integração pendente",
       setor: "Suporte",
       tag: "Problema",
@@ -81,6 +82,7 @@ describe("friccao.gravar", () => {
     await expect(
       caller.friccao.gravar({
         cliente: "SSX CENTRAL TESTE",
+        data: "2026-09-10",
         titulo: "Título",
         setor: "Produto" as never,
         tag: "Problema",
@@ -95,6 +97,7 @@ describe("friccao.gravar", () => {
     await expect(
       caller.friccao.gravar({
         cliente: "SSX CENTRAL TESTE",
+        data: "2026-09-10",
         titulo: "Título",
         setor: "CSM",
         tag: "Operação",

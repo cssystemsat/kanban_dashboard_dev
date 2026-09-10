@@ -162,6 +162,9 @@ export const appRouter = router({
       .input(
         z.object({
           cliente: z.string().trim().min(1, "Nome da central é obrigatório."),
+          data: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, "Data do lançamento inválida."),
           titulo: z.string().trim().min(1, "Título é obrigatório.").max(300),
           setor: z.enum([
             "CSM",
@@ -201,11 +204,19 @@ export const appRouter = router({
               "Acesso negado. Você não tem permissão para registrar acontecimentos.",
           });
         }
-        const dataFormatada = new Date().toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
+        const [year, month, day] = input.data.split("-").map(Number);
+        const selectedDate = new Date(Date.UTC(year, month - 1, day));
+        if (
+          selectedDate.getUTCFullYear() !== year ||
+          selectedDate.getUTCMonth() !== month - 1 ||
+          selectedDate.getUTCDate() !== day
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Data do lançamento inválida.",
+          });
+        }
+        const dataFormatada = `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
         const result = await appendFriccao({
           central: input.cliente,
           data: dataFormatada,

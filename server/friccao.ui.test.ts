@@ -26,11 +26,16 @@ describe("interface de lançamento de acontecimento", () => {
   });
 
   it("mantém os campos e opções solicitados no modal", () => {
+    expect(modalSource).toContain("Nome da central");
+    expect(modalSource).toContain("Data do lançamento");
+    expect(modalSource).toContain('type="date"');
+    expect(modalSource).toContain("getTodayInputValue");
     expect(modalSource).toContain("Título");
     expect(modalSource).toContain("Setor do acontecimento");
     expect(modalSource).toContain("Tag");
     expect(modalSource).toContain("Registrar acontecimento");
     expect(modalSource).toContain("Descrição");
+    expect(modalSource).toContain('setor: "CSM"');
     expect(modalSource).toContain('"CSM"');
     expect(modalSource).toContain('"Treinamento"');
     expect(modalSource).toContain('"Financeiro"');

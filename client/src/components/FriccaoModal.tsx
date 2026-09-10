@@ -29,15 +29,25 @@ const TAGS = [
 type Tag = (typeof TAGS)[number];
 
 type FriccaoForm = {
+  data: string;
   titulo: string;
   setor: "" | Setor;
   tag: "" | Tag;
   descricao: string;
 };
 
+const getTodayInputValue = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const INITIAL_FORM: FriccaoForm = {
+  data: getTodayInputValue(),
   titulo: "",
-  setor: "",
+  setor: "CSM",
   tag: "",
   descricao: "",
 };
@@ -59,6 +69,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
 
   const handleSubmit = () => {
     if (
+      !form.data ||
       !form.titulo.trim() ||
       !form.setor ||
       !form.tag ||
@@ -69,6 +80,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
     }
     gravar.mutate({
       cliente: client.nome,
+      data: form.data,
       titulo: form.titulo.trim(),
       setor: form.setor as Setor,
       tag: form.tag as Tag,
@@ -145,6 +157,23 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
               <div className="rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-700">
                 {client.nome}
               </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                Data do lançamento <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={form.data}
+                onChange={event =>
+                  setForm(current => ({
+                    ...current,
+                    data: event.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:border-red-600"
+              />
             </div>
 
             <div>

@@ -228,3 +228,10 @@
 - [x] Adicionar um filtro por Tag dentro da Timeline.
 - [x] Recalcular cronologia, intervalos, curvas e estados vazios somente com os acontecimentos filtrados.
 - [x] Validar seleção, limpeza do filtro, responsividade, TypeScript, testes, build e salvar checkpoint.
+- [ ] Configurar o envio de e-mail somente para a Tag Problema ao destinatário agendamento.cs@systemsat.com.br.
+- [ ] Usar o assunto “Nome do cliente: Aviso de problema !!!” e incluir os detalhes do acontecimento no corpo.
+- [ ] Validar envio após gravação da planilha, falhas, testes, build e salvar checkpoint.
+- [ ] Configurar autorização de envio Gmail para agendamento.cs@systemsat.com.br como remetente.
+- [ ] Disparar o e-mail de Problema após a gravação do acontecimento e validar assunto, destinatário, falhas, testes, build e checkpoint.
+- [x] Adicionar Data do lançamento após o nome da central, preenchida com hoje e editável.
+- [x] Deixar o Setor do acontecimento pré-selecionado como CSM, preservando a coluna B e validar testes, build e checkpoint.
