@@ -245,3 +245,5 @@
 - [x] Validar reinício do servidor, HMR, TypeScript, testes, build e salvar checkpoint da correção.
 - [x] Garantir que a Timeline carregue clientes, usuários e acontecimentos diretamente da aba de acontecimentos do Google Sheets, sem dados fixos.
 - [x] Corrigir cache/refresh, validar alterações feitas na planilha para diferentes usuários, executar testes, build e salvar checkpoint.
+- [x] Garantir leitura sem cache da aba de acontecimentos e mapear explicitamente A Cliente, B Data, C Título, D Setor, E Tag, F Descrição e G CSM.
+- [x] Validar que edições na planilha aparecem após abrir e atualizar a Timeline, com testes, build e checkpoint.

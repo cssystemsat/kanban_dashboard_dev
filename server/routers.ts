@@ -109,6 +109,7 @@ export const appRouter = router({
         z.object({
           source: z.enum(["primary", "secondary"]),
           gid: z.number().int().nonnegative(),
+          refreshKey: z.string().optional(),
         })
       )
       .query(async ({ input }) => {

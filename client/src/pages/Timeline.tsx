@@ -152,13 +152,14 @@ export default function Timeline({
   const [selectedTag, setSelectedTag] = useState("");
   const [openEventKey, setOpenEventKey] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshNonce, setRefreshNonce] = useState(() => Date.now());
 
   const sidebarOffsetClass = sidebarExpanded ? "md:ml-[200px]" : "md:ml-20";
   const availableWidthClass = sidebarExpanded
     ? "md:w-[calc(100%-200px)]"
     : "md:w-[calc(100%-80px)]";
   const frictionQuery = trpc.sheets.csv.useQuery(
-    { source: "primary", gid: FRICCOES_GID },
+    { source: "primary", gid: FRICCOES_GID, refreshKey: String(refreshNonce) },
     {
       staleTime: 0,
       refetchOnMount: "always",
@@ -181,16 +182,18 @@ export default function Timeline({
     normalizeClientName(client) === normalizeClientName(selectedClientId)
   );
 
+  useEffect(() => {
+    if (isRefreshing && !frictionQuery.isFetching) {
+      setIsRefreshing(false);
+    }
+  }, [frictionQuery.isFetching, isRefreshing]);
+
   const handleRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     setOpenEventKey(null);
     clearSheetsCache();
-    try {
-      await frictionQuery.refetch();
-    } finally {
-      setIsRefreshing(false);
-    }
+    setRefreshNonce(Date.now());
   };
 
   const eventsByDay = useMemo(() => {

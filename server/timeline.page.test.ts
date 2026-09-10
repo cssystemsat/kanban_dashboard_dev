@@ -48,7 +48,7 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain('"Atualizando..."');
     expect(timelineSource).toContain("clearSheetsCache");
     expect(timelineSource).not.toContain("await fetchData()");
-    expect(timelineSource).toContain("frictionQuery.refetch()");
+    expect(timelineSource).toContain("setRefreshNonce(Date.now())");
     expect(timelineSource).toContain("selectedClientId");
     expect(timelineSource).toContain("selectedTag");
   });
