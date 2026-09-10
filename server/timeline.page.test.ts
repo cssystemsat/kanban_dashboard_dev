@@ -69,6 +69,8 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("FRICCOES_GID = 594161358");
     expect(timelineSource).toContain("trpc.sheets.csv.useQuery");
     expect(timelineSource).toContain("parseFriccaoEvents");
+    expect(timelineSource).toContain("normalizeClientName");
+    expect(timelineSource).toContain("replace(/\\s+/g, \" \")");
     expect(timelineSource).toContain("eventsByDay");
     expect(timelineSource).toContain("daysSincePrevious");
     expect(timelineSource).toContain("formatElapsedDays");

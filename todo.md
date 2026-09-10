@@ -239,3 +239,5 @@
 - [ ] Validar assunto, corpo, envio após gravação da planilha, tratamento de falhas, testes, build e checkpoint.
 - [x] Adicionar botão de refresh manual na Timeline para recarregar clientes e acontecimentos da planilha.
 - [x] Preservar cliente e filtro por Tag durante o refresh, mostrar carregamento e validar testes, build e checkpoint.
+- [x] Investigar por que o acontecimento do cliente JDF aparece para um usuário e não para outro na Timeline.
+- [x] Corrigir a causa, validar permissões, cache, refresh e filtros, com testes, build e checkpoint.

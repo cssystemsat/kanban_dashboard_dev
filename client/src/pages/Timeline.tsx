@@ -43,14 +43,24 @@ function parseCsvLine(line: string): string[] {
   return values;
 }
 
+function normalizeClientName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+
 function parseFriccaoEvents(csv: string, clientName: string): FriccaoEvent[] {
-  const normalizedClient = clientName.trim().toLocaleLowerCase("pt-BR");
+  const normalizedClient = normalizeClientName(clientName);
   return csv
     .split(/\r?\n/)
     .slice(1)
     .map(parseCsvLine)
     .filter(row => {
-      const central = row[0]?.trim().toLocaleLowerCase("pt-BR");
+      const central = normalizeClientName(row[0] ?? "");
       return Boolean(
         central && central === normalizedClient && row[1] && row[2]
       );
