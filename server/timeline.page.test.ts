@@ -49,6 +49,11 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("fetchData");
     expect(timelineSource).toContain("void fetchData()");
     expect(timelineSource).toContain('id="timeline-client"');
+    expect(timelineSource).toContain("selectedClientId");
+    expect(timelineSource).toContain("selectedTag");
+    expect(timelineSource).toContain('id="timeline-tag"');
+    expect(timelineSource).toContain("Todas as Tags");
+    expect(timelineSource).toContain("normalizeTag(event.tag)");
     expect(timelineSource).toContain("sortedClients.map(client =>");
     expect(timelineSource).toContain("Selecione um cliente...");
     expect(timelineSource).toContain("FRICCOES_GID = 594161358");

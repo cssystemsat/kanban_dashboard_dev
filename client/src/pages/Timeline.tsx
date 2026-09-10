@@ -93,12 +93,16 @@ const TAG_LEGEND = [
   { label: "Problema", color: "#991B1B" },
 ] as const;
 
-function getTagColor(tag: string): string {
-  const normalizedTag = tag
+function normalizeTag(tag: string): string {
+  return tag
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+}
+
+function getTagColor(tag: string): string {
+  const normalizedTag = normalizeTag(tag);
 
   switch (normalizedTag) {
     case "operacao":
@@ -132,6 +136,7 @@ export default function Timeline({
 }) {
   const { data: clients, loading, error, fetchData } = useKanbanData();
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedTag, setSelectedTag] = useState("");
   const [openEventKey, setOpenEventKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -163,6 +168,9 @@ export default function Timeline({
     const events = parseFriccaoEvents(
       frictionQuery.data.csv,
       selectedClient.nome
+    ).filter(
+      event =>
+        !selectedTag || normalizeTag(event.tag) === normalizeTag(selectedTag)
     );
     const grouped = new Map<string, FriccaoEvent[]>();
     for (const event of events) {
@@ -175,7 +183,7 @@ export default function Timeline({
       ([firstDate], [secondDate]) =>
         dateSortValue(firstDate) - dateSortValue(secondDate)
     );
-  }, [frictionQuery.data?.csv, selectedClient]);
+  }, [frictionQuery.data?.csv, selectedClient, selectedTag]);
 
   const eventRows = useMemo(() => {
     const orderedEvents = eventsByDay.flatMap(([date, events]) =>
@@ -235,6 +243,28 @@ export default function Timeline({
               {sortedClients.map(client => (
                 <option key={client.id} value={client.id}>
                   {client.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full lg:max-w-xs">
+            <label htmlFor="timeline-tag" className="sr-only">
+              Filtrar por Tag
+            </label>
+            <select
+              id="timeline-tag"
+              value={selectedTag}
+              onChange={event => {
+                setSelectedTag(event.target.value);
+                setOpenEventKey(null);
+              }}
+              disabled={!selectedClient || frictionQuery.isLoading}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none transition focus:border-[#102A72] focus:ring-2 focus:ring-[#102A72]/10 disabled:cursor-not-allowed disabled:bg-[#F3F4F6]"
+            >
+              <option value="">Todas as Tags</option>
+              {TAG_LEGEND.map(tag => (
+                <option key={tag.label} value={tag.label}>
+                  {tag.label}
                 </option>
               ))}
             </select>
@@ -302,7 +332,9 @@ export default function Timeline({
               !frictionQuery.error &&
               eventRows.length === 0 && (
                 <p className="rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 py-8 text-center text-sm text-[#6B7280]">
-                  Nenhum acontecimento registrado para este cliente.
+                  {selectedTag
+                    ? `Nenhum acontecimento com a Tag “${selectedTag}” para este cliente.`
+                    : "Nenhum acontecimento registrado para este cliente."}
                 </p>
               )}
             {!frictionQuery.isLoading &&

@@ -225,3 +225,6 @@
 - [x] Validar a legenda em desktop/mobile, TypeScript, testes, build e salvar checkpoint.
 - [x] Exibir os dias decorridos também nas curvas e conexões verticais da Timeline.
 - [x] Normalizar Tags existentes da planilha para as cores corretas e validar TypeScript, testes, build e checkpoint.
+- [x] Adicionar um filtro por Tag dentro da Timeline.
+- [x] Recalcular cronologia, intervalos, curvas e estados vazios somente com os acontecimentos filtrados.
+- [x] Validar seleção, limpeza do filtro, responsividade, TypeScript, testes, build e salvar checkpoint.
