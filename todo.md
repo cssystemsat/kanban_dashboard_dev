@@ -241,3 +241,5 @@
 - [x] Preservar cliente e filtro por Tag durante o refresh, mostrar carregamento e validar testes, build e checkpoint.
 - [x] Investigar por que o acontecimento do cliente JDF aparece para um usuário e não para outro na Timeline.
 - [x] Corrigir a causa, validar permissões, cache, refresh e filtros, com testes, build e checkpoint.
+- [x] Diagnosticar e corrigir a falha de conexão WebSocket HMR do Vite no preview.
+- [x] Validar reinício do servidor, HMR, TypeScript, testes, build e salvar checkpoint da correção.

@@ -175,6 +175,10 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    // O preview gerenciado publica HTTP por um proxy e não encaminha o
+    // WebSocket interno do Vite; sem isso o @vite/client tenta conectar em
+    // localhost:5173 e gera o erro "failed to connect to websocket".
+    hmr: false,
     host: true,
     allowedHosts: [
       ".manuspre.computer",
