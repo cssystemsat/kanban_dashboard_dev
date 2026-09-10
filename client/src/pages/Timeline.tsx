@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Milestone, RefreshCw, UserRound } from "lucide-react";
-import { useKanbanData } from "@/hooks/useKanbanData";
 import { trpc } from "@/lib/trpc";
 import { clearSheetsCache } from "@/lib/sheetsCache";
 
@@ -53,26 +52,30 @@ function normalizeClientName(value: string): string {
     .toLocaleLowerCase("pt-BR");
 }
 
-function parseFriccaoEvents(csv: string, clientName: string): FriccaoEvent[] {
-  const normalizedClient = normalizeClientName(clientName);
+function parseFriccaoRows(csv: string): Array<{ client: string; event: FriccaoEvent }> {
   return csv
     .split(/\r?\n/)
     .slice(1)
     .map(parseCsvLine)
-    .filter(row => {
-      const central = normalizeClientName(row[0] ?? "");
-      return Boolean(
-        central && central === normalizedClient && row[1] && row[2]
-      );
-    })
+    .filter(row => Boolean(row[0]?.trim() && row[1]?.trim() && row[2]?.trim()))
     .map(row => ({
-      date: row[1].trim(),
-      title: row[2].trim(),
-      sector: row[3]?.trim() || "Não informado",
-      tag: row[4]?.trim() || "Não informado",
-      description: row[5]?.trim() || "Não informado",
-      csm: row[6]?.trim() || "Não informado",
+      client: row[0].trim(),
+      event: {
+        date: row[1].trim(),
+        title: row[2].trim(),
+        sector: row[3]?.trim() || "Não informado",
+        tag: row[4]?.trim() || "Não informado",
+        description: row[5]?.trim() || "Não informado",
+        csm: row[6]?.trim() || "Não informado",
+      },
     }));
+}
+
+function parseFriccaoEvents(csv: string, clientName: string): FriccaoEvent[] {
+  const normalizedClient = normalizeClientName(clientName);
+  return parseFriccaoRows(csv)
+    .filter(row => normalizeClientName(row.client) === normalizedClient)
+    .map(row => row.event);
 }
 
 function dateSortValue(date: string): number {
@@ -145,23 +148,37 @@ export default function Timeline({
 }: {
   sidebarExpanded?: boolean;
 }) {
-  const { data: clients, loading, error, fetchData } = useKanbanData();
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const [openEventKey, setOpenEventKey] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
   const sidebarOffsetClass = sidebarExpanded ? "md:ml-[200px]" : "md:ml-20";
   const availableWidthClass = sidebarExpanded
     ? "md:w-[calc(100%-200px)]"
     : "md:w-[calc(100%-80px)]";
-  const selectedClient = clients.find(client => client.id === selectedClientId);
   const frictionQuery = trpc.sheets.csv.useQuery(
     { source: "primary", gid: FRICCOES_GID },
-    { enabled: Boolean(selectedClient) }
+    {
+      staleTime: 0,
+      refetchOnMount: "always",
+      refetchOnWindowFocus: true,
+    }
+  );
+  const timelineClients = useMemo(() => {
+    const csv = frictionQuery.data?.csv;
+    if (!csv) return [];
+    const clientsByKey = new Map<string, string>();
+    for (const row of parseFriccaoRows(csv)) {
+      const key = normalizeClientName(row.client);
+      if (!clientsByKey.has(key)) clientsByKey.set(key, row.client);
+    }
+    return [...clientsByKey.values()].sort((first, second) =>
+      first.localeCompare(second, "pt-BR", { sensitivity: "base" })
+    );
+  }, [frictionQuery.data?.csv]);
+  const selectedClient = timelineClients.find(client =>
+    normalizeClientName(client) === normalizeClientName(selectedClientId)
   );
 
   const handleRefresh = async () => {
@@ -170,29 +187,18 @@ export default function Timeline({
     setOpenEventKey(null);
     clearSheetsCache();
     try {
-      await fetchData();
-      if (selectedClient) await frictionQuery.refetch();
+      await frictionQuery.refetch();
     } finally {
       setIsRefreshing(false);
     }
   };
-
-  const sortedClients = useMemo(
-    () =>
-      [...clients].sort((first, second) =>
-        first.nome.localeCompare(second.nome, "pt-BR", {
-          sensitivity: "base",
-        })
-      ),
-    [clients]
-  );
 
   const eventsByDay = useMemo(() => {
     if (!selectedClient || !frictionQuery.data?.csv) return [];
 
     const events = parseFriccaoEvents(
       frictionQuery.data.csv,
-      selectedClient.nome
+      selectedClient
     ).filter(
       event =>
         !selectedTag || normalizeTag(event.tag) === normalizeTag(selectedTag)
@@ -270,15 +276,15 @@ export default function Timeline({
                 setSelectedClientId(event.target.value);
                 setOpenEventKey(null);
               }}
-              disabled={loading || !!error}
+              disabled={frictionQuery.isLoading || !!frictionQuery.error}
               className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none transition focus:border-[#102A72] focus:ring-2 focus:ring-[#102A72]/10 disabled:cursor-not-allowed disabled:bg-[#F3F4F6]"
             >
               <option value="">
-                {loading ? "Carregando clientes..." : "Selecione um cliente..."}
+                {frictionQuery.isLoading ? "Carregando clientes..." : "Selecione um cliente..."}
               </option>
-              {sortedClients.map(client => (
-                <option key={client.id} value={client.id}>
-                  {client.nome}
+              {timelineClients.map(client => (
+                <option key={normalizeClientName(client)} value={client}>
+                  {client}
                 </option>
               ))}
             </select>
@@ -295,7 +301,7 @@ export default function Timeline({
                 setSelectedTag(event.target.value);
                 setOpenEventKey(null);
               }}
-              disabled={!selectedClient || frictionQuery.isLoading}
+              disabled={!selectedClient || frictionQuery.isLoading || !!frictionQuery.error}
               className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none transition focus:border-[#102A72] focus:ring-2 focus:ring-[#102A72]/10 disabled:cursor-not-allowed disabled:bg-[#F3F4F6]"
             >
               <option value="">Todas as Tags</option>
@@ -327,14 +333,14 @@ export default function Timeline({
           ))}
         </div>
 
-        {error && (
+        {frictionQuery.error && (
           <p className="mt-3 text-sm text-red-600">
-            Não foi possível carregar os clientes da aba Marcos.
+            Não foi possível carregar os clientes da aba de acontecimentos.
           </p>
         )}
-        {!loading && !error && sortedClients.length === 0 && (
+        {!frictionQuery.isLoading && !frictionQuery.error && timelineClients.length === 0 && (
           <p className="mt-3 text-sm text-[#6B7280]">
-            Nenhum cliente disponível na aba Marcos.
+            Nenhum cliente com acontecimento disponível na planilha.
           </p>
         )}
 

@@ -243,3 +243,5 @@
 - [x] Corrigir a causa, validar permissões, cache, refresh e filtros, com testes, build e checkpoint.
 - [x] Diagnosticar e corrigir a falha de conexão WebSocket HMR do Vite no preview.
 - [x] Validar reinício do servidor, HMR, TypeScript, testes, build e salvar checkpoint da correção.
+- [x] Garantir que a Timeline carregue clientes, usuários e acontecimentos diretamente da aba de acontecimentos do Google Sheets, sem dados fixos.
+- [x] Corrigir cache/refresh, validar alterações feitas na planilha para diferentes usuários, executar testes, build e salvar checkpoint.

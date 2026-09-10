@@ -47,24 +47,25 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain('title="Atualizar dados da planilha"');
     expect(timelineSource).toContain('"Atualizando..."');
     expect(timelineSource).toContain("clearSheetsCache");
-    expect(timelineSource).toContain("await fetchData()");
+    expect(timelineSource).not.toContain("await fetchData()");
     expect(timelineSource).toContain("frictionQuery.refetch()");
     expect(timelineSource).toContain("selectedClientId");
     expect(timelineSource).toContain("selectedTag");
   });
 
-  it("usa os clientes reais de Marcos em uma lista suspensa", () => {
-    expect(timelineSource).toContain("import { useKanbanData }");
-    expect(timelineSource).toContain("const { data: clients");
-    expect(timelineSource).toContain("fetchData");
-    expect(timelineSource).toContain("void fetchData()");
+  it("usa a aba de acontecimentos como fonte dinâmica de clientes e eventos", () => {
+    expect(timelineSource).not.toContain("useKanbanData");
+    expect(timelineSource).toContain("const timelineClients");
+    expect(timelineSource).toContain("parseFriccaoRows");
+    expect(timelineSource).toContain("refetchOnMount: \"always\"");
+    expect(timelineSource).toContain("staleTime: 0");
     expect(timelineSource).toContain('id="timeline-client"');
     expect(timelineSource).toContain("selectedClientId");
     expect(timelineSource).toContain("selectedTag");
     expect(timelineSource).toContain('id="timeline-tag"');
     expect(timelineSource).toContain("Todas as Tags");
     expect(timelineSource).toContain("normalizeTag(event.tag)");
-    expect(timelineSource).toContain("sortedClients.map(client =>");
+    expect(timelineSource).toContain("timelineClients.map(client =>");
     expect(timelineSource).toContain("Selecione um cliente...");
     expect(timelineSource).toContain("FRICCOES_GID = 594161358");
     expect(timelineSource).toContain("trpc.sheets.csv.useQuery");
