@@ -20,6 +20,7 @@ import Timeline from "./pages/Timeline";
 import ChecklistPanel from "./components/ChecklistPanel";
 import { DailyLossesAlert } from "./components/DailyLossesAlert";
 import ErrorBoundary from "./components/ErrorBoundary";
+import VersionUpdatePrompt from "./components/VersionUpdatePrompt";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "./const";
@@ -298,6 +299,7 @@ function AppInner() {
     <>
       <Toaster />
       <DailyLossesAlert />
+      <VersionUpdatePrompt />
       <SideMenu
         currentPage={currentPage}
         onPageChange={handlePageChange}

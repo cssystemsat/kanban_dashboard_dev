@@ -256,3 +256,5 @@
 - [x] Explicar na interface como cada sinal influencia a pontuação e validar testes, build e checkpoint.
 - [x] Otimizar o modal de cliente crítico para respeitar zoom, altura da viewport e rolagem interna.
 - [x] Unificar as seções duplicadas de explicação dos sinais e validar responsividade, testes, build e checkpoint.
+- [x] Detectar quando uma nova versão publicada do painel estiver disponível para os usuários.
+- [x] Exibir pop-up acessível solicitando atualização, com atualizar agora e dispensar temporariamente, e validar testes, build e checkpoint.
