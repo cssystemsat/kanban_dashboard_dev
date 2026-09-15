@@ -258,3 +258,4 @@
 - [x] Unificar as seções duplicadas de explicação dos sinais e validar responsividade, testes, build e checkpoint.
 - [x] Detectar quando uma nova versão publicada do painel estiver disponível para os usuários.
 - [x] Exibir pop-up acessível solicitando atualização, com atualizar agora e dispensar temporariamente, e validar testes, build e checkpoint.
+- [x] Manter a lista de Insights aberta ao fechar o modal de detalhes do cliente crítico e validar o fluxo completo.

@@ -1055,7 +1055,10 @@ export default function Home() {
       {selectedCriticalInsight && (
         <div
           className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/45 p-3 sm:items-center sm:p-4"
-          onClick={() => setSelectedCriticalInsight(null)}
+          onClick={() => {
+            setSelectedCriticalInsight(null);
+            setCriticalInsightsOpen(true);
+          }}
         >
           <div
             className="my-auto flex w-full max-w-lg max-h-[calc(100dvh-1.5rem)] flex-col overflow-y-auto overscroll-contain rounded-xl bg-white p-4 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:p-5"
@@ -1073,7 +1076,10 @@ export default function Home() {
               <button
                 type="button"
                 aria-label="Fechar explicação"
-                onClick={() => setSelectedCriticalInsight(null)}
+                onClick={() => {
+                  setSelectedCriticalInsight(null);
+                  setCriticalInsightsOpen(true);
+                }}
                 className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
                 <X className="h-5 w-5" />
