@@ -1,12 +1,9 @@
 {
-  "appVersion": "6.2",
+  "appVersion": "6.3",
   "changes": [
-    "A pontuação dos clientes agora começa em 100 e perde pontos conforme as criticidades identificadas nos dados.",
-    "A pontuação pode ficar negativa quando os descontos ultrapassarem os 100 pontos iniciais.",
-    "O Gerar Insights continua mostrando somente os 30 clientes com menor pontuação, ou seja, os mais críticos.",
-    "O ranking e os detalhes de Insights não exibem mais o sufixo /100.",
-    "O modal de Insights passou a mostrar todas as regras configuradas e os respectivos descontos.",
-    "Os cards exibem somente a pontuação com cores por faixa: vermelho abaixo de 40, amarelo de 40 a 80 e verde acima de 80.",
-    "O menu lateral exibe a versão atual abaixo do nome do usuário e o painel informa novas publicações."
+    "Ao clicar exatamente na nota do cliente no card, agora abre um pop-up compacto com os motivos e descontos daquela pontuação.",
+    "O pop-up da nota mostra somente os sinais aplicados ao cliente selecionado e pode ser fechado pelo botão X.",
+    "A pontuação dos clientes continua dinâmica, podendo ficar negativa quando os descontos ultrapassam os 100 pontos iniciais.",
+    "O Gerar Insights continua exibindo somente os 30 clientes mais críticos, ordenados pela menor pontuação."
   ]
 }

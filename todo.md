@@ -272,3 +272,5 @@
 - [x] Validar as faixas nos cards, responsividade, testes, build e checkpoint.
 - [x] Configurar a próxima publicação como versão 6.2 nos controles semântico e público.
 - [x] Registrar no pop-up da 6.2 as mudanças recentes da pontuação e validar testes, build e checkpoint.
+- [x] Tornar a nota do card clicável e abrir um pop-up pequeno com os motivos e descontos da pontuação do cliente.
+- [x] Configurar a próxima publicação como 6.3, registrar a novidade e validar interação, testes, build e checkpoint.

@@ -49,6 +49,7 @@ export default function ClientCard({
   onFriccao,
 }: ClientCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showScoreReasons, setShowScoreReasons] = useState(false);
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -58,7 +59,8 @@ export default function ClientCard({
 
   const flagColor = getFlagColor(client.flag);
   const hasFlag = !!flagColor;
-  const { score: criticalityScore } = calculateClientCriticality(client);
+  const { score: criticalityScore, signals: criticalitySignals } =
+    calculateClientCriticality(client);
 
   // Verificar se cliente tem >60 dias e <30 placas
   const diasCorridos = parseInt(String(client.diasCorridos || 0));
@@ -101,8 +103,9 @@ export default function ClientCard({
 
           {/* Pontuação e ganho/perda de URs — canto superior direito */}
           <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-            <span
-              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
+            <button
+              type="button"
+              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400"
               style={{
                 backgroundColor:
                   criticalityScore < 40
@@ -117,10 +120,15 @@ export default function ClientCard({
                       ? "#92400E"
                       : "#166534",
               }}
-              title="Pontuação atual de saúde do cliente"
+              title="Ver motivos da pontuação"
+              aria-label={`Ver motivos da pontuação ${criticalityScore}`}
+              onClick={event => {
+                event.stopPropagation();
+                setShowScoreReasons(value => !value);
+              }}
             >
               {criticalityScore}
-            </span>
+            </button>
             {(client.ganhoUrs || client.perdaUrs) && (
               <div className="flex flex-col items-end gap-0.5">
                 {client.ganhoUrs && (
@@ -358,6 +366,47 @@ export default function ClientCard({
             <Flag className="w-4 h-4 fill-current" />
           </button>
         </div>
+        {showScoreReasons && (
+          <div
+            className="absolute right-0 top-8 z-50 w-56 rounded-lg border border-slate-200 bg-white p-3 text-left text-xs shadow-xl"
+            role="dialog"
+            aria-label={`Motivos da pontuação de ${client.nome}`}
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <span className="font-semibold text-slate-800">
+                Motivos da nota
+              </span>
+              <button
+                type="button"
+                className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Fechar motivos da nota"
+                onClick={() => setShowScoreReasons(false)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {criticalitySignals.length > 0 ? (
+              <div className="space-y-1.5">
+                {criticalitySignals.map(signal => (
+                  <div
+                    key={`${signal.label}-${signal.points}`}
+                    className="flex items-start justify-between gap-2"
+                  >
+                    <span className="min-w-0 text-slate-600">
+                      {signal.label}
+                    </span>
+                    <strong className="shrink-0 text-red-700">
+                      -{signal.points}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500">Nenhum desconto identificado.</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tooltip desabilitado */}

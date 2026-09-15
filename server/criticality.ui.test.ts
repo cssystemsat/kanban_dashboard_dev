@@ -14,6 +14,9 @@ describe("criticality score UI contract", () => {
 
     expect(clientCard).toContain("{criticalityScore}");
     expect(clientCard).not.toContain("{criticalityScore}/100");
+    expect(clientCard).toContain("Ver motivos da pontuação");
+    expect(clientCard).toContain("Motivos da nota");
+    expect(clientCard).toContain("criticalitySignals.map");
     expect(home).toContain(".sort((a, b) => a.score - b.score)");
     expect(home).toContain(".slice(0, 30)");
     expect(home).toContain("pontuação restante");
