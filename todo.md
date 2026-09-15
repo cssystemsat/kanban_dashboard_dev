@@ -250,3 +250,5 @@
 - [x] Adicionar botão Gerar Insights na aba Marcos para analisar os clientes críticos.
 - [x] Ranquear os 10 clientes mais críticos com sinais reais da planilha e abrir explicação detalhada ao clicar.
 - [x] Validar desempenho, estados vazios, permissões, testes, build e salvar checkpoint do recurso.
+- [x] Compactar o cabeçalho da aba Marcos e aproximar os filtros para caberem em uma única linha alinhada.
+- [x] Validar o alinhamento no desktop e a responsividade em telas menores, preservando botões e filtros existentes.

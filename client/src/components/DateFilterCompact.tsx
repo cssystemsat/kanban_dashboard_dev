@@ -3,10 +3,12 @@ import { useState } from "react";
 
 interface DateFilterCompactProps {
   onDateChange: (startDate: Date | null, endDate: Date | null) => void;
+  compact?: boolean;
 }
 
 export default function DateFilterCompact({
   onDateChange,
+  compact = false,
 }: DateFilterCompactProps) {
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [showCustom, setShowCustom] = useState(false);
@@ -89,15 +91,17 @@ export default function DateFilterCompact({
       {/* Botão Principal */}
       <button
         onClick={() => setShowCustom(!showCustom)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold transition-all ${
+        className={`flex items-center justify-center gap-1 rounded-md font-semibold transition-all whitespace-nowrap ${
+          compact ? "h-7 min-w-[76px] px-2 text-xs" : "gap-2 px-3 py-2 text-sm"
+        } ${
           activePreset || startDate || endDate
             ? "bg-blue-600 hover:bg-blue-700 text-white"
             : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
         }`}
       >
-        <Calendar className="w-4 h-4" />
+        <Calendar className={compact ? "w-3 h-3" : "w-4 h-4"} />
         {getPresetLabel()}
-        <ChevronDown className="w-4 h-4" />
+        <ChevronDown className={compact ? "w-3 h-3" : "w-4 h-4"} />
       </button>
 
       {/* Menu Dropdown */}

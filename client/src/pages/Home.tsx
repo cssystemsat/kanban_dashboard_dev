@@ -466,21 +466,22 @@ export default function Home() {
         className="sticky top-0 z-40 border-b"
         style={{ backgroundColor: "#001F3F", borderColor: "#1a3a5c" }}
       >
-        <div className="px-4 py-2.5">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold text-white leading-none whitespace-nowrap">
+        <div className="overflow-x-auto px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max items-center gap-2">
+            <h1 className="text-base font-bold leading-none text-white whitespace-nowrap">
               Dashboard do CS
             </h1>
 
             {/* Filtros na mesma linha */}
-            <div className="flex flex-wrap items-center gap-2 flex-1">
+            <div className="flex min-w-max flex-nowrap items-center gap-1.5">
               <input
                 type="text"
                 placeholder="Buscar cliente..."
                 value={searchCliente}
                 onChange={e => setSearchCliente(e.target.value)}
                 className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                style={{ width: "130px" }}
+                title="Buscar cliente"
+                style={{ width: "112px" }}
               />
 
               <select
@@ -525,10 +526,12 @@ export default function Home() {
                   )
                 }
                 className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                style={{ width: "100px" }}
+                title="Percentual desatualizado mínimo"
+                style={{ width: "84px" }}
               />
 
               <DateFilterCompact
+                compact
                 onDateChange={(start, end) => {
                   setDateFilterStart(start);
                   setDateFilterEnd(end);
@@ -541,13 +544,14 @@ export default function Home() {
                 value={diferencaMaxInput}
                 onChange={e => setDiferencaMaxInput(e.target.value)}
                 className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border focus:outline-none focus:ring-1 focus:ring-red-300"
-                style={{ borderColor: "#FCA5A5", width: "95px" }}
+                title="Diferença boleto x consumo máxima"
+                style={{ borderColor: "#FCA5A5", width: "80px" }}
                 min="0"
               />
 
-              <div className="flex items-center gap-1">
-                <label className="text-xs text-white font-medium whitespace-nowrap">
-                  Top Boletos:
+              <div className="flex items-center gap-0.5 whitespace-nowrap">
+                <label className="text-[10px] text-white font-medium">
+                  Top B
                 </label>
                 <input
                   type="number"
@@ -556,14 +560,14 @@ export default function Home() {
                     setTopBoleto(Math.max(0, parseInt(e.target.value) || 0))
                   }
                   className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                  style={{ width: "60px" }}
+                  style={{ width: "42px" }}
                   min="0"
                 />
               </div>
 
-              <div className="flex items-center gap-1">
-                <label className="text-xs text-white font-medium whitespace-nowrap">
-                  Top Volume:
+              <div className="flex items-center gap-0.5 whitespace-nowrap">
+                <label className="text-[10px] text-white font-medium">
+                  Top V
                 </label>
                 <input
                   type="number"
@@ -571,36 +575,36 @@ export default function Home() {
                   onChange={e =>
                     setTopVolume(Math.max(0, parseInt(e.target.value) || 0))
                   }
-                  className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                  style={{ width: "60px" }}
+                  className="h-7 w-[42px] rounded px-1 text-[11px] text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  title="Quantidade de maior volume"
                   min="0"
                 />
               </div>
 
               {/* Filtro de Tendência */}
-              <div className="flex items-end gap-1">
-                <div className="flex flex-col gap-0.5">
-                  <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                    Tend De
+              <div className="flex items-center gap-1 whitespace-nowrap">
+                <div className="flex items-center gap-0.5">
+                  <label className="text-[9px] font-semibold text-gray-300">
+                    De
                   </label>
                   <input
                     type="date"
                     value={marcosTrendStartDate}
                     onChange={e => setMarcosTrendStartDate(e.target.value)}
                     className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                    style={{ width: "110px" }}
+                    style={{ width: "88px" }}
                   />
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                    Tend Até
+                <div className="flex items-center gap-0.5">
+                  <label className="text-[9px] font-semibold text-gray-300">
+                    Até
                   </label>
                   <input
                     type="date"
                     value={marcosTrendEndDate}
                     onChange={e => setMarcosTrendEndDate(e.target.value)}
                     className="h-7 px-2 rounded text-xs text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                    style={{ width: "110px" }}
+                    style={{ width: "88px" }}
                   />
                 </div>
                 <button
@@ -608,37 +612,39 @@ export default function Home() {
                     setMarcosTrendStartDate("");
                     setMarcosTrendEndDate("");
                   }}
-                  className="h-7 px-2 rounded text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+                  className="h-7 rounded px-1.5 text-[10px] font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
                 >
                   Limpar
                 </button>
               </div>
             </div>
 
-            <Button
-              onClick={fetchData}
-              disabled={loading}
-              size="sm"
-              className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap h-7 text-xs"
-            >
-              <RotateCw
-                className={`w-3 h-3 ${loading ? "animate-spin" : ""}`}
-              />
-              {loading ? "Atualizando..." : "Atualizar"}
-            </Button>
-            <Button
-              onClick={handleGenerateInsights}
-              disabled={loading || generateInsightsMutation.isPending}
-              size="sm"
-              className="gap-1.5 text-white bg-violet-600 hover:bg-violet-700 border border-violet-500 whitespace-nowrap h-7 text-xs"
-            >
-              <Sparkles
-                className={`w-3 h-3 ${generateInsightsMutation.isPending ? "animate-pulse" : ""}`}
-              />
-              {generateInsightsMutation.isPending
-                ? "Analisando..."
-                : "Gerar Insights"}
-            </Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                onClick={fetchData}
+                disabled={loading}
+                size="sm"
+                className="gap-1.5 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 whitespace-nowrap h-7 text-xs"
+              >
+                <RotateCw
+                  className={`w-3 h-3 ${loading ? "animate-spin" : ""}`}
+                />
+                {loading ? "Atualizando..." : "Atualizar"}
+              </Button>
+              <Button
+                onClick={handleGenerateInsights}
+                disabled={loading || generateInsightsMutation.isPending}
+                size="sm"
+                className="gap-1.5 text-white bg-violet-600 hover:bg-violet-700 border border-violet-500 whitespace-nowrap h-7 text-xs"
+              >
+                <Sparkles
+                  className={`w-3 h-3 ${generateInsightsMutation.isPending ? "animate-pulse" : ""}`}
+                />
+                {generateInsightsMutation.isPending
+                  ? "Analisando..."
+                  : "Gerar Insights"}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
