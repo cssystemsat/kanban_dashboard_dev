@@ -17,5 +17,10 @@ describe("criticality score UI contract", () => {
     expect(home).toContain(".sort((a, b) => a.score - b.score)");
     expect(home).toContain(".slice(0, 30)");
     expect(home).toContain("pontuação restante");
+    expect(home).toContain("o score fica negativo");
+    expect(home).toContain("Delta boleto x consumo negativo");
+    expect(home).toContain("Veículos desatualizados");
+    expect(home).toContain("Implantação com mais de 180 dias");
+    expect(home).not.toContain("{insight.score}/100");
   });
 });

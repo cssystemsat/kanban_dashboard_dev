@@ -927,30 +927,35 @@ export default function Home() {
                 </p>
                 <p className="mb-2 leading-relaxed">
                   Todo cliente começa com 100 pontos. Os sinais objetivos
-                  encontrados na planilha geram descontos; quanto menor a
-                  pontuação restante, maior a criticidade e a prioridade no
-                  ranking. A lista abaixo mostra os 30 menores scores.
+                  encontrados na planilha geram descontos; se os descontos
+                  ultrapassarem 100, o score fica negativo. Quanto menor a
+                  pontuação restante, maior a criticidade. A lista abaixo mostra
+                  os 30 menores scores.
                 </p>
                 <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
                   <span>
-                    <strong>-35</strong> marco atrasado; <strong>-10</strong>{" "}
-                    marco pendente.
+                    <strong>-35</strong> se o marco estiver atrasado;
+                    <strong>-10</strong> se estiver pendente.
                   </span>
                   <span>
-                    <strong>-5 a -30</strong> diferença boleto x consumo
-                    negativa.
+                    Delta boleto x consumo negativo: desconto proporcional de 5
+                    a 30 pontos, limitado a 30.
                   </span>
                   <span>
-                    <strong>até -20</strong> veículos desatualizados.
+                    Veículos desatualizados: 0,2 ponto por percentual, limitado
+                    a 20 pontos.
                   </span>
                   <span>
-                    <strong>-8 ou -15</strong> sem contato há 14 ou 30+ dias.
+                    Sem contato: <strong>-8</strong> com 14–29 dias ou
+                    <strong>-15</strong> com 30 dias ou mais.
                   </span>
                   <span>
-                    <strong>-10 a -20</strong> Red, Yellow ou Black Flag.
+                    Flags: <strong>-20</strong> Red, <strong>-10</strong> Yellow
+                    ou <strong>-18</strong> Black.
                   </span>
                   <span>
-                    <strong>-10</strong> implantação prolongada sem conclusão.
+                    Implantação com mais de 180 dias sem conclusão:{" "}
+                    <strong>-10</strong>.
                   </span>
                 </div>
               </div>
@@ -986,7 +991,7 @@ export default function Home() {
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-red-700">
-                      {insight.score}/100 <ChevronRight className="h-4 w-4" />
+                      {insight.score} <ChevronRight className="h-4 w-4" />
                     </span>
                   </button>
                 ))
@@ -1012,7 +1017,7 @@ export default function Home() {
             <div className="flex items-start justify-between gap-4 border-b pb-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">
-                  Cliente crítico • {selectedCriticalInsight.score}/100 pontos
+                  Cliente crítico • {selectedCriticalInsight.score} pontos
                   restantes
                 </p>
                 <h2 className="mt-1 text-xl font-bold text-slate-900">

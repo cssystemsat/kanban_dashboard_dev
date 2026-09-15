@@ -75,7 +75,7 @@ export function calculateClientCriticality(
   }
 
   return {
-    score: Math.max(0, Math.round((100 - penalty) * 10) / 10),
+    score: Math.round((100 - penalty) * 10) / 10,
     signals,
   };
 }

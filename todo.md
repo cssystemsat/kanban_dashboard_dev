@@ -270,3 +270,5 @@
 - [x] Atualizar explicações, testes, responsividade, build e checkpoint do novo modelo de pontuação.
 - [x] Exibir somente o número da pontuação nos cards e aplicar vermelho abaixo de 40, amarelo de 40 a 80 e verde acima de 80.
 - [x] Validar as faixas nos cards, responsividade, testes, build e checkpoint.
+- [x] Configurar a próxima publicação como versão 6.2 nos controles semântico e público.
+- [x] Registrar no pop-up da 6.2 as mudanças recentes da pontuação e validar testes, build e checkpoint.

@@ -47,7 +47,7 @@ describe("client criticality score", () => {
     ]);
   });
 
-  it("never goes below zero", () => {
+  it("can become negative when penalties exceed the initial 100 points", () => {
     const result = calculateClientCriticality(
       makeClient({
         marcoStatus: "atrasado",
@@ -60,6 +60,6 @@ describe("client criticality score", () => {
       })
     );
 
-    expect(result.score).toBe(0);
+    expect(result.score).toBe(-28);
   });
 });
