@@ -254,3 +254,5 @@
 - [x] Validar o alinhamento no desktop e a responsividade em telas menores, preservando botões e filtros existentes.
 - [x] Ampliar o Gerar Insights para analisar e ranquear os 30 clientes mais críticos.
 - [x] Explicar na interface como cada sinal influencia a pontuação e validar testes, build e checkpoint.
+- [x] Otimizar o modal de cliente crítico para respeitar zoom, altura da viewport e rolagem interna.
+- [x] Unificar as seções duplicadas de explicação dos sinais e validar responsividade, testes, build e checkpoint.

@@ -1054,11 +1054,11 @@ export default function Home() {
       {/* Modal de explicação de criticidade */}
       {selectedCriticalInsight && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4"
+          className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/45 p-3 sm:items-center sm:p-4"
           onClick={() => setSelectedCriticalInsight(null)}
         >
           <div
-            className="w-full max-w-lg rounded-xl bg-white p-5 shadow-2xl"
+            className="my-auto flex w-full max-w-lg max-h-[calc(100dvh-1.5rem)] flex-col overflow-y-auto overscroll-contain rounded-xl bg-white p-4 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:p-5"
             onClick={event => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 border-b pb-4">
@@ -1088,43 +1088,41 @@ export default function Home() {
                 <h3 className="mb-2 font-semibold text-slate-900">
                   Por que está crítico
                 </h3>
-                <ul className="space-y-2 text-slate-700">
-                  {(selectedCriticalInsight.motivos.length > 0
-                    ? selectedCriticalInsight.motivos
-                    : selectedCriticalInsight.signals.map(
-                        signal =>
-                          `${signal.label}: ${signal.value}${signal.points ? ` (+${signal.points} pts)` : ""}`
-                      )
-                  ).map((reason, index) => (
-                    <li
-                      key={`${reason}-${index}`}
-                      className="rounded-md bg-slate-50 p-2"
-                    >
-                      {reason}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="mb-2 font-semibold text-slate-900">
-                  Sinais que formaram a pontuação
-                </h3>
+                <p className="mb-2 text-xs text-slate-500">
+                  Estes são os sinais objetivos que formaram a pontuação deste
+                  cliente.
+                </p>
                 <div className="mb-4 space-y-2">
-                  {selectedCriticalInsight.signals.map(signal => (
-                    <div
-                      key={`${signal.label}-${signal.value}`}
-                      className="flex items-start justify-between gap-3 rounded-md bg-slate-50 p-2 text-slate-700"
-                    >
-                      <span>
-                        <strong>{signal.label}:</strong> {signal.value}
-                      </span>
-                      {signal.points ? (
-                        <span className="shrink-0 font-semibold text-red-700">
-                          +{signal.points} pts
+                  {selectedCriticalInsight.signals.length > 0 ? (
+                    selectedCriticalInsight.signals.map(signal => (
+                      <div
+                        key={`${signal.label}-${signal.value}`}
+                        className="flex items-start justify-between gap-3 rounded-md bg-slate-50 p-2 text-slate-700"
+                      >
+                        <span>
+                          <strong>{signal.label}:</strong> {signal.value}
                         </span>
-                      ) : null}
-                    </div>
-                  ))}
+                        {signal.points ? (
+                          <span className="shrink-0 font-semibold text-red-700">
+                            +{signal.points} pts
+                          </span>
+                        ) : null}
+                      </div>
+                    ))
+                  ) : selectedCriticalInsight.motivos.length > 0 ? (
+                    selectedCriticalInsight.motivos.map((reason, index) => (
+                      <div
+                        key={`${reason}-${index}`}
+                        className="rounded-md bg-slate-50 p-2 text-slate-700"
+                      >
+                        {reason}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-md bg-slate-50 p-2 text-slate-600">
+                      Nenhum sinal detalhado foi retornado.
+                    </p>
+                  )}
                 </div>
                 <h3 className="mb-2 font-semibold text-slate-900">
                   Próxima ação sugerida
