@@ -1,3 +1,9 @@
 {
-  "appVersion": "6.1"
+  "appVersion": "6.1",
+  "changes": [
+    "O painel agora informa quando uma nova publicação está disponível.",
+    "O menu lateral exibe a versão atual abaixo do nome do usuário.",
+    "O Gerar Insights analisa até 30 clientes críticos e detalha os sinais da pontuação.",
+    "Ao fechar o detalhe de um cliente crítico, a lista de Insights permanece disponível."
+  ]
 }

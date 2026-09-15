@@ -15,8 +15,12 @@ describe("version update prompt", () => {
         resolve(process.cwd(), "client/public/app-version.json"),
         "utf8"
       )
-    ) as { appVersion?: string };
+    ) as { appVersion?: string; changes?: string[] };
     expect(published.appVersion).toBe(APP_VERSION);
+    expect(published.changes?.length).toBeGreaterThan(0);
+    expect(published.changes?.every(change => change.trim().length > 0)).toBe(
+      true
+    );
   });
   it("não mostra o aviso na primeira leitura da versão atual", () => {
     expect(

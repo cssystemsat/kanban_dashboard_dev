@@ -9,9 +9,15 @@ const DISMISS_DURATION_MS = 10 * 60_000;
 
 type VersionPayload = {
   appVersion?: string;
+  changes?: string[];
 };
 
-async function fetchPublishedVersion(): Promise<string | null> {
+type PublishedRelease = {
+  version: string;
+  changes: string[];
+};
+
+async function fetchPublishedVersion(): Promise<PublishedRelease | null> {
   const response = await fetch(`${VERSION_ENDPOINT}?t=${Date.now()}`, {
     cache: "no-store",
     headers: { "Cache-Control": "no-cache" },
@@ -19,14 +25,25 @@ async function fetchPublishedVersion(): Promise<string | null> {
   if (!response.ok) return null;
 
   const payload = (await response.json()) as VersionPayload;
-  return typeof payload.appVersion === "string" && payload.appVersion
-    ? payload.appVersion
-    : null;
+  if (typeof payload.appVersion !== "string" || !payload.appVersion) {
+    return null;
+  }
+
+  return {
+    version: payload.appVersion,
+    changes: Array.isArray(payload.changes)
+      ? payload.changes.filter(
+          (change): change is string =>
+            typeof change === "string" && change.trim().length > 0
+        )
+      : [],
+  };
 }
 
 export default function VersionUpdatePrompt() {
   const [currentVersion] = useState<string>(APP_VERSION);
   const [availableVersion, setAvailableVersion] = useState<string | null>(null);
+  const [availableChanges, setAvailableChanges] = useState<string[]>([]);
   const [dismissedVersion, setDismissedVersion] = useState<string | null>(null);
   const [dismissedUntil, setDismissedUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
@@ -40,8 +57,11 @@ export default function VersionUpdatePrompt() {
         if (!active || !publishedVersion) return;
 
         setAvailableVersion(existing =>
-          existing === publishedVersion ? existing : publishedVersion
+          existing === publishedVersion.version
+            ? existing
+            : publishedVersion.version
         );
+        setAvailableChanges(publishedVersion.changes);
       } catch (error) {
         console.warn(
           "[Version] Não foi possível verificar a publicação:",
@@ -116,6 +136,21 @@ export default function VersionUpdatePrompt() {
             Uma nova versão do painel foi publicada. Atualize a página para ver
             as correções e funcionalidades mais recentes.
           </p>
+          {availableChanges.length > 0 && (
+            <div className="mt-3 rounded-lg bg-slate-50 p-3">
+              <p className="text-xs font-semibold text-slate-700">
+                O que foi alterado
+              </p>
+              <ul className="mt-1.5 space-y-1 text-xs leading-5 text-slate-600">
+                {availableChanges.map(change => (
+                  <li key={change} className="flex gap-2">
+                    <span aria-hidden="true">•</span>
+                    <span>{change}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
               type="button"
