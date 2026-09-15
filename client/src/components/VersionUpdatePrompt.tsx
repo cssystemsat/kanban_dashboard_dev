@@ -1,13 +1,14 @@
 import { RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { shouldShowVersionPrompt } from "@/lib/versionCheck";
+import { APP_VERSION } from "@/lib/appVersion";
 
-const VERSION_ENDPOINT = "/__manus__/version.json";
+const VERSION_ENDPOINT = "/app-version.json";
 const POLL_INTERVAL_MS = 60_000;
 const DISMISS_DURATION_MS = 10 * 60_000;
 
 type VersionPayload = {
-  version?: string;
+  appVersion?: string;
 };
 
 async function fetchPublishedVersion(): Promise<string | null> {
@@ -18,13 +19,13 @@ async function fetchPublishedVersion(): Promise<string | null> {
   if (!response.ok) return null;
 
   const payload = (await response.json()) as VersionPayload;
-  return typeof payload.version === "string" && payload.version
-    ? payload.version
+  return typeof payload.appVersion === "string" && payload.appVersion
+    ? payload.appVersion
     : null;
 }
 
 export default function VersionUpdatePrompt() {
-  const [currentVersion, setCurrentVersion] = useState<string | null>(null);
+  const [currentVersion] = useState<string>(APP_VERSION);
   const [availableVersion, setAvailableVersion] = useState<string | null>(null);
   const [dismissedVersion, setDismissedVersion] = useState<string | null>(null);
   const [dismissedUntil, setDismissedUntil] = useState(0);
@@ -38,7 +39,6 @@ export default function VersionUpdatePrompt() {
         const publishedVersion = await fetchPublishedVersion();
         if (!active || !publishedVersion) return;
 
-        setCurrentVersion(existing => existing ?? publishedVersion);
         setAvailableVersion(existing =>
           existing === publishedVersion ? existing : publishedVersion
         );
@@ -108,7 +108,10 @@ export default function VersionUpdatePrompt() {
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">Nova atualização disponível</p>
+          <p className="text-sm font-semibold">
+            Nova atualização disponível
+            {availableVersion ? ` — versão ${availableVersion}` : ""}
+          </p>
           <p className="mt-1 text-xs leading-5 text-slate-600">
             Uma nova versão do painel foi publicada. Atualize a página para ver
             as correções e funcionalidades mais recentes.

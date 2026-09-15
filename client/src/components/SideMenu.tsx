@@ -20,6 +20,7 @@ import {
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
+import { APP_VERSION } from "@/lib/appVersion";
 
 interface SideMenuProps {
   currentPage: string;
@@ -316,6 +317,9 @@ export default function SideMenu({
                   {user.name || user.email}
                 </p>
                 <p className="text-[10px] text-gray-400">Sair</p>
+                <p className="text-[10px] text-gray-500">
+                  Versão {APP_VERSION}
+                </p>
               </div>
             )}
           </button>
@@ -341,8 +345,10 @@ export default function SideMenu({
             )}
           </button>
         )}
-        {isExpanded && (
-          <p className="text-[10px] text-gray-500 text-center mt-2">v1.0.0</p>
+        {isExpanded && !user && (
+          <p className="text-[10px] text-gray-500 text-center mt-2">
+            Versão {APP_VERSION}
+          </p>
         )}
       </div>
     </div>

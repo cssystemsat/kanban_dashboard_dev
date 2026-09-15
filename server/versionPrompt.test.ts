@@ -1,7 +1,23 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { shouldShowVersionPrompt } from "@/lib/versionCheck";
+import { APP_VERSION } from "@/lib/appVersion";
 
 describe("version update prompt", () => {
+  it("começa na versão funcional 5.0", () => {
+    expect(APP_VERSION).toBe("5.0");
+  });
+
+  it("mantém a versão publicada sincronizada com a versão do bundle", () => {
+    const published = JSON.parse(
+      readFileSync(
+        resolve(process.cwd(), "client/public/app-version.json"),
+        "utf8"
+      )
+    ) as { appVersion?: string };
+    expect(published.appVersion).toBe(APP_VERSION);
+  });
   it("não mostra o aviso na primeira leitura da versão atual", () => {
     expect(
       shouldShowVersionPrompt({
