@@ -268,3 +268,5 @@
 - [x] Alterar a criticidade para pontuação base 100 com descontos dinâmicos conforme os sinais dos dados.
 - [x] Exibir a pontuação no canto superior direito de cada card de cliente e manter o Gerar Insights limitado aos 30 mais críticos.
 - [x] Atualizar explicações, testes, responsividade, build e checkpoint do novo modelo de pontuação.
+- [x] Exibir somente o número da pontuação nos cards e aplicar vermelho abaixo de 40, amarelo de 40 a 80 e verde acima de 80.
+- [x] Validar as faixas nos cards, responsividade, testes, build e checkpoint.

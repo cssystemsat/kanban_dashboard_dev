@@ -105,21 +105,21 @@ export default function ClientCard({
               className="rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
               style={{
                 backgroundColor:
-                  criticalityScore <= 40
+                  criticalityScore < 40
                     ? "#FEE2E2"
-                    : criticalityScore <= 70
+                    : criticalityScore <= 80
                       ? "#FEF3C7"
                       : "#DCFCE7",
                 color:
-                  criticalityScore <= 40
+                  criticalityScore < 40
                     ? "#B91C1C"
-                    : criticalityScore <= 70
+                    : criticalityScore <= 80
                       ? "#92400E"
                       : "#166534",
               }}
               title="Pontuação atual de saúde do cliente"
             >
-              {criticalityScore}/100
+              {criticalityScore}
             </span>
             {(client.ganhoUrs || client.perdaUrs) && (
               <div className="flex flex-col items-end gap-0.5">

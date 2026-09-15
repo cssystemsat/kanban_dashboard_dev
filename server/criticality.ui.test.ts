@@ -12,7 +12,8 @@ describe("criticality score UI contract", () => {
     const clientCard = read("../client/src/components/ClientCard.tsx");
     const home = read("../client/src/pages/Home.tsx");
 
-    expect(clientCard).toContain("{criticalityScore}/100");
+    expect(clientCard).toContain("{criticalityScore}");
+    expect(clientCard).not.toContain("{criticalityScore}/100");
     expect(home).toContain(".sort((a, b) => a.score - b.score)");
     expect(home).toContain(".slice(0, 30)");
     expect(home).toContain("pontuação restante");
