@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
 type FlagLevel = (typeof FLAG_LEVELS)[number];
 
-type CriticalSignal = { label: string; value: string };
+type CriticalSignal = { label: string; value: string; points?: number };
 
 type CriticalInsight = {
   id: string;
@@ -47,7 +47,7 @@ const buildCriticalRanking = (clients: ClientData[]): CriticalInsight[] =>
       const addSignal = (label: string, value: string, points: number) => {
         if (points <= 0) return;
         score += points;
-        signals.push({ label, value });
+        signals.push({ label, value, points });
       };
 
       if (client.marcoStatus === "atrasado") {
@@ -104,7 +104,7 @@ const buildCriticalRanking = (clients: ClientData[]): CriticalInsight[] =>
     })
     .filter(client => client.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
+    .slice(0, 30);
 
 const FLAG_STYLES: Record<
   FlagLevel,
@@ -966,7 +966,7 @@ export default function Home() {
                   Análise inteligente de Marcos
                 </p>
                 <h2 className="text-lg font-bold text-slate-900">
-                  10 clientes mais críticos
+                  30 clientes mais críticos
                 </h2>
               </div>
               <button
@@ -978,7 +978,39 @@ export default function Home() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="space-y-2 p-5">
+            <div className="space-y-3 p-5">
+              <div className="rounded-lg border border-violet-100 bg-violet-50/70 p-3 text-xs text-slate-700">
+                <p className="mb-2 font-semibold text-violet-950">
+                  Como a criticidade é calculada
+                </p>
+                <p className="mb-2 leading-relaxed">
+                  A pontuação soma sinais objetivos encontrados na planilha.
+                  Quanto maior o total, maior a prioridade relativa no ranking;
+                  um cliente só aparece quando possui pelo menos um sinal.
+                </p>
+                <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
+                  <span>
+                    <strong>+35</strong> marco atrasado; <strong>+10</strong>{" "}
+                    marco pendente.
+                  </span>
+                  <span>
+                    <strong>+5 a +30</strong> diferença boleto x consumo
+                    negativa.
+                  </span>
+                  <span>
+                    <strong>até +20</strong> veículos desatualizados.
+                  </span>
+                  <span>
+                    <strong>+8 ou +15</strong> sem contato há 14 ou 30+ dias.
+                  </span>
+                  <span>
+                    <strong>+10 a +20</strong> Red, Yellow ou Black Flag.
+                  </span>
+                  <span>
+                    <strong>+10</strong> implantação prolongada sem conclusão.
+                  </span>
+                </div>
+              </div>
               {criticalInsights.length === 0 ? (
                 <p className="rounded-lg bg-slate-50 p-5 text-sm text-slate-600">
                   Não foram encontrados sinais críticos nos dados atuais de
@@ -1060,7 +1092,8 @@ export default function Home() {
                   {(selectedCriticalInsight.motivos.length > 0
                     ? selectedCriticalInsight.motivos
                     : selectedCriticalInsight.signals.map(
-                        signal => `${signal.label}: ${signal.value}`
+                        signal =>
+                          `${signal.label}: ${signal.value}${signal.points ? ` (+${signal.points} pts)` : ""}`
                       )
                   ).map((reason, index) => (
                     <li
@@ -1073,6 +1106,26 @@ export default function Home() {
                 </ul>
               </div>
               <div>
+                <h3 className="mb-2 font-semibold text-slate-900">
+                  Sinais que formaram a pontuação
+                </h3>
+                <div className="mb-4 space-y-2">
+                  {selectedCriticalInsight.signals.map(signal => (
+                    <div
+                      key={`${signal.label}-${signal.value}`}
+                      className="flex items-start justify-between gap-3 rounded-md bg-slate-50 p-2 text-slate-700"
+                    >
+                      <span>
+                        <strong>{signal.label}:</strong> {signal.value}
+                      </span>
+                      {signal.points ? (
+                        <span className="shrink-0 font-semibold text-red-700">
+                          +{signal.points} pts
+                        </span>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
                 <h3 className="mb-2 font-semibold text-slate-900">
                   Próxima ação sugerida
                 </h3>

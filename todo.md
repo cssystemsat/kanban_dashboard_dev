@@ -252,3 +252,5 @@
 - [x] Validar desempenho, estados vazios, permissões, testes, build e salvar checkpoint do recurso.
 - [x] Compactar o cabeçalho da aba Marcos e aproximar os filtros para caberem em uma única linha alinhada.
 - [x] Validar o alinhamento no desktop e a responsividade em telas menores, preservando botões e filtros existentes.
+- [x] Ampliar o Gerar Insights para analisar e ranquear os 30 clientes mais críticos.
+- [x] Explicar na interface como cada sinal influencia a pontuação e validar testes, build e checkpoint.

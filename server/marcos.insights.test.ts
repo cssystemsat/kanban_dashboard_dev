@@ -88,9 +88,9 @@ describe("marcos.generateInsights", () => {
     );
   });
 
-  it("limita a entrada a no máximo 10 clientes", async () => {
+  it("limita a entrada a no máximo 30 clientes", async () => {
     const caller = appRouter.createCaller(createContext(authenticatedUser));
-    const clients = Array.from({ length: 11 }, (_, index) => ({
+    const clients = Array.from({ length: 31 }, (_, index) => ({
       id: `client-${index}`,
       nome: `Cliente ${index}`,
       score: 10,

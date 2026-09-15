@@ -143,7 +143,7 @@ export const appRouter = router({
                 ),
               })
             )
-            .max(10),
+            .max(30),
         })
       )
       .mutation(async ({ input }) => {
