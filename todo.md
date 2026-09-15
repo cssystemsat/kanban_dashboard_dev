@@ -247,3 +247,6 @@
 - [x] Corrigir cache/refresh, validar alterações feitas na planilha para diferentes usuários, executar testes, build e salvar checkpoint.
 - [x] Garantir leitura sem cache da aba de acontecimentos e mapear explicitamente A Cliente, B Data, C Título, D Setor, E Tag, F Descrição e G CSM.
 - [x] Validar que edições na planilha aparecem após abrir e atualizar a Timeline, com testes, build e checkpoint.
+- [x] Adicionar botão Gerar Insights na aba Marcos para analisar os clientes críticos.
+- [x] Ranquear os 10 clientes mais críticos com sinais reais da planilha e abrir explicação detalhada ao clicar.
+- [x] Validar desempenho, estados vazios, permissões, testes, build e salvar checkpoint do recurso.

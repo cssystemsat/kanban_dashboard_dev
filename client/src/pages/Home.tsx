@@ -10,11 +10,101 @@ import URsTrendIndicator from "@/components/URsTrendIndicator";
 import { useKanbanData, ClientData } from "@/hooks/useKanbanData";
 import { useMultipleURsTrends } from "@/hooks/useURsTrend";
 import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
-import { Flag, RotateCw } from "lucide-react";
+import { Flag, RotateCw, Sparkles, X, ChevronRight } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 import { useEffect, useState } from "react";
 
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
 type FlagLevel = (typeof FLAG_LEVELS)[number];
+
+type CriticalSignal = { label: string; value: string };
+
+type CriticalInsight = {
+  id: string;
+  nome: string;
+  score: number;
+  signals: CriticalSignal[];
+  resumo: string;
+  motivos: string[];
+  proximaAcao: string;
+};
+
+const parseInsightNumber = (value: string | number | undefined): number => {
+  if (value === undefined || value === null || value === "") return 0;
+  const normalized = String(value)
+    .replace(/R\$|%/gi, "")
+    .replace(/\s/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+  return Number.parseFloat(normalized.replace(/[^\d.-]/g, "")) || 0;
+};
+
+const buildCriticalRanking = (clients: ClientData[]): CriticalInsight[] =>
+  clients
+    .map(client => {
+      let score = 0;
+      const signals: CriticalSignal[] = [];
+      const addSignal = (label: string, value: string, points: number) => {
+        if (points <= 0) return;
+        score += points;
+        signals.push({ label, value });
+      };
+
+      if (client.marcoStatus === "atrasado") {
+        addSignal("Marco atrasado", client.marcoData || "Prazo vencido", 35);
+      } else if (client.marcoStatus === "pendente") {
+        addSignal("Marco pendente", client.marcoData || "Sem atualização", 10);
+      }
+
+      const delta = parseInsightNumber(client.deltaConsumo);
+      if (delta < 0) {
+        addSignal(
+          "Diferença boleto x consumo negativa",
+          `R$ ${delta.toFixed(2).replace(".", ",")}`,
+          Math.min(30, Math.max(5, Math.abs(delta) / 100))
+        );
+      }
+
+      const outdated = client.percentualDesatualizado ?? 0;
+      if (outdated > 0) {
+        addSignal(
+          "Veículos desatualizados",
+          `${outdated.toFixed(1).replace(".", ",")}%`,
+          Math.min(20, outdated * 0.2)
+        );
+      }
+
+      const daysWithoutContact = client.diasUltimoContato ?? 0;
+      if (daysWithoutContact >= 30) {
+        addSignal("Sem contato recente", `${daysWithoutContact} dias`, 15);
+      } else if (daysWithoutContact >= 14) {
+        addSignal("Contato desatualizado", `${daysWithoutContact} dias`, 8);
+      }
+
+      if (client.flag === "Red Flag")
+        addSignal("Red Flag", "Alta prioridade", 20);
+      if (client.flag === "Black Flag")
+        addSignal("Black Flag", "Atenção máxima", 18);
+      if (client.flag === "Yellow Flag")
+        addSignal("Yellow Flag", "Atenção", 10);
+
+      if ((client.diasCorridos ?? 0) > 180 && !client.isComplete) {
+        addSignal("Implantação prolongada", `${client.diasCorridos} dias`, 10);
+      }
+
+      return {
+        id: client.id,
+        nome: client.nome,
+        score: Math.round(score * 10) / 10,
+        signals,
+        resumo: "",
+        motivos: [],
+        proximaAcao: "",
+      };
+    })
+    .filter(client => client.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 
 const FLAG_STYLES: Record<
   FlagLevel,
@@ -78,6 +168,60 @@ export default function Home() {
   const [marcosTrendStartDate, setMarcosTrendStartDate] = useState<string>("");
   const [marcosTrendEndDate, setMarcosTrendEndDate] = useState<string>("");
   const [filterURsPerDay, setFilterURsPerDay] = useState<boolean>(false);
+  const [criticalInsightsOpen, setCriticalInsightsOpen] = useState(false);
+  const [selectedCriticalInsight, setSelectedCriticalInsight] =
+    useState<CriticalInsight | null>(null);
+  const [criticalInsights, setCriticalInsights] = useState<CriticalInsight[]>(
+    []
+  );
+  const generateInsightsMutation = trpc.marcos.generateInsights.useMutation();
+
+  const handleGenerateInsights = async () => {
+    const ranked = buildCriticalRanking(data);
+    setCriticalInsights(ranked);
+    setCriticalInsightsOpen(true);
+    setSelectedCriticalInsight(null);
+
+    if (ranked.length === 0) return;
+
+    try {
+      const response = await generateInsightsMutation.mutateAsync({
+        clients: ranked.map(client => ({
+          id: client.id,
+          nome: client.nome,
+          score: client.score,
+          signals: client.signals,
+        })),
+      });
+      const detailsById = new Map(
+        response.insights.map(insight => [insight.id, insight])
+      );
+      setCriticalInsights(
+        ranked.map(client => ({
+          ...client,
+          ...(detailsById.get(client.id) ?? {
+            resumo: "Análise objetiva baseada nos sinais encontrados.",
+            motivos: client.signals.map(
+              signal => `${signal.label}: ${signal.value}`
+            ),
+            proximaAcao: "Revisar o cliente com o CSM responsável.",
+          }),
+        }))
+      );
+    } catch (error) {
+      console.error("Erro ao gerar insights de Marcos:", error);
+      setCriticalInsights(
+        ranked.map(client => ({
+          ...client,
+          resumo: "Análise objetiva baseada nos sinais encontrados.",
+          motivos: client.signals.map(
+            signal => `${signal.label}: ${signal.value}`
+          ),
+          proximaAcao: "Revisar o cliente com o CSM responsável.",
+        }))
+      );
+    }
+  };
 
   // Calcular tendências para todos os clientes uma única vez
   const allClientsForTrend = data.map(c => ({
@@ -482,6 +626,19 @@ export default function Home() {
               />
               {loading ? "Atualizando..." : "Atualizar"}
             </Button>
+            <Button
+              onClick={handleGenerateInsights}
+              disabled={loading || generateInsightsMutation.isPending}
+              size="sm"
+              className="gap-1.5 text-white bg-violet-600 hover:bg-violet-700 border border-violet-500 whitespace-nowrap h-7 text-xs"
+            >
+              <Sparkles
+                className={`w-3 h-3 ${generateInsightsMutation.isPending ? "animate-pulse" : ""}`}
+              />
+              {generateInsightsMutation.isPending
+                ? "Analisando..."
+                : "Gerar Insights"}
+            </Button>
           </div>
         </div>
       </header>
@@ -785,6 +942,142 @@ export default function Home() {
             setSelectedClient(null);
           }}
         />
+      )}
+
+      {/* Modal de ranking de criticidade */}
+      {criticalInsightsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setCriticalInsightsOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl bg-white shadow-2xl"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-5 py-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                  Análise inteligente de Marcos
+                </p>
+                <h2 className="text-lg font-bold text-slate-900">
+                  10 clientes mais críticos
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar insights"
+                onClick={() => setCriticalInsightsOpen(false)}
+                className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-2 p-5">
+              {criticalInsights.length === 0 ? (
+                <p className="rounded-lg bg-slate-50 p-5 text-sm text-slate-600">
+                  Não foram encontrados sinais críticos nos dados atuais de
+                  Marcos.
+                </p>
+              ) : (
+                criticalInsights.map((insight, index) => (
+                  <button
+                    type="button"
+                    key={insight.id}
+                    onClick={() => {
+                      setSelectedCriticalInsight(insight);
+                      setCriticalInsightsOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg border border-slate-200 p-3 text-left transition hover:border-violet-300 hover:bg-violet-50"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700">
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-slate-900">
+                        {insight.nome}
+                      </span>
+                      <span className="block truncate text-xs text-slate-500">
+                        {insight.signals
+                          .map(signal => signal.label)
+                          .join(" • ")}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-red-700">
+                      {insight.score} pts <ChevronRight className="h-4 w-4" />
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de explicação de criticidade */}
+      {selectedCriticalInsight && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setSelectedCriticalInsight(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-xl bg-white p-5 shadow-2xl"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b pb-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">
+                  Cliente crítico • {selectedCriticalInsight.score} pontos
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-slate-900">
+                  {selectedCriticalInsight.nome}
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar explicação"
+                onClick={() => setSelectedCriticalInsight(null)}
+                className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4 pt-4 text-sm">
+              <p className="rounded-lg bg-red-50 p-3 text-red-900">
+                {selectedCriticalInsight.resumo ||
+                  "A criticidade foi calculada pelos sinais abaixo."}
+              </p>
+              <div>
+                <h3 className="mb-2 font-semibold text-slate-900">
+                  Por que está crítico
+                </h3>
+                <ul className="space-y-2 text-slate-700">
+                  {(selectedCriticalInsight.motivos.length > 0
+                    ? selectedCriticalInsight.motivos
+                    : selectedCriticalInsight.signals.map(
+                        signal => `${signal.label}: ${signal.value}`
+                      )
+                  ).map((reason, index) => (
+                    <li
+                      key={`${reason}-${index}`}
+                      className="rounded-md bg-slate-50 p-2"
+                    >
+                      {reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="mb-2 font-semibold text-slate-900">
+                  Próxima ação sugerida
+                </h3>
+                <p className="rounded-md bg-violet-50 p-3 text-violet-900">
+                  {selectedCriticalInsight.proximaAcao ||
+                    "Revisar o cliente com o CSM responsável."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal de Atendimento */}

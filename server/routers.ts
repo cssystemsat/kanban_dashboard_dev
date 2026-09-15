@@ -125,6 +125,108 @@ export const appRouter = router({
         }
       }),
   }),
+  marcos: router({
+    generateInsights: allowlistedProcedure
+      .input(
+        z.object({
+          clients: z
+            .array(
+              z.object({
+                id: z.string(),
+                nome: z.string(),
+                score: z.number(),
+                signals: z.array(
+                  z.object({
+                    label: z.string(),
+                    value: z.string(),
+                  })
+                ),
+              })
+            )
+            .max(10),
+        })
+      )
+      .mutation(async ({ input }) => {
+        if (input.clients.length === 0) return { insights: [] };
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content:
+                "Você é um analista de Customer Success. Analise somente os fatos fornecidos, não invente dados, não faça diagnóstico definitivo e responda em português do Brasil. Explique por que cada cliente está no ranking de criticidade e recomende uma próxima ação objetiva.",
+            },
+            {
+              role: "user",
+              content: JSON.stringify(
+                input.clients.map(client => ({
+                  id: client.id,
+                  cliente: client.nome,
+                  pontuacao: client.score,
+                  sinais: client.signals,
+                }))
+              ),
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "marcos_critical_insights",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  insights: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string" },
+                        resumo: { type: "string" },
+                        motivos: {
+                          type: "array",
+                          items: { type: "string" },
+                        },
+                        proximaAcao: { type: "string" },
+                      },
+                      required: ["id", "resumo", "motivos", "proximaAcao"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["insights"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = response.choices?.[0]?.message?.content;
+        if (typeof content !== "string") {
+          throw new TRPCError({
+            code: "BAD_GATEWAY",
+            message: "A IA não retornou uma análise válida.",
+          });
+        }
+
+        try {
+          const parsed = JSON.parse(content) as {
+            insights?: Array<{
+              id: string;
+              resumo: string;
+              motivos: string[];
+              proximaAcao: string;
+            }>;
+          };
+          return { insights: parsed.insights ?? [] };
+        } catch {
+          throw new TRPCError({
+            code: "BAD_GATEWAY",
+            message: "A IA retornou uma resposta em formato inválido.",
+          });
+        }
+      }),
+  }),
   migracao: router({
     atualizar: allowlistedProcedure
       .input(
