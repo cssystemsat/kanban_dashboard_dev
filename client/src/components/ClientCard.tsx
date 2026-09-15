@@ -21,6 +21,7 @@ import {
   isAgendaOutdated,
   getDaysSinceUpdate,
 } from "@/hooks/useAgendaData";
+import { calculateClientCriticality } from "@/lib/criticality";
 
 interface ClientCardProps {
   client: ClientData;
@@ -57,6 +58,7 @@ export default function ClientCard({
 
   const flagColor = getFlagColor(client.flag);
   const hasFlag = !!flagColor;
+  const { score: criticalityScore } = calculateClientCriticality(client);
 
   // Verificar se cliente tem >60 dias e <30 placas
   const diasCorridos = parseInt(String(client.diasCorridos || 0));
@@ -97,27 +99,49 @@ export default function ClientCard({
             {client.nome}
           </h3>
 
-          {/* Ganho e Perda de URs — canto superior direito */}
-          {(client.ganhoUrs || client.perdaUrs) && (
-            <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-              {client.ganhoUrs && (
-                <span
-                  className="flex items-center gap-0.5 text-[10px] font-semibold leading-none"
-                  style={{ color: "#10B981" }}
-                >
-                  <TrendingUp className="w-3 h-3" />+{client.ganhoUrs}
-                </span>
-              )}
-              {client.perdaUrs && (
-                <span
-                  className="flex items-center gap-0.5 text-[10px] font-semibold leading-none"
-                  style={{ color: "#EF4444" }}
-                >
-                  <TrendingDown className="w-3 h-3" />-{client.perdaUrs}
-                </span>
-              )}
-            </div>
-          )}
+          {/* Pontuação e ganho/perda de URs — canto superior direito */}
+          <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+            <span
+              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
+              style={{
+                backgroundColor:
+                  criticalityScore <= 40
+                    ? "#FEE2E2"
+                    : criticalityScore <= 70
+                      ? "#FEF3C7"
+                      : "#DCFCE7",
+                color:
+                  criticalityScore <= 40
+                    ? "#B91C1C"
+                    : criticalityScore <= 70
+                      ? "#92400E"
+                      : "#166534",
+              }}
+              title="Pontuação atual de saúde do cliente"
+            >
+              {criticalityScore}/100
+            </span>
+            {(client.ganhoUrs || client.perdaUrs) && (
+              <div className="flex flex-col items-end gap-0.5">
+                {client.ganhoUrs && (
+                  <span
+                    className="flex items-center gap-0.5 text-[10px] font-semibold leading-none"
+                    style={{ color: "#10B981" }}
+                  >
+                    <TrendingUp className="w-3 h-3" />+{client.ganhoUrs}
+                  </span>
+                )}
+                {client.perdaUrs && (
+                  <span
+                    className="flex items-center gap-0.5 text-[10px] font-semibold leading-none"
+                    style={{ color: "#EF4444" }}
+                  >
+                    <TrendingDown className="w-3 h-3" />-{client.perdaUrs}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bandeira + nome da flag + No prazo/Atrasado */}

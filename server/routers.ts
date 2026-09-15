@@ -154,7 +154,7 @@ export const appRouter = router({
             {
               role: "system",
               content:
-                "Você é um analista de Customer Success. Analise somente os fatos fornecidos, não invente dados, não faça diagnóstico definitivo e responda em português do Brasil. Explique por que cada cliente está no ranking de criticidade e recomende uma próxima ação objetiva.",
+                "Você é um analista de Customer Success. Analise somente os fatos fornecidos, não invente dados, não faça diagnóstico definitivo e responda em português do Brasil. A pontuação começa em 100 e perde pontos por sinais de risco: quanto menor a pontuação restante, maior a criticidade. Explique por que cada cliente está no ranking de criticidade e recomende uma próxima ação objetiva.",
             },
             {
               role: "user",

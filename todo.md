@@ -265,3 +265,6 @@
 - [x] Ajustar o controle de versão para incrementar de 0.1 em 0.1, preparar a próxima publicação como 6.1 e validar que 7.0 não foi aplicado.
 - [x] Criar catálogo de novidades por versão, iniciando pela próxima publicação 6.1.
 - [x] Exibir no pop-up o resumo do que foi alterado e validar responsividade, testes, build e checkpoint.
+- [x] Alterar a criticidade para pontuação base 100 com descontos dinâmicos conforme os sinais dos dados.
+- [x] Exibir a pontuação no canto superior direito de cada card de cliente e manter o Gerar Insights limitado aos 30 mais críticos.
+- [x] Atualizar explicações, testes, responsividade, build e checkpoint do novo modelo de pontuação.

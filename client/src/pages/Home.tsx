@@ -13,11 +13,13 @@ import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
 import { Flag, RotateCw, Sparkles, X, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useEffect, useState } from "react";
+import {
+  calculateClientCriticality,
+  type CriticalSignal,
+} from "@/lib/criticality";
 
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
 type FlagLevel = (typeof FLAG_LEVELS)[number];
-
-type CriticalSignal = { label: string; value: string; points?: number };
 
 type CriticalInsight = {
   id: string;
@@ -29,81 +31,21 @@ type CriticalInsight = {
   proximaAcao: string;
 };
 
-const parseInsightNumber = (value: string | number | undefined): number => {
-  if (value === undefined || value === null || value === "") return 0;
-  const normalized = String(value)
-    .replace(/R\$|%/gi, "")
-    .replace(/\s/g, "")
-    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
-    .replace(",", ".");
-  return Number.parseFloat(normalized.replace(/[^\d.-]/g, "")) || 0;
-};
-
 const buildCriticalRanking = (clients: ClientData[]): CriticalInsight[] =>
   clients
     .map(client => {
-      let score = 0;
-      const signals: CriticalSignal[] = [];
-      const addSignal = (label: string, value: string, points: number) => {
-        if (points <= 0) return;
-        score += points;
-        signals.push({ label, value, points });
-      };
-
-      if (client.marcoStatus === "atrasado") {
-        addSignal("Marco atrasado", client.marcoData || "Prazo vencido", 35);
-      } else if (client.marcoStatus === "pendente") {
-        addSignal("Marco pendente", client.marcoData || "Sem atualização", 10);
-      }
-
-      const delta = parseInsightNumber(client.deltaConsumo);
-      if (delta < 0) {
-        addSignal(
-          "Diferença boleto x consumo negativa",
-          `R$ ${delta.toFixed(2).replace(".", ",")}`,
-          Math.min(30, Math.max(5, Math.abs(delta) / 100))
-        );
-      }
-
-      const outdated = client.percentualDesatualizado ?? 0;
-      if (outdated > 0) {
-        addSignal(
-          "Veículos desatualizados",
-          `${outdated.toFixed(1).replace(".", ",")}%`,
-          Math.min(20, outdated * 0.2)
-        );
-      }
-
-      const daysWithoutContact = client.diasUltimoContato ?? 0;
-      if (daysWithoutContact >= 30) {
-        addSignal("Sem contato recente", `${daysWithoutContact} dias`, 15);
-      } else if (daysWithoutContact >= 14) {
-        addSignal("Contato desatualizado", `${daysWithoutContact} dias`, 8);
-      }
-
-      if (client.flag === "Red Flag")
-        addSignal("Red Flag", "Alta prioridade", 20);
-      if (client.flag === "Black Flag")
-        addSignal("Black Flag", "Atenção máxima", 18);
-      if (client.flag === "Yellow Flag")
-        addSignal("Yellow Flag", "Atenção", 10);
-
-      if ((client.diasCorridos ?? 0) > 180 && !client.isComplete) {
-        addSignal("Implantação prolongada", `${client.diasCorridos} dias`, 10);
-      }
-
+      const criticality = calculateClientCriticality(client);
       return {
         id: client.id,
         nome: client.nome,
-        score: Math.round(score * 10) / 10,
-        signals,
+        score: criticality.score,
+        signals: criticality.signals,
         resumo: "",
         motivos: [],
         proximaAcao: "",
       };
     })
-    .filter(client => client.score > 0)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => a.score - b.score)
     .slice(0, 30);
 
 const FLAG_STYLES: Record<
@@ -984,30 +926,31 @@ export default function Home() {
                   Como a criticidade é calculada
                 </p>
                 <p className="mb-2 leading-relaxed">
-                  A pontuação soma sinais objetivos encontrados na planilha.
-                  Quanto maior o total, maior a prioridade relativa no ranking;
-                  um cliente só aparece quando possui pelo menos um sinal.
+                  Todo cliente começa com 100 pontos. Os sinais objetivos
+                  encontrados na planilha geram descontos; quanto menor a
+                  pontuação restante, maior a criticidade e a prioridade no
+                  ranking. A lista abaixo mostra os 30 menores scores.
                 </p>
                 <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
                   <span>
-                    <strong>+35</strong> marco atrasado; <strong>+10</strong>{" "}
+                    <strong>-35</strong> marco atrasado; <strong>-10</strong>{" "}
                     marco pendente.
                   </span>
                   <span>
-                    <strong>+5 a +30</strong> diferença boleto x consumo
+                    <strong>-5 a -30</strong> diferença boleto x consumo
                     negativa.
                   </span>
                   <span>
-                    <strong>até +20</strong> veículos desatualizados.
+                    <strong>até -20</strong> veículos desatualizados.
                   </span>
                   <span>
-                    <strong>+8 ou +15</strong> sem contato há 14 ou 30+ dias.
+                    <strong>-8 ou -15</strong> sem contato há 14 ou 30+ dias.
                   </span>
                   <span>
-                    <strong>+10 a +20</strong> Red, Yellow ou Black Flag.
+                    <strong>-10 a -20</strong> Red, Yellow ou Black Flag.
                   </span>
                   <span>
-                    <strong>+10</strong> implantação prolongada sem conclusão.
+                    <strong>-10</strong> implantação prolongada sem conclusão.
                   </span>
                 </div>
               </div>
@@ -1035,13 +978,15 @@ export default function Home() {
                         {insight.nome}
                       </span>
                       <span className="block truncate text-xs text-slate-500">
-                        {insight.signals
-                          .map(signal => signal.label)
-                          .join(" • ")}
+                        {insight.signals.length > 0
+                          ? insight.signals
+                              .map(signal => signal.label)
+                              .join(" • ")
+                          : "Sem descontos identificados"}
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-red-700">
-                      {insight.score} pts <ChevronRight className="h-4 w-4" />
+                      {insight.score}/100 <ChevronRight className="h-4 w-4" />
                     </span>
                   </button>
                 ))
@@ -1067,7 +1012,8 @@ export default function Home() {
             <div className="flex items-start justify-between gap-4 border-b pb-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">
-                  Cliente crítico • {selectedCriticalInsight.score} pontos
+                  Cliente crítico • {selectedCriticalInsight.score}/100 pontos
+                  restantes
                 </p>
                 <h2 className="mt-1 text-xl font-bold text-slate-900">
                   {selectedCriticalInsight.nome}
@@ -1110,7 +1056,7 @@ export default function Home() {
                         </span>
                         {signal.points ? (
                           <span className="shrink-0 font-semibold text-red-700">
-                            +{signal.points} pts
+                            -{signal.points} pts
                           </span>
                         ) : null}
                       </div>
