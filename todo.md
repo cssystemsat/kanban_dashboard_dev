@@ -274,3 +274,5 @@
 - [x] Registrar no pop-up da 6.2 as mudanças recentes da pontuação e validar testes, build e checkpoint.
 - [x] Tornar a nota do card clicável e abrir um pop-up pequeno com os motivos e descontos da pontuação do cliente.
 - [x] Configurar a próxima publicação como 6.3, registrar a novidade e validar interação, testes, build e checkpoint.
+- [x] Corrigir o parser da Timeline para manter descrições multiline da coluna F em um único acontecimento, sem interpretar linhas internas como clientes.
+- [x] Adicionar teste de regressão e validar Timeline, TypeScript, build e checkpoint.

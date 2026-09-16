@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, Milestone, RefreshCw, UserRound } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { clearSheetsCache } from "@/lib/sheetsCache";
+import { parseTimelineCsvRows } from "@/lib/timelineCsv";
 
 const FRICCOES_GID = 594161358;
 
@@ -14,34 +15,6 @@ type FriccaoEvent = {
   csm: string;
 };
 
-function parseCsvLine(line: string): string[] {
-  const values: string[] = [];
-  let current = "";
-  let insideQuotes = false;
-
-  for (let index = 0; index < line.length; index += 1) {
-    const character = line[index];
-    const nextCharacter = line[index + 1];
-
-    if (character === '"') {
-      if (insideQuotes && nextCharacter === '"') {
-        current += '"';
-        index += 1;
-      } else {
-        insideQuotes = !insideQuotes;
-      }
-    } else if (character === "," && !insideQuotes) {
-      values.push(current.trim());
-      current = "";
-    } else {
-      current += character;
-    }
-  }
-
-  values.push(current.trim());
-  return values;
-}
-
 function normalizeClientName(value: string): string {
   return value
     .normalize("NFD")
@@ -52,28 +25,9 @@ function normalizeClientName(value: string): string {
     .toLocaleLowerCase("pt-BR");
 }
 
-function parseFriccaoRows(csv: string): Array<{ client: string; event: FriccaoEvent }> {
-  return csv
-    .split(/\r?\n/)
-    .slice(1)
-    .map(parseCsvLine)
-    .filter(row => Boolean(row[0]?.trim() && row[1]?.trim() && row[2]?.trim()))
-    .map(row => ({
-      client: row[0].trim(),
-      event: {
-        date: row[1].trim(),
-        title: row[2].trim(),
-        sector: row[3]?.trim() || "Não informado",
-        tag: row[4]?.trim() || "Não informado",
-        description: row[5]?.trim() || "Não informado",
-        csm: row[6]?.trim() || "Não informado",
-      },
-    }));
-}
-
 function parseFriccaoEvents(csv: string, clientName: string): FriccaoEvent[] {
   const normalizedClient = normalizeClientName(clientName);
-  return parseFriccaoRows(csv)
+  return parseTimelineCsvRows(csv)
     .filter(row => normalizeClientName(row.client) === normalizedClient)
     .map(row => row.event);
 }
@@ -170,7 +124,7 @@ export default function Timeline({
     const csv = frictionQuery.data?.csv;
     if (!csv) return [];
     const clientsByKey = new Map<string, string>();
-    for (const row of parseFriccaoRows(csv)) {
+    for (const row of parseTimelineCsvRows(csv)) {
       const key = normalizeClientName(row.client);
       if (!clientsByKey.has(key)) clientsByKey.set(key, row.client);
     }
@@ -178,8 +132,9 @@ export default function Timeline({
       first.localeCompare(second, "pt-BR", { sensitivity: "base" })
     );
   }, [frictionQuery.data?.csv]);
-  const selectedClient = timelineClients.find(client =>
-    normalizeClientName(client) === normalizeClientName(selectedClientId)
+  const selectedClient = timelineClients.find(
+    client =>
+      normalizeClientName(client) === normalizeClientName(selectedClientId)
   );
 
   useEffect(() => {
@@ -265,32 +220,36 @@ export default function Timeline({
               title="Atualizar dados da planilha"
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#CBD5E1] bg-white px-3 py-2.5 text-sm font-semibold text-[#102A72] transition hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               {isRefreshing ? "Atualizando..." : "Atualizar"}
             </button>
             <div className="w-full lg:max-w-md">
-            <label htmlFor="timeline-client" className="sr-only">
-              Cliente
-            </label>
-            <select
-              id="timeline-client"
-              value={selectedClientId}
-              onChange={event => {
-                setSelectedClientId(event.target.value);
-                setOpenEventKey(null);
-              }}
-              disabled={frictionQuery.isLoading || !!frictionQuery.error}
-              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none transition focus:border-[#102A72] focus:ring-2 focus:ring-[#102A72]/10 disabled:cursor-not-allowed disabled:bg-[#F3F4F6]"
-            >
-              <option value="">
-                {frictionQuery.isLoading ? "Carregando clientes..." : "Selecione um cliente..."}
-              </option>
-              {timelineClients.map(client => (
-                <option key={normalizeClientName(client)} value={client}>
-                  {client}
+              <label htmlFor="timeline-client" className="sr-only">
+                Cliente
+              </label>
+              <select
+                id="timeline-client"
+                value={selectedClientId}
+                onChange={event => {
+                  setSelectedClientId(event.target.value);
+                  setOpenEventKey(null);
+                }}
+                disabled={frictionQuery.isLoading || !!frictionQuery.error}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none transition focus:border-[#102A72] focus:ring-2 focus:ring-[#102A72]/10 disabled:cursor-not-allowed disabled:bg-[#F3F4F6]"
+              >
+                <option value="">
+                  {frictionQuery.isLoading
+                    ? "Carregando clientes..."
+                    : "Selecione um cliente..."}
                 </option>
-              ))}
-            </select>
+                {timelineClients.map(client => (
+                  <option key={normalizeClientName(client)} value={client}>
+                    {client}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="w-full lg:max-w-xs">
@@ -304,7 +263,11 @@ export default function Timeline({
                 setSelectedTag(event.target.value);
                 setOpenEventKey(null);
               }}
-              disabled={!selectedClient || frictionQuery.isLoading || !!frictionQuery.error}
+              disabled={
+                !selectedClient ||
+                frictionQuery.isLoading ||
+                !!frictionQuery.error
+              }
               className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none transition focus:border-[#102A72] focus:ring-2 focus:ring-[#102A72]/10 disabled:cursor-not-allowed disabled:bg-[#F3F4F6]"
             >
               <option value="">Todas as Tags</option>
@@ -341,11 +304,13 @@ export default function Timeline({
             Não foi possível carregar os clientes da aba de acontecimentos.
           </p>
         )}
-        {!frictionQuery.isLoading && !frictionQuery.error && timelineClients.length === 0 && (
-          <p className="mt-3 text-sm text-[#6B7280]">
-            Nenhum cliente com acontecimento disponível na planilha.
-          </p>
-        )}
+        {!frictionQuery.isLoading &&
+          !frictionQuery.error &&
+          timelineClients.length === 0 && (
+            <p className="mt-3 text-sm text-[#6B7280]">
+              Nenhum cliente com acontecimento disponível na planilha.
+            </p>
+          )}
 
         {selectedClient && (
           <div className="pt-5">

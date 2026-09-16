@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { parseTimelineCsvRows } from "../client/src/lib/timelineCsv";
 
 const sideMenuSource = readFileSync(
   resolve(process.cwd(), "client/src/components/SideMenu.tsx"),
@@ -33,6 +34,21 @@ describe("aba Timeline", () => {
     );
   });
 
+  it("preserva descrições com quebras de linha como um único acontecimento", () => {
+    const description = [
+      "Cliente entrou em contato informando que os veículos entraram numa região da roça, onde pararam de comunicar, e queria saber se era conectividade, porque apesar de ser roça, tem conexão no celular dele.",
+      "Perguntei a operadora do celular e do rastreador, e informou que são iguais, ambas vivo.",
+      "Falou que sempre que entra nessa área é a mesma coisa, antes de entrar e quando sai, funciona normalmente, mas nessa região não.",
+    ].join("\n");
+    const csv = `Cliente,Data,Título,Setor,Tag,Descrição,CSM\nOrionsat,16/09/2026,Contato,CSM,Problema,"${description}",Ana`;
+    const rows = parseTimelineCsvRows(csv);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.client).toBe("Orionsat");
+    expect(rows[0]?.event.description).toBe(description);
+    expect(rows[0]?.event.csm).toBe("Ana");
+  });
+
   it("mantém a Timeline maximizada sem overflow lateral ao abrir detalhes", () => {
     expect(timelineSource).not.toContain("overflow-x-auto");
     expect(timelineSource).not.toContain("min-w-[760px]");
@@ -56,8 +72,8 @@ describe("aba Timeline", () => {
   it("usa a aba de acontecimentos como fonte dinâmica de clientes e eventos", () => {
     expect(timelineSource).not.toContain("useKanbanData");
     expect(timelineSource).toContain("const timelineClients");
-    expect(timelineSource).toContain("parseFriccaoRows");
-    expect(timelineSource).toContain("refetchOnMount: \"always\"");
+    expect(timelineSource).toContain("parseTimelineCsvRows");
+    expect(timelineSource).toContain('refetchOnMount: "always"');
     expect(timelineSource).toContain("staleTime: 0");
     expect(timelineSource).toContain('id="timeline-client"');
     expect(timelineSource).toContain("selectedClientId");
@@ -71,7 +87,7 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("trpc.sheets.csv.useQuery");
     expect(timelineSource).toContain("parseFriccaoEvents");
     expect(timelineSource).toContain("normalizeClientName");
-    expect(timelineSource).toContain("replace(/\\s+/g, \" \")");
+    expect(timelineSource).toContain('replace(/\\s+/g, " ")');
     expect(timelineSource).toContain("eventsByDay");
     expect(timelineSource).toContain("daysSincePrevious");
     expect(timelineSource).toContain("formatElapsedDays");
