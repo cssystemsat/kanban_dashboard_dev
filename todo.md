@@ -276,3 +276,5 @@
 - [x] Configurar a próxima publicação como 6.3, registrar a novidade e validar interação, testes, build e checkpoint.
 - [x] Corrigir o parser da Timeline para manter descrições multiline da coluna F em um único acontecimento, sem interpretar linhas internas como clientes.
 - [x] Adicionar teste de regressão e validar Timeline, TypeScript, build e checkpoint.
+- [x] Configurar a próxima publicação como 6.4 e registrar no pop-up a correção de descrições multiline da Timeline.
+- [x] Validar a versão 6.4, testes, build e checkpoint.

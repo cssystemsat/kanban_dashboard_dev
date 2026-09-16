@@ -1,9 +1,9 @@
 {
-  "appVersion": "6.3",
+  "appVersion": "6.4",
   "changes": [
-    "Ao clicar exatamente na nota do cliente no card, agora abre um pop-up compacto com os motivos e descontos daquela pontuação.",
-    "O pop-up da nota mostra somente os sinais aplicados ao cliente selecionado e pode ser fechado pelo botão X.",
-    "A pontuação dos clientes continua dinâmica, podendo ficar negativa quando os descontos ultrapassam os 100 pontos iniciais.",
-    "O Gerar Insights continua exibindo somente os 30 clientes mais críticos, ordenados pela menor pontuação."
+    "A Timeline agora preserva descrições com quebras de linha como um único acontecimento na coluna F.",
+    "Textos longos da descrição não são mais interpretados como nomes de clientes ou registros separados.",
+    "Foi adicionada uma validação para campos CSV entre aspas, com vírgulas e quebras de linha internas.",
+    "O pop-up de atualização informa essa correção aos usuários após a publicação."
   ]
 }
