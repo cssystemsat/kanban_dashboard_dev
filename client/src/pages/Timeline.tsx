@@ -354,7 +354,7 @@ export default function Timeline({
                 <div className="space-y-0 overflow-visible pb-2">
                   {eventRows.map((row, rowIndex) => {
                     const isReversed = rowIndex % 2 === 1;
-                    const displayRow = isReversed ? [...row].reverse() : row;
+                    const displayRow = row;
                     const nextRow = eventRows[rowIndex + 1];
                     // O próximo trecho começa no extremo em que a curva chega:
                     // direita na linha de baixo ímpar, esquerda na linha seguinte.
@@ -392,7 +392,10 @@ export default function Timeline({
                             )}
                           </>
                         )}
-                        <div className="relative grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 sm:gap-x-4 xl:grid-cols-5 xl:gap-5">
+                        <div
+                          className="relative grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 sm:gap-x-4 xl:grid-cols-5 xl:gap-5"
+                          style={{ direction: isReversed ? "rtl" : "ltr" }}
+                        >
                           {displayRow.map((event, index) => {
                             const eventKey = `${event.day}-${event.title}-${rowIndex}-${index}`;
                             const isOpen = openEventKey === eventKey;
@@ -401,6 +404,7 @@ export default function Timeline({
                               <div
                                 key={eventKey}
                                 className="relative flex min-w-0 flex-col items-center text-center"
+                                style={{ direction: "ltr" }}
                               >
                                 <span className="mb-2 text-[11px] font-bold text-[#536784]">
                                   {event.day}
