@@ -373,17 +373,17 @@ export default function Timeline({
                             <span className="h-4 w-4 rounded-full border-4 border-white bg-[#F4B942] shadow-[0_0_0_3px_#FDECC2,0_2px_5px_rgba(16,42,114,0.15)]" />
                           </div>
                         )}
-                        <div className="absolute left-[10%] right-[10%] top-[58px] hidden h-[5px] rounded-full bg-gradient-to-r from-[#D7E2F0] via-[#C7D7EA] to-[#D7E2F0] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] xl:block" />
+                        <div className="absolute left-6 right-6 top-[58px] hidden h-[5px] rounded-full bg-gradient-to-r from-[#D7E2F0] via-[#C7D7EA] to-[#D7E2F0] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] xl:block" />
                         {rowIndex < eventRows.length - 1 && (
                           <>
                             {/* A etiqueta abaixo substitui o antigo ponto de ancoragem top-[104px]. */}
                             <div
-                              className={`${nextRowStartsRight ? "right-[10%] rounded-br-[34px] border-b-4 border-r-4" : "left-[10%] rounded-bl-[34px] border-b-4 border-l-4"} absolute bottom-[-58px] top-[58px] hidden border-[#C7D7EA] xl:block`}
+                              className={`${nextRowStartsRight ? "right-6 rounded-br-[34px] border-b-4 border-r-4" : "left-6 rounded-bl-[34px] border-b-4 border-l-4"} absolute bottom-[-58px] top-[58px] hidden border-[#C7D7EA] xl:block`}
                             />
                             {transitionEvent?.daysSincePrevious !==
                               undefined && (
                               <span
-                                className={`pointer-events-none absolute top-[116px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${nextRowStartsRight ? "right-[10%] translate-x-1/2" : "left-[10%] -translate-x-1/2"}`}
+                                className={`pointer-events-none absolute top-[116px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${nextRowStartsRight ? "right-6 translate-x-1/2" : "left-6 -translate-x-1/2"}`}
                               >
                                 {formatElapsedDays(
                                   transitionEvent.daysSincePrevious
