@@ -355,7 +355,11 @@ export default function Timeline({
                   {eventRows.map((row, rowIndex) => {
                     const isReversed = rowIndex % 2 === 1;
                     const displayRow = isReversed ? [...row].reverse() : row;
-                    const transitionEvent = eventRows[rowIndex + 1]?.[0];
+                    const nextRow = eventRows[rowIndex + 1];
+                    // O próximo trecho começa no extremo em que a curva chega:
+                    // direita na linha de baixo ímpar, esquerda na linha seguinte.
+                    const nextRowStartsRight = (rowIndex + 1) % 2 === 1;
+                    const transitionEvent = nextRow?.[0];
                     return (
                       <div
                         key={`timeline-row-${rowIndex}`}
@@ -374,12 +378,12 @@ export default function Timeline({
                           <>
                             {/* A etiqueta abaixo substitui o antigo ponto de ancoragem top-[104px]. */}
                             <div
-                              className={`${isReversed ? "left-6 rounded-bl-[34px] border-b-4 border-l-4" : "right-6 rounded-br-[34px] border-b-4 border-r-4"} absolute bottom-[-58px] top-[58px] hidden border-[#C7D7EA] xl:block`}
+                              className={`${nextRowStartsRight ? "right-6 rounded-br-[34px] border-b-4 border-r-4" : "left-6 rounded-bl-[34px] border-b-4 border-l-4"} absolute bottom-[-58px] top-[58px] hidden border-[#C7D7EA] xl:block`}
                             />
                             {transitionEvent?.daysSincePrevious !==
                               undefined && (
                               <span
-                                className={`pointer-events-none absolute top-[116px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "left-6 -translate-x-1/2" : "right-6 translate-x-1/2"}`}
+                                className={`pointer-events-none absolute top-[116px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${nextRowStartsRight ? "right-6 translate-x-1/2" : "left-6 -translate-x-1/2"}`}
                               >
                                 {formatElapsedDays(
                                   transitionEvent.daysSincePrevious
