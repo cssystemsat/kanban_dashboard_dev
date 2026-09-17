@@ -1,9 +1,9 @@
 {
-  "appVersion": "6.4",
+  "appVersion": "6.5",
   "changes": [
-    "A Timeline agora preserva descrições com quebras de linha como um único acontecimento na coluna F.",
-    "Textos longos da descrição não são mais interpretados como nomes de clientes ou registros separados.",
-    "Foi adicionada uma validação para campos CSV entre aspas, com vírgulas e quebras de linha internas.",
-    "O pop-up de atualização informa essa correção aos usuários após a publicação."
+    "A Timeline agora usa um caminho zigue-zague contínuo, com curvas alinhadas aos extremos das linhas.",
+    "Os acontecimentos da segunda linha seguem visualmente da curva para dentro, sem quebrar a ordem cronológica.",
+    "Marcadores, etiquetas de tempo e linhas receberam espaçamento, contraste e acabamento mais consistentes.",
+    "A versão 6.5 será exibida no pop-up de atualização após a publicação."
   ]
 }

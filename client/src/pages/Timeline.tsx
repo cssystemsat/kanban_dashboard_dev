@@ -359,26 +359,27 @@ export default function Timeline({
                     return (
                       <div
                         key={`timeline-row-${rowIndex}`}
-                        className="relative min-h-[150px] px-1 py-3 sm:px-3"
+                        className="relative min-h-[164px] px-1 py-3 sm:px-3"
                       >
                         {rowIndex === 0 && (
-                          <div className="absolute left-0 top-[34px] z-20 hidden flex-col items-center gap-1 xl:flex">
+                          <div className="absolute left-0 top-[38px] z-20 hidden -translate-x-1/4 flex-col items-center gap-1 xl:flex">
                             <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#536784]">
                               Início
                             </span>
-                            <span className="h-4 w-4 rounded-full border-4 border-white bg-[#F4B942] shadow-[0_0_0_3px_#FDECC2]" />
+                            <span className="h-4 w-4 rounded-full border-4 border-white bg-[#F4B942] shadow-[0_0_0_3px_#FDECC2,0_2px_5px_rgba(16,42,114,0.15)]" />
                           </div>
                         )}
-                        <div className="absolute left-6 right-6 top-[52px] hidden h-1 rounded-full bg-[#D9E4F3] xl:block" />
+                        <div className="absolute left-6 right-6 top-[58px] hidden h-[5px] rounded-full bg-gradient-to-r from-[#D7E2F0] via-[#C7D7EA] to-[#D7E2F0] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] xl:block" />
                         {rowIndex < eventRows.length - 1 && (
                           <>
+                            {/* A etiqueta abaixo substitui o antigo ponto de ancoragem top-[104px]. */}
                             <div
-                              className={`${isReversed ? "left-2 rounded-bl-[42px] border-b-4 border-l-4" : "right-2 rounded-br-[42px] border-b-4 border-r-4"} absolute bottom-[-52px] top-[52px] hidden border-[#D9E4F3] xl:block`}
+                              className={`${isReversed ? "left-6 rounded-bl-[34px] border-b-4 border-l-4" : "right-6 rounded-br-[34px] border-b-4 border-r-4"} absolute bottom-[-58px] top-[58px] hidden border-[#C7D7EA] xl:block`}
                             />
                             {transitionEvent?.daysSincePrevious !==
                               undefined && (
                               <span
-                                className={`pointer-events-none absolute top-[104px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "left-2 -translate-x-1/2" : "right-2 translate-x-1/2"}`}
+                                className={`pointer-events-none absolute top-[116px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "left-6 -translate-x-1/2" : "right-6 translate-x-1/2"}`}
                               >
                                 {formatElapsedDays(
                                   transitionEvent.daysSincePrevious
@@ -421,7 +422,7 @@ export default function Timeline({
                                       );
                                     }
                                   }}
-                                  className={`relative z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-4 border-white ring-4 ${isOpen ? "ring-[#FDECC2]" : "ring-[#E8EEFF]"} outline-none transition hover:scale-105 focus:ring-4 focus:ring-[#AFC2FF]`}
+                                  className={`relative z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-4 border-white ring-4 ${isOpen ? "ring-[#FDECC2]" : "ring-[#E8EEFF]"} shadow-[0_3px_8px_rgba(16,42,114,0.15)] outline-none transition hover:scale-105 focus:ring-4 focus:ring-[#AFC2FF]`}
                                   style={{
                                     backgroundColor: getTagColor(event.tag),
                                   }}
@@ -436,7 +437,7 @@ export default function Timeline({
                                     (isReversed &&
                                       index < displayRow.length - 1)) && (
                                     <span
-                                      className={`pointer-events-none absolute top-[36px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "-right-[0.625rem] translate-x-1/2" : "-left-[0.625rem] -translate-x-1/2"}`}
+                                      className={`pointer-events-none absolute top-[44px] z-20 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-[#D9E4F3] bg-white px-2 py-0.5 text-[9px] font-bold text-[#536784] shadow-sm xl:block ${isReversed ? "-right-[0.625rem] translate-x-1/2" : "-left-[0.625rem] -translate-x-1/2"}`}
                                     >
                                       {formatElapsedDays(
                                         event.daysSincePrevious
