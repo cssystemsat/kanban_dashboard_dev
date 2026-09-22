@@ -1,9 +1,9 @@
 {
-  "appVersion": "6.5",
+  "appVersion": "6.6",
   "changes": [
-    "A Timeline agora usa um caminho zigue-zague contínuo, com curvas alinhadas aos extremos das linhas.",
-    "Os acontecimentos da segunda linha seguem visualmente da curva para dentro, sem quebrar a ordem cronológica.",
-    "Marcadores, etiquetas de tempo e linhas receberam espaçamento, contraste e acabamento mais consistentes.",
-    "A versão 6.5 será exibida no pop-up de atualização após a publicação."
+    "O mapa da aba Painel voltou a aparecer usando um SVG estável dos estados brasileiros.",
+    "Os círculos de valores foram alinhados aos centros geográficos exatos de cada estado, incluindo estados pequenos.",
+    "O asset externo que retornava HTTP 403 foi substituído por um recurso hospedado no armazenamento do projeto.",
+    "A versão 6.6 será exibida no pop-up de atualização após a publicação."
   ]
 }

@@ -16,39 +16,37 @@ interface BrazilMapPainelProps {
   clients: ClienteEstado[];
 }
 
-// Coordenadas dos centros dos estados (em % relativo à imagem 390x377px)
+// Centros oficiais do SVG do mapa (convertidos para percentuais do viewBox 1000x912).
+// Esses pontos vêm da camada label_points do próprio mapa, não de estimativas visuais.
 const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
-  AC: { x: 10, y: 40 },
-  AL: { x: 82, y: 37 },
-  AM: { x: 22, y: 28 },
-  AP: { x: 45, y: 10 },
-  BA: { x: 72, y: 44 },
-  CE: { x: 70, y: 20 },
-  DF: { x: 58, y: 51 },
-  ES: { x: 78, y: 62 },
-  GO: { x: 55, y: 56 },
-  MA: { x: 58, y: 24 },
-  MG: { x: 68, y: 60 },
-  MS: { x: 39, y: 64 },
-  MT: { x: 42, y: 50 },
-  PA: { x: 45, y: 26 },
-  PB: { x: 82, y: 28 },
-  PE: { x: 82, y: 33 },
-  PI: { x: 66, y: 33 },
-  PR: { x: 50, y: 73 },
-  RJ: { x: 72, y: 67 },
-  RN: { x: 82, y: 22 },
-  RO: { x: 25, y: 44 },
-  RR: { x: 30, y: 11 },
-  RS: { x: 42, y: 88 },
-  SC: { x: 48, y: 82 },
-  SE: { x: 82, y: 40 },
-  SP: { x: 55, y: 68 },
-  TO: { x: 58, y: 41 },
+  AC: { x: 13.65, y: 37.88 },
+  AL: { x: 80.06, y: 37.87 },
+  AM: { x: 21.52, y: 25.56 },
+  AP: { x: 49.27, y: 13.60 },
+  BA: { x: 69.76, y: 43.61 },
+  CE: { x: 74.10, y: 27.09 },
+  DF: { x: 57.37, y: 51.46 },
+  ES: { x: 72.42, y: 59.49 },
+  GO: { x: 52.66, y: 53.49 },
+  MA: { x: 62.29, y: 27.87 },
+  MG: { x: 64.41, y: 57.79 },
+  MS: { x: 43.02, y: 61.70 },
+  MT: { x: 40.99, y: 46.03 },
+  PA: { x: 46.13, y: 28.46 },
+  PB: { x: 81.11, y: 31.98 },
+  PE: { x: 75.99, y: 34.57 },
+  PI: { x: 67.12, y: 34.10 },
+  PR: { x: 48.98, y: 72.20 },
+  RJ: { x: 68.03, y: 66.89 },
+  RN: { x: 79.80, y: 28.94 },
+  RO: { x: 25.98, y: 39.88 },
+  RR: { x: 30.05, y: 11.07 },
+  RS: { x: 46.11, y: 84.79 },
+  SC: { x: 52.80, y: 78.78 },
+  SE: { x: 78.48, y: 39.45 },
+  SP: { x: 56.09, y: 66.34 },
+  TO: { x: 56.21, y: 39.66 },
 };
-
-// Estados pequenos que precisam de setas
-const SMALL_STATES = ["RN", "PB", "PE", "AL", "SE"];
 
 export default function BrazilMapPainel({
   title,
@@ -188,10 +186,10 @@ export default function BrazilMapPainel({
         >
           {/* Imagem do mapa do Brasil */}
           <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663388902916/m4JthXh6fRtQzx9KxAa8P4/mapa-brasil-estados_b1dab211.png"
+            src="/manus-storage/brasil-estados_2f2eb889.svg"
             alt="Mapa do Brasil"
             className="w-full h-full rounded"
-            style={{ objectFit: "fill" }}
+            style={{ objectFit: "contain" }}
           />
 
           {/* Overlay com números em círculos com gradiente de cores + setas para estados pequenos */}
@@ -230,39 +228,13 @@ export default function BrazilMapPainel({
                 Math.min(baseSize + count * 2.5, 90)
               );
 
-              const isSmallState = SMALL_STATES.includes(state);
-
               return (
                 <div key={state}>
-                  {/* Seta vermelha para estados pequenos */}
-                  {isSmallState && (
-                    <svg
-                      className="absolute pointer-events-none"
-                      style={{
-                        left: `${pos.x}%`,
-                        top: `${pos.y}%`,
-                        width: "80px",
-                        height: "40px",
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      <line
-                        x1="0"
-                        y1="20"
-                        x2="50"
-                        y2="20"
-                        stroke="#EF4444"
-                        strokeWidth="2.5"
-                      />
-                      <polygon points="50,20 40,14 40,26" fill="#EF4444" />
-                    </svg>
-                  )}
-
                   {/* Círculo com número */}
                   <div
                     className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all hover:scale-110"
                     style={{
-                      left: isSmallState ? `${pos.x + 15}%` : `${pos.x}%`,
+                      left: `${pos.x}%`,
                       top: `${pos.y}%`,
                       width: `${circleSize}px`,
                       height: `${circleSize}px`,
