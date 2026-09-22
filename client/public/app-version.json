@@ -1,9 +1,9 @@
 {
-  "appVersion": "6.6",
+  "appVersion": "6.7",
   "changes": [
-    "O mapa da aba Painel voltou a aparecer usando um SVG estável dos estados brasileiros.",
-    "Os círculos de valores foram alinhados aos centros geográficos exatos de cada estado, incluindo estados pequenos.",
-    "O asset externo que retornava HTTP 403 foi substituído por um recurso hospedado no armazenamento do projeto.",
-    "A versão 6.6 será exibida no pop-up de atualização após a publicação."
+    "O mapa da aba Painel agora é incorporado diretamente no bundle e não depende de CDN, storage externo ou CORS.",
+    "Os círculos de valores foram redimensionados para evitar sobreposição, com tratamento especial para a faixa litorânea.",
+    "A proporção do mapa usa o mesmo viewBox do SVG, mantendo cada valor sobre o centro geográfico correto do estado.",
+    "A versão 6.7 será exibida no pop-up de atualização após a publicação."
   ]
 }

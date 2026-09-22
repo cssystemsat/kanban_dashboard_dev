@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { X } from "lucide-react";
+import brazilMapSvg from "./brasil-estados.svg?raw";
 
 interface ClienteEstado {
   nome: string;
@@ -182,14 +183,14 @@ export default function BrazilMapPainel({
       >
         <div
           className="relative w-full"
-          style={{ maxWidth: "900px", aspectRatio: "390/377" }}
+          style={{ maxWidth: "900px", aspectRatio: "1000/912" }}
         >
-          {/* Imagem do mapa do Brasil */}
-          <img
-            src="/manus-storage/brasil-estados_2f2eb889.svg"
-            alt="Mapa do Brasil"
-            className="w-full h-full rounded"
-            style={{ objectFit: "contain" }}
+          {/* SVG incorporado no bundle: não depende de CDN, storage ou CORS. */}
+          <div
+            className="absolute inset-0 [&>svg]:block [&>svg]:w-full [&>svg]:h-full"
+            role="img"
+            aria-label="Mapa do Brasil"
+            dangerouslySetInnerHTML={{ __html: brazilMapSvg }}
           />
 
           {/* Overlay com números em círculos com gradiente de cores + setas para estados pequenos */}
@@ -221,12 +222,22 @@ export default function BrazilMapPainel({
               const borderColor =
                 colors[Math.min(colorIndex + 2, colors.length - 1)];
 
-              // Tamanho do círculo baseado na quantidade
-              const baseSize = 45;
-              const circleSize = Math.max(
-                baseSize,
-                Math.min(baseSize + count * 2.5, 90)
-              );
+              // Os centros dos estados são exatos; círculos compactos evitam
+              // sobreposição na faixa litorânea, onde as UFs são muito próximas.
+              const compactStates = new Set([
+                "AL",
+                "CE",
+                "DF",
+                "ES",
+                "PB",
+                "PE",
+                "RJ",
+                "RN",
+                "SE",
+              ]);
+              const circleSize = compactStates.has(state)
+                ? 22
+                : Math.min(34, Math.max(22, 19 + Math.log10(count + 1) * 5));
 
               return (
                 <div key={state}>
@@ -254,8 +265,7 @@ export default function BrazilMapPainel({
                           intensity > 0.5
                             ? "0 1px 2px rgba(0,0,0,0.3)"
                             : "none",
-                        fontSize:
-                          count > 99 ? "18px" : count > 9 ? "16px" : "14px",
+                        fontSize: count > 99 ? "11px" : count > 9 ? "10px" : "9px",
                       }}
                     >
                       {count}
