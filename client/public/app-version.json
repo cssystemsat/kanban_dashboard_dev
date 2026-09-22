@@ -1,9 +1,9 @@
 {
-  "appVersion": "6.7",
+  "appVersion": "6.8",
   "changes": [
-    "O mapa da aba Painel agora é incorporado diretamente no bundle e não depende de CDN, storage externo ou CORS.",
-    "Os círculos de valores foram redimensionados para evitar sobreposição, com tratamento especial para a faixa litorânea.",
-    "A proporção do mapa usa o mesmo viewBox do SVG, mantendo cada valor sobre o centro geográfico correto do estado.",
-    "A versão 6.7 será exibida no pop-up de atualização após a publicação."
+    "Na aba Marcos, o botão verde de grupo do WhatsApp foi substituído por uma seta de objetivos.",
+    "Ao clicar na seta, o card mostra os objetivos do cliente cadastrados na coluna AA.",
+    "Objetivos separados por vírgula ou quebra de linha aparecem individualmente no pop-up.",
+    "A versão 6.8 será exibida no pop-up de atualização após a publicação."
   ]
 }

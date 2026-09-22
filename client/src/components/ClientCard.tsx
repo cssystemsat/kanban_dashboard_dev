@@ -9,6 +9,7 @@ import {
   Briefcase,
   Heart,
   MessageCircle,
+  ArrowRight,
   TrendingUp,
   TrendingDown,
   X,
@@ -50,6 +51,7 @@ export default function ClientCard({
 }: ClientCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showScoreReasons, setShowScoreReasons] = useState(false);
+  const [showObjectives, setShowObjectives] = useState(false);
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -72,13 +74,6 @@ export default function ClientCard({
     if (client.whatsapp) {
       const phone = client.whatsapp.replace(/\D/g, "");
       window.open(`https://wa.me/${phone}`, "_blank");
-    }
-  };
-
-  const handleWhatsAppGrupo = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (client.whatsappGrupo) {
-      window.open(client.whatsappGrupo, "_blank");
     }
   };
 
@@ -318,15 +313,19 @@ export default function ClientCard({
 
         {/* Botões de Ação */}
         <div className="flex items-center gap-1.5 mt-0.5">
-          {/* Botão WhatsApp */}
+          {/* Botão Objetivos — substitui o grupo do WhatsApp e lê a coluna AA */}
           {client.whatsappGrupo ? (
             <button
-              onClick={handleWhatsAppGrupo}
+              onClick={event => {
+                event.stopPropagation();
+                setShowObjectives(value => !value);
+              }}
               className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
               style={{ backgroundColor: "#25D366", color: "#FFFFFF" }}
-              title="Abrir grupo do WhatsApp"
+              title="Ver objetivos do cliente"
+              aria-label={`Ver objetivos do cliente ${client.nome}`}
             >
-              <MessageCircle className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           ) : client.whatsapp ? (
             <button
@@ -366,6 +365,38 @@ export default function ClientCard({
             <Flag className="w-4 h-4 fill-current" />
           </button>
         </div>
+        {showObjectives && (
+          <div
+            className="absolute left-0 right-0 bottom-10 z-50 rounded-lg border border-emerald-200 bg-white p-3 text-left text-xs shadow-xl"
+            role="dialog"
+            aria-label={`Objetivos de ${client.nome}`}
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
+              <span className="font-semibold text-slate-800">Objetivos do cliente</span>
+              <button
+                type="button"
+                className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Fechar objetivos"
+                onClick={() => setShowObjectives(false)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {client.tags && client.tags.length > 0 ? (
+              <ul className="space-y-1.5 text-slate-600">
+                {client.tags.map((objective, index) => (
+                  <li key={`${objective}-${index}`} className="flex items-start gap-2">
+                    <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                    <span>{objective}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-slate-500">Nenhum objetivo informado na coluna AA.</p>
+            )}
+          </div>
+        )}
         {showScoreReasons && (
           <div
             className="absolute right-0 top-8 z-50 w-56 rounded-lg border border-slate-200 bg-white p-3 text-left text-xs shadow-xl"
