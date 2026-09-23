@@ -391,10 +391,9 @@ export default function ClientCard({
         </div>
         {showObjectives && (
           <div
-            className="absolute bottom-10 left-1/2 z-50 rounded-xl border-2 border-emerald-300 bg-white p-4 text-left text-xs shadow-2xl"
+            className="fixed left-1/2 top-1/2 z-[100] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border-2 border-emerald-300 bg-white p-5 text-left text-xs shadow-2xl"
             style={{
-              width: "min(20rem, calc(100vw - 2rem))",
-              transform: "translateX(-50%)",
+              width: "min(32rem, calc(100vw - 2rem))",
             }}
             role="dialog"
             aria-label={`Objetivos de ${client.nome}`}

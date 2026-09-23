@@ -20,7 +20,9 @@ describe("Marcos — objetivos do cliente", () => {
   });
 
   it("mostra um modal maior com checkbox contrastante e guarda a marcação", () => {
-    expect(clientCard).toContain('width: "min(20rem, calc(100vw - 2rem))"');
+    expect(clientCard).toContain('width: "min(32rem, calc(100vw - 2rem))"');
+    expect(clientCard).toContain("fixed left-1/2 top-1/2");
+    expect(clientCard).toContain("max-h-[calc(100vh-2rem)]");
     expect(clientCard).toContain('type="checkbox"');
     expect(clientCard).toContain("accent-emerald-600");
     expect(clientCard).toContain("line-through");
