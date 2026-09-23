@@ -1,5 +1,6 @@
 import { Calendar, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 interface DateFilterCompactProps {
   onDateChange: (startDate: Date | null, endDate: Date | null) => void;
@@ -112,8 +113,10 @@ export default function DateFilterCompact({
       </button>
 
       {/* Menu Dropdown */}
-      {showCustom && (
-        <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-w-72">
+      {showCustom &&
+        typeof document !== "undefined" &&
+        createPortal(
+        <div className="fixed right-2 top-12 z-[200] max-h-[calc(100vh-4rem)] min-w-72 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-2xl">
           {/* Filtro 1 */}
           <div className="p-3 border-b border-gray-200">
             <p className="text-xs font-semibold text-gray-600 mb-2 px-2">
@@ -284,7 +287,8 @@ export default function DateFilterCompact({
               </button>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

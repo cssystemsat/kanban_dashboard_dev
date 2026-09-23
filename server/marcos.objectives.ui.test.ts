@@ -23,6 +23,7 @@ describe("Marcos — objetivos do cliente", () => {
     expect(clientCard).toContain('width: "min(32rem, calc(100vw - 2rem))"');
     expect(clientCard).toContain("fixed left-1/2 top-1/2");
     expect(clientCard).toContain("max-h-[calc(100vh-2rem)]");
+    expect(clientCard).toContain("createPortal");
     expect(clientCard).toContain('type="checkbox"');
     expect(clientCard).toContain("accent-emerald-600");
     expect(clientCard).toContain("line-through");

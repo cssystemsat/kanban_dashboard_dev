@@ -17,6 +17,7 @@ import {
   Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   useAgendaData,
   isAgendaOutdated,
@@ -389,7 +390,9 @@ export default function ClientCard({
             <Flag className="w-4 h-4 fill-current" />
           </button>
         </div>
-        {showObjectives && (
+        {showObjectives &&
+          typeof document !== "undefined" &&
+          createPortal(
           <div
             className="fixed left-1/2 top-1/2 z-[100] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border-2 border-emerald-300 bg-white p-5 text-left text-xs shadow-2xl"
             style={{
@@ -455,8 +458,9 @@ export default function ClientCard({
             ) : (
               <p className="text-slate-500">Nenhum objetivo informado na coluna AA.</p>
             )}
-          </div>
-        )}
+          </div>,
+            document.body
+          )}
         {showScoreReasons && (
           <div
             className="absolute right-0 top-8 z-50 w-56 rounded-lg border border-slate-200 bg-white p-3 text-left text-xs shadow-xl"

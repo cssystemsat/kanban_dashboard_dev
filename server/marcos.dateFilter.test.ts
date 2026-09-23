@@ -31,5 +31,7 @@ describe("Filtro de data da aba Marcos", () => {
     );
     expect(source).toContain("const parseDateInput = (value: string)");
     expect(source).not.toContain("const start = new Date(startDate)");
+    expect(source).toContain("createPortal");
+    expect(source).toContain("fixed right-2 top-12");
   });
 });
