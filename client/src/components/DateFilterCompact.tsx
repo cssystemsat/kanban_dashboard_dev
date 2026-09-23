@@ -23,6 +23,13 @@ export default function DateFilterCompact({
     return { start, end };
   };
 
+  // O construtor new Date("YYYY-MM-DD") interpreta a data como UTC e pode
+  // deslocá-la para o dia anterior em fusos como o de Brasília.
+  const parseDateInput = (value: string) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   // Aplicar preset
   const applyPreset = (days: number) => {
     const { start, end } = getPresetDates(days);
@@ -40,8 +47,8 @@ export default function DateFilterCompact({
       return;
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseDateInput(startDate);
+    const end = parseDateInput(endDate);
 
     if (start > end) {
       alert("Data inicial não pode ser maior que data final");
@@ -73,11 +80,11 @@ export default function DateFilterCompact({
     if (activePreset === "60d-contract") return "60+ dias";
     if (activePreset === "90d-contract") return "90+ dias";
     if (startDate && endDate) {
-      const start = new Date(startDate).toLocaleDateString("pt-BR", {
+      const start = parseDateInput(startDate).toLocaleDateString("pt-BR", {
         month: "2-digit",
         day: "2-digit",
       });
-      const end = new Date(endDate).toLocaleDateString("pt-BR", {
+      const end = parseDateInput(endDate).toLocaleDateString("pt-BR", {
         month: "2-digit",
         day: "2-digit",
       });

@@ -14,6 +14,10 @@ import { Flag, RotateCw, Sparkles, X, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useEffect, useState } from "react";
 import {
+  isMarcosDateInRange,
+  parseMarcosDate,
+} from "@/lib/marcosDateFilter";
+import {
   calculateClientCriticality,
   type CriticalSignal,
 } from "@/lib/criticality";
@@ -204,15 +208,7 @@ export default function Home() {
   }
   if (dateFilterStart && dateFilterEnd) {
     filteredData = filteredData.filter(client => {
-      if (!client.entrada) return false;
-      const parts = client.entrada.trim().split("/");
-      if (parts.length !== 3) return false;
-      const clientDate = new Date(
-        parseInt(parts[2]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[0])
-      );
-      return clientDate >= dateFilterStart && clientDate <= dateFilterEnd;
+      return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
     });
   }
   if (percentualDesatualizadoFilter !== null) {
@@ -294,15 +290,7 @@ export default function Home() {
   }
   if (dateFilterStart && dateFilterEnd) {
     baseDataForCounts = baseDataForCounts.filter(client => {
-      if (!client.entrada) return false;
-      const parts = client.entrada.trim().split("/");
-      if (parts.length !== 3) return false;
-      const clientDate = new Date(
-        parseInt(parts[2]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[0])
-      );
-      return clientDate >= dateFilterStart && clientDate <= dateFilterEnd;
+      return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
     });
   }
 
@@ -335,14 +323,7 @@ export default function Home() {
   // Ordenar clientes por data de entrada (mais antigos em cima)
   const sortedData = [...filteredData].sort((a, b) => {
     const parseDate = (dateStr: string | undefined) => {
-      if (!dateStr) return new Date(0);
-      const parts = dateStr.trim().split("/");
-      if (parts.length !== 3) return new Date(0);
-      return new Date(
-        parseInt(parts[2]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[0])
-      );
+      return parseMarcosDate(dateStr) ?? new Date(0);
     };
     return parseDate(a.entrada).getTime() - parseDate(b.entrada).getTime();
   });
