@@ -1,9 +1,9 @@
 {
-  "appVersion": "6.8",
+  "appVersion": "6.9",
   "changes": [
-    "Na aba Marcos, o botão verde de grupo do WhatsApp foi substituído por uma seta de objetivos.",
-    "Ao clicar na seta, o card mostra os objetivos do cliente cadastrados na coluna AA.",
-    "Objetivos separados por vírgula ou quebra de linha aparecem individualmente no pop-up.",
-    "A versão 6.8 será exibida no pop-up de atualização após a publicação."
+    "O modal de objetivos da aba Marcos foi ampliado para facilitar a leitura.",
+    "Cada objetivo agora tem um checkbox de alto contraste para marcar se foi concluído.",
+    "Objetivos concluídos ficam destacados em verde e riscados para indicar o status.",
+    "As marcações são preservadas no navegador por cliente e permanecem ao reabrir o card."
   ]
 }

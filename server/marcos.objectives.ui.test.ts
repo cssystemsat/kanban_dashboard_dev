@@ -19,6 +19,14 @@ describe("Marcos — objetivos do cliente", () => {
     expect(clientCard).not.toContain('title="Abrir grupo do WhatsApp"');
   });
 
+  it("mostra um modal maior com checkbox contrastante e guarda a marcação", () => {
+    expect(clientCard).toContain('width: "min(20rem, calc(100vw - 2rem))"');
+    expect(clientCard).toContain('type="checkbox"');
+    expect(clientCard).toContain("accent-emerald-600");
+    expect(clientCard).toContain("line-through");
+    expect(clientCard).toContain("localStorage");
+  });
+
   it("lê os objetivos da coluna AA", () => {
     expect(kanbanData).toContain("const tagsIdx = 26; // Coluna AA");
     expect(kanbanData).toContain("tagsRaw");

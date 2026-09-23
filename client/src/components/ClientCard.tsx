@@ -16,7 +16,7 @@ import {
   Headphones,
   Star,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useAgendaData,
   isAgendaOutdated,
@@ -52,6 +52,19 @@ export default function ClientCard({
   const [showTooltip, setShowTooltip] = useState(false);
   const [showScoreReasons, setShowScoreReasons] = useState(false);
   const [showObjectives, setShowObjectives] = useState(false);
+  const [completedObjectives, setCompletedObjectives] = useState<
+    Record<string, boolean>
+  >(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const saved = window.localStorage.getItem(
+        `marcos-objectives:${client.id}`
+      );
+      return saved ? (JSON.parse(saved) as Record<string, boolean>) : {};
+    } catch {
+      return {};
+    }
+  });
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -68,6 +81,17 @@ export default function ClientCard({
   const diasCorridos = parseInt(String(client.diasCorridos || 0));
   const urs = parseInt(String(client.urs || 0));
   const shouldHighlightRedBorder = diasCorridos > 60 && urs < 30;
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        `marcos-objectives:${client.id}`,
+        JSON.stringify(completedObjectives)
+      );
+    } catch {
+      // A marcação continua funcionando mesmo quando o navegador bloqueia storage.
+    }
+  }, [client.id, completedObjectives]);
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -314,7 +338,7 @@ export default function ClientCard({
         {/* Botões de Ação */}
         <div className="flex items-center gap-1.5 mt-0.5">
           {/* Botão Objetivos — substitui o grupo do WhatsApp e lê a coluna AA */}
-          {client.whatsappGrupo ? (
+          {client.whatsappGrupo || (client.tags && client.tags.length > 0) ? (
             <button
               onClick={event => {
                 event.stopPropagation();
@@ -367,13 +391,24 @@ export default function ClientCard({
         </div>
         {showObjectives && (
           <div
-            className="absolute left-0 right-0 bottom-10 z-50 rounded-lg border border-emerald-200 bg-white p-3 text-left text-xs shadow-xl"
+            className="absolute bottom-10 left-1/2 z-50 rounded-xl border-2 border-emerald-300 bg-white p-4 text-left text-xs shadow-2xl"
+            style={{
+              width: "min(20rem, calc(100vw - 2rem))",
+              transform: "translateX(-50%)",
+            }}
             role="dialog"
             aria-label={`Objetivos de ${client.nome}`}
             onClick={event => event.stopPropagation()}
           >
             <div className="mb-2 flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
-              <span className="font-semibold text-slate-800">Objetivos do cliente</span>
+              <div>
+                <span className="block text-sm font-bold text-slate-900">
+                  Objetivos do cliente
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  Marque o que já foi concluído
+                </span>
+              </div>
               <button
                 type="button"
                 className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
@@ -384,11 +419,37 @@ export default function ClientCard({
               </button>
             </div>
             {client.tags && client.tags.length > 0 ? (
-              <ul className="space-y-1.5 text-slate-600">
+              <ul className="space-y-2 text-slate-700">
                 {client.tags.map((objective, index) => (
-                  <li key={`${objective}-${index}`} className="flex items-start gap-2">
-                    <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                    <span>{objective}</span>
+                  <li
+                    key={`${objective}-${index}`}
+                    className={`flex items-start gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
+                      completedObjectives[`${index}`]
+                        ? "border-emerald-300 bg-emerald-100 text-emerald-900"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={Boolean(completedObjectives[`${index}`])}
+                      onChange={event =>
+                        setCompletedObjectives(current => ({
+                          ...current,
+                          [`${index}`]: event.target.checked,
+                        }))
+                      }
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
+                      aria-label={`Marcar objetivo como concluído: ${objective}`}
+                    />
+                    <span
+                      className={
+                        completedObjectives[`${index}`]
+                          ? "font-medium line-through"
+                          : ""
+                      }
+                    >
+                      {objective}
+                    </span>
                   </li>
                 ))}
               </ul>
