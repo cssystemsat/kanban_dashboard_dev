@@ -64,6 +64,8 @@ import {
   getAnalystScoreSchedule,
   getAnalystScoreSchedules,
   saveAnalystScoreSchedule,
+  getClientObjectiveCompletions,
+  setClientObjectiveCompletion,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 import { createHeartbeatJob } from "./_core/heartbeat";
@@ -126,6 +128,29 @@ export const appRouter = router({
       }),
   }),
   marcos: router({
+    objectiveCompletions: protectedProcedure
+      .input(z.object({ clientId: z.string().min(1).max(255) }))
+      .query(async ({ input }) => {
+        const rows = await getClientObjectiveCompletions(input.clientId);
+        return rows.map(row => row.objectiveIndex);
+      }),
+    setObjectiveCompletion: protectedProcedure
+      .input(
+        z.object({
+          clientId: z.string().min(1).max(255),
+          objectiveIndex: z.number().int().nonnegative(),
+          completed: z.boolean(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await setClientObjectiveCompletion(
+          input.clientId,
+          input.objectiveIndex,
+          input.completed,
+          ctx.user.email
+        );
+        return { success: true };
+      }),
     generateInsights: allowlistedProcedure
       .input(
         z.object({

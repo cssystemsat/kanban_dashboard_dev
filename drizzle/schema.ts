@@ -3,6 +3,7 @@ import {
   int,
   mysqlEnum,
   mysqlTable,
+  uniqueIndex,
   text,
   timestamp,
   varchar,
@@ -149,6 +150,30 @@ export const userActions = mysqlTable("user_actions", {
 
 export type UserAction = typeof userActions.$inferSelect;
 export type InsertUserAction = typeof userActions.$inferInsert;
+
+// Objetivos da aba Marcos: estado compartilhado entre todos os usuários.
+export const clientObjectiveCompletions = mysqlTable(
+  "client_objective_completions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientId: varchar("clientId", { length: 255 }).notNull(),
+    objectiveIndex: int("objectiveIndex").notNull(),
+    completed: boolean("completed").default(true).notNull(),
+    updatedBy: varchar("updatedBy", { length: 320 }),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    clientObjectiveUnique: uniqueIndex("client_objective_unique").on(
+      table.clientId,
+      table.objectiveIndex
+    ),
+  })
+);
+
+export type ClientObjectiveCompletion =
+  typeof clientObjectiveCompletions.$inferSelect;
+export type InsertClientObjectiveCompletion =
+  typeof clientObjectiveCompletions.$inferInsert;
 // Comentários sobre clientes no painel de Evolução de UR's
 export const clientComments = mysqlTable("client_comments", {
   id: int("id").autoincrement().primaryKey(),

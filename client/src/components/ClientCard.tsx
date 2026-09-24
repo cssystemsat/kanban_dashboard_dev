@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { trpc } from "@/lib/trpc";
 import {
   useAgendaData,
   isAgendaOutdated,
@@ -55,17 +56,14 @@ export default function ClientCard({
   const [showObjectives, setShowObjectives] = useState(false);
   const [completedObjectives, setCompletedObjectives] = useState<
     Record<string, boolean>
-  >(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      const saved = window.localStorage.getItem(
-        `marcos-objectives:${client.id}`
-      );
-      return saved ? (JSON.parse(saved) as Record<string, boolean>) : {};
-    } catch {
-      return {};
-    }
-  });
+  >({});
+  const { data: sharedObjectiveIndexes = [] } =
+    trpc.marcos.objectiveCompletions.useQuery(
+      { clientId: client.id },
+      { staleTime: 30_000 }
+    );
+  const setObjectiveCompletion =
+    trpc.marcos.setObjectiveCompletion.useMutation();
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -84,15 +82,10 @@ export default function ClientCard({
   const shouldHighlightRedBorder = diasCorridos > 60 && urs < 30;
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        `marcos-objectives:${client.id}`,
-        JSON.stringify(completedObjectives)
-      );
-    } catch {
-      // A marcação continua funcionando mesmo quando o navegador bloqueia storage.
-    }
-  }, [client.id, completedObjectives]);
+    setCompletedObjectives(
+      Object.fromEntries(sharedObjectiveIndexes.map(index => [`${index}`, true]))
+    );
+  }, [sharedObjectiveIndexes]);
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -435,10 +428,18 @@ export default function ClientCard({
                       type="checkbox"
                       checked={Boolean(completedObjectives[`${index}`])}
                       onChange={event =>
-                        setCompletedObjectives(current => ({
-                          ...current,
-                          [`${index}`]: event.target.checked,
-                        }))
+                        (() => {
+                          const completed = event.target.checked;
+                          setCompletedObjectives(current => ({
+                            ...current,
+                            [`${index}`]: completed,
+                          }));
+                          setObjectiveCompletion.mutate({
+                            clientId: client.id,
+                            objectiveIndex: index,
+                            completed,
+                          });
+                        })()
                       }
                       className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
                       aria-label={`Marcar objetivo como concluído: ${objective}`}

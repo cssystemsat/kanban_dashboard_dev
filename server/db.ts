@@ -30,6 +30,7 @@ import {
   analystScoreSchedules,
   kpiWeeklySnapshots,
   InsertKpiWeeklySnapshot,
+  clientObjectiveCompletions,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -357,6 +358,53 @@ export async function toggleCompletion(
           eq(checklistCompletions.itemId, itemId),
           eq(checklistCompletions.userEmail, userEmail),
           eq(checklistCompletions.completedDate, date)
+        )
+      );
+  }
+}
+
+export async function getClientObjectiveCompletions(clientId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db
+    .select({ objectiveIndex: clientObjectiveCompletions.objectiveIndex })
+    .from(clientObjectiveCompletions)
+    .where(
+      and(
+        eq(clientObjectiveCompletions.clientId, clientId),
+        eq(clientObjectiveCompletions.completed, true)
+      )
+    );
+}
+
+export async function setClientObjectiveCompletion(
+  clientId: string,
+  objectiveIndex: number,
+  completed: boolean,
+  updatedBy?: string | null
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  if (completed) {
+    await db
+      .insert(clientObjectiveCompletions)
+      .values({
+        clientId,
+        objectiveIndex,
+        completed: true,
+        updatedBy: updatedBy ?? null,
+      })
+      .onDuplicateKeyUpdate({
+        set: { completed: true, updatedBy: updatedBy ?? null },
+      });
+  } else {
+    await db
+      .delete(clientObjectiveCompletions)
+      .where(
+        and(
+          eq(clientObjectiveCompletions.clientId, clientId),
+          eq(clientObjectiveCompletions.objectiveIndex, objectiveIndex)
         )
       );
   }

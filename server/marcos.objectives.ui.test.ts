@@ -11,6 +11,10 @@ describe("Marcos — objetivos do cliente", () => {
     resolve(process.cwd(), "client/src/hooks/useKanbanData.ts"),
     "utf8"
   );
+  const routers = readFileSync(
+    resolve(process.cwd(), "server/routers.ts"),
+    "utf8"
+  );
 
   it("substitui o botão de grupo por uma seta que abre os objetivos", () => {
     expect(clientCard).toContain("Ver objetivos do cliente");
@@ -27,11 +31,19 @@ describe("Marcos — objetivos do cliente", () => {
     expect(clientCard).toContain('type="checkbox"');
     expect(clientCard).toContain("accent-emerald-600");
     expect(clientCard).toContain("line-through");
-    expect(clientCard).toContain("localStorage");
+    expect(clientCard).toContain("trpc.marcos.objectiveCompletions.useQuery");
+    expect(clientCard).toContain("trpc.marcos.setObjectiveCompletion.useMutation");
+    expect(clientCard).not.toContain("localStorage");
   });
 
   it("lê os objetivos da coluna AA", () => {
     expect(kanbanData).toContain("const tagsIdx = 26; // Coluna AA");
     expect(kanbanData).toContain("tagsRaw");
+  });
+
+  it("persiste a conclusão no backend compartilhado", () => {
+    expect(routers).toContain("objectiveCompletions: protectedProcedure");
+    expect(routers).toContain("setObjectiveCompletion: protectedProcedure");
+    expect(routers).toContain("setClientObjectiveCompletion(");
   });
 });

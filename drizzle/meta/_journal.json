@@ -176,6 +176,13 @@
       "when": 1788179307031,
       "tag": "0024_striped_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1790167146111,
+      "tag": "0025_loud_thunderbolts",
+      "breakpoints": true
     }
   ]
 }
