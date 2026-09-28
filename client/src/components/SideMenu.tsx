@@ -48,6 +48,7 @@ const PROTECTED_ITEMS = [
   { id: "marcos", label: "Marcos", icon: CheckSquare },
   { id: "timeline", label: "Timeline", icon: UserRound },
   { id: "ongoing", label: "Ongoing", icon: Users },
+  { id: "bi", label: "BI", icon: BarChart3 },
   { id: "churns", label: "CHURNs", icon: TrendingDown },
   {
     id: "migracao-externa",

@@ -17,6 +17,7 @@ import AppPersonalizado from "./pages/AppPersonalizado";
 import KPIs from "./pages/KPIs";
 import Performance from "./pages/Performance";
 import Timeline from "./pages/Timeline";
+import BI from "./pages/BI";
 import ChecklistPanel from "./components/ChecklistPanel";
 import { DailyLossesAlert } from "./components/DailyLossesAlert";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -32,6 +33,7 @@ const VALID_PAGES = new Set([
   "marcos",
   "timeline",
   "ongoing",
+  "bi",
   "churns",
   "configuracoes",
   "ferramentas",
@@ -223,6 +225,8 @@ function AppInner() {
         return <Timeline sidebarExpanded={isSideMenuExpanded} />;
       case "ongoing":
         return <Ongoing />;
+      case "bi":
+        return <BI />;
       case "churns":
         return <Churns />;
       case "configuracoes":

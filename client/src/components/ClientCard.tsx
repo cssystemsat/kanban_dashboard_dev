@@ -13,7 +13,7 @@ import {
   TrendingUp,
   TrendingDown,
   X,
-  Headphones,
+  BarChart3,
   Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -356,17 +356,17 @@ export default function ClientCard({
             </button>
           ) : null}
 
-          {/* Botão Atendimento */}
+          {/* Botão BI — reservado para as análises financeiras dos clientes */}
           <button
             onClick={e => {
               e.stopPropagation();
-              onAtendimento?.(client);
             }}
             className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
             style={{ backgroundColor: "#1D4ED8", color: "#FFFFFF" }}
-            title="Registrar atendimento"
+            title="BI do cliente"
+            aria-label={`Abrir BI do cliente ${client.nome}`}
           >
-            <Headphones className="w-4 h-4" />
+            <BarChart3 className="w-4 h-4" />
           </button>
 
           {/* Botão Registrar acontecimento */}
