@@ -1,803 +1,250 @@
 import { Button } from "@/components/ui/button";
-import { useChurnsData } from "@/hooks/useChurnsData";
+import { useChurnsData, type ChurnData } from "@/hooks/useChurnsData";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 import {
-  Filter,
+  Calendar,
+  Download,
+  FileSpreadsheet,
   RotateCw,
+  Sparkles,
   TrendingDown,
   Users,
-  Calendar,
-  AlertCircle,
-  Download,
+  Wallet,
+  X,
 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
+import { trpc } from "@/lib/trpc";
 
-/**
- * Dashboard de CHURNS - Análise de Cancelamentos
- * Design: Corporate Tech (SystemSat)
- */
+const MONTHS = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
+
+function formatCurrency(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function toAnalysisRecord(churn: ChurnData) {
+  return {
+    cliente: churn.nome,
+    tipo: churn.tipo,
+    entrada: churn.dataEntrada,
+    saida: churn.dataSaida,
+    meses: churn.mesesCasa,
+    csm: churn.atendente,
+    vendedor: churn.vendedor,
+    motivo: churn.motivoCancelamento,
+    motivoCliente: churn.motivoCliente,
+    motivoCsm: churn.motivoCsm,
+    motivoFinanceiro: churn.motivoFinanceiro,
+    motivoComercial: churn.motivoComercial,
+    boleto: churn.boletoValor,
+  };
+}
+
 export default function Churns() {
   const { data, loading, error, fetchData } = useChurnsData();
-  const [searchCliente, setSearchCliente] = useState<string>("");
-  const [selectedTipo, setSelectedTipo] = useState<string | null>(null);
-  const [selectedMotivo, setSelectedMotivo] = useState<string | null>(null);
-
-  // Filtro por mês e ano
+  const [searchCliente, setSearchCliente] = useState("");
+  const [selectedCsm, setSelectedCsm] = useState("");
+  const [selectedVendedor, setSelectedVendedor] = useState("");
   const [selectedMonths, setSelectedMonths] = useState<Set<number>>(
     new Set([new Date().getMonth() + 1])
   );
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
-  );
-  const [showAllMonths, setShowAllMonths] = useState<boolean>(false);
-  const [showAllYears, setShowAllYears] = useState<boolean>(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showAllMonths, setShowAllMonths] = useState(false);
+  const [showAllYears, setShowAllYears] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [analysisText, setAnalysisText] = useState("");
+  const analysisMutation = trpc.churns.generateAnalysis.useMutation();
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, [fetchData]);
 
-  // Obter lista de meses e anos disponíveis
-  const availableMonthsYears = useMemo(() => {
-    const monthYears = new Set<string>();
-    data.forEach(churn => {
-      if (churn.dataSaidaParsed) {
-        const month = churn.dataSaidaParsed.getMonth() + 1;
-        const year = churn.dataSaidaParsed.getFullYear();
-        monthYears.add(`${year}-${month}`);
-      }
-    });
-
-    return Array.from(monthYears)
-      .map(my => {
-        const [year, month] = my.split("-").map(Number);
-        return { year, month };
-      })
-      .sort((a, b) => {
-        if (a.year !== b.year) return b.year - a.year;
-        return b.month - a.month;
-      });
+  const years = useMemo(() => {
+    const values = new Set<number>();
+    data.forEach(churn => churn.dataSaidaParsed && values.add(churn.dataSaidaParsed.getFullYear()));
+    return Array.from(values).sort((a, b) => b - a);
   }, [data]);
 
-  // Filtrar dados
-  let filteredData = data;
+  const csms = useMemo(
+    () => Array.from(new Set(data.map(item => item.atendente).filter(Boolean))).sort(),
+    [data]
+  );
+  const vendedores = useMemo(
+    () => Array.from(new Set(data.map(item => item.vendedor).filter(Boolean))).sort(),
+    [data]
+  );
+  const tipos = useMemo(
+    () => Array.from(new Set(data.map(item => item.tipo).filter(Boolean))).sort(),
+    [data]
+  );
 
-  // Filtro por mês e ano
-  filteredData = filteredData.filter(churn => {
-    if (!churn.dataSaidaParsed) return false;
-    const month = churn.dataSaidaParsed.getMonth() + 1;
-    const year = churn.dataSaidaParsed.getFullYear();
-    if (!showAllYears && year !== selectedYear) return false;
-    if (showAllMonths || showAllYears) return true;
-    return selectedMonths.has(month);
-  });
+  const filteredData = useMemo(() => {
+    return data.filter(churn => {
+      if (!churn.dataSaidaParsed) return false;
+      const month = churn.dataSaidaParsed.getMonth() + 1;
+      const year = churn.dataSaidaParsed.getFullYear();
+      if (!showAllYears && year !== selectedYear) return false;
+      if (!showAllMonths && !showAllYears && !selectedMonths.has(month)) return false;
+      if (searchCliente.trim() && !churn.nome.toLowerCase().includes(searchCliente.toLowerCase())) return false;
+      if (selectedCsm && churn.atendente !== selectedCsm) return false;
+      if (selectedVendedor && churn.vendedor !== selectedVendedor) return false;
+      return true;
+    });
+  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, showAllMonths, showAllYears]);
 
-  if (searchCliente.trim()) {
-    filteredData = filteredData.filter(churn =>
-      churn.nome.toLowerCase().includes(searchCliente.toLowerCase())
-    );
-  }
-  if (selectedTipo) {
-    filteredData = filteredData.filter(churn => churn.tipo === selectedTipo);
-  }
-  if (selectedMotivo) {
-    filteredData = filteredData.filter(
-      churn => churn.motivoCancelamento === selectedMotivo
-    );
-  }
-
-  // Função para alternar seleção de mês
-  const toggleMonth = (month: number) => {
-    const newMonths = new Set(selectedMonths);
-    if (newMonths.has(month)) {
-      newMonths.delete(month);
-    } else {
-      newMonths.add(month);
-    }
-    setSelectedMonths(newMonths);
-    setShowAllMonths(false);
-  };
-
-  // Obter listas únicas para filtros
-  const tipos = Array.from(
-    new Set(data.map(c => c.tipo).filter(Boolean))
-  ).sort();
-  const motivos = Array.from(
-    new Set(data.map(c => c.motivoCancelamento).filter(Boolean))
-  ).sort();
-
-  // Calcular estatísticas
-  const totalCancelamentos = filteredData.length;
-  // Gerar label do período selecionado
   const periodLabel = showAllYears
     ? "Todos os anos"
     : showAllMonths
       ? `Todos os meses de ${selectedYear}`
       : selectedMonths.size === 1
-        ? `${new Date(selectedYear, Array.from(selectedMonths)[0] - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" })}`
+        ? `${MONTHS[Array.from(selectedMonths)[0] - 1]} de ${selectedYear}`
         : `${selectedMonths.size} meses de ${selectedYear}`;
 
-  const mediaTemposCasa =
-    filteredData.length > 0
-      ? Math.round(
-          filteredData.reduce((sum, c) => sum + c.mesesCasa, 0) /
-            filteredData.length
-        )
-      : 0;
+  const totalBoleto = filteredData.reduce((sum, item) => sum + (item.boletoValor ?? 0), 0);
+  const mediaTemposCasa = filteredData.length
+    ? Math.round(filteredData.reduce((sum, item) => sum + item.mesesCasa, 0) / filteredData.length)
+    : 0;
+  const clienteMaisAntigo = filteredData.reduce<ChurnData | null>(
+    (max, item) => (!max || item.mesesCasa > max.mesesCasa ? item : max),
+    null
+  );
 
-  // Calcular cliente com maior tempo de casa
-  const clienteMaiorTempo =
-    filteredData.length > 0
-      ? filteredData.reduce((max, c) => (c.mesesCasa > max.mesesCasa ? c : max))
-      : null;
-
-  // Dados para gráfico de cancelamentos por tempo de casa
-  const churnsPorTempoCasa = useMemo(() => {
+  const porTempo = useMemo(() => {
     const ranges = [
-      { label: "0-3 meses", min: 0, max: 3 },
-      { label: "3-6 meses", min: 3, max: 6 },
-      { label: "6-12 meses", min: 6, max: 12 },
-      { label: "12-24 meses", min: 12, max: 24 },
-      { label: "24+ meses", min: 24, max: Infinity },
-    ];
-
-    return ranges
-      .map(range => ({
-        name: range.label,
-        quantidade: filteredData.filter(
-          c => c.mesesCasa >= range.min && c.mesesCasa < range.max
-        ).length,
-      }))
-      .filter(item => item.quantidade > 0);
+      ["0–3 meses", 0, 3], ["3–6 meses", 3, 6], ["6–12 meses", 6, 12],
+      ["12–24 meses", 12, 24], ["24+ meses", 24, Infinity],
+    ] as const;
+    return ranges.map(([name, min, max]) => ({
+      name,
+      quantidade: filteredData.filter(item => item.mesesCasa >= min && item.mesesCasa < max).length,
+    }));
   }, [filteredData]);
 
-  // Dados para gráfico de motivos de cancelamento (com lista de clientes)
-  const churnsPorMotivo = useMemo(() => {
-    const motivoMap: { [key: string]: { count: number; clientes: string[] } } =
-      {};
-    filteredData.forEach(churn => {
-      if (churn.motivoCancelamento) {
-        if (!motivoMap[churn.motivoCancelamento]) {
-          motivoMap[churn.motivoCancelamento] = { count: 0, clientes: [] };
-        }
-        motivoMap[churn.motivoCancelamento].count++;
-        motivoMap[churn.motivoCancelamento].clientes.push(churn.nome);
-      }
-    });
-
-    return Object.entries(motivoMap)
-      .map(([motivo, data]) => ({
-        name: motivo,
-        value: data.count,
-        clientes: data.clientes,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
+  const porTipo = useMemo(() => {
+    const counts = new Map<string, number>();
+    filteredData.forEach(item => counts.set(item.tipo || "Sem tipo", (counts.get(item.tipo || "Sem tipo") ?? 0) + 1));
+    return Array.from(counts, ([name, quantidade]) => ({ name, quantidade })).sort((a, b) => b.quantidade - a.quantidade);
   }, [filteredData]);
 
-  // Cores vivas e contrastantes para gráficos
-  const COLORS = [
-    "#E53E3E",
-    "#DD6B20",
-    "#D69E2E",
-    "#38A169",
-    "#3182CE",
-    "#805AD5",
-    "#D53F8C",
-    "#319795",
-  ];
-
-  // Formatar nome do mês
-  const getMonthName = (month: number) => {
-    const months = [
-      "Janeiro",
-      "Fevereiro",
-      "Março",
-      "Abril",
-      "Maio",
-      "Junho",
-      "Julho",
-      "Agosto",
-      "Setembro",
-      "Outubro",
-      "Novembro",
-      "Dezembro",
-    ];
-    return months[month - 1];
+  const toggleMonth = (month: number) => {
+    const next = new Set(selectedMonths);
+    if (next.has(month)) next.delete(month); else next.add(month);
+    setSelectedMonths(next);
+    setShowAllMonths(false);
+    setShowAllYears(false);
   };
-  // Função para exportar para Excel
-  const exportToExcel = (dataToExport: typeof filteredData, period: string) => {
-    if (dataToExport.length === 0) {
-      alert("Nenhum dado para exportar");
-      return;
+
+  const exportToExcel = () => {
+    const rows = filteredData.map(item => ({
+      Cliente: item.nome,
+      Tipo: item.tipo,
+      Entrada: item.dataEntrada,
+      Saída: item.dataSaida,
+      "Tempo (meses)": item.mesesCasa,
+      "Motivo Cliente": item.motivoCliente,
+      "Motivo CSM": item.motivoCsm,
+      "Motivo Financeiro": item.motivoFinanceiro,
+      "Motivo Comercial": item.motivoComercial,
+      "Boleto": item.boletoValor ?? "",
+      CSM: item.atendente,
+      Vendedor: item.vendedor,
+    }));
+    if (!rows.length) return;
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Churns");
+    XLSX.writeFile(workbook, `churns_${periodLabel.replace(/\s+/g, "_")}.xlsx`);
+  };
+
+  const generateAnalysis = async () => {
+    setAnalysisOpen(true);
+    setAnalysisText("");
+    try {
+      const result = await analysisMutation.mutateAsync({
+        period: periodLabel,
+        records: filteredData.map(toAnalysisRecord),
+      });
+      setAnalysisText(result.analysis);
+    } catch (err) {
+      setAnalysisText(err instanceof Error ? err.message : "Não foi possível gerar a análise.");
     }
-
-    const headers = [
-      "Cliente",
-      "Tipo",
-      "Entrada",
-      "Saída",
-      "Tempo (meses)",
-      "Motivo",
-      "CSM",
-    ];
-    const rows = dataToExport.map(churn => [
-      churn.nome,
-      churn.tipo,
-      churn.dataEntrada,
-      churn.dataSaida,
-      churn.mesesCasa.toString(),
-      churn.motivoCancelamento,
-      churn.atendente,
-    ]);
-
-    const csvContent = [
-      [`Relatório de CHURNs - ${period}`],
-      [`Data de Exportação: ${new Date().toLocaleDateString("pt-BR")}`],
-      [`Total de Cancelamentos: ${dataToExport.length}`],
-      [],
-      headers,
-      ...rows,
-    ]
-      .map(row => row.map(cell => `"${cell}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `churns_${period.replace(/\s+/g, "_")}_${new Date().getTime()}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
-    <div
-      className="min-h-screen md:ml-20"
-      style={{ backgroundColor: "#F5F7FA" }}
-    >
-      {/* Header */}
-      <header
-        className="sticky top-0 z-40 border-b"
-        style={{ backgroundColor: "#001F3F", borderColor: "#E0E8F0" }}
-      >
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Dashboard de CHURNS
-              </h1>
-              <p className="text-sm text-gray-300 mt-1">
-                Análise de cancelamentos e dados de clientes inativos
-              </p>
-            </div>
-            <Button
-              onClick={fetchData}
-              disabled={loading}
-              className="gap-2 text-gray-900 bg-white hover:bg-gray-100 border border-gray-300"
-            >
-              <RotateCw
-                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-              />
-              {loading ? "Atualizando..." : "Atualizar"}
-            </Button>
-          </div>
-
-          {/* Filtro por Período */}
-          <div className="mb-3 p-3 bg-white/10 rounded-lg">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                  Mês
-                </label>
-                <div className="flex gap-1 items-center">
-                  <button
-                    onClick={() => setShowAllMonths(!showAllMonths)}
-                    className={`h-7 px-2.5 rounded-md text-xs font-medium transition-colors ${
-                      showAllMonths
-                        ? "bg-blue-600 text-white"
-                        : "bg-white/90 text-gray-700 hover:bg-white"
-                    }`}
-                  >
-                    Todos
-                  </button>
-                  <div className="flex flex-wrap gap-0.5">
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                      <button
-                        key={month}
-                        onClick={() => toggleMonth(month)}
-                        className={`h-7 px-1.5 rounded text-[10px] font-medium transition-colors ${
-                          selectedMonths.has(month)
-                            ? "bg-blue-600 text-white"
-                            : "bg-white/90 text-gray-700 hover:bg-white"
-                        }`}
-                        disabled={showAllMonths}
-                      >
-                        {getMonthName(month).substring(0, 3)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                  Ano
-                </label>
-                <div className="flex gap-1 items-center">
-                  <button
-                    onClick={() => setShowAllYears(!showAllYears)}
-                    className={`h-7 px-2.5 rounded-md text-xs font-medium transition-colors ${
-                      showAllYears
-                        ? "bg-blue-600 text-white"
-                        : "bg-white/90 text-gray-700 hover:bg-white"
-                    }`}
-                  >
-                    Todos
-                  </button>
-                  <select
-                    value={selectedYear}
-                    onChange={e => {
-                      setSelectedYear(parseInt(e.target.value));
-                      setShowAllYears(false);
-                    }}
-                    disabled={showAllYears}
-                    className="h-7 px-2 rounded-md text-xs text-gray-700 bg-white/90 border-0 focus:outline-none disabled:opacity-50"
-                  >
-                    {Array.from(
-                      { length: 5 },
-                      (_, i) => new Date().getFullYear() - i
-                    ).map(year => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <span className="text-xs text-gray-300 pb-1">
-                {filteredData.length} cancelamento(s) em {periodLabel}
-              </span>
-            </div>
-          </div>
-
-          {/* Filtros Adicionais */}
-          <div className="flex flex-wrap items-end gap-3">
+    <div className="min-h-screen bg-[#f5f7fa] md:ml-20">
+      <header className="sticky top-0 z-40 border-b bg-[#001f3f] border-[#1f4668] shadow-sm">
+        <div className="px-4 py-3">
+          <div className="flex flex-wrap items-end gap-2">
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                Cliente
-              </label>
-              <input
-                type="text"
-                placeholder="Buscar cliente..."
-                value={searchCliente}
-                onChange={e => setSearchCliente(e.target.value)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                style={{ width: "150px" }}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                Tipo
-              </label>
-              <select
-                value={selectedTipo || ""}
-                onChange={e => setSelectedTipo(e.target.value || null)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">Todos</option>
-                {tipos.map(tipo => (
-                  <option key={tipo} value={tipo}>
-                    {tipo}
-                  </option>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Mês</label>
+              <div className="flex gap-1">
+                <button onClick={() => setShowAllMonths(value => !value)} className={`h-8 rounded px-2 text-xs font-semibold ${showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
+                {MONTHS.map((month, index) => (
+                  <button key={month} onClick={() => toggleMonth(index + 1)} disabled={showAllMonths} className={`h-8 rounded px-1.5 text-[10px] font-semibold ${selectedMonths.has(index + 1) && !showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>{month}</button>
                 ))}
-              </select>
+              </div>
             </div>
-
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">
-                Motivo
-              </label>
-              <select
-                value={selectedMotivo || ""}
-                onChange={e => setSelectedMotivo(e.target.value || null)}
-                className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">Todos</option>
-                {motivos.map(motivo => (
-                  <option key={motivo} value={motivo}>
-                    {motivo}
-                  </option>
-                ))}
-              </select>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Ano</label>
+              <div className="flex gap-1">
+                <button onClick={() => setShowAllYears(value => !value)} className={`h-8 rounded px-2 text-xs font-semibold ${showAllYears ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
+                <select value={selectedYear} onChange={event => { setSelectedYear(Number(event.target.value)); setShowAllYears(false); }} disabled={showAllYears} className="h-8 rounded bg-white px-2 text-xs text-gray-700">
+                  {(years.length ? years : [new Date().getFullYear()]).map(year => <option key={year} value={year}>{year}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Cliente</label><input value={searchCliente} onChange={event => setSearchCliente(event.target.value)} placeholder="Buscar cliente" className="h-8 w-36 rounded bg-white px-2 text-xs text-gray-700" /></div>
+            <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">CSM</label><select value={selectedCsm} onChange={event => setSelectedCsm(event.target.value)} className="h-8 w-32 rounded bg-white px-2 text-xs text-gray-700"><option value="">Todos</option>{csms.map(csm => <option key={csm} value={csm}>{csm}</option>)}</select></div>
+            <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Vendedor</label><select value={selectedVendedor} onChange={event => setSelectedVendedor(event.target.value)} className="h-8 w-32 rounded bg-white px-2 text-xs text-gray-700"><option value="">Todos</option>{vendedores.map(vendedor => <option key={vendedor} value={vendedor}>{vendedor}</option>)}</select></div>
+            <div className="ml-auto flex gap-2">
+              <Button onClick={() => void fetchData()} disabled={loading} size="sm" className="gap-1 bg-white text-[#001f3f] hover:bg-gray-100"><RotateCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />Atualizar</Button>
+              <Button onClick={() => void generateAnalysis()} disabled={analysisMutation.isPending || filteredData.length === 0} size="sm" className="gap-1 bg-violet-500 text-white hover:bg-violet-600"><Sparkles className="h-4 w-4" />{analysisMutation.isPending ? "Analisando..." : "Gerar análise"}</Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
-      <main className="p-6">
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">
-              Erro ao carregar dados: {error}
-            </p>
-          </div>
-        )}
+      <main className="space-y-4 p-4">
+        {error && <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">Erro ao carregar dados: {error}</div>}
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <Kpi icon={<TrendingDown className="h-4 w-4" />} label={`Cancelamentos · ${periodLabel}`} value={String(filteredData.length)} color="text-red-600" />
+          <Kpi icon={<Calendar className="h-4 w-4" />} label="Média de tempo" value={`${mediaTemposCasa} meses`} color="text-blue-700" />
+          <Kpi icon={<Users className="h-4 w-4" />} label="Cliente mais antigo" value={clienteMaisAntigo ? `${clienteMaisAntigo.mesesCasa} meses` : "—"} detail={clienteMaisAntigo?.nome} color="text-emerald-600" />
+          <Kpi icon={<Wallet className="h-4 w-4" />} label="Valor total dos boletos" value={formatCurrency(totalBoleto)} color="text-orange-600" />
+        </div>
 
-        {loading && data.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div
-                className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
-                style={{ borderColor: "#00DD00" }}
-              ></div>
-              <p className="text-gray-600">Carregando dados de CHURNS...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Estatísticas Principais */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
-              <div
-                className="bg-white rounded-lg p-4 border"
-                style={{ borderColor: "#E0E8F0" }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="w-4 h-4 text-red-600" />
-                  <p className="text-sm text-gray-600">
-                    Total de Cancelamentos
-                  </p>
-                </div>
-                <p className="text-3xl font-bold text-red-600">
-                  {totalCancelamentos}
-                </p>
-              </div>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <ChartCard title="Cancelamento por tempo de casa"><ResponsiveContainer width="100%" height={250}><BarChart data={porTempo}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" fontSize={11} /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="quantidade" fill="#ef4444" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></ChartCard>
+          <ChartCard title="Cancelamento por tipo"><ResponsiveContainer width="100%" height={250}><BarChart data={porTipo} layout="vertical" margin={{ left: 20, right: 20 }}><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" allowDecimals={false} /><YAxis dataKey="name" type="category" width={110} fontSize={11} /><Tooltip /><Bar dataKey="quantidade" fill="#7c3aed" radius={[0, 4, 4, 0]} /></BarChart></ResponsiveContainer></ChartCard>
+        </div>
 
-              <div
-                className="bg-white rounded-lg p-4 border"
-                style={{ borderColor: "#E0E8F0" }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-4 h-4" style={{ color: "#001F3F" }} />
-                  <p className="text-sm text-gray-600">Média de Tempo</p>
-                </div>
-                <p className="text-3xl font-bold" style={{ color: "#001F3F" }}>
-                  {mediaTemposCasa}m
-                </p>
-              </div>
-
-              <div
-                className="bg-white rounded-lg p-4 border"
-                style={{ borderColor: "#E0E8F0" }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-4 h-4" style={{ color: "#00DD00" }} />
-                  <p className="text-sm text-gray-600">Cliente Mais Antigo</p>
-                </div>
-                <p className="text-3xl font-bold" style={{ color: "#00DD00" }}>
-                  {clienteMaiorTempo ? `${clienteMaiorTempo.mesesCasa}m` : "—"}
-                </p>
-                {clienteMaiorTempo && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {clienteMaiorTempo.nome}
-                  </p>
-                )}
-              </div>
-
-              <div
-                className="bg-white rounded-lg p-4 border"
-                style={{ borderColor: "#E0E8F0" }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-orange-600" />
-                  <p className="text-sm text-gray-600">Filtros Ativos</p>
-                </div>
-                <p className="text-3xl font-bold text-orange-600">
-                  {(selectedTipo ? 1 : 0) + (selectedMotivo ? 1 : 0)}
-                </p>
-              </div>
-            </div>
-
-            {/* Gráficos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Gráfico de Cancelamentos por Tempo de Casa */}
-              <div
-                className="bg-white rounded-lg p-4 border shadow-sm"
-                style={{ borderColor: "#E0E8F0" }}
-              >
-                <h3 className="font-bold mb-4" style={{ color: "#001F3F" }}>
-                  Cancelamentos por Tempo de Casa
-                </h3>
-                {churnsPorTempoCasa.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={churnsPorTempoCasa}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="quantidade" fill="#FF6B6B" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-center text-gray-500 py-8">
-                    Sem dados para este período
-                  </p>
-                )}
-              </div>
-
-              {/* Gráfico de Motivos de Cancelamento - Barras Horizontais */}
-              <div
-                className="bg-white rounded-lg p-4 border shadow-sm"
-                style={{ borderColor: "#E0E8F0" }}
-              >
-                <h3 className="font-bold mb-4" style={{ color: "#001F3F" }}>
-                  Top Motivos de Cancelamento
-                </h3>
-                {churnsPorMotivo.length > 0 ? (
-                  <div className="space-y-3">
-                    {churnsPorMotivo.map((motivo, index) => {
-                      const maxValue = churnsPorMotivo[0].value;
-                      const percentage = (motivo.value / maxValue) * 100;
-                      return (
-                        <div key={motivo.name} className="group relative">
-                          <div className="flex items-center gap-4">
-                            <span
-                              className="text-xs font-medium text-gray-700 w-40 flex-shrink-0"
-                              title={motivo.name}
-                            >
-                              {motivo.name}
-                            </span>
-                            <div className="flex-1 h-7 bg-gray-200 rounded-sm overflow-hidden relative cursor-pointer">
-                              <div
-                                className="h-full flex items-center justify-end pr-2 transition-all duration-300"
-                                style={{
-                                  width: `${Math.max(percentage, 8)}%`,
-                                  backgroundColor:
-                                    COLORS[index % COLORS.length],
-                                }}
-                              >
-                                <span className="text-xs font-bold text-white drop-shadow-sm">
-                                  {motivo.value}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Tooltip com lista de clientes */}
-                          <div className="absolute z-50 left-44 top-full mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block">
-                            <p
-                              className="text-xs font-bold uppercase tracking-wide mb-2"
-                              style={{ color: COLORS[index % COLORS.length] }}
-                            >
-                              {motivo.name} ({motivo.value})
-                            </p>
-                            <div className="max-h-40 overflow-y-auto space-y-1">
-                              {motivo.clientes.map((cliente, ci) => (
-                                <div
-                                  key={ci}
-                                  className="text-xs text-gray-700 py-0.5 px-2 rounded hover:bg-gray-50 flex items-center gap-1.5"
-                                >
-                                  <span
-                                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                    style={{
-                                      backgroundColor:
-                                        COLORS[index % COLORS.length],
-                                    }}
-                                  />
-                                  {cliente}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-center text-gray-500 py-8">
-                    Sem dados para este período
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Tabela de Cancelamentos */}
-            <div
-              className="bg-white rounded-lg border shadow-sm overflow-hidden"
-              style={{ borderColor: "#E0E8F0" }}
-            >
-              <div className="p-4 border-b" style={{ borderColor: "#E0E8F0" }}>
-                <h3 className="font-bold" style={{ color: "#001F3F" }}>
-                  Detalhes dos Cancelamentos - {periodLabel}
-                </h3>
-              </div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold" style={{ color: "#001F3F" }}>
-                  Detalhes dos Cancelamentos
-                </h3>
-                <button
-                  onClick={() => exportToExcel(filteredData, periodLabel)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors"
-                  style={{ backgroundColor: "#00DD00", color: "#FFFFFF" }}
-                >
-                  <Download className="w-4 h-4" />
-                  Exportar para Excel
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead
-                    style={{
-                      backgroundColor: "#F5F7FA",
-                      borderBottom: "2px solid #E0E8F0",
-                    }}
-                  >
-                    <tr>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        Cliente
-                      </th>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        Tipo
-                      </th>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        Entrada
-                      </th>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        Saída
-                      </th>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        Tempo (meses)
-                      </th>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        Motivo
-                      </th>
-                      <th
-                        className="px-4 py-3 text-left font-bold"
-                        style={{ color: "#001F3F" }}
-                      >
-                        CSM
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.slice(0, 20).map((churn, idx) => (
-                        <tr
-                          key={churn.id}
-                          style={{
-                            borderBottom: "1px solid #E0E8F0",
-                            backgroundColor:
-                              idx % 2 === 0 ? "#FFFFFF" : "#F9FAFB",
-                          }}
-                        >
-                          <td
-                            className="px-4 py-3 font-semibold"
-                            style={{ color: "#001F3F" }}
-                          >
-                            {churn.nome}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {churn.tipo}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {churn.dataEntrada}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {churn.dataSaida}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className="px-2 py-1 rounded text-xs font-semibold"
-                              style={{
-                                backgroundColor: "#FFE5E5",
-                                color: "#FF6B6B",
-                              }}
-                            >
-                              {churn.mesesCasa}m
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600 max-w-xs">
-                            <div className="relative group inline-block w-full">
-                              <span className="truncate block cursor-help underline decoration-dotted decoration-gray-400 underline-offset-2">
-                                {churn.motivoCancelamento || "-"}
-                              </span>
-                              {(churn.motivoDeclarado ||
-                                churn.analiseInterna) && (
-                                <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-3 hidden group-hover:block text-left">
-                                  {churn.motivoDeclarado && (
-                                    <div className="mb-2">
-                                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                                        Motivo Declarado pelo Cliente
-                                      </p>
-                                      <p className="text-sm text-gray-800 leading-snug">
-                                        {churn.motivoDeclarado}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {churn.motivoDeclarado &&
-                                    churn.analiseInterna && (
-                                      <hr className="my-2 border-gray-200" />
-                                    )}
-                                  {churn.analiseInterna && (
-                                    <div>
-                                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">
-                                        Análise Interna
-                                      </p>
-                                      <p className="text-sm text-gray-800 leading-snug">
-                                        {churn.analiseInterna}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {churn.atendente}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-4 py-8 text-center text-gray-500"
-                        >
-                          Nenhum cancelamento encontrado para {periodLabel}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              {filteredData.length > 20 && (
-                <div
-                  className="px-4 py-3 text-center text-sm text-gray-600 border-t"
-                  style={{ borderColor: "#E0E8F0" }}
-                >
-                  Mostrando 20 de {filteredData.length} cancelamentos
-                </div>
-              )}
-            </div>
-          </>
-        )}
+        <section className="overflow-hidden rounded-lg border border-[#e0e8f0] bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e0e8f0] p-3"><div><h2 className="font-bold text-[#001f3f]">Clientes cancelados</h2><p className="text-xs text-gray-500">{filteredData.length} registro(s) · {periodLabel}</p></div><Button onClick={exportToExcel} disabled={!filteredData.length} size="sm" className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700"><FileSpreadsheet className="h-4 w-4" />Exportar Excel</Button></div>
+          <div className="overflow-x-auto"><table className="min-w-[1450px] w-full border-collapse text-sm"><thead className="bg-[#f5f7fa]"><tr>{["Cliente", "Tipo", "Entrada", "Saída", "Tempo (meses)", "Motivo Cliente", "Motivo CSM", "Motivo Financeiro", "Motivo Comercial", "Boleto"].map(header => <th key={header} className="whitespace-nowrap border-b px-3 py-2 text-left text-xs font-bold text-[#001f3f]">{header}</th>)}</tr></thead><tbody>{filteredData.length ? filteredData.map((churn, index) => <tr key={churn.id} className={index % 2 ? "bg-gray-50" : "bg-white"}><td className="max-w-52 px-3 py-2 font-semibold text-[#001f3f]">{churn.nome}</td><td className="px-3 py-2 text-gray-600">{churn.tipo || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataEntrada || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataSaida || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.mesesCasa}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoCliente || "—"}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoCsm || "—"}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoFinanceiro || "—"}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoComercial || "—"}</td><td className="whitespace-nowrap px-3 py-2 font-semibold text-orange-700">{formatCurrency(churn.boletoValor)}</td></tr>) : <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-500">Nenhum cancelamento encontrado para os filtros atuais.</td></tr>}</tbody></table></div>
+        </section>
       </main>
+
+      {analysisOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setAnalysisOpen(false)}><div className="max-h-[85vh] w-full max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl" onClick={event => event.stopPropagation()}><div className="flex items-center justify-between border-b p-4"><div><h2 className="flex items-center gap-2 text-lg font-bold text-[#001f3f]"><Sparkles className="h-5 w-5 text-violet-600" />Análise dos Churns</h2><p className="text-xs text-gray-500">Base: {filteredData.length} registro(s) filtrado(s)</p></div><button onClick={() => setAnalysisOpen(false)} className="rounded p-1 text-gray-500 hover:bg-gray-100"><X className="h-5 w-5" /></button></div><div className="max-h-[70vh] overflow-y-auto p-5">{analysisMutation.isPending ? <div className="flex items-center gap-3 py-12 text-gray-600"><Sparkles className="h-5 w-5 animate-pulse text-violet-600" />Gerando análise...</div> : <pre className="whitespace-pre-wrap font-sans text-sm leading-6 text-gray-700">{analysisText}</pre>}</div></div></div>}
     </div>
   );
+}
+
+function Kpi({ icon, label, value, detail, color }: { icon: React.ReactNode; label: string; value: string; detail?: string; color: string }) {
+  return <div className="rounded-lg border border-[#e0e8f0] bg-white p-3 shadow-sm"><div className={`mb-1 flex items-center gap-2 text-xs font-semibold ${color}`}>{icon}{label}</div><div className={`text-2xl font-bold ${color}`}>{value}</div>{detail && <div className="mt-1 truncate text-xs text-gray-500" title={detail}>{detail}</div>}</div>;
+}
+
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return <section className="rounded-lg border border-[#e0e8f0] bg-white p-3 shadow-sm"><h2 className="mb-2 font-bold text-[#001f3f]">{title}</h2>{children}</section>;
 }

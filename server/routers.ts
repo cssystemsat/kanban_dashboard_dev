@@ -257,6 +257,60 @@ export const appRouter = router({
         }
       }),
   }),
+  churns: router({
+    generateAnalysis: allowlistedProcedure
+      .input(
+        z.object({
+          period: z.string().max(120),
+          records: z
+            .array(
+              z.object({
+                cliente: z.string(),
+                tipo: z.string(),
+                entrada: z.string(),
+                saida: z.string(),
+                meses: z.number(),
+                csm: z.string(),
+                vendedor: z.string(),
+                motivo: z.string(),
+                motivoCliente: z.string(),
+                motivoCsm: z.string(),
+                motivoFinanceiro: z.string(),
+                motivoComercial: z.string(),
+                boleto: z.number().nullable(),
+              })
+            )
+            .max(250),
+        })
+      )
+      .mutation(async ({ input }) => {
+        if (input.records.length === 0) {
+          return { analysis: "Não há registros filtrados para analisar." };
+        }
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content:
+                "Você é um analista sênior de Customer Success e receita. Analise somente os dados fornecidos, sem inventar fatos. Responda em português do Brasil, em Markdown claro e objetivo. Estruture exatamente com: Resumo executivo; Principais padrões; Motivos declarados pelos clientes; Motivos observados pelos CSMs; Impacto financeiro; Segmentos ou grupos de atenção; Recomendações práticas. Diferencie fatos, padrões e hipóteses. Considere que os registros já foram filtrados pelo usuário.",
+            },
+            {
+              role: "user",
+              content: `Período/filtros: ${input.period}\nQuantidade de registros: ${input.records.length}\n\nDados dos cancelamentos:\n${JSON.stringify(input.records)}`,
+            },
+          ],
+          maxTokens: 5000,
+        });
+        const content = response.choices?.[0]?.message?.content;
+        if (typeof content !== "string" || !content.trim()) {
+          throw new TRPCError({
+            code: "BAD_GATEWAY",
+            message: "A IA não retornou uma análise válida.",
+          });
+        }
+        return { analysis: content };
+      }),
+  }),
   migracao: router({
     atualizar: allowlistedProcedure
       .input(
