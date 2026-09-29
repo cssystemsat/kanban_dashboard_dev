@@ -20,6 +20,7 @@ import {
   clientCommentHistory,
   InsertClientComment,
   appKanbanCards,
+  appKanbanNewClientAcknowledgments,
   appKanbanHistory,
   appKanbanChecklist,
   InsertAppKanbanCard,
@@ -840,6 +841,33 @@ export async function syncAppKanbanCards(
     skipped: rows.length - newRows.length,
     companies: newRows.map(row => row.companyName),
   };
+}
+
+export async function getPendingAppKanbanNewClients(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const cards = await db
+    .select()
+    .from(appKanbanCards)
+    .where(eq(appKanbanCards.createdBy, "google-sheet-sync"));
+  const acknowledgments = await db
+    .select({ cardId: appKanbanNewClientAcknowledgments.cardId })
+    .from(appKanbanNewClientAcknowledgments)
+    .where(eq(appKanbanNewClientAcknowledgments.userId, userId));
+  const acknowledgedIds = new Set(acknowledgments.map(item => item.cardId));
+  return cards.filter(card => !acknowledgedIds.has(card.id));
+}
+
+export async function acknowledgeAppKanbanNewClients(
+  userId: number,
+  cardIds: number[]
+) {
+  const db = await getDb();
+  if (!db || cardIds.length === 0) return;
+  await db
+    .insert(appKanbanNewClientAcknowledgments)
+    .values(cardIds.map(cardId => ({ userId, cardId })))
+    .onDuplicateKeyUpdate({ set: { acknowledgedAt: new Date() } });
 }
 
 export async function updateAppKanbanCard(

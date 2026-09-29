@@ -303,6 +303,27 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
 export type AppKanbanCard = typeof appKanbanCards.$inferSelect;
 export type InsertAppKanbanCard = typeof appKanbanCards.$inferInsert;
 
+// Registro de ciência dos avisos de novos clientes sincronizados da planilha
+export const appKanbanNewClientAcknowledgments = mysqlTable(
+  "app_kanban_new_client_ack",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    cardId: int("cardId").notNull(),
+    acknowledgedAt: timestamp("acknowledgedAt").defaultNow().notNull(),
+  },
+  table => ({
+    userCardUnique: uniqueIndex("app_kanban_new_client_ack_unique").on(
+      table.userId,
+      table.cardId
+    ),
+  })
+);
+export type AppKanbanNewClientAcknowledgment =
+  typeof appKanbanNewClientAcknowledgments.$inferSelect;
+export type InsertAppKanbanNewClientAcknowledgment =
+  typeof appKanbanNewClientAcknowledgments.$inferInsert;
+
 // Tabela de histórico de movimentações de cards
 export const appKanbanHistory = mysqlTable("app_kanban_history", {
   id: int("id").autoincrement().primaryKey(),

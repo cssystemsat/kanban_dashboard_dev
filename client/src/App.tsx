@@ -20,6 +20,7 @@ import Timeline from "./pages/Timeline";
 import BI from "./pages/BI";
 import ChecklistPanel from "./components/ChecklistPanel";
 import { DailyLossesAlert } from "./components/DailyLossesAlert";
+import { NewClientsAlert } from "./components/NewClientsAlert";
 import ErrorBoundary from "./components/ErrorBoundary";
 import VersionUpdatePrompt from "./components/VersionUpdatePrompt";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -296,6 +297,7 @@ function AppInner() {
     <>
       <Toaster />
       <DailyLossesAlert />
+      <NewClientsAlert />
       <VersionUpdatePrompt />
       <SideMenu
         currentPage={currentPage}

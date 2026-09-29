@@ -56,6 +56,8 @@ import {
   getAppKanbanCardsByStage,
   createAppKanbanCard,
   syncAppKanbanCards,
+  getPendingAppKanbanNewClients,
+  acknowledgeAppKanbanNewClients,
   updateAppKanbanCard,
   deleteAppKanbanCard,
   moveAppKanbanCard,
@@ -922,6 +924,22 @@ export const appRouter = router({
       const rows = parseAppKanbanSheetRows(csv);
       return syncAppKanbanCards(rows, "google-sheet-sync");
     }),
+    pendingNewClients: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.id) return [];
+      return getPendingAppKanbanNewClients(ctx.user.id);
+    }),
+    acknowledgeNewClients: protectedProcedure
+      .input(z.object({ cardIds: z.array(z.number().int().positive()) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user?.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Você precisa estar autenticado",
+          });
+        }
+        await acknowledgeAppKanbanNewClients(ctx.user.id, input.cardIds);
+        return { success: true };
+      }),
     listByStage: protectedProcedure
       .input(z.object({ stage: z.string() }))
       .query(async ({ input }) => {

@@ -183,6 +183,13 @@
       "when": 1790167146111,
       "tag": "0025_loud_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1790701439426,
+      "tag": "0026_even_deathbird",
+      "breakpoints": true
     }
   ]
 }

@@ -110,6 +110,7 @@ export default function AppPersonalizado() {
 
   const { data: user } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery();
+  const utils = trpc.useUtils();
   const listCards = trpc.appKanban.list.useQuery();
   const syncFromSheet = trpc.appKanban.syncFromSheet.useMutation();
   const createCard = trpc.appKanban.create.useMutation();
@@ -177,6 +178,7 @@ export default function AppPersonalizado() {
     try {
       const result = await syncFromSheet.mutateAsync();
       await listCards.refetch();
+      await utils.appKanban.pendingNewClients.invalidate();
       alert(
         result.inserted > 0
           ? `${result.inserted} nova(s) empresa(s) adicionada(s) ao Kanban.`
