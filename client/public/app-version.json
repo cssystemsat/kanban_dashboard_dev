@@ -1,5 +1,5 @@
 {
-  "appVersion": "7.4",
+  "appVersion": "7.5",
   "changes": [
     "O App Personalizado agora pode sincronizar novos clientes pela planilha informada.",
     "A sincronização usa data, cliente e Comercial das colunas A, B e C, ignora linhas vazias e evita duplicidades.",
@@ -16,6 +16,9 @@
     "A exportação agora gera um arquivo Excel XLSX verdadeiro e a análise por IA considera somente os registros filtrados.",
     "A aba Churn inicia com todos os meses selecionados no ano atual.",
     "Células vazias de Motivo Cliente, CSM, Financeiro e Comercial agora têm o botão Cadastrar motivo.",
-    "O cadastro abre um popup e grava o texto diretamente na célula correta da aba CHURNS."
+    "O cadastro abre um popup e grava o texto diretamente na célula correta da aba CHURNS.",
+    "As permissões de usuário agora incluem a opção separada Pode adicionar motivos na aba Churn.",
+    "O cadastro de motivos fica oculto e bloqueado para quem não receber essa permissão; administradores continuam liberados.",
+    "O filtro de meses inicia em Todos e agora permite desmarcar ou combinar meses individualmente."
   ]
 }

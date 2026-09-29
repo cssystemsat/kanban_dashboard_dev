@@ -1,0 +1,1 @@
+ALTER TABLE `allowed_emails` ADD `canAddChurnMotivo` int DEFAULT 0 NOT NULL;

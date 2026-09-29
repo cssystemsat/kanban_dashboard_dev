@@ -64,7 +64,6 @@ export default function Churns() {
     new Set(MONTHS.map((_, index) => index + 1))
   );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [showAllMonths, setShowAllMonths] = useState(true);
   const [showAllYears, setShowAllYears] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisText, setAnalysisText] = useState("");
@@ -72,6 +71,9 @@ export default function Churns() {
   const [motivoText, setMotivoText] = useState("");
   const analysisMutation = trpc.churns.generateAnalysis.useMutation();
   const updateMotivoMutation = trpc.churns.updateMotivo.useMutation();
+  const { data: myPermissions } = trpc.config.myPermissions.useQuery();
+  const allMonthsSelected = selectedMonths.size === MONTHS.length;
+  const canAddChurnMotivo = myPermissions?.canAddChurnMotivo === true;
 
   useEffect(() => {
     void fetchData();
@@ -102,17 +104,17 @@ export default function Churns() {
       const month = churn.dataSaidaParsed.getMonth() + 1;
       const year = churn.dataSaidaParsed.getFullYear();
       if (!showAllYears && year !== selectedYear) return false;
-      if (!showAllMonths && !showAllYears && !selectedMonths.has(month)) return false;
+      if (!showAllYears && !allMonthsSelected && !selectedMonths.has(month)) return false;
       if (searchCliente.trim() && !churn.nome.toLowerCase().includes(searchCliente.toLowerCase())) return false;
       if (selectedCsm && churn.atendente !== selectedCsm) return false;
       if (selectedVendedor && churn.vendedor !== selectedVendedor) return false;
       return true;
     });
-  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, showAllMonths, showAllYears]);
+  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, allMonthsSelected, showAllYears]);
 
   const periodLabel = showAllYears
     ? "Todos os anos"
-    : showAllMonths
+    : allMonthsSelected
       ? `Todos os meses de ${selectedYear}`
       : selectedMonths.size === 1
         ? `${MONTHS[Array.from(selectedMonths)[0] - 1]} de ${selectedYear}`
@@ -145,16 +147,13 @@ export default function Churns() {
   }, [filteredData]);
 
   const toggleMonth = (month: number) => {
-    if (showAllMonths) {
-      setSelectedMonths(new Set([month]));
-      setShowAllMonths(false);
-      setShowAllYears(false);
-      return;
+    const next = allMonthsSelected
+      ? new Set(MONTHS.map((_, index) => index + 1).filter(value => value !== month))
+      : new Set(selectedMonths);
+    if (!allMonthsSelected) {
+      if (next.has(month)) next.delete(month); else next.add(month);
     }
-    const next = new Set(selectedMonths);
-    if (next.has(month)) next.delete(month); else next.add(month);
     setSelectedMonths(next);
-    setShowAllMonths(false);
     setShowAllYears(false);
   };
 
@@ -223,9 +222,9 @@ export default function Churns() {
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Mês</label>
               <div className="flex gap-1">
-                <button onClick={() => { setShowAllMonths(true); setShowAllYears(false); setSelectedMonths(new Set(MONTHS.map((_, index) => index + 1))); }} className={`h-8 rounded px-2 text-xs font-semibold ${showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
+                <button onClick={() => { setShowAllYears(false); setSelectedMonths(new Set(MONTHS.map((_, index) => index + 1))); }} className={`h-8 rounded px-2 text-xs font-semibold ${allMonthsSelected ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
                 {MONTHS.map((month, index) => (
-                  <button key={month} onClick={() => toggleMonth(index + 1)} disabled={showAllMonths} className={`h-8 rounded px-1.5 text-[10px] font-semibold ${selectedMonths.has(index + 1) && !showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>{month}</button>
+                  <button key={month} onClick={() => toggleMonth(index + 1)} className={`h-8 rounded px-1.5 text-[10px] font-semibold ${selectedMonths.has(index + 1) ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>{month}</button>
                 ))}
               </div>
             </div>
@@ -265,7 +264,7 @@ export default function Churns() {
 
         <section className="overflow-hidden rounded-lg border border-[#e0e8f0] bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e0e8f0] p-3"><div><h2 className="font-bold text-[#001f3f]">Clientes cancelados</h2><p className="text-xs text-gray-500">{filteredData.length} registro(s) · {periodLabel}</p></div><Button onClick={exportToExcel} disabled={!filteredData.length} size="sm" className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700"><FileSpreadsheet className="h-4 w-4" />Exportar Excel</Button></div>
-          <div className="overflow-x-auto"><table className="min-w-[1450px] w-full border-collapse text-sm"><thead className="bg-[#f5f7fa]"><tr>{["Cliente", "Tipo", "Entrada", "Saída", "Tempo (meses)", "Motivo Cliente", "Motivo CSM", "Motivo Financeiro", "Motivo Comercial", "Boleto"].map(header => <th key={header} className="whitespace-nowrap border-b px-3 py-2 text-left text-xs font-bold text-[#001f3f]">{header}</th>)}</tr></thead><tbody>{filteredData.length ? filteredData.map((churn, index) => <tr key={churn.id} className={index % 2 ? "bg-gray-50" : "bg-white"}><td className="max-w-52 px-3 py-2 font-semibold text-[#001f3f]">{churn.nome}</td><td className="px-3 py-2 text-gray-600">{churn.tipo || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataEntrada || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataSaida || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.mesesCasa}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoCliente} onAdd={() => openMotivoDialog(churn, "motivoCliente", "Motivo Cliente")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoCsm} onAdd={() => openMotivoDialog(churn, "motivoCsm", "Motivo CSM")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoFinanceiro} onAdd={() => openMotivoDialog(churn, "motivoFinanceiro", "Motivo Financeiro")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoComercial} onAdd={() => openMotivoDialog(churn, "motivoComercial", "Motivo Comercial")} /></td><td className="whitespace-nowrap px-3 py-2 font-semibold text-orange-700">{formatCurrency(churn.boletoValor)}</td></tr>) : <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-500">Nenhum cancelamento encontrado para os filtros atuais.</td></tr>}</tbody></table></div>
+          <div className="overflow-x-auto"><table className="min-w-[1450px] w-full border-collapse text-sm"><thead className="bg-[#f5f7fa]"><tr>{["Cliente", "Tipo", "Entrada", "Saída", "Tempo (meses)", "Motivo Cliente", "Motivo CSM", "Motivo Financeiro", "Motivo Comercial", "Boleto"].map(header => <th key={header} className="whitespace-nowrap border-b px-3 py-2 text-left text-xs font-bold text-[#001f3f]">{header}</th>)}</tr></thead><tbody>{filteredData.length ? filteredData.map((churn, index) => <tr key={churn.id} className={index % 2 ? "bg-gray-50" : "bg-white"}><td className="max-w-52 px-3 py-2 font-semibold text-[#001f3f]">{churn.nome}</td><td className="px-3 py-2 text-gray-600">{churn.tipo || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataEntrada || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataSaida || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.mesesCasa}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoCliente} canAdd={canAddChurnMotivo} onAdd={() => openMotivoDialog(churn, "motivoCliente", "Motivo Cliente")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoCsm} canAdd={canAddChurnMotivo} onAdd={() => openMotivoDialog(churn, "motivoCsm", "Motivo CSM")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoFinanceiro} canAdd={canAddChurnMotivo} onAdd={() => openMotivoDialog(churn, "motivoFinanceiro", "Motivo Financeiro")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoComercial} canAdd={canAddChurnMotivo} onAdd={() => openMotivoDialog(churn, "motivoComercial", "Motivo Comercial")} /></td><td className="whitespace-nowrap px-3 py-2 font-semibold text-orange-700">{formatCurrency(churn.boletoValor)}</td></tr>) : <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-500">Nenhum cancelamento encontrado para os filtros atuais.</td></tr>}</tbody></table></div>
         </section>
       </main>
 
@@ -283,7 +282,8 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   return <section className="rounded-lg border border-[#e0e8f0] bg-white p-3 shadow-sm"><h2 className="mb-2 font-bold text-[#001f3f]">{title}</h2>{children}</section>;
 }
 
-function MotivoCell({ value, onAdd }: { value: string; onAdd: () => void }) {
+function MotivoCell({ value, canAdd, onAdd }: { value: string; canAdd: boolean; onAdd: () => void }) {
   if (value.trim()) return <span className="whitespace-pre-wrap">{value}</span>;
+  if (!canAdd) return <span className="text-gray-400">—</span>;
   return <button onClick={onAdd} className="inline-flex items-center gap-1 rounded border border-dashed border-blue-300 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"><Pencil className="h-3 w-3" />Cadastrar motivo</button>;
 }

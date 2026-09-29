@@ -84,6 +84,7 @@ describe("project owner permissions", () => {
       isAdmin: true,
       isAllowed: true,
       canMoveAppKanban: true,
+      canAddChurnMotivo: true,
       onlyAppKanban: false,
     });
   });
@@ -112,6 +113,7 @@ describe("project owner permissions", () => {
       isAdmin: false,
       isAllowed: false,
       canMoveAppKanban: false,
+      canAddChurnMotivo: false,
       onlyAppKanban: false,
     });
     await expect(caller.atendimento.checkPermission()).resolves.toEqual({
@@ -134,6 +136,7 @@ describe("project owner permissions", () => {
       isAdmin: false,
       isAllowed: true,
       canMoveAppKanban: true,
+      canAddChurnMotivo: false,
       onlyAppKanban: false,
     });
     await expect(caller.atendimento.checkPermission()).resolves.toEqual({

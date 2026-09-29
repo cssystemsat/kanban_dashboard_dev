@@ -5,8 +5,8 @@ import { shouldShowVersionPrompt } from "@/lib/versionCheck";
 import { APP_VERSION } from "@/lib/appVersion";
 
 describe("version update prompt", () => {
-  it("publica a versão funcional 7.4 nesta publicação", () => {
-    expect(APP_VERSION).toBe("7.4");
+  it("publica a versão funcional 7.5 nesta publicação", () => {
+    expect(APP_VERSION).toBe("7.5");
   });
 
   it("mantém a versão publicada sincronizada com a versão do bundle", () => {

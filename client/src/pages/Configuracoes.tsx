@@ -46,6 +46,7 @@ type EmailEntry = {
   isAdmin: number;
   canLaunch: number;
   canMoveAppKanban: number;
+  canAddChurnMotivo: number;
   allowedPages: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -73,6 +74,7 @@ export default function Configuracoes() {
       setNewIsAdmin(false);
       setNewCanLaunch(true);
       setNewCanMoveAppKanban(false);
+      setNewCanAddChurnMotivo(false);
       setNewAllowedPages(null);
     },
     onError: e => toast(getEmailValidationMessage(e)),
@@ -102,6 +104,7 @@ export default function Configuracoes() {
   const [newIsAdmin, setNewIsAdmin] = useState(false);
   const [newCanLaunch, setNewCanLaunch] = useState(true);
   const [newCanMoveAppKanban, setNewCanMoveAppKanban] = useState(false);
+  const [newCanAddChurnMotivo, setNewCanAddChurnMotivo] = useState(false);
   const [newAllowedPages, setNewAllowedPages] = useState<string[] | null>(null); // null = todas
 
   const [editOpen, setEditOpen] = useState(false);
@@ -111,6 +114,7 @@ export default function Configuracoes() {
   const [editIsAdmin, setEditIsAdmin] = useState(false);
   const [editCanLaunch, setEditCanLaunch] = useState(true);
   const [editCanMoveAppKanban, setEditCanMoveAppKanban] = useState(false);
+  const [editCanAddChurnMotivo, setEditCanAddChurnMotivo] = useState(false);
   const [editAllowedPages, setEditAllowedPages] = useState<string[] | null>(
     null
   );
@@ -122,6 +126,7 @@ export default function Configuracoes() {
     setEditIsAdmin(entry.isAdmin === 1);
     setEditCanLaunch(entry.canLaunch === 1);
     setEditCanMoveAppKanban(entry.canMoveAppKanban === 1);
+    setEditCanAddChurnMotivo(entry.canAddChurnMotivo === 1);
     setEditAllowedPages(
       entry.allowedPages ? (JSON.parse(entry.allowedPages) as string[]) : null
     );
@@ -275,6 +280,11 @@ export default function Configuracoes() {
                             Move Kanban
                           </Badge>
                         )}
+                        {(entry as EmailEntry).canAddChurnMotivo === 1 && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 border-orange-200">
+                            Cadastra motivos Churn
+                          </Badge>
+                        )}
                       </div>
                       {entry.label && (
                         <p className="text-xs text-gray-400 mt-0.5">
@@ -394,6 +404,17 @@ export default function Configuracoes() {
                 Pode mover cards no App Personalizado
               </span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newCanAddChurnMotivo}
+                onChange={e => setNewCanAddChurnMotivo(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">
+                Pode adicionar motivos na aba Churn
+              </span>
+            </label>
             {/* Seleção de abas */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -467,6 +488,7 @@ export default function Configuracoes() {
                   isAdmin: newIsAdmin,
                   canLaunch: newCanLaunch,
                   canMoveAppKanban: newCanMoveAppKanban,
+                  canAddChurnMotivo: newCanAddChurnMotivo,
                   allowedPages: newAllowedPages,
                 })
               }
@@ -537,6 +559,17 @@ export default function Configuracoes() {
               />
               <span className="text-sm text-gray-700">
                 Pode mover cards no App Personalizado
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editCanAddChurnMotivo}
+                onChange={e => setEditCanAddChurnMotivo(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className="text-sm text-gray-700">
+                Pode adicionar motivos na aba Churn
               </span>
             </label>
             {/* Seleção de abas */}
@@ -614,6 +647,7 @@ export default function Configuracoes() {
                   isAdmin: editIsAdmin,
                   canLaunch: editCanLaunch,
                   canMoveAppKanban: editCanMoveAppKanban,
+                  canAddChurnMotivo: editCanAddChurnMotivo,
                   allowedPages: editAllowedPages,
                 })
               }

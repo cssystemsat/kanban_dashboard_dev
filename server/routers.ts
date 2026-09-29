@@ -272,7 +272,26 @@ export const appRouter = router({
           text: z.string().trim().min(1).max(5000),
         })
       )
-      .mutation(async ({ input }) => updateChurnMotivo(input)),
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Você precisa estar autenticado para cadastrar motivos.",
+          });
+        }
+        const entry = await getEmailEntry(ctx.user.email);
+        const canAdd =
+          isProjectOwner(ctx.user) ||
+          entry?.isAdmin === 1 ||
+          entry?.canAddChurnMotivo === 1;
+        if (!canAdd) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Você não tem permissão para adicionar motivos na aba Churn.",
+          });
+        }
+        return updateChurnMotivo(input);
+      }),
     generateAnalysis: allowlistedProcedure
       .input(
         z.object({
@@ -531,6 +550,7 @@ export const appRouter = router({
           isAdmin: z.boolean().default(false),
           canLaunch: z.boolean().default(true),
           canMoveAppKanban: z.boolean().default(false),
+          canAddChurnMotivo: z.boolean().default(false),
           allowedPages: z.array(z.string()).nullable().optional(),
         })
       )
@@ -545,6 +565,7 @@ export const appRouter = router({
           isAdmin: input.isAdmin ? 1 : 0,
           canLaunch: input.canLaunch ? 1 : 0,
           canMoveAppKanban: input.canMoveAppKanban ? 1 : 0,
+          canAddChurnMotivo: input.canAddChurnMotivo ? 1 : 0,
           allowedPages:
             input.allowedPages === undefined || input.allowedPages === null
               ? null
@@ -565,6 +586,7 @@ export const appRouter = router({
           isAdmin: z.boolean().optional(),
           canLaunch: z.boolean().optional(),
           canMoveAppKanban: z.boolean().optional(),
+          canAddChurnMotivo: z.boolean().optional(),
           onlyAppKanban: z.boolean().optional(),
           allowedPages: z.array(z.string()).nullable().optional(),
         })
@@ -585,6 +607,8 @@ export const appRouter = router({
           updateData.canLaunch = data.canLaunch ? 1 : 0;
         if (data.canMoveAppKanban !== undefined)
           updateData.canMoveAppKanban = data.canMoveAppKanban ? 1 : 0;
+        if (data.canAddChurnMotivo !== undefined)
+          updateData.canAddChurnMotivo = data.canAddChurnMotivo ? 1 : 0;
         if (data.onlyAppKanban !== undefined)
           updateData.onlyAppKanban = data.onlyAppKanban ? 1 : 0;
         if (data.allowedPages !== undefined)
@@ -616,6 +640,7 @@ export const appRouter = router({
           isAdmin: false,
           isAllowed: false,
           canMoveAppKanban: false,
+          canAddChurnMotivo: false,
           onlyAppKanban: false,
         };
       if (isProjectOwner(ctx.user)) {
@@ -624,6 +649,7 @@ export const appRouter = router({
           isAdmin: true,
           isAllowed: true,
           canMoveAppKanban: true,
+          canAddChurnMotivo: true,
           onlyAppKanban: false,
         };
       }
@@ -634,6 +660,7 @@ export const appRouter = router({
           isAdmin: false,
           isAllowed: false,
           canMoveAppKanban: false,
+          canAddChurnMotivo: false,
           onlyAppKanban: false,
         };
       const owner = isProjectOwner(ctx.user);
@@ -645,6 +672,8 @@ export const appRouter = router({
         isAdmin: owner || entry.isAdmin === 1,
         isAllowed: true,
         canMoveAppKanban: owner || entry.canMoveAppKanban === 1,
+        canAddChurnMotivo:
+          owner || entry.isAdmin === 1 || entry.canAddChurnMotivo === 1,
         onlyAppKanban: owner ? false : entry.onlyAppKanban === 1,
       };
     }),
