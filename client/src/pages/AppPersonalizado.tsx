@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,6 +113,7 @@ export default function AppPersonalizado() {
   const utils = trpc.useUtils();
   const listCards = trpc.appKanban.list.useQuery();
   const syncFromSheet = trpc.appKanban.syncFromSheet.useMutation();
+  const automaticSyncStarted = useRef(false);
   const createCard = trpc.appKanban.create.useMutation();
   const moveCard = trpc.appKanban.move.useMutation();
   const deleteCardMutation = trpc.appKanban.delete.useMutation();
@@ -189,6 +190,22 @@ export default function AppPersonalizado() {
       alert("Não foi possível atualizar pela planilha.");
     }
   };
+
+  useEffect(() => {
+    if (!isAdmin || automaticSyncStarted.current) return;
+    automaticSyncStarted.current = true;
+    void syncFromSheet
+      .mutateAsync()
+      .then(async () => {
+        await listCards.refetch();
+        await utils.appKanban.pendingNewClients.invalidate();
+      })
+      .catch(error => {
+        // A atualização automática não interrompe a navegação; o botão
+        // manual continua disponível para uma nova tentativa.
+        console.error("Erro na atualização automática da planilha:", error);
+      });
+  }, [isAdmin]);
 
   const handleChecklistToggle = async (key: keyof ChecklistData) => {
     if (!selectedCardData || !canEditChecklist) return;

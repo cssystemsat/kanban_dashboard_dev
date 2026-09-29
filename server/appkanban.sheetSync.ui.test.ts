@@ -17,6 +17,12 @@ describe("atualização do App Kanban pela planilha", () => {
     expect(source).toContain("await listCards.refetch()");
   });
 
+  it("sincroniza automaticamente uma vez ao entrar na aba", () => {
+    expect(source).toContain("automaticSyncStarted");
+    expect(source).toContain("if (!isAdmin || automaticSyncStarted.current)");
+    expect(source).toContain("syncFromSheet.mutateAsync()");
+  });
+
   it("usa a planilha informada, ignora duplicidades e grava na primeira etapa", () => {
     expect(routerSource).toContain("1mXbOUE2cGh95UOKUj33H9jHApE0i28my-_XnPI2YjWY");
     expect(routerSource).toContain("parseAppKanbanSheetRows");
