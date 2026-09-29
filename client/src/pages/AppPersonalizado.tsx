@@ -83,6 +83,7 @@ function getDaysSince(startDate: string | Date): number {
 export default function AppPersonalizado() {
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [commercialFilter, setCommercialFilter] = useState("all");
   const [draggedCard, setDraggedCard] = useState<KanbanCard | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -282,9 +283,15 @@ export default function AppPersonalizado() {
       const matchesSearch =
         searchQuery === "" ||
         card.companyName.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesStage && matchesSearch;
+      const matchesCommercial =
+        commercialFilter === "all" || card.comercial === commercialFilter;
+      return matchesStage && matchesSearch && matchesCommercial;
     });
   };
+
+  const commercialOptions = Array.from(
+    new Set(cards.map(card => card.comercial.trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   const formatDate = (date: string | Date) => {
     const d = new Date(date);
@@ -366,13 +373,29 @@ export default function AppPersonalizado() {
       </div>
 
       {/* Search bar */}
-      <div className="px-6 py-3 border-b" style={{ borderColor: "#E0E8F0" }}>
+      <div
+        className="px-6 py-3 border-b flex flex-col sm:flex-row gap-2"
+        style={{ borderColor: "#E0E8F0" }}
+      >
         <Input
           placeholder="Buscar cliente..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="w-full max-w-md h-9 text-sm"
         />
+        <select
+          aria-label="Filtrar por Comercial"
+          value={commercialFilter}
+          onChange={e => setCommercialFilter(e.target.value)}
+          className="flex h-9 w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-56"
+        >
+          <option value="all">Todos os Comerciais</option>
+          {commercialOptions.map(comercial => (
+            <option key={comercial} value={comercial}>
+              {comercial}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Kanban Board - Todas as colunas visíveis */}
