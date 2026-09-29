@@ -32,10 +32,12 @@ async function fetchPublishedVersion(): Promise<PublishedRelease | null> {
   return {
     version: payload.appVersion,
     changes: Array.isArray(payload.changes)
-      ? payload.changes.filter(
-          (change): change is string =>
-            typeof change === "string" && change.trim().length > 0
-        )
+      ? payload.changes
+          .filter(
+            (change): change is string =>
+              typeof change === "string" && change.trim().length > 0
+          )
+          .slice(-1)
       : [],
   };
 }

@@ -4,9 +4,18 @@ import { describe, expect, it } from "vitest";
 import { shouldShowVersionPrompt } from "@/lib/versionCheck";
 import { APP_VERSION } from "@/lib/appVersion";
 
+const promptSource = readFileSync(
+  resolve(process.cwd(), "client/src/components/VersionUpdatePrompt.tsx"),
+  "utf8"
+);
+
 describe("version update prompt", () => {
-  it("publica a versão funcional 7.5 nesta publicação", () => {
-    expect(APP_VERSION).toBe("7.5");
+  it("publica a versão funcional 7.6 nesta publicação", () => {
+    expect(APP_VERSION).toBe("7.6");
+  });
+
+  it("exibe somente a última alteração publicada", () => {
+    expect(promptSource).toContain(".slice(-1)");
   });
 
   it("mantém a versão publicada sincronizada com a versão do bundle", () => {
