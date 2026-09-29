@@ -135,13 +135,6 @@ function AppInner() {
   const trackPage = trpc.tracking.trackPage.useMutation();
   const trackAction = trpc.tracking.trackAction.useMutation();
 
-  // Redirecionar usuários com onlyAppKanban para App Personalizado
-  useEffect(() => {
-    if (myPerms?.onlyAppKanban && currentPage !== "apppersonalizado") {
-      setCurrentPage("apppersonalizado");
-    }
-  }, [myPerms?.onlyAppKanban, currentPage]);
-
   // Iniciar sessão quando o usuário logar
   useEffect(() => {
     if (!user?.email) return;

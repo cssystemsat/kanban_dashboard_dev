@@ -33,6 +33,7 @@ const ALL_PAGES = [
   { id: "marcos", label: "Marcos" },
   { id: "ongoing", label: "Ongoing" },
   { id: "churns", label: "CHURNs" },
+  { id: "apppersonalizado", label: "App Personalizado" },
   { id: "migracao", label: "Migração" },
   { id: "redflags", label: "Red Flags" },
   { id: "ferramentas", label: "Ferramentas" },
@@ -45,7 +46,6 @@ type EmailEntry = {
   isAdmin: number;
   canLaunch: number;
   canMoveAppKanban: number;
-  onlyAppKanban: number;
   allowedPages: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -73,7 +73,6 @@ export default function Configuracoes() {
       setNewIsAdmin(false);
       setNewCanLaunch(true);
       setNewCanMoveAppKanban(false);
-      setNewOnlyAppKanban(false);
       setNewAllowedPages(null);
     },
     onError: e => toast(getEmailValidationMessage(e)),
@@ -103,7 +102,6 @@ export default function Configuracoes() {
   const [newIsAdmin, setNewIsAdmin] = useState(false);
   const [newCanLaunch, setNewCanLaunch] = useState(true);
   const [newCanMoveAppKanban, setNewCanMoveAppKanban] = useState(false);
-  const [newOnlyAppKanban, setNewOnlyAppKanban] = useState(false);
   const [newAllowedPages, setNewAllowedPages] = useState<string[] | null>(null); // null = todas
 
   const [editOpen, setEditOpen] = useState(false);
@@ -113,7 +111,6 @@ export default function Configuracoes() {
   const [editIsAdmin, setEditIsAdmin] = useState(false);
   const [editCanLaunch, setEditCanLaunch] = useState(true);
   const [editCanMoveAppKanban, setEditCanMoveAppKanban] = useState(false);
-  const [editOnlyAppKanban, setEditOnlyAppKanban] = useState(false);
   const [editAllowedPages, setEditAllowedPages] = useState<string[] | null>(
     null
   );
@@ -125,7 +122,6 @@ export default function Configuracoes() {
     setEditIsAdmin(entry.isAdmin === 1);
     setEditCanLaunch(entry.canLaunch === 1);
     setEditCanMoveAppKanban(entry.canMoveAppKanban === 1);
-    setEditOnlyAppKanban(entry.onlyAppKanban === 1);
     setEditAllowedPages(
       entry.allowedPages ? (JSON.parse(entry.allowedPages) as string[]) : null
     );
@@ -279,11 +275,6 @@ export default function Configuracoes() {
                             Move Kanban
                           </Badge>
                         )}
-                        {(entry as EmailEntry).onlyAppKanban === 1 && (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 border-orange-200">
-                            Apenas App
-                          </Badge>
-                        )}
                       </div>
                       {entry.label && (
                         <p className="text-xs text-gray-400 mt-0.5">
@@ -403,18 +394,6 @@ export default function Configuracoes() {
                 Pode mover cards no App Personalizado
               </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={newOnlyAppKanban}
-                onChange={e => setNewOnlyAppKanban(e.target.checked)}
-                className="w-4 h-4 rounded"
-              />
-              <span className="text-sm text-gray-700">
-                Ver apenas a aba App Personalizado
-              </span>
-            </label>
-
             {/* Seleção de abas */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -488,7 +467,7 @@ export default function Configuracoes() {
                   isAdmin: newIsAdmin,
                   canLaunch: newCanLaunch,
                   canMoveAppKanban: newCanMoveAppKanban,
-                  onlyAppKanban: newOnlyAppKanban,
+                  allowedPages: newAllowedPages,
                 })
               }
               disabled={!newEmail || addMutation.isPending}
@@ -560,18 +539,6 @@ export default function Configuracoes() {
                 Pode mover cards no App Personalizado
               </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={editOnlyAppKanban}
-                onChange={e => setEditOnlyAppKanban(e.target.checked)}
-                className="w-4 h-4 rounded"
-              />
-              <span className="text-sm text-gray-700">
-                Ver apenas a aba App Personalizado
-              </span>
-            </label>
-
             {/* Seleção de abas */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -647,7 +614,6 @@ export default function Configuracoes() {
                   isAdmin: editIsAdmin,
                   canLaunch: editCanLaunch,
                   canMoveAppKanban: editCanMoveAppKanban,
-                  onlyAppKanban: editOnlyAppKanban,
                   allowedPages: editAllowedPages,
                 })
               }

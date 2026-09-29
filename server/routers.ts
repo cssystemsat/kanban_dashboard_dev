@@ -457,7 +457,7 @@ export const appRouter = router({
           isAdmin: z.boolean().default(false),
           canLaunch: z.boolean().default(true),
           canMoveAppKanban: z.boolean().default(false),
-          onlyAppKanban: z.boolean().default(false),
+          allowedPages: z.array(z.string()).nullable().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -471,7 +471,10 @@ export const appRouter = router({
           isAdmin: input.isAdmin ? 1 : 0,
           canLaunch: input.canLaunch ? 1 : 0,
           canMoveAppKanban: input.canMoveAppKanban ? 1 : 0,
-          onlyAppKanban: input.onlyAppKanban ? 1 : 0,
+          allowedPages:
+            input.allowedPages === undefined || input.allowedPages === null
+              ? null
+              : JSON.stringify(input.allowedPages),
         });
         return { success: true };
       }),
