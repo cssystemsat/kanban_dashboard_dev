@@ -117,8 +117,15 @@ export async function getSheetNameByGid(
   gid: number,
   source: SheetSource = "primary"
 ): Promise<string | null> {
+  return getSheetNameBySpreadsheetId(getSpreadsheetId(source), gid);
+}
+
+async function getSheetNameBySpreadsheetId(
+  spreadsheetId: string,
+  gid: number
+): Promise<string | null> {
   const spreadsheet = await sheetsRequest<SheetsResponse>(
-    `/${encodeURIComponent(getSpreadsheetId(source))}?fields=sheets.properties(sheetId,title)`
+    `/${encodeURIComponent(spreadsheetId)}?fields=sheets.properties(sheetId,title)`
   );
   return (
     spreadsheet.sheets?.find(sheet => sheet.properties?.sheetId === gid)
@@ -154,10 +161,17 @@ export async function getSheetCsv(
   source: SheetSource,
   gid: number
 ): Promise<string> {
-  const spreadsheetId = getSpreadsheetId(source);
-  const sheetName = await getSheetNameByGid(gid, source);
+  return getSheetCsvBySpreadsheetId(getSpreadsheetId(source), gid);
+}
+
+/** Lê uma aba de uma planilha autorizada sem alterar os IDs configurados do projeto. */
+export async function getSheetCsvBySpreadsheetId(
+  spreadsheetId: string,
+  gid: number
+): Promise<string> {
+  const sheetName = await getSheetNameBySpreadsheetId(spreadsheetId, gid);
   if (!sheetName)
-    throw new Error(`Aba com gid=${gid} não encontrada na planilha ${source}.`);
+    throw new Error(`Aba com gid=${gid} não encontrada na planilha informada.`);
   const range = `'${sheetName.replace(/'/g, "''")}'`;
   const result = await sheetsRequest<ValuesResponse>(
     `${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`

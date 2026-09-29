@@ -33,6 +33,8 @@ import {
   clientObjectiveCompletions,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
+import { normalizeCompanyName } from "./appKanbanSheetSync";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -794,6 +796,50 @@ export async function createAppKanbanCard(data: InsertAppKanbanCard) {
     .from(appKanbanCards)
     .where(eq(appKanbanCards.id, cardId));
   return cards[0];
+}
+
+export async function syncAppKanbanCards(
+  rows: AppKanbanSheetRow[],
+  createdBy: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const existingCards = await db
+    .select({ companyName: appKanbanCards.companyName })
+    .from(appKanbanCards);
+  const existingNames = new Set(
+    existingCards.map(card => normalizeCompanyName(card.companyName))
+  );
+  const seenNames = new Set<string>();
+  const newRows = rows.filter(row => {
+    const normalizedName = normalizeCompanyName(row.companyName);
+    if (existingNames.has(normalizedName) || seenNames.has(normalizedName)) {
+      return false;
+    }
+    seenNames.add(normalizedName);
+    return true;
+  });
+
+  if (newRows.length > 0) {
+    await db.insert(appKanbanCards).values(
+      newRows.map(row => ({
+        companyName: row.companyName,
+        csm: "",
+        comercial: row.comercial,
+        startDate: new Date(`${row.startDate}T12:00:00.000Z`),
+        stage: "venda_feita" as const,
+        order: 0,
+        createdBy,
+      }))
+    );
+  }
+
+  return {
+    inserted: newRows.length,
+    skipped: rows.length - newRows.length,
+    companies: newRows.map(row => row.companyName),
+  };
 }
 
 export async function updateAppKanbanCard(

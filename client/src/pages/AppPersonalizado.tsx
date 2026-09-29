@@ -16,6 +16,7 @@ import {
   Database,
   CheckSquare,
   Square,
+  RefreshCw,
 } from "lucide-react";
 
 const STAGES = [
@@ -110,6 +111,7 @@ export default function AppPersonalizado() {
   const { data: user } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery();
   const listCards = trpc.appKanban.list.useQuery();
+  const syncFromSheet = trpc.appKanban.syncFromSheet.useMutation();
   const createCard = trpc.appKanban.create.useMutation();
   const moveCard = trpc.appKanban.move.useMutation();
   const deleteCardMutation = trpc.appKanban.delete.useMutation();
@@ -170,6 +172,21 @@ export default function AppPersonalizado() {
   const isAdmin = myPerms?.isAdmin === true; // Usar allowed_emails.isAdmin, não user.role
   const canMoveCards = isAdmin || myPerms?.canMoveAppKanban === true;
   const canEditChecklist = isAdmin; // Apenas admins podem editar checklist
+
+  const handleSyncFromSheet = async () => {
+    try {
+      const result = await syncFromSheet.mutateAsync();
+      await listCards.refetch();
+      alert(
+        result.inserted > 0
+          ? `${result.inserted} nova(s) empresa(s) adicionada(s) ao Kanban.`
+          : "Nenhuma empresa nova encontrada na planilha."
+      );
+    } catch (error) {
+      console.error("Erro ao sincronizar planilha:", error);
+      alert("Não foi possível atualizar pela planilha.");
+    }
+  };
 
   const handleChecklistToggle = async (key: keyof ChecklistData) => {
     if (!selectedCardData || !canEditChecklist) return;
@@ -306,7 +323,21 @@ export default function AppPersonalizado() {
       {/* Header */}
       <div className="px-6 pt-3 pb-2 flex justify-between items-center">
         <h1 className="text-xl font-bold text-gray-800">App Personalizado</h1>
-        {canMoveCards && (
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button
+              variant="outline"
+              className="gap-1 whitespace-nowrap h-7 text-xs px-3"
+              onClick={handleSyncFromSheet}
+              disabled={syncFromSheet.isPending}
+            >
+              <RefreshCw
+                className={`w-3 h-3 ${syncFromSheet.isPending ? "animate-spin" : ""}`}
+              />
+              {syncFromSheet.isPending ? "Atualizando..." : "Atualizar planilha"}
+            </Button>
+          )}
+          {canMoveCards && (
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button className="gap-1 whitespace-nowrap h-7 text-xs px-3">
@@ -369,7 +400,8 @@ export default function AppPersonalizado() {
               </div>
             </DialogContent>
           </Dialog>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Search bar */}

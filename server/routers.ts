@@ -14,8 +14,10 @@ import {
   appendAtendimento,
   appendFriccao,
   getSheetCsv,
+  getSheetCsvBySpreadsheetId,
   updateMigracao,
 } from "./googleSheets";
+import { parseAppKanbanSheetRows } from "./appKanbanSheetSync";
 import {
   getAllowedEmails,
   isEmailAllowed,
@@ -53,6 +55,7 @@ import {
   getAppKanbanCards,
   getAppKanbanCardsByStage,
   createAppKanbanCard,
+  syncAppKanbanCards,
   updateAppKanbanCard,
   deleteAppKanbanCard,
   moveAppKanbanCard,
@@ -899,6 +902,25 @@ export const appRouter = router({
   appKanban: router({
     list: protectedProcedure.query(async () => {
       return getAppKanbanCards();
+    }),
+    syncFromSheet: protectedProcedure.mutation(async ({ ctx }) => {
+      if (!ctx.user?.email) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Você precisa estar autenticado",
+        });
+      }
+      if (!(ctx.user.role === "admin" || (await isEmailAdmin(ctx.user.email)))) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Apenas administradores podem atualizar pela planilha",
+        });
+      }
+
+      const spreadsheetId = "1mXbOUE2cGh95UOKUj33H9jHApE0i28my-_XnPI2YjWY";
+      const csv = await getSheetCsvBySpreadsheetId(spreadsheetId, 0);
+      const rows = parseAppKanbanSheetRows(csv);
+      return syncAppKanbanCards(rows, "google-sheet-sync");
     }),
     listByStage: protectedProcedure
       .input(z.object({ stage: z.string() }))
