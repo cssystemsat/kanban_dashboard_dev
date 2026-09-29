@@ -1,9 +1,10 @@
 {
-  "appVersion": "6.9",
+  "appVersion": "7.0",
   "changes": [
-    "O modal de objetivos da aba Marcos foi ampliado para facilitar a leitura.",
-    "Cada objetivo agora tem um checkbox de alto contraste para marcar se foi concluído.",
-    "Objetivos concluídos ficam destacados em verde e riscados para indicar o status.",
-    "As marcações são preservadas no navegador por cliente e permanecem ao reabrir o card."
+    "O App Personalizado agora pode sincronizar novos clientes pela planilha informada.",
+    "A sincronização usa data, cliente e Comercial das colunas A, B e C, ignora linhas vazias e evita duplicidades.",
+    "Novos clientes entram automaticamente na etapa Vendido com CSM em branco.",
+    "Um pop-up global mostra os novos clientes e exige confirmação de ciência por usuário.",
+    "A validação foi ajustada para nunca mais criar empresas fictícias no banco compartilhado."
   ]
 }
