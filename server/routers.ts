@@ -15,6 +15,7 @@ import {
   appendFriccao,
   getSheetCsv,
   getSheetCsvBySpreadsheetId,
+  updateChurnMotivo,
   updateMigracao,
 } from "./googleSheets";
 import { parseAppKanbanSheetRows } from "./appKanbanSheetSync";
@@ -258,6 +259,20 @@ export const appRouter = router({
       }),
   }),
   churns: router({
+    updateMotivo: allowlistedProcedure
+      .input(
+        z.object({
+          row: z.number().int().min(2),
+          field: z.enum([
+            "motivoCliente",
+            "motivoCsm",
+            "motivoFinanceiro",
+            "motivoComercial",
+          ]),
+          text: z.string().trim().min(1).max(5000),
+        })
+      )
+      .mutation(async ({ input }) => updateChurnMotivo(input)),
     generateAnalysis: allowlistedProcedure
       .input(
         z.object({

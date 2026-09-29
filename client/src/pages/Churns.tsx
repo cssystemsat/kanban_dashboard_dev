@@ -13,6 +13,7 @@ import {
   Calendar,
   Download,
   FileSpreadsheet,
+  Pencil,
   RotateCw,
   Sparkles,
   TrendingDown,
@@ -28,6 +29,8 @@ const MONTHS = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
 const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
+type ChurnMotivoField = "motivoCliente" | "motivoCsm" | "motivoFinanceiro" | "motivoComercial";
+type MotivoDialogState = { churn: ChurnData; field: ChurnMotivoField; label: string } | null;
 
 function formatCurrency(value: number | null | undefined) {
   if (value == null || !Number.isFinite(value)) return "—";
@@ -58,14 +61,17 @@ export default function Churns() {
   const [selectedCsm, setSelectedCsm] = useState("");
   const [selectedVendedor, setSelectedVendedor] = useState("");
   const [selectedMonths, setSelectedMonths] = useState<Set<number>>(
-    new Set([new Date().getMonth() + 1])
+    new Set(MONTHS.map((_, index) => index + 1))
   );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [showAllMonths, setShowAllMonths] = useState(false);
+  const [showAllMonths, setShowAllMonths] = useState(true);
   const [showAllYears, setShowAllYears] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisText, setAnalysisText] = useState("");
+  const [motivoDialog, setMotivoDialog] = useState<MotivoDialogState>(null);
+  const [motivoText, setMotivoText] = useState("");
   const analysisMutation = trpc.churns.generateAnalysis.useMutation();
+  const updateMotivoMutation = trpc.churns.updateMotivo.useMutation();
 
   useEffect(() => {
     void fetchData();
@@ -139,11 +145,38 @@ export default function Churns() {
   }, [filteredData]);
 
   const toggleMonth = (month: number) => {
+    if (showAllMonths) {
+      setSelectedMonths(new Set([month]));
+      setShowAllMonths(false);
+      setShowAllYears(false);
+      return;
+    }
     const next = new Set(selectedMonths);
     if (next.has(month)) next.delete(month); else next.add(month);
     setSelectedMonths(next);
     setShowAllMonths(false);
     setShowAllYears(false);
+  };
+
+  const openMotivoDialog = (churn: ChurnData, field: ChurnMotivoField, label: string) => {
+    setMotivoDialog({ churn, field, label });
+    setMotivoText("");
+  };
+
+  const registerMotivo = async () => {
+    if (!motivoDialog || !motivoText.trim()) return;
+    try {
+      await updateMotivoMutation.mutateAsync({
+        row: motivoDialog.churn.sheetRow,
+        field: motivoDialog.field,
+        text: motivoText.trim(),
+      });
+      setMotivoDialog(null);
+      setMotivoText("");
+      await fetchData();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Não foi possível cadastrar o motivo.");
+    }
   };
 
   const exportToExcel = () => {
@@ -190,7 +223,7 @@ export default function Churns() {
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Mês</label>
               <div className="flex gap-1">
-                <button onClick={() => setShowAllMonths(value => !value)} className={`h-8 rounded px-2 text-xs font-semibold ${showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
+                <button onClick={() => { setShowAllMonths(true); setShowAllYears(false); setSelectedMonths(new Set(MONTHS.map((_, index) => index + 1))); }} className={`h-8 rounded px-2 text-xs font-semibold ${showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
                 {MONTHS.map((month, index) => (
                   <button key={month} onClick={() => toggleMonth(index + 1)} disabled={showAllMonths} className={`h-8 rounded px-1.5 text-[10px] font-semibold ${selectedMonths.has(index + 1) && !showAllMonths ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>{month}</button>
                 ))}
@@ -232,11 +265,12 @@ export default function Churns() {
 
         <section className="overflow-hidden rounded-lg border border-[#e0e8f0] bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e0e8f0] p-3"><div><h2 className="font-bold text-[#001f3f]">Clientes cancelados</h2><p className="text-xs text-gray-500">{filteredData.length} registro(s) · {periodLabel}</p></div><Button onClick={exportToExcel} disabled={!filteredData.length} size="sm" className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700"><FileSpreadsheet className="h-4 w-4" />Exportar Excel</Button></div>
-          <div className="overflow-x-auto"><table className="min-w-[1450px] w-full border-collapse text-sm"><thead className="bg-[#f5f7fa]"><tr>{["Cliente", "Tipo", "Entrada", "Saída", "Tempo (meses)", "Motivo Cliente", "Motivo CSM", "Motivo Financeiro", "Motivo Comercial", "Boleto"].map(header => <th key={header} className="whitespace-nowrap border-b px-3 py-2 text-left text-xs font-bold text-[#001f3f]">{header}</th>)}</tr></thead><tbody>{filteredData.length ? filteredData.map((churn, index) => <tr key={churn.id} className={index % 2 ? "bg-gray-50" : "bg-white"}><td className="max-w-52 px-3 py-2 font-semibold text-[#001f3f]">{churn.nome}</td><td className="px-3 py-2 text-gray-600">{churn.tipo || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataEntrada || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataSaida || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.mesesCasa}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoCliente || "—"}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoCsm || "—"}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoFinanceiro || "—"}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600">{churn.motivoComercial || "—"}</td><td className="whitespace-nowrap px-3 py-2 font-semibold text-orange-700">{formatCurrency(churn.boletoValor)}</td></tr>) : <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-500">Nenhum cancelamento encontrado para os filtros atuais.</td></tr>}</tbody></table></div>
+          <div className="overflow-x-auto"><table className="min-w-[1450px] w-full border-collapse text-sm"><thead className="bg-[#f5f7fa]"><tr>{["Cliente", "Tipo", "Entrada", "Saída", "Tempo (meses)", "Motivo Cliente", "Motivo CSM", "Motivo Financeiro", "Motivo Comercial", "Boleto"].map(header => <th key={header} className="whitespace-nowrap border-b px-3 py-2 text-left text-xs font-bold text-[#001f3f]">{header}</th>)}</tr></thead><tbody>{filteredData.length ? filteredData.map((churn, index) => <tr key={churn.id} className={index % 2 ? "bg-gray-50" : "bg-white"}><td className="max-w-52 px-3 py-2 font-semibold text-[#001f3f]">{churn.nome}</td><td className="px-3 py-2 text-gray-600">{churn.tipo || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataEntrada || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.dataSaida || "—"}</td><td className="px-3 py-2 text-gray-600">{churn.mesesCasa}</td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoCliente} onAdd={() => openMotivoDialog(churn, "motivoCliente", "Motivo Cliente")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoCsm} onAdd={() => openMotivoDialog(churn, "motivoCsm", "Motivo CSM")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoFinanceiro} onAdd={() => openMotivoDialog(churn, "motivoFinanceiro", "Motivo Financeiro")} /></td><td className="max-w-64 whitespace-normal px-3 py-2 text-gray-600"><MotivoCell value={churn.motivoComercial} onAdd={() => openMotivoDialog(churn, "motivoComercial", "Motivo Comercial")} /></td><td className="whitespace-nowrap px-3 py-2 font-semibold text-orange-700">{formatCurrency(churn.boletoValor)}</td></tr>) : <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-500">Nenhum cancelamento encontrado para os filtros atuais.</td></tr>}</tbody></table></div>
         </section>
       </main>
 
       {analysisOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setAnalysisOpen(false)}><div className="max-h-[85vh] w-full max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl" onClick={event => event.stopPropagation()}><div className="flex items-center justify-between border-b p-4"><div><h2 className="flex items-center gap-2 text-lg font-bold text-[#001f3f]"><Sparkles className="h-5 w-5 text-violet-600" />Análise dos Churns</h2><p className="text-xs text-gray-500">Base: {filteredData.length} registro(s) filtrado(s)</p></div><button onClick={() => setAnalysisOpen(false)} className="rounded p-1 text-gray-500 hover:bg-gray-100"><X className="h-5 w-5" /></button></div><div className="max-h-[70vh] overflow-y-auto p-5">{analysisMutation.isPending ? <div className="flex items-center gap-3 py-12 text-gray-600"><Sparkles className="h-5 w-5 animate-pulse text-violet-600" />Gerando análise...</div> : <pre className="whitespace-pre-wrap font-sans text-sm leading-6 text-gray-700">{analysisText}</pre>}</div></div></div>}
+      {motivoDialog && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 p-4" onClick={() => !updateMotivoMutation.isPending && setMotivoDialog(null)}><div className="w-full max-w-lg rounded-xl bg-white shadow-2xl" onClick={event => event.stopPropagation()}><div className="flex items-start justify-between border-b p-4"><div><h2 className="flex items-center gap-2 text-lg font-bold text-[#001f3f]"><Pencil className="h-5 w-5 text-blue-600" />Cadastrar motivo</h2><p className="mt-1 text-sm text-gray-600">{motivoDialog.churn.nome}</p><p className="text-xs text-gray-500">Campo: {motivoDialog.label} · linha {motivoDialog.churn.sheetRow}</p></div><button onClick={() => setMotivoDialog(null)} disabled={updateMotivoMutation.isPending} className="rounded p-1 text-gray-500 hover:bg-gray-100"><X className="h-5 w-5" /></button></div><div className="space-y-3 p-4"><label className="text-sm font-semibold text-gray-700">Motivo</label><textarea value={motivoText} onChange={event => setMotivoText(event.target.value)} autoFocus rows={6} maxLength={5000} placeholder="Digite o motivo..." className="w-full resize-y rounded-lg border border-gray-300 p-3 text-sm text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /><div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setMotivoDialog(null)} disabled={updateMotivoMutation.isPending}>Cancelar</Button><Button onClick={() => void registerMotivo()} disabled={!motivoText.trim() || updateMotivoMutation.isPending} className="bg-blue-600 text-white hover:bg-blue-700">{updateMotivoMutation.isPending ? "Cadastrando..." : "Cadastrar"}</Button></div></div></div></div>}
     </div>
   );
 }
@@ -247,4 +281,9 @@ function Kpi({ icon, label, value, detail, color }: { icon: React.ReactNode; lab
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return <section className="rounded-lg border border-[#e0e8f0] bg-white p-3 shadow-sm"><h2 className="mb-2 font-bold text-[#001f3f]">{title}</h2>{children}</section>;
+}
+
+function MotivoCell({ value, onAdd }: { value: string; onAdd: () => void }) {
+  if (value.trim()) return <span className="whitespace-pre-wrap">{value}</span>;
+  return <button onClick={onAdd} className="inline-flex items-center gap-1 rounded border border-dashed border-blue-300 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"><Pencil className="h-3 w-3" />Cadastrar motivo</button>;
 }

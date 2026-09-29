@@ -3,6 +3,7 @@ import { cachedFetch } from "@/lib/sheetsCache";
 
 export interface ChurnData {
   id: string;
+  sheetRow: number;
   nome: string;
   tipo: string;
   persona: string;
@@ -79,6 +80,7 @@ export const useChurnsData = () => {
         const dataSaida = row[7]?.trim() ?? "";
         churns.push({
           id: `${row[18]?.trim() || nome}-${i}`,
+          sheetRow: i + 1,
           nome,
           tipo: row[1]?.trim() ?? "",
           persona: row[2]?.trim() ?? "",
@@ -136,7 +138,7 @@ export function parseCSVRecords(csv: string): string[][] {
       if (char === "\r" && next === "\n") i++;
       row.push(cell);
       cell = "";
-      if (row.some(value => value.trim())) records.push(row);
+      records.push(row);
       row = [];
     } else {
       cell += char;
@@ -144,7 +146,7 @@ export function parseCSVRecords(csv: string): string[][] {
   }
   if (cell || row.length) {
     row.push(cell);
-    if (row.some(value => value.trim())) records.push(row);
+    records.push(row);
   }
   return records;
 }

@@ -2,5 +2,5 @@
  * Versão funcional exibida aos usuários.
  * Incrementar este número a cada publicação que deve ser comunicada no painel.
  */
-// Incremento funcional após a publicação 7.2.
-export const APP_VERSION = "7.3";
+// Incremento funcional após a publicação 7.3.
+export const APP_VERSION = "7.4";

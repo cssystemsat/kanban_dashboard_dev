@@ -214,6 +214,39 @@ async function updateValues(
   );
 }
 
+export type ChurnMotivoField =
+  | "motivoCliente"
+  | "motivoCsm"
+  | "motivoFinanceiro"
+  | "motivoComercial";
+
+/** Atualiza uma célula de motivo na linha exata da aba CHURNS. */
+export async function updateChurnMotivo(data: {
+  row: number;
+  field: ChurnMotivoField;
+  text: string;
+}): Promise<{ success: boolean; row: number; column: string; sheetName: string }> {
+  if (!Number.isInteger(data.row) || data.row < 2)
+    throw new Error("Linha de CHURNS inválida.");
+  const text = data.text.trim();
+  if (!text) throw new Error("O motivo não pode ficar vazio.");
+  const columnByField: Record<ChurnMotivoField, string> = {
+    motivoCliente: "N",
+    motivoCsm: "O",
+    motivoFinanceiro: "P",
+    motivoComercial: "Q",
+  };
+  const column = columnByField[data.field];
+  if (!column) throw new Error("Coluna de motivo inválida.");
+  const CHURNS_GID = 1060737054;
+  const spreadsheetId = getSpreadsheetId("primary");
+  const sheetName = await getSheetNameByGid(CHURNS_GID, "primary");
+  if (!sheetName)
+    throw new Error(`Aba com gid=${CHURNS_GID} não encontrada na planilha principal.`);
+  await updateValues(spreadsheetId, `${sheetName}!${column}${data.row}`, [[text]]);
+  return { success: true, row: data.row, column, sheetName };
+}
+
 /** Grava um atendimento na aba Agendas (gid=1655169262). */
 export async function appendAtendimento(data: {
   data: string;
