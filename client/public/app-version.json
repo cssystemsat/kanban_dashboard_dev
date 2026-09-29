@@ -1,11 +1,13 @@
 {
-  "appVersion": "7.1",
+  "appVersion": "7.2",
   "changes": [
     "O App Personalizado agora pode sincronizar novos clientes pela planilha informada.",
     "A sincronização usa data, cliente e Comercial das colunas A, B e C, ignora linhas vazias e evita duplicidades.",
     "Novos clientes entram automaticamente na etapa Vendido com CSM em branco.",
     "Um pop-up global mostra os novos clientes e exige confirmação de ciência por usuário.",
     "A validação foi ajustada para nunca mais criar empresas fictícias no banco compartilhado.",
-    "A planilha agora é sincronizada automaticamente ao entrar ou retornar à aba App Personalizado."
+    "A planilha agora é sincronizada automaticamente ao entrar ou retornar à aba App Personalizado.",
+    "A criação manual de cards agora reconhece corretamente administradores autorizados pelo e-mail.",
+    "Em caso de falha, a tela exibe a causa retornada pelo servidor em vez de uma mensagem genérica."
   ]
 }

@@ -955,10 +955,14 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== "admin") {
+        const userEmail = ctx.user?.email;
+        const isAdmin =
+          ctx.user?.role === "admin" ||
+          (userEmail ? await isEmailAdmin(userEmail) : false);
+        if (!isAdmin) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Apenas admin pode criar cards",
+            message: "Apenas administradores podem criar cards",
           });
         }
         const cardId = await createAppKanbanCard({

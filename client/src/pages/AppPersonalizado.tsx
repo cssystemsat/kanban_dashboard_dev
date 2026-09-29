@@ -246,7 +246,8 @@ export default function AppPersonalizado() {
       listCards.refetch();
     } catch (error) {
       console.error("Erro ao criar card:", error);
-      alert("Erro ao criar card");
+      const message = error instanceof Error ? error.message : "Tente novamente";
+      alert(`Não foi possível criar o card: ${message}`);
     }
   };
 

@@ -28,4 +28,9 @@ describe("atualização do App Kanban pela planilha", () => {
     expect(routerSource).toContain("parseAppKanbanSheetRows");
     expect(routerSource).toContain("syncAppKanbanCards(rows");
   });
+
+  it("permite criação manual para admins reconhecidos pelo e-mail", () => {
+    expect(routerSource).toContain("isEmailAdmin(userEmail)");
+    expect(routerSource).toContain("Apenas administradores podem criar cards");
+  });
 });
