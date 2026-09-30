@@ -30,6 +30,7 @@ import {
   AlertCircle,
   Flag,
   Truck,
+  HeartHandshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
@@ -968,6 +969,14 @@ export default function Painel() {
             />
             {isRefreshing ? "Atualizando..." : "Atualizar"}
           </Button>
+          <button
+            type="button"
+            aria-label="Relacionamento e experiência do cliente"
+            title="Relacionamento e experiência do cliente"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/30 text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <HeartHandshake className="h-4 w-4" />
+          </button>
         </div>
       </header>
 

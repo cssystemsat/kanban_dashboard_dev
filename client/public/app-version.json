@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.3",
-  "changes": ["Adicionado gráfico de cancelamento por Persona e reorganizados os três gráficos em uma linha responsiva."]
+  "appVersion": "8.4",
+  "changes": ["Adicionado o ícone de relacionamento e experiência do cliente no cabeçalho do Painel."]
 }

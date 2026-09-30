@@ -30,4 +30,9 @@ describe("Layout otimizado do Painel", () => {
     expect(painelSource).toContain("trpc.analystScores.list.useQuery");
     expect(painelSource).toContain("title={history}");
   });
+
+  it("exibe o ícone de relacionamento e experiência do cliente no cabeçalho", () => {
+    expect(painelSource).toContain("HeartHandshake");
+    expect(painelSource).toContain("Relacionamento e experiência do cliente");
+  });
 });
