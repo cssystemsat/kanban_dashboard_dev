@@ -215,6 +215,7 @@ async function updateValues(
 }
 
 export type ChurnMotivoField =
+  | "persona"
   | "motivoCliente"
   | "motivoCsm"
   | "motivoFinanceiro"
@@ -235,6 +236,7 @@ export async function updateChurnMotivo(data: {
   const text = data.text.trim();
   if (!text) throw new Error("O motivo não pode ficar vazio.");
   const columnByField: Record<ChurnMotivoField, string> = {
+    persona: "C",
     motivoCliente: "N",
     motivoCsm: "O",
     motivoFinanceiro: "P",
@@ -243,6 +245,12 @@ export async function updateChurnMotivo(data: {
   };
   const column = columnByField[data.field];
   if (!column) throw new Error("Coluna de motivo inválida.");
+  if (
+    data.field === "persona" &&
+    !["Central de rastreamento", "Lobo soliário", "Empreendedor"].includes(text)
+  ) {
+    throw new Error("Persona inválida.");
+  }
   const CHURNS_GID = 1060737054;
   const spreadsheetId = getSpreadsheetId("primary");
   const sheetName = await getSheetNameByGid(CHURNS_GID, "primary");

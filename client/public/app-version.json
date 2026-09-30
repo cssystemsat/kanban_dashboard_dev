@@ -1,4 +1,4 @@
 {
-  "appVersion": "7.8",
-  "changes": ["A tabela Churn agora ordena pela saída mais recente e protege gravações contra mudanças de linha na planilha."]
+  "appVersion": "7.9",
+  "changes": ["A aba Churn agora permite cadastrar Persona pela tela usando as opções Central de rastreamento, Lobo soliário ou Empreendedor."]
 }

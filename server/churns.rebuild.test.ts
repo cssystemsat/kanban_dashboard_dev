@@ -23,6 +23,10 @@ describe("aba Churn remodelada", () => {
     expect(page).toContain("updateMotivoMutation");
     expect(page).toContain('"Persona"');
     expect(page).toContain("Cadastrar boleto");
+    expect(page).toContain("Adicionar persona");
+    expect(page).toContain("Central de rastreamento");
+    expect(page).toContain("Lobo soliário");
+    expect(page).toContain("Empreendedor");
     expect(page).toContain("Soma das perdas");
     expect(page).toContain("byExitDate");
     expect(page).toContain("expectedClient");
@@ -37,6 +41,7 @@ describe("aba Churn remodelada", () => {
     expect(sheets).toContain('motivoCliente: "N"');
     expect(sheets).toContain('motivoComercial: "Q"');
     expect(sheets).toContain('ultimoBoleto: "R"');
+    expect(sheets).toContain('persona: "C"');
     expect(sheets).toContain("A${data.row}:A${data.row}");
     expect(sheets).toContain("A linha da planilha mudou desde o carregamento");
   });

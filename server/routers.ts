@@ -265,6 +265,7 @@ export const appRouter = router({
           row: z.number().int().min(2),
           expectedClient: z.string().trim().min(1).max(300),
           field: z.enum([
+            "persona",
             "motivoCliente",
             "motivoCsm",
             "motivoFinanceiro",
@@ -291,6 +292,12 @@ export const appRouter = router({
             code: "FORBIDDEN",
             message: "Você não tem permissão para cadastrar motivos ou boletos na aba Churn.",
           });
+        }
+        if (
+          input.field === "persona" &&
+          !["Central de rastreamento", "Lobo soliário", "Empreendedor"].includes(input.text)
+        ) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Persona inválida." });
         }
         return updateChurnMotivo(input);
       }),
