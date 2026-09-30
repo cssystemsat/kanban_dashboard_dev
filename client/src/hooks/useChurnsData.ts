@@ -24,6 +24,8 @@ export interface ChurnData {
   motivoComercial: string;
   ultimoBoleto: string;
   boletoValor: number | null;
+  /** Fonte será definida posteriormente; mantemos a coluna pronta na interface. */
+  somaPerdas: number | null;
   idCentral: string;
 }
 
@@ -101,6 +103,7 @@ export const useChurnsData = () => {
           motivoComercial: row[16]?.trim() ?? "",
           ultimoBoleto: row[17]?.trim() ?? "",
           boletoValor: parseBrazilianCurrency(row[17]?.trim() ?? ""),
+          somaPerdas: null,
           idCentral: row[18]?.trim() ?? "",
         });
       }

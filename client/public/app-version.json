@@ -1,4 +1,4 @@
 {
-  "appVersion": "7.6",
-  "changes": ["Redefinimos a aba do Churn."]
+  "appVersion": "7.7",
+  "changes": ["A aba Churn agora exibe Persona, permite cadastrar boletos vazios pelo painel e inclui a coluna Soma das perdas, aguardando a definição da fonte dos dados."]
 }

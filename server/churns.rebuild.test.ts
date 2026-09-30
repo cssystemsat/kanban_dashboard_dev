@@ -9,6 +9,8 @@ const sheets = readFileSync(new URL("./googleSheets.ts", import.meta.url), "utf8
 describe("aba Churn remodelada", () => {
   it("usa o layout atualizado da planilha e os filtros solicitados", () => {
     expect(hook).toContain("vendedor: row[11]");
+    expect(hook).toContain("persona: row[2]");
+    expect(hook).toContain("somaPerdas: null");
     expect(hook).toContain("motivoFinanceiro: row[15]");
     expect(hook).toContain("parseBrazilianCurrency");
     expect(page).toContain("selectedCsm");
@@ -19,6 +21,9 @@ describe("aba Churn remodelada", () => {
     expect(page).toContain("new Set(MONTHS.map");
     expect(page).toContain("Cadastrar motivo");
     expect(page).toContain("updateMotivoMutation");
+    expect(page).toContain('"Persona"');
+    expect(page).toContain("Cadastrar boleto");
+    expect(page).toContain("Soma das perdas");
   });
 
   it("exporta XLSX verdadeiro e envia somente os registros filtrados para a IA", () => {
@@ -29,5 +34,6 @@ describe("aba Churn remodelada", () => {
     expect(router).toContain("updateMotivo");
     expect(sheets).toContain('motivoCliente: "N"');
     expect(sheets).toContain('motivoComercial: "Q"');
+    expect(sheets).toContain('ultimoBoleto: "R"');
   });
 });

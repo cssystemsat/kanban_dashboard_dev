@@ -13,6 +13,8 @@ describe("permissão de cadastro de motivos em Churn", () => {
     expect(router).toContain("entry?.canAddChurnMotivo === 1");
     expect(settings).toContain("Pode adicionar motivos na aba Churn");
     expect(settings).toContain("setEditCanAddChurnMotivo");
+    expect(churns).toContain("canAddChurnMotivo");
+    expect(churns).toContain("ultimoBoleto");
   });
 
   it("inicia o filtro de meses em Todos e permite selecionar meses individualmente", () => {

@@ -218,7 +218,8 @@ export type ChurnMotivoField =
   | "motivoCliente"
   | "motivoCsm"
   | "motivoFinanceiro"
-  | "motivoComercial";
+  | "motivoComercial"
+  | "ultimoBoleto";
 
 /** Atualiza uma célula de motivo na linha exata da aba CHURNS. */
 export async function updateChurnMotivo(data: {
@@ -235,6 +236,7 @@ export async function updateChurnMotivo(data: {
     motivoCsm: "O",
     motivoFinanceiro: "P",
     motivoComercial: "Q",
+    ultimoBoleto: "R",
   };
   const column = columnByField[data.field];
   if (!column) throw new Error("Coluna de motivo inválida.");

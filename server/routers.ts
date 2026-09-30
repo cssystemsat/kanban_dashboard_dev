@@ -268,6 +268,7 @@ export const appRouter = router({
             "motivoCsm",
             "motivoFinanceiro",
             "motivoComercial",
+            "ultimoBoleto",
           ]),
           text: z.string().trim().min(1).max(5000),
         })
@@ -287,7 +288,7 @@ export const appRouter = router({
         if (!canAdd) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Você não tem permissão para adicionar motivos na aba Churn.",
+            message: "Você não tem permissão para cadastrar motivos ou boletos na aba Churn.",
           });
         }
         return updateChurnMotivo(input);
