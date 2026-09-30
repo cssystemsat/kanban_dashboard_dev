@@ -37,6 +37,6 @@ describe("Layout otimizado do Painel", () => {
       "utf8"
     );
     expect(indexSource).toContain('type="image/svg+xml"');
-    expect(indexSource).toContain("/favicon-heart-handshake.svg");
+    expect(indexSource).toContain("/favicon-bi.svg");
   });
 });
