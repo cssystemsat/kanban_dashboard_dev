@@ -15,6 +15,9 @@ describe("aba Churn remodelada", () => {
     expect(hook).toContain("parseBrazilianCurrency");
     expect(page).toContain("selectedCsm");
     expect(page).toContain("selectedVendedor");
+    expect(page).toContain("selectedPersona");
+    expect(page).toContain('label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Persona');
+    expect(page).toContain("personas.map");
     expect(page).toContain("Cancelamento por tipo");
     expect(page).toContain("Motivo Financeiro");
     expect(page).toContain("Motivo Comercial");

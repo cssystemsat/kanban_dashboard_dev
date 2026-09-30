@@ -90,6 +90,7 @@ export default function Churns() {
   const [searchCliente, setSearchCliente] = useState("");
   const [selectedCsm, setSelectedCsm] = useState("");
   const [selectedVendedor, setSelectedVendedor] = useState("");
+  const [selectedPersona, setSelectedPersona] = useState("");
   const [selectedMonths, setSelectedMonths] = useState<Set<number>>(
     new Set(MONTHS.map((_, index) => index + 1))
   );
@@ -127,6 +128,10 @@ export default function Churns() {
     () => Array.from(new Set(data.map(item => item.vendedor).filter(Boolean))).sort(),
     [data]
   );
+  const personas = useMemo(
+    () => Array.from(new Set(data.map(item => item.persona).filter(Boolean))).sort(),
+    [data]
+  );
   const tipos = useMemo(
     () => Array.from(new Set(data.map(item => item.tipo).filter(Boolean))).sort(),
     [data]
@@ -153,12 +158,13 @@ export default function Churns() {
       if (searchCliente.trim() && !churn.nome.toLowerCase().includes(searchCliente.toLowerCase())) return false;
       if (selectedCsm && churn.atendente !== selectedCsm) return false;
       if (selectedVendedor && churn.vendedor !== selectedVendedor) return false;
+      if (selectedPersona && churn.persona !== selectedPersona) return false;
       return true;
     }).sort((a, b) => {
       const byExitDate = (b.dataSaidaParsed?.getTime() ?? 0) - (a.dataSaidaParsed?.getTime() ?? 0);
       return byExitDate || b.sheetRow - a.sheetRow;
     });
-  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, allMonthsSelected, showAllYears, activeTimeRange, currentMonth, currentYear]);
+  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedPersona, selectedMonths, selectedYear, allMonthsSelected, showAllYears, activeTimeRange, currentMonth, currentYear]);
 
   const periodLabel = activeTimeRange !== "custom"
     ? TIME_RANGE_LABELS[activeTimeRange]
@@ -311,6 +317,7 @@ export default function Churns() {
             <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Cliente</label><input value={searchCliente} onChange={event => setSearchCliente(event.target.value)} placeholder="Buscar cliente" className="h-8 w-36 rounded bg-white px-2 text-xs text-gray-700" /></div>
             <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">CSM</label><select value={selectedCsm} onChange={event => setSelectedCsm(event.target.value)} className="h-8 w-32 rounded bg-white px-2 text-xs text-gray-700"><option value="">Todos</option>{csms.map(csm => <option key={csm} value={csm}>{csm}</option>)}</select></div>
             <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Vendedor</label><select value={selectedVendedor} onChange={event => setSelectedVendedor(event.target.value)} className="h-8 w-32 rounded bg-white px-2 text-xs text-gray-700"><option value="">Todos</option>{vendedores.map(vendedor => <option key={vendedor} value={vendedor}>{vendedor}</option>)}</select></div>
+            <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Persona</label><select value={selectedPersona} onChange={event => setSelectedPersona(event.target.value)} className="h-8 w-40 rounded bg-white px-2 text-xs text-gray-700"><option value="">Todos</option>{personas.map(persona => <option key={persona} value={persona}>{persona}</option>)}</select></div>
             <div className="ml-auto flex gap-2">
               <Button onClick={() => void fetchData()} disabled={loading} size="sm" className="gap-1 bg-white text-[#001f3f] hover:bg-gray-100"><RotateCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />Atualizar</Button>
               <Button onClick={() => void generateAnalysis()} disabled={analysisMutation.isPending || filteredData.length === 0} size="sm" className="gap-1 bg-violet-500 text-white hover:bg-violet-600"><Sparkles className="h-4 w-4" />{analysisMutation.isPending ? "Analisando..." : "Gerar análise"}</Button>

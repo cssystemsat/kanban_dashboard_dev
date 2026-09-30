@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.1",
-  "changes": ["Adicionada a opção de Persona Cliente final, mantendo Central de rastreamento, Lobo solitário e Empreendedor."]
+  "appVersion": "8.2",
+  "changes": ["Adicionado filtro de Persona no topo da aba Churn, com opção Todos e opções carregadas da planilha."]
 }
