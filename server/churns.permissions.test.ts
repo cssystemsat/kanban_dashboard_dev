@@ -20,7 +20,8 @@ describe("permissão de cadastro de motivos em Churn", () => {
   it("inicia o filtro de meses em Todos e permite selecionar meses individualmente", () => {
     expect(churns).toContain("const allMonthsSelected = selectedMonths.size === MONTHS.length");
     expect(churns).toContain("filter(value => value !== month)");
-    expect(churns).toContain("setSelectedMonths(new Set(MONTHS.map");
+    expect(churns).toContain("const next = new Set(MONTHS.map");
+    expect(churns).toContain("activeTimeRange");
     expect(churns).not.toContain("disabled={showAllMonths}");
   });
 });

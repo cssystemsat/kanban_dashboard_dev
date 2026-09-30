@@ -29,6 +29,33 @@ const MONTHS = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
 const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
+type TimeRange = "currentMonth" | "last3Months" | "last6Months" | "thisYear" | "custom";
+const TIME_RANGE_LABELS: Record<TimeRange, string> = {
+  currentMonth: "Mês atual",
+  last3Months: "Últimos 3 meses",
+  last6Months: "Últimos 6 meses",
+  thisYear: "Esse ano",
+  custom: "Seleção manual",
+};
+
+function inferTimeRange(months: Set<number>, year: number, allYears: boolean): TimeRange {
+  if (allYears) return "custom";
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  if (year !== currentYear) return "custom";
+  if (months.size === 12) return "thisYear";
+  if (months.size === 1 && months.has(currentMonth)) return "currentMonth";
+  for (const [range, monthsBack] of [["last3Months", 2], ["last6Months", 5]] as const) {
+    const expected = new Set<number>();
+    const start = new Date(currentYear, currentMonth - 1 - monthsBack, 1);
+    for (let index = 0; index < 12; index++) {
+      if (new Date(currentYear, index, 1) >= start) expected.add(index + 1);
+    }
+    if (expected.size === months.size && [...expected].every(month => months.has(month))) return range;
+  }
+  return "custom";
+}
 type ChurnMotivoField = "persona" | "motivoCliente" | "motivoCsm" | "motivoFinanceiro" | "motivoComercial" | "ultimoBoleto";
 const PERSONA_OPTIONS = ["Central de rastreamento", "Lobo soliário", "Empreendedor"] as const;
 type MotivoDialogState = { churn: ChurnData; field: ChurnMotivoField; label: string } | null;
@@ -68,6 +95,7 @@ export default function Churns() {
   );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showAllYears, setShowAllYears] = useState(false);
+  const [activeTimeRange, setActiveTimeRange] = useState<TimeRange>("thisYear");
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisText, setAnalysisText] = useState("");
   const [motivoDialog, setMotivoDialog] = useState<MotivoDialogState>(null);
@@ -77,6 +105,9 @@ export default function Churns() {
   const { data: myPermissions } = trpc.config.myPermissions.useQuery();
   const allMonthsSelected = selectedMonths.size === MONTHS.length;
   const canAddChurnMotivo = myPermissions?.canAddChurnMotivo === true;
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
 
   useEffect(() => {
     void fetchData();
@@ -106,8 +137,19 @@ export default function Churns() {
       if (!churn.dataSaidaParsed) return false;
       const month = churn.dataSaidaParsed.getMonth() + 1;
       const year = churn.dataSaidaParsed.getFullYear();
-      if (!showAllYears && year !== selectedYear) return false;
-      if (!showAllYears && !allMonthsSelected && !selectedMonths.has(month)) return false;
+      if (activeTimeRange !== "custom") {
+        if (activeTimeRange === "currentMonth" && (month !== currentMonth || year !== currentYear)) return false;
+        if (activeTimeRange === "thisYear" && year !== currentYear) return false;
+        if (activeTimeRange === "last3Months" || activeTimeRange === "last6Months") {
+          const monthsBack = activeTimeRange === "last3Months" ? 2 : 5;
+          const start = new Date(currentYear, currentMonth - 1 - monthsBack, 1);
+          const date = churn.dataSaidaParsed;
+          if (!date || date < start || date > now) return false;
+        }
+      } else {
+        if (!showAllYears && year !== selectedYear) return false;
+        if (!showAllYears && !allMonthsSelected && !selectedMonths.has(month)) return false;
+      }
       if (searchCliente.trim() && !churn.nome.toLowerCase().includes(searchCliente.toLowerCase())) return false;
       if (selectedCsm && churn.atendente !== selectedCsm) return false;
       if (selectedVendedor && churn.vendedor !== selectedVendedor) return false;
@@ -116,9 +158,11 @@ export default function Churns() {
       const byExitDate = (b.dataSaidaParsed?.getTime() ?? 0) - (a.dataSaidaParsed?.getTime() ?? 0);
       return byExitDate || b.sheetRow - a.sheetRow;
     });
-  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, allMonthsSelected, showAllYears]);
+  }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, allMonthsSelected, showAllYears, activeTimeRange, currentMonth, currentYear]);
 
-  const periodLabel = showAllYears
+  const periodLabel = activeTimeRange !== "custom"
+    ? TIME_RANGE_LABELS[activeTimeRange]
+    : showAllYears
     ? "Todos os anos"
     : allMonthsSelected
       ? `Todos os meses de ${selectedYear}`
@@ -161,6 +205,23 @@ export default function Churns() {
     }
     setSelectedMonths(next);
     setShowAllYears(false);
+    setActiveTimeRange(inferTimeRange(next, selectedYear, false));
+  };
+
+  const applyTimeRange = (range: Exclude<TimeRange, "custom">) => {
+    const monthsBack = range === "last3Months" ? 2 : range === "last6Months" ? 5 : 0;
+    const start = new Date(currentYear, currentMonth - 1 - monthsBack, 1);
+    const monthsInCurrentYear = new Set<number>();
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+      const candidate = new Date(currentYear, monthIndex, 1);
+      if (range === "currentMonth" ? monthIndex + 1 === currentMonth : range === "thisYear" || candidate >= start) {
+        monthsInCurrentYear.add(monthIndex + 1);
+      }
+    }
+    setSelectedYear(currentYear);
+    setSelectedMonths(range === "currentMonth" ? new Set([currentMonth]) : range === "thisYear" ? new Set(MONTHS.map((_, index) => index + 1)) : monthsInCurrentYear);
+    setShowAllYears(false);
+    setActiveTimeRange(range);
   };
 
   const openMotivoDialog = (churn: ChurnData, field: ChurnMotivoField, label: string) => {
@@ -228,10 +289,11 @@ export default function Churns() {
       <header className="sticky top-0 z-40 border-b bg-[#001f3f] border-[#1f4668] shadow-sm">
         <div className="px-4 py-3">
           <div className="flex flex-wrap items-end gap-2">
+            <div className="flex flex-col gap-1"><label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Período</label><select value={activeTimeRange === "custom" ? "" : activeTimeRange} onChange={event => { if (event.target.value) applyTimeRange(event.target.value as Exclude<TimeRange, "custom">); }} className="h-8 w-36 rounded bg-white px-2 text-xs text-gray-700"><option value="">Seleção manual</option><option value="currentMonth">Mês atual</option><option value="last3Months">Últimos 3 meses</option><option value="last6Months">Últimos 6 meses</option><option value="thisYear">Esse ano</option></select></div>
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Mês</label>
               <div className="flex gap-1">
-                <button onClick={() => { setShowAllYears(false); setSelectedMonths(new Set(MONTHS.map((_, index) => index + 1))); }} className={`h-8 rounded px-2 text-xs font-semibold ${allMonthsSelected ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
+                <button onClick={() => { const next = new Set(MONTHS.map((_, index) => index + 1)); setShowAllYears(false); setSelectedMonths(next); setActiveTimeRange(inferTimeRange(next, selectedYear, false)); }} className={`h-8 rounded px-2 text-xs font-semibold ${allMonthsSelected ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
                 {MONTHS.map((month, index) => (
                   <button key={month} onClick={() => toggleMonth(index + 1)} className={`h-8 rounded px-1.5 text-[10px] font-semibold ${selectedMonths.has(index + 1) ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>{month}</button>
                 ))}
@@ -240,8 +302,8 @@ export default function Churns() {
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Ano</label>
               <div className="flex gap-1">
-                <button onClick={() => setShowAllYears(value => !value)} className={`h-8 rounded px-2 text-xs font-semibold ${showAllYears ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
-                <select value={selectedYear} onChange={event => { setSelectedYear(Number(event.target.value)); setShowAllYears(false); }} disabled={showAllYears} className="h-8 rounded bg-white px-2 text-xs text-gray-700">
+                <button onClick={() => { setShowAllYears(value => { const next = !value; setActiveTimeRange(inferTimeRange(selectedMonths, selectedYear, next)); return next; }); }} className={`h-8 rounded px-2 text-xs font-semibold ${showAllYears ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}>Todos</button>
+                <select value={selectedYear} onChange={event => { const nextYear = Number(event.target.value); setSelectedYear(nextYear); setShowAllYears(false); setActiveTimeRange(inferTimeRange(selectedMonths, nextYear, false)); }} disabled={showAllYears} className="h-8 rounded bg-white px-2 text-xs text-gray-700">
                   {(years.length ? years : [new Date().getFullYear()]).map(year => <option key={year} value={year}>{year}</option>)}
                 </select>
               </div>

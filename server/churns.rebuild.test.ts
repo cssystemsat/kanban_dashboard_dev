@@ -30,6 +30,12 @@ describe("aba Churn remodelada", () => {
     expect(page).toContain("Soma das perdas");
     expect(page).toContain("byExitDate");
     expect(page).toContain("expectedClient");
+    expect(page).toContain("Mês atual");
+    expect(page).toContain("Últimos 3 meses");
+    expect(page).toContain("Últimos 6 meses");
+    expect(page).toContain("Esse ano");
+    expect(page).toContain("activeTimeRange");
+    expect(page).toContain("inferTimeRange");
   });
 
   it("exporta XLSX verdadeiro e envia somente os registros filtrados para a IA", () => {
