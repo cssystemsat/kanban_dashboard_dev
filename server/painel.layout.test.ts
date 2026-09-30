@@ -31,8 +31,12 @@ describe("Layout otimizado do Painel", () => {
     expect(painelSource).toContain("title={history}");
   });
 
-  it("exibe o ícone de relacionamento e experiência do cliente no cabeçalho", () => {
-    expect(painelSource).toContain("HeartHandshake");
-    expect(painelSource).toContain("Relacionamento e experiência do cliente");
+  it("usa o ícone de relacionamento e experiência do cliente na aba do navegador", () => {
+    const indexSource = readFileSync(
+      resolve(process.cwd(), "client/index.html"),
+      "utf8"
+    );
+    expect(indexSource).toContain('type="image/svg+xml"');
+    expect(indexSource).toContain("/favicon-heart-handshake.svg");
   });
 });
