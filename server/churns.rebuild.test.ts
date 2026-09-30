@@ -19,6 +19,9 @@ describe("aba Churn remodelada", () => {
     expect(page).toContain('label className="text-[10px] font-semibold uppercase tracking-wider text-gray-300">Persona');
     expect(page).toContain("personas.map");
     expect(page).toContain("Cancelamento por tipo");
+    expect(page).toContain("Cancelamento por Persona");
+    expect(page).toContain("porPersona");
+    expect(page).toContain("xl:grid-cols-3");
     expect(page).toContain("Motivo Financeiro");
     expect(page).toContain("Motivo Comercial");
     expect(page).toContain("new Set(MONTHS.map");

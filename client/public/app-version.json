@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.2",
-  "changes": ["Adicionado filtro de Persona no topo da aba Churn, com opção Todos e opções carregadas da planilha."]
+  "appVersion": "8.3",
+  "changes": ["Adicionado gráfico de cancelamento por Persona e reorganizados os três gráficos em uma linha responsiva."]
 }

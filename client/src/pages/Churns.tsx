@@ -202,6 +202,12 @@ export default function Churns() {
     return Array.from(counts, ([name, quantidade]) => ({ name, quantidade })).sort((a, b) => b.quantidade - a.quantidade);
   }, [filteredData]);
 
+  const porPersona = useMemo(() => {
+    const counts = new Map<string, number>();
+    filteredData.forEach(item => counts.set(item.persona || "Sem Persona", (counts.get(item.persona || "Sem Persona") ?? 0) + 1));
+    return Array.from(counts, ([name, quantidade]) => ({ name, quantidade })).sort((a, b) => b.quantidade - a.quantidade);
+  }, [filteredData]);
+
   const toggleMonth = (month: number) => {
     const next = allMonthsSelected
       ? new Set(MONTHS.map((_, index) => index + 1).filter(value => value !== month))
@@ -335,9 +341,10 @@ export default function Churns() {
           <Kpi icon={<Wallet className="h-4 w-4" />} label="Valor total dos boletos" value={formatCurrency(totalBoleto)} color="text-orange-600" />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <ChartCard title="Cancelamento por tempo de casa"><ResponsiveContainer width="100%" height={250}><BarChart data={porTempo}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" fontSize={11} /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="quantidade" fill="#ef4444" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></ChartCard>
-          <ChartCard title="Cancelamento por tipo"><ResponsiveContainer width="100%" height={250}><BarChart data={porTipo} layout="vertical" margin={{ left: 20, right: 20 }}><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" allowDecimals={false} /><YAxis dataKey="name" type="category" width={110} fontSize={11} /><Tooltip /><Bar dataKey="quantidade" fill="#7c3aed" radius={[0, 4, 4, 0]} /></BarChart></ResponsiveContainer></ChartCard>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <ChartCard title="Cancelamento por tempo de casa"><ResponsiveContainer width="100%" height={220}><BarChart data={porTempo} margin={{ left: 0, right: 4 }}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" fontSize={10} angle={-15} textAnchor="end" height={45} /><YAxis allowDecimals={false} fontSize={10} /><Tooltip /><Bar dataKey="quantidade" fill="#ef4444" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></ChartCard>
+          <ChartCard title="Cancelamento por tipo"><ResponsiveContainer width="100%" height={220}><BarChart data={porTipo} layout="vertical" margin={{ left: 4, right: 8 }}><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" allowDecimals={false} fontSize={10} /><YAxis dataKey="name" type="category" width={82} fontSize={10} /><Tooltip /><Bar dataKey="quantidade" fill="#7c3aed" radius={[0, 4, 4, 0]} /></BarChart></ResponsiveContainer></ChartCard>
+          <ChartCard title="Cancelamento por Persona"><ResponsiveContainer width="100%" height={220}><BarChart data={porPersona} layout="vertical" margin={{ left: 4, right: 8 }}><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" allowDecimals={false} fontSize={10} /><YAxis dataKey="name" type="category" width={112} fontSize={10} /><Tooltip /><Bar dataKey="quantidade" fill="#0891b2" radius={[0, 4, 4, 0]} /></BarChart></ResponsiveContainer></ChartCard>
         </div>
 
         <section className="overflow-hidden rounded-lg border border-[#e0e8f0] bg-white shadow-sm">
