@@ -247,7 +247,7 @@ export async function updateChurnMotivo(data: {
   if (!column) throw new Error("Coluna de motivo inválida.");
   if (
     data.field === "persona" &&
-    !["Central de rastreamento", "Lobo soliário", "Empreendedor"].includes(text)
+    !["Central de rastreamento", "Lobo solitário", "Empreendedor", "Cliente final"].includes(text)
   ) {
     throw new Error("Persona inválida.");
   }

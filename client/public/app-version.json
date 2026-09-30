@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.0",
-  "changes": ["A aba Churn agora possui filtro de período com Mês atual, Últimos 3 meses, Últimos 6 meses e Esse ano, sincronizado com Mês e Ano."]
+  "appVersion": "8.1",
+  "changes": ["Adicionada a opção de Persona Cliente final, mantendo Central de rastreamento, Lobo solitário e Empreendedor."]
 }

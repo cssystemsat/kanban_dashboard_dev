@@ -57,7 +57,7 @@ function inferTimeRange(months: Set<number>, year: number, allYears: boolean): T
   return "custom";
 }
 type ChurnMotivoField = "persona" | "motivoCliente" | "motivoCsm" | "motivoFinanceiro" | "motivoComercial" | "ultimoBoleto";
-const PERSONA_OPTIONS = ["Central de rastreamento", "Lobo soliário", "Empreendedor"] as const;
+const PERSONA_OPTIONS = ["Central de rastreamento", "Lobo solitário", "Empreendedor", "Cliente final"] as const;
 type MotivoDialogState = { churn: ChurnData; field: ChurnMotivoField; label: string } | null;
 
 function formatCurrency(value: number | null | undefined) {

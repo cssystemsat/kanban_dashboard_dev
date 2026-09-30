@@ -295,7 +295,7 @@ export const appRouter = router({
         }
         if (
           input.field === "persona" &&
-          !["Central de rastreamento", "Lobo soliário", "Empreendedor"].includes(input.text)
+          !["Central de rastreamento", "Lobo solitário", "Empreendedor", "Cliente final"].includes(input.text)
         ) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Persona inválida." });
         }

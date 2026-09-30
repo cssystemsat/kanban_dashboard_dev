@@ -25,8 +25,9 @@ describe("aba Churn remodelada", () => {
     expect(page).toContain("Cadastrar boleto");
     expect(page).toContain("Adicionar persona");
     expect(page).toContain("Central de rastreamento");
-    expect(page).toContain("Lobo soliário");
+    expect(page).toContain("Lobo solitário");
     expect(page).toContain("Empreendedor");
+    expect(page).toContain("Cliente final");
     expect(page).toContain("Soma das perdas");
     expect(page).toContain("byExitDate");
     expect(page).toContain("expectedClient");
