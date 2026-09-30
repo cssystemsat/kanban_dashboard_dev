@@ -224,11 +224,14 @@ export type ChurnMotivoField =
 /** Atualiza uma célula de motivo na linha exata da aba CHURNS. */
 export async function updateChurnMotivo(data: {
   row: number;
+  expectedClient: string;
   field: ChurnMotivoField;
   text: string;
 }): Promise<{ success: boolean; row: number; column: string; sheetName: string }> {
   if (!Number.isInteger(data.row) || data.row < 2)
     throw new Error("Linha de CHURNS inválida.");
+  const expectedClient = data.expectedClient.trim();
+  if (!expectedClient) throw new Error("Cliente da linha inválido.");
   const text = data.text.trim();
   if (!text) throw new Error("O motivo não pode ficar vazio.");
   const columnByField: Record<ChurnMotivoField, string> = {
@@ -245,6 +248,16 @@ export async function updateChurnMotivo(data: {
   const sheetName = await getSheetNameByGid(CHURNS_GID, "primary");
   if (!sheetName)
     throw new Error(`Aba com gid=${CHURNS_GID} não encontrada na planilha principal.`);
+  const currentRow = await getSheetValues(
+    spreadsheetId,
+    `${sheetName}!A${data.row}:A${data.row}`
+  );
+  const currentClient = String(currentRow[0]?.[0] ?? "").trim();
+  if (currentClient.toLocaleLowerCase() !== expectedClient.toLocaleLowerCase()) {
+    throw new Error(
+      "A linha da planilha mudou desde o carregamento. Atualize a aba e tente novamente."
+    );
+  }
   await updateValues(spreadsheetId, `${sheetName}!${column}${data.row}`, [[text]]);
   return { success: true, row: data.row, column, sheetName };
 }

@@ -111,6 +111,9 @@ export default function Churns() {
       if (selectedCsm && churn.atendente !== selectedCsm) return false;
       if (selectedVendedor && churn.vendedor !== selectedVendedor) return false;
       return true;
+    }).sort((a, b) => {
+      const byExitDate = (b.dataSaidaParsed?.getTime() ?? 0) - (a.dataSaidaParsed?.getTime() ?? 0);
+      return byExitDate || b.sheetRow - a.sheetRow;
     });
   }, [data, searchCliente, selectedCsm, selectedVendedor, selectedMonths, selectedYear, allMonthsSelected, showAllYears]);
 
@@ -169,6 +172,7 @@ export default function Churns() {
     try {
       await updateMotivoMutation.mutateAsync({
         row: motivoDialog.churn.sheetRow,
+        expectedClient: motivoDialog.churn.nome,
         field: motivoDialog.field,
         text: motivoText.trim(),
       });

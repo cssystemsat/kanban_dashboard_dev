@@ -24,6 +24,8 @@ describe("aba Churn remodelada", () => {
     expect(page).toContain('"Persona"');
     expect(page).toContain("Cadastrar boleto");
     expect(page).toContain("Soma das perdas");
+    expect(page).toContain("byExitDate");
+    expect(page).toContain("expectedClient");
   });
 
   it("exporta XLSX verdadeiro e envia somente os registros filtrados para a IA", () => {
@@ -35,5 +37,7 @@ describe("aba Churn remodelada", () => {
     expect(sheets).toContain('motivoCliente: "N"');
     expect(sheets).toContain('motivoComercial: "Q"');
     expect(sheets).toContain('ultimoBoleto: "R"');
+    expect(sheets).toContain("A${data.row}:A${data.row}");
+    expect(sheets).toContain("A linha da planilha mudou desde o carregamento");
   });
 });

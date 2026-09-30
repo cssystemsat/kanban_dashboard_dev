@@ -263,6 +263,7 @@ export const appRouter = router({
       .input(
         z.object({
           row: z.number().int().min(2),
+          expectedClient: z.string().trim().min(1).max(300),
           field: z.enum([
             "motivoCliente",
             "motivoCsm",
