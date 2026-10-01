@@ -54,6 +54,10 @@ const ONBOARDING_GID = 0;
 const ONGOING_GID = 1152476970;
 const CENTRAL_MAP_TTL_MS = 5 * 60_000;
 let centralMapCache: { expiresAt: number; values: Map<string, string> } | null = null;
+let endUsersByCentralCache: {
+  expiresAt: number;
+  values: Map<string, WootricEndUser[]>;
+} | null = null;
 
 function normalizeLookup(value: unknown): string {
   return String(value ?? "")
@@ -235,6 +239,66 @@ async function fetchWootricEndUser(
   );
   if (!response.ok) return null;
   return (await response.json()) as WootricEndUser;
+}
+
+async function fetchWootricEndUserByExternalId(
+  accessToken: string,
+  centralId: string
+): Promise<WootricEndUser | null> {
+  const response = await fetch(
+    `${WOOTRIC_API_BASE_URL}/v1/end_users/${encodeURIComponent(centralId)}?lookup_by_external_id=true`,
+    { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" } }
+  );
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Wootric usuário ${response.status}: ${detail.slice(0, 500)}`);
+  }
+  return (await response.json()) as WootricEndUser;
+}
+
+/**
+ * Alguns usuários Wootric não têm `external_id`; neste tenant, o ID central
+ * aparece no final do identificador do usuário. A listagem é paginada e fica
+ * em cache curto para que a abertura de um card não repita a varredura.
+ */
+async function findWootricEndUsersByCentralId(
+  accessToken: string,
+  centralId: string
+): Promise<WootricEndUser[]> {
+  const key = centralId.trim();
+  if (endUsersByCentralCache && endUsersByCentralCache.expiresAt > Date.now()) {
+    return endUsersByCentralCache.values.get(key) ?? [];
+  }
+
+  const values = new Map<string, WootricEndUser[]>();
+  for (let page = 1; page <= 30; page += 1) {
+    const response = await fetch(
+      `${WOOTRIC_API_BASE_URL}/v1/end_users?page=${page}&per_page=50&sort_order=desc&sort_key=updated_at`,
+      { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" } }
+    );
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Wootric usuários ${response.status}: ${detail.slice(0, 500)}`);
+    }
+    const payload = (await response.json()) as unknown;
+    if (!Array.isArray(payload)) break;
+    const pageUsers = payload as WootricEndUser[];
+    for (const user of pageUsers) {
+      const userCentralId =
+        user.external_id?.trim() || centralIdFromEmail(user.email);
+      if (!userCentralId) continue;
+      const users = values.get(userCentralId) ?? [];
+      users.push(user);
+      values.set(userCentralId, users);
+    }
+    if (pageUsers.length < 50) break;
+  }
+  endUsersByCentralCache = {
+    expiresAt: Date.now() + CENTRAL_MAP_TTL_MS,
+    values,
+  };
+  return values.get(key) ?? [];
 }
 
 async function fetchWootricEndUserResponses(
@@ -427,26 +491,43 @@ export async function getWootricHistoryByCentralId(centralId: string) {
       .where(like(wootricResponses.email, `%- ${requestedCentralId}`))
       .orderBy(desc(wootricResponses.createdAtWootric));
   }
-  const endUserId = existing.find(row => row.endUserId)?.endUserId;
-  if (endUserId) {
-    const [accessToken, centralNames] = await Promise.all([
-      getAccessToken(),
-      getCentralNameMap(),
-    ]);
+  const accessToken = await getAccessToken();
+  const knownEndUsers = existing
+    .map(row => ({ id: row.endUserId, email: row.email }))
+    .filter((user): user is { id: string; email: string | null } => Boolean(user.id));
+  const externalIdUser =
+    knownEndUsers.length === 0
+      ? await fetchWootricEndUserByExternalId(accessToken, requestedCentralId)
+      : null;
+  const matchedEndUsers =
+    knownEndUsers.length > 0
+      ? knownEndUsers
+      : externalIdUser?.id
+        ? [externalIdUser]
+        : await findWootricEndUsersByCentralId(accessToken, requestedCentralId);
+
+  if (matchedEndUsers.length > 0) {
+    const centralNames = await getCentralNameMap();
     const centralName =
       centralNames.get(normalizeLookup(requestedCentralId)) ?? null;
-    const history = await fetchWootricEndUserResponses(accessToken, endUserId);
-    for (const response of history) {
-      await upsertWootricResponse(
-        {
-          ...response,
-          external_id: requestedCentralId,
-          email: response.email ?? existing[0]?.email ?? null,
-        },
-        response,
-        centralName,
-        false
+    for (const endUser of matchedEndUsers) {
+      if (!endUser.id) continue;
+      const history = await fetchWootricEndUserResponses(
+        accessToken,
+        String(endUser.id)
       );
+      for (const response of history) {
+        await upsertWootricResponse(
+          {
+            ...response,
+            external_id: requestedCentralId,
+            email: response.email ?? endUser.email ?? existing[0]?.email ?? null,
+          },
+          response,
+          centralName,
+          false
+        );
+      }
     }
   }
 

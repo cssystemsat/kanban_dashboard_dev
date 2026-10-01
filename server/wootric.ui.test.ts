@@ -84,6 +84,9 @@ describe("Wootric", () => {
       "page <= 30"
     );
     expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
+      "findWootricEndUsersByCentralId"
+    );
+    expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
       "showInAlert"
     );
   });

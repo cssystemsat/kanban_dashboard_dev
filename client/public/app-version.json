@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.8",
-  "changes": ["Corrigidos o ícone Wootric dos cards e a área de confirmação do aviso de avaliações NPS."]
+  "appVersion": "8.9",
+  "changes": ["O histórico Wootric agora localiza todas as avaliações pelo ID central, incluindo registros mais antigos."]
 }
