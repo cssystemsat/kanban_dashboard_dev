@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.4",
-  "changes": ["Adicionado o ícone de relacionamento e experiência do cliente no cabeçalho do Painel."]
+  "appVersion": "8.5",
+  "changes": ["Adicionado alerta de novas avaliações NPS da Wootric, com confirmação individual por usuário."]
 }

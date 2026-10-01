@@ -325,6 +325,60 @@ export type AppKanbanNewClientAcknowledgment =
 export type InsertAppKanbanNewClientAcknowledgment =
   typeof appKanbanNewClientAcknowledgments.$inferInsert;
 
+// Respostas NPS recebidas da Wootric. O ID externo garante deduplicação.
+export const wootricResponses = mysqlTable(
+  "wootric_responses",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    wootricId: varchar("wootricId", { length: 64 }).notNull(),
+    externalId: varchar("externalId", { length: 255 }),
+    email: varchar("email", { length: 320 }),
+    endUserId: varchar("endUserId", { length: 64 }),
+    surveyId: varchar("surveyId", { length: 64 }),
+    score: int("score").notNull(),
+    text: text("text"),
+    tags: text("tags"),
+    properties: text("properties"),
+    createdAtWootric: timestamp("createdAtWootric"),
+    updatedAtWootric: timestamp("updatedAtWootric"),
+    rawPayload: text("rawPayload"),
+    receivedAt: timestamp("receivedAt").defaultNow().notNull(),
+  },
+  table => ({
+    wootricIdUnique: uniqueIndex("wootric_responses_wootric_id_unique").on(
+      table.wootricId
+    ),
+    createdAtIdx: index("wootric_responses_created_at_idx").on(
+      table.createdAtWootric
+    ),
+  })
+);
+
+export type WootricResponse = typeof wootricResponses.$inferSelect;
+export type InsertWootricResponse = typeof wootricResponses.$inferInsert;
+
+// Cada usuário confirma individualmente que viu uma nova avaliação.
+export const wootricResponseAcknowledgments = mysqlTable(
+  "wootric_response_ack",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    responseId: int("responseId").notNull(),
+    userId: int("userId").notNull(),
+    acknowledgedAt: timestamp("acknowledgedAt").defaultNow().notNull(),
+  },
+  table => ({
+    userResponseUnique: uniqueIndex("wootric_response_ack_unique").on(
+      table.responseId,
+      table.userId
+    ),
+  })
+);
+
+export type WootricResponseAcknowledgment =
+  typeof wootricResponseAcknowledgments.$inferSelect;
+export type InsertWootricResponseAcknowledgment =
+  typeof wootricResponseAcknowledgments.$inferInsert;
+
 // Tabela de histórico de movimentações de cards
 export const appKanbanHistory = mysqlTable("app_kanban_history", {
   id: int("id").autoincrement().primaryKey(),

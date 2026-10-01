@@ -82,6 +82,11 @@ import { ENV } from "./_core/env";
 import { getPreviousKpiWeeklyValues } from "./kpiSnapshots";
 import { getOnboardingKpiMetrics } from "./kpiMetrics";
 import { getMigrationKpiMetrics } from "./migrationMetrics";
+import {
+  acknowledgeWootricResponses,
+  getPendingWootricResponses,
+  syncWootricResponses,
+} from "./wootric";
 
 function isProjectOwner(user: { openId: string } | null | undefined): boolean {
   return Boolean(ENV.ownerOpenId && user?.openId === ENV.ownerOpenId);
@@ -132,6 +137,30 @@ export const appRouter = router({
           });
         }
       }),
+  }),
+  wootric: router({
+    pending: protectedProcedure.query(async ({ ctx }) => {
+      return getPendingWootricResponses(ctx.user.id);
+    }),
+    acknowledge: protectedProcedure
+      .input(
+        z.object({
+          responseIds: z.array(z.number().int().positive()).min(1).max(50),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return acknowledgeWootricResponses(input.responseIds, ctx.user.id);
+      }),
+    sync: allowlistedProcedure.mutation(async ({ ctx }) => {
+      const entry = ctx.user.email ? await getEmailEntry(ctx.user.email) : null;
+      if (!isProjectOwner(ctx.user) && entry?.isAdmin !== 1) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "A sincronização da Wootric está disponível apenas para administradores.",
+        });
+      }
+      return syncWootricResponses();
+    }),
   }),
   marcos: router({
     objectiveCompletions: protectedProcedure

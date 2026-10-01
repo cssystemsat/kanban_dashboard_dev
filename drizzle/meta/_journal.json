@@ -197,6 +197,13 @@
       "when": 1790721992304,
       "tag": "0027_brief_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1790878131115,
+      "tag": "0028_strong_ravenous",
+      "breakpoints": true
     }
   ]
 }

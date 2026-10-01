@@ -15,6 +15,13 @@ import {
 } from "../analystScoring";
 import { closeKpiWeeklySnapshot } from "../kpiSnapshots";
 import { isRegisteredKpiSchedule } from "../db";
+import { isRegisteredWootricSchedule } from "../db";
+import {
+  handleWootricWebhook,
+  syncWootricResponses,
+  verifyWootricWebhookSignature,
+} from "../wootric";
+import { ENV } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,7 +46,14 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
+  app.use(
+    express.json({
+      limit: "50mb",
+      verify: (req, _res, buffer) => {
+        (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);
+      },
+    })
+  );
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
@@ -102,6 +116,48 @@ async function startServer() {
           url: req.originalUrl,
           taskUid: req.headers["x-task-uid"] ?? null,
         },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+  app.post("/api/scheduled/wootric/sync", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (
+        !user.isCron ||
+        !user.taskUid ||
+        !(await isRegisteredWootricSchedule(user.taskUid))
+      ) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const result = await syncWootricResponses();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("[Scheduled][wootric-sync]", error);
+      return res.status(500).json({
+        error: String(error),
+        context: { url: req.originalUrl },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+  app.post("/api/webhooks/wootric", async (req, res) => {
+    try {
+      const rawBody = (req as express.Request & { rawBody?: Buffer }).rawBody;
+      const signature = req.header("X-WOOTRIC-SIGNATURE");
+      if (
+        !ENV.wootricWebhookSecret ||
+        !rawBody ||
+        !verifyWootricWebhookSignature(rawBody, signature, ENV.wootricWebhookSecret)
+      ) {
+        return res.status(401).json({ error: "invalid-signature" });
+      }
+      const result = await handleWootricWebhook(req.body);
+      return res.json(result);
+    } catch (error) {
+      console.error("[Webhook][wootric]", error);
+      return res.status(500).json({
+        error: String(error),
         timestamp: new Date().toISOString(),
       });
     }

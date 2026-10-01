@@ -15,4 +15,8 @@ export const ENV = {
     process.env.GOOGLE_SHEETS_SPREADSHEET_ID ??
     "",
   googleSheetsSecondaryId: process.env.GOOGLE_SHEETS_SECONDARY_ID ?? "",
+  wootricApiKey: process.env.WOOTRIC_API_KEY ?? "",
+  wootricClientId: process.env.WOOTRIC_CLIENT_ID ?? "",
+  wootricClientSecret: process.env.WOOTRIC_CLIENT_SECRET ?? "",
+  wootricWebhookSecret: process.env.WOOTRIC_WEBHOOK_SECRET ?? "",
 };

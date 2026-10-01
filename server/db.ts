@@ -1049,7 +1049,8 @@ export async function getClientsWithComments(monthYear?: string) {
 export type AnalystScoreScheduleType =
   | "weekly_penalty"
   | "monthly_reset"
-  | "kpi_weekly_snapshot";
+  | "kpi_weekly_snapshot"
+  | "wootric_sync";
 
 export async function getLatestKpiWeeklySnapshot() {
   const db = await getDb();
@@ -1126,6 +1127,23 @@ export async function isRegisteredKpiSchedule(
     .where(
       and(
         eq(analystScoreSchedules.jobType, "kpi_weekly_snapshot"),
+        eq(analystScoreSchedules.taskUid, taskUid)
+      )
+    );
+  return schedule.length > 0;
+}
+
+export async function isRegisteredWootricSchedule(
+  taskUid: string
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const schedule = await db
+    .select()
+    .from(analystScoreSchedules)
+    .where(
+      and(
+        eq(analystScoreSchedules.jobType, "wootric_sync"),
         eq(analystScoreSchedules.taskUid, taskUid)
       )
     );
