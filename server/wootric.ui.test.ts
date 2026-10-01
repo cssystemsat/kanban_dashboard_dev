@@ -82,6 +82,11 @@ describe("Wootric", () => {
     expect(ongoingCard).toContain("WootricClientHistoryModal");
     expect(marcosCard).toContain("WootricMark");
     expect(ongoingCard).toContain("WootricMark");
+    const historyModal = readFileSync(
+      resolve(process.cwd(), "client/src/components/WootricClientHistoryModal.tsx"),
+      "utf8"
+    );
+    expect(historyModal).not.toContain("WootricMark");
     expect(marcosCard).toContain("EMPTY_OBJECTIVE_INDEXES");
     expect(marcosCard).toContain("objectiveQueryInput");
     expect(marcosCard).toContain("return current");

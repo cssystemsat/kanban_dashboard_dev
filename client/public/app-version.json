@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.1",
-  "changes": ["Corrigido o loop de atualização em Marcos, estabilizando os dados de objetivos e tendências dos cards."]
+  "appVersion": "9.2",
+  "changes": ["Removido o círculo azul grande do histórico de avaliações Wootric de cada cliente."]
 }
