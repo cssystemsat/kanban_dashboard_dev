@@ -16,7 +16,7 @@ import {
   BarChart3,
   Star,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { trpc } from "@/lib/trpc";
 import {
@@ -62,9 +62,13 @@ export default function ClientCard({
   const [completedObjectives, setCompletedObjectives] = useState<
     Record<string, boolean>
   >({});
+  const objectiveQueryInput = useMemo(
+    () => ({ clientId: client.id }),
+    [client.id]
+  );
   const { data: sharedObjectiveIndexes = EMPTY_OBJECTIVE_INDEXES } =
     trpc.marcos.objectiveCompletions.useQuery(
-      { clientId: client.id },
+      objectiveQueryInput,
       { staleTime: 30_000 }
     );
   const setObjectiveCompletion =
@@ -87,9 +91,20 @@ export default function ClientCard({
   const shouldHighlightRedBorder = diasCorridos > 60 && urs < 30;
 
   useEffect(() => {
-    setCompletedObjectives(
-      Object.fromEntries(sharedObjectiveIndexes.map(index => [`${index}`, true]))
-    );
+    setCompletedObjectives(current => {
+      const next = Object.fromEntries(
+        sharedObjectiveIndexes.map(index => [`${index}`, true])
+      );
+      const currentKeys = Object.keys(current);
+      const nextKeys = Object.keys(next);
+      if (
+        currentKeys.length === nextKeys.length &&
+        currentKeys.every(key => current[key] === next[key])
+      ) {
+        return current;
+      }
+      return next;
+    });
   }, [sharedObjectiveIndexes]);
 
   const handleWhatsApp = (e: React.MouseEvent) => {

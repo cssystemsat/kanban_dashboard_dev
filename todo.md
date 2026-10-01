@@ -235,8 +235,7 @@
 - [x] Adiar o disparo automático de e-mail de Problema até nova solicitação.
 - [x] Adicionar Data do lançamento após o nome da central, preenchida com hoje e editável.
 - [x] Deixar o Setor do acontecimento pré-selecionado como CSM, preservando a coluna B e validar testes, build e checkpoint.
-- [ ] Retomar o envio Gmail autorizado para a Tag Problema com remetente e destinatário agendamento.cs@systemsat.com.br.
-- [ ] Validar assunto, corpo, envio após gravação da planilha, tratamento de falhas, testes, build e checkpoint.
+- [x] Projeto Gmail para a Tag Problema retirado do escopo a pedido do usuário; será retomado somente mediante nova solicitação.
 - [x] Adicionar botão de refresh manual na Timeline para recarregar clientes e acontecimentos da planilha.
 - [x] Preservar cliente e filtro por Tag durante o refresh, mostrar carregamento e validar testes, build e checkpoint.
 - [x] Investigar por que o acontecimento do cliente JDF aparece para um usuário e não para outro na Timeline.

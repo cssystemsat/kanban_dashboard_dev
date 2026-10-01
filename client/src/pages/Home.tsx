@@ -12,7 +12,7 @@ import { useMultipleURsTrends } from "@/hooks/useURsTrend";
 import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
 import { Flag, RotateCw, Sparkles, X, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   isMarcosDateInRange,
   parseMarcosDate,
@@ -170,14 +170,26 @@ export default function Home() {
   };
 
   // Calcular tendências para todos os clientes uma única vez
-  const allClientsForTrend = data.map(c => ({
-    codigoCliente: c.codigoCliente,
-    nome: c.nome,
-  }));
+  const allClientsForTrend = useMemo(
+    () =>
+      data.map(c => ({
+        codigoCliente: c.codigoCliente,
+        nome: c.nome,
+      })),
+    [data]
+  );
+  const trendStartDate = useMemo(
+    () => (marcosTrendStartDate ? new Date(marcosTrendStartDate) : null),
+    [marcosTrendStartDate]
+  );
+  const trendEndDate = useMemo(
+    () => (marcosTrendEndDate ? new Date(marcosTrendEndDate) : null),
+    [marcosTrendEndDate]
+  );
   const { trends: allTrends } = useMultipleURsTrends(
     allClientsForTrend,
-    marcosTrendStartDate ? new Date(marcosTrendStartDate) : null,
-    marcosTrendEndDate ? new Date(marcosTrendEndDate) : null
+    trendStartDate,
+    trendEndDate
   );
 
   useEffect(() => {

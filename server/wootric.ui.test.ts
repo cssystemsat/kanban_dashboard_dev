@@ -73,12 +73,19 @@ describe("Wootric", () => {
       resolve(process.cwd(), "client/src/components/OngoingCard.tsx"),
       "utf8"
     );
+    const home = readFileSync(
+      resolve(process.cwd(), "client/src/pages/Home.tsx"),
+      "utf8"
+    );
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     expect(marcosCard).toContain("WootricClientHistoryModal");
     expect(ongoingCard).toContain("WootricClientHistoryModal");
     expect(marcosCard).toContain("WootricMark");
     expect(ongoingCard).toContain("WootricMark");
     expect(marcosCard).toContain("EMPTY_OBJECTIVE_INDEXES");
+    expect(marcosCard).toContain("objectiveQueryInput");
+    expect(marcosCard).toContain("return current");
+    expect(home).toContain("useMemo");
     expect(router).toContain("historyByCentral");
     expect(router).toContain("getWootricHistoryByCentralId");
     expect(router).not.toContain("WOOTRIC_CLIENT_SECRET");
