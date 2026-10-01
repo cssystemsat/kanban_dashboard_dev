@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { shouldShowVersionPrompt } from "@/lib/versionCheck";
+import {
+  compareSemanticVersions,
+  shouldShowVersionPrompt,
+} from "@/lib/versionCheck";
 import { APP_VERSION } from "@/lib/appVersion";
 
 const promptSource = readFileSync(
@@ -53,6 +56,21 @@ describe("version update prompt", () => {
         now: 100,
       })
     ).toBe(true);
+  });
+
+  it("só trata uma publicação semanticamente maior como atualização", () => {
+    expect(compareSemanticVersions("8.6", "8.5")).toBe(1);
+    expect(compareSemanticVersions("v8.5", "8.5.0")).toBe(0);
+    expect(compareSemanticVersions("8.4", "8.5")).toBe(-1);
+    expect(
+      shouldShowVersionPrompt({
+        currentVersion: "8.5",
+        availableVersion: "8.4",
+        dismissedVersion: null,
+        dismissedUntil: 0,
+        now: 100,
+      })
+    ).toBe(false);
   });
 
   it("respeita o lembrar depois e mostra novamente após o prazo", () => {
