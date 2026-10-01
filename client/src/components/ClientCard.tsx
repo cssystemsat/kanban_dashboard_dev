@@ -25,6 +25,7 @@ import {
   getDaysSinceUpdate,
 } from "@/hooks/useAgendaData";
 import { calculateClientCriticality } from "@/lib/criticality";
+import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
 
 interface ClientCardProps {
   client: ClientData;
@@ -54,6 +55,7 @@ export default function ClientCard({
   const [showTooltip, setShowTooltip] = useState(false);
   const [showScoreReasons, setShowScoreReasons] = useState(false);
   const [showObjectives, setShowObjectives] = useState(false);
+  const [showWootricHistory, setShowWootricHistory] = useState(false);
   const [completedObjectives, setCompletedObjectives] = useState<
     Record<string, boolean>
   >({});
@@ -369,6 +371,30 @@ export default function ClientCard({
             <BarChart3 className="w-4 h-4" />
           </button>
 
+          {/* Botão Wootric — avaliações NPS pelo ID central */}
+          <button
+            type="button"
+            onClick={event => {
+              event.stopPropagation();
+              setShowWootricHistory(true);
+            }}
+            disabled={!client.centralId}
+            className="flex-1 flex items-center justify-center rounded p-1.5 transition-all hover:shadow-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ backgroundColor: "#EAF3FF" }}
+            title={
+              client.centralId
+                ? "Ver avaliações Wootric"
+                : "ID central não disponível para buscar avaliações"
+            }
+            aria-label={`Ver avaliações Wootric de ${client.nome}`}
+          >
+            <img
+              src="/manus-storage/pasted_file_4oN8S3_image_0adc343d.png"
+              alt=""
+              className="h-4 w-4 rounded-full object-cover"
+            />
+          </button>
+
           {/* Botão Registrar acontecimento */}
           <button
             onClick={e => {
@@ -504,6 +530,13 @@ export default function ClientCard({
           </div>
         )}
       </div>
+
+      <WootricClientHistoryModal
+        clientName={client.nome}
+        centralId={client.centralId ?? ""}
+        open={showWootricHistory}
+        onClose={() => setShowWootricHistory(false)}
+      />
 
       {/* Tooltip desabilitado */}
       {false && showTooltip && (

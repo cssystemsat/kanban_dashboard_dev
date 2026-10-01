@@ -84,6 +84,7 @@ import { getOnboardingKpiMetrics } from "./kpiMetrics";
 import { getMigrationKpiMetrics } from "./migrationMetrics";
 import {
   acknowledgeWootricResponses,
+  getWootricHistoryByCentralId,
   getPendingWootricResponses,
   syncWootricResponses,
 } from "./wootric";
@@ -142,6 +143,11 @@ export const appRouter = router({
     pending: protectedProcedure.query(async ({ ctx }) => {
       return getPendingWootricResponses(ctx.user.id);
     }),
+    historyByCentral: protectedProcedure
+      .input(z.object({ centralId: z.string().trim().min(1).max(64) }))
+      .query(async ({ input }) => {
+        return getWootricHistoryByCentralId(input.centralId);
+      }),
     acknowledge: protectedProcedure
       .input(
         z.object({

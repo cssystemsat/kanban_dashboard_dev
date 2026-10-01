@@ -211,6 +211,13 @@
       "when": 1790879663674,
       "tag": "0029_chief_harry_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1790881082812,
+      "tag": "0030_rare_elektra",
+      "breakpoints": true
     }
   ]
 }

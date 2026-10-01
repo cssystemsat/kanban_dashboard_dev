@@ -5,6 +5,7 @@ export interface ClientData {
   id: string;
   nome: string;
   codigoCliente: string;
+  centralId?: string; // Coluna S — ID central para avaliações Wootric
   entrada: string;
   diasCorridos: number;
   urs: string;
@@ -140,6 +141,7 @@ export const useKanbanData = () => {
       const diasUltimoContatoIdx = 12; // Coluna M - Dias do último contato
       const flagIdx = 14; // Coluna O — nível de flag (texto)
       const estrelaIdx = 16; // Coluna Q — estrela (checkbox)
+      const centralIdIdx = 18; // Coluna S — ID central
       const comercialIdx = 23; // Coluna X
       const saudeIdx = 27; // Coluna AB
       const ganhoUrsIdx = 28; // Coluna AC
@@ -229,11 +231,13 @@ export const useKanbanData = () => {
         const consumo = row[consumoIdx]?.trim() || undefined;
 
         const codigoCliente = row[codigoClienteIdx]?.trim() || nome;
+        const centralId = row[centralIdIdx]?.trim() || undefined;
 
         clients.push({
           id: `${nome}-${i}`,
           nome,
           codigoCliente,
+          centralId,
           entrada: row[entradaIdx]?.trim() || "",
           diasCorridos,
           urs: row[ursIdx]?.trim() || "",

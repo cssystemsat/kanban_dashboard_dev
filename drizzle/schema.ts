@@ -343,6 +343,7 @@ export const wootricResponses = mysqlTable(
     createdAtWootric: timestamp("createdAtWootric"),
     updatedAtWootric: timestamp("updatedAtWootric"),
     rawPayload: text("rawPayload"),
+    showInAlert: int("showInAlert").notNull().default(1),
     receivedAt: timestamp("receivedAt").defaultNow().notNull(),
   },
   table => ({

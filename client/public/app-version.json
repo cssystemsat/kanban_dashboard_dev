@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.6",
-  "changes": ["O alerta de avaliações NPS agora identifica o nome da central pelo ID central da planilha."]
+  "appVersion": "8.7",
+  "changes": ["Adicionado botão Wootric nos cards Marcos e Ongoing para consultar o histórico de avaliações de cada central."]
 }

@@ -4,6 +4,7 @@ import { cachedFetch } from "@/lib/sheetsCache";
 export interface OngoingClientData {
   id: string; // Coluna A - Código Cliente
   codigoCliente: string; // Coluna A - para matching com gráficos
+  centralId: string; // Coluna U - ID central para avaliações Wootric
   nome: string; // Coluna B - Nome
   csm: string; // Coluna C - CSM
   placas: number; // Coluna G - Placas
@@ -116,6 +117,7 @@ export function useOngoingData() {
               .trim()
               .toUpperCase(); // Coluna Q (16)
             const estrela = estrelaStr === "TRUE";
+            const centralId = String(row[20] || "").trim(); // Coluna U (20) - ID central
             const situacao = String(row[21] || "").trim(); // Coluna V (21)
             const comercial = String(row[23] || "").trim(); // Coluna X (23)
             const decisor = String(row[30] || "").trim(); // Coluna AE (30)
@@ -131,6 +133,7 @@ export function useOngoingData() {
               clients.push({
                 id: codigoCliente,
                 codigoCliente,
+                centralId,
                 nome,
                 csm,
                 entrada,

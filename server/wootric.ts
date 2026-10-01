@@ -1,4 +1,4 @@
-import { desc, eq, inArray, isNull } from "drizzle-orm";
+import { desc, eq, inArray, isNull, like } from "drizzle-orm";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   InsertWootricResponse,
@@ -166,7 +166,8 @@ function jsonOrNull(value: unknown): string | null {
 export function normalizeWootricResponse(
   response: WootricResponseInput,
   rawPayload: unknown = response,
-  centralName: string | null = null
+  centralName: string | null = null,
+  showInAlert = true
 ): InsertWootricResponse {
   const endUser = response.end_user ?? null;
   const endUserProperties =
@@ -198,6 +199,7 @@ export function normalizeWootricResponse(
     createdAtWootric: parseExternalDate(response.created_at),
     updatedAtWootric: parseExternalDate(response.updated_at),
     rawPayload: jsonOrNull(rawPayload),
+    showInAlert: showInAlert ? 1 : 0,
   };
 }
 
@@ -235,11 +237,40 @@ async function fetchWootricEndUser(
   return (await response.json()) as WootricEndUser;
 }
 
+async function fetchWootricEndUserResponses(
+  accessToken: string,
+  endUserId: string
+): Promise<WootricApiResponse[]> {
+  const responses: WootricApiResponse[] = [];
+  for (let page = 1; page <= 30; page += 1) {
+    const response = await fetch(
+      `${WOOTRIC_API_BASE_URL}/v1/end_users/${encodeURIComponent(endUserId)}/responses?page=${page}&per_page=50&sort_order=desc&sort_key=created_at`,
+      { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" } }
+    );
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Wootric histórico ${response.status}: ${detail.slice(0, 500)}`);
+    }
+    const payload = (await response.json()) as unknown;
+    if (!Array.isArray(payload)) break;
+    const pageResponses = payload as WootricApiResponse[];
+    responses.push(...pageResponses);
+    if (pageResponses.length < 50) break;
+  }
+  return responses;
+}
+
 async function enrichWithEndUser(
   response: WootricResponseInput,
   accessToken: string
 ): Promise<WootricResponseInput> {
-  if (response.external_id || !response.end_user_id) return response;
+  if (
+    response.external_id ||
+    centralIdFromEmail(response.email) ||
+    !response.end_user_id
+  ) {
+    return response;
+  }
   const endUser = await fetchWootricEndUser(accessToken, String(response.end_user_id));
   if (!endUser) return response;
   return {
@@ -292,18 +323,27 @@ export async function fetchWootricResponses(options?: {
     responses.push(...pageResponses);
     if (pageResponses.length < 50) break;
   }
-  return Promise.all(responses.map(response => enrichWithEndUser(response, token)));
+  // O tenant informado inclui o ID central no final do campo e-mail da própria
+  // resposta. Evita-se consultar cada perfil individualmente, o que torna a
+  // busca de histórico lenta e suscetível a limites da API.
+  return responses;
 }
 
 export async function upsertWootricResponse(
   response: WootricResponseInput,
   rawPayload: unknown = response,
-  centralName?: string | null
+  centralName?: string | null,
+  showInAlert = true
 ) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível.");
 
-  const values = normalizeWootricResponse(response, rawPayload, centralName ?? null);
+  const values = normalizeWootricResponse(
+    response,
+    rawPayload,
+    centralName ?? null,
+    showInAlert
+  );
   const existing = await db
     .select()
     .from(wootricResponses)
@@ -361,13 +401,66 @@ export async function syncWootricResponses() {
   return { fetched: responses.length, inserted, updated };
 }
 
+/**
+ * O ID central é associado a um end_user da Wootric durante a sincronização.
+ * O histórico usa esse end_user diretamente, sem varrer avaliações de todos
+ * os clientes nem depender de filtros inexistentes na API Wootric.
+ */
+export async function getWootricHistoryByCentralId(centralId: string) {
+  const requestedCentralId = centralId.trim();
+  if (!requestedCentralId) return [];
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível.");
+
+  let existing = await db
+    .select()
+    .from(wootricResponses)
+    .where(eq(wootricResponses.externalId, requestedCentralId))
+    .orderBy(desc(wootricResponses.createdAtWootric));
+  if (existing.length === 0) {
+    existing = await db
+      .select()
+      .from(wootricResponses)
+      .where(like(wootricResponses.email, `%- ${requestedCentralId}`))
+      .orderBy(desc(wootricResponses.createdAtWootric));
+  }
+  const endUserId = existing.find(row => row.endUserId)?.endUserId;
+  if (endUserId) {
+    const [accessToken, centralNames] = await Promise.all([
+      getAccessToken(),
+      getCentralNameMap(),
+    ]);
+    const centralName =
+      centralNames.get(normalizeLookup(requestedCentralId)) ?? null;
+    const history = await fetchWootricEndUserResponses(accessToken, endUserId);
+    for (const response of history) {
+      await upsertWootricResponse(
+        {
+          ...response,
+          external_id: requestedCentralId,
+          email: response.email ?? existing[0]?.email ?? null,
+        },
+        response,
+        centralName,
+        false
+      );
+    }
+  }
+
+  return db
+    .select()
+    .from(wootricResponses)
+    .where(eq(wootricResponses.externalId, requestedCentralId))
+    .orderBy(desc(wootricResponses.createdAtWootric));
+}
+
 export async function hydrateExistingWootricCentralNames() {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível.");
   const rows = await db
     .select()
     .from(wootricResponses)
-    .where(isNull(wootricResponses.centralName));
+    .where(isNull(wootricResponses.externalId));
   if (rows.length === 0) return { hydrated: 0, unmatched: 0 };
 
   const centralNames = await getCentralNameMap();
@@ -420,7 +513,12 @@ export async function getPendingWootricResponses(userId: number) {
   const db = await getDb();
   if (!db) return [];
   const [responses, acknowledgments] = await Promise.all([
-    db.select().from(wootricResponses).orderBy(desc(wootricResponses.createdAtWootric)).limit(50),
+    db
+      .select()
+      .from(wootricResponses)
+      .where(eq(wootricResponses.showInAlert, 1))
+      .orderBy(desc(wootricResponses.createdAtWootric))
+      .limit(50),
     db
       .select({ responseId: wootricResponseAcknowledgments.responseId })
       .from(wootricResponseAcknowledgments)

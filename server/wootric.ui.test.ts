@@ -25,6 +25,7 @@ describe("Wootric", () => {
     expect(normalized.score).toBe(10);
     expect(normalized.email).toBe("cliente@example.com - 1089");
     expect(normalized.externalId).toBe("1089");
+    expect(normalized.showInAlert).toBe(1);
     expect(normalized.tags).toBe('["produto"]');
   });
 
@@ -59,5 +60,28 @@ describe("Wootric", () => {
     expect(component).toContain("ID central:");
     expect(server).toContain("WOOTRIC");
     expect(component).not.toMatch(/CLIENT_SECRET|CLIENT_ID|API_KEY/);
+  });
+
+  it("oferece histórico Wootric por ID central nos cards Marcos e Ongoing", () => {
+    const marcosCard = readFileSync(
+      resolve(process.cwd(), "client/src/components/ClientCard.tsx"),
+      "utf8"
+    );
+    const ongoingCard = readFileSync(
+      resolve(process.cwd(), "client/src/components/OngoingCard.tsx"),
+      "utf8"
+    );
+    const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    expect(marcosCard).toContain("WootricClientHistoryModal");
+    expect(ongoingCard).toContain("WootricClientHistoryModal");
+    expect(router).toContain("historyByCentral");
+    expect(router).toContain("getWootricHistoryByCentralId");
+    expect(router).not.toContain("WOOTRIC_CLIENT_SECRET");
+    expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
+      "page <= 30"
+    );
+    expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
+      "showInAlert"
+    );
   });
 });

@@ -1,5 +1,7 @@
 import { OngoingClientData } from "@/hooks/useOngoingData";
 import { MessageCircle, Headphones, Star, Flag } from "lucide-react";
+import { useState } from "react";
+import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
 
 interface OngoingCardProps {
   client: OngoingClientData;
@@ -24,6 +26,7 @@ export default function OngoingCard({
   client,
   onAtendimento,
 }: OngoingCardProps) {
+  const [showWootricHistory, setShowWootricHistory] = useState(false);
   const getDeltaColor = (delta: number) => {
     if (delta > 0) return { bg: "#D1FAE5", text: "#059669" };
     if (delta < 0) return { bg: "#FEE2E2", text: "#DC2626" };
@@ -189,7 +192,7 @@ export default function OngoingCard({
         )}
       </div>
 
-      {/* Footer: WhatsApp + Atendimento */}
+      {/* Footer: WhatsApp + Wootric + Atendimento */}
       <div className="flex items-center gap-2 pt-1">
         <button
           onClick={e => e.stopPropagation()}
@@ -198,6 +201,28 @@ export default function OngoingCard({
         >
           <MessageCircle size={16} />
           WhatsApp
+        </button>
+        <button
+          type="button"
+          onClick={event => {
+            event.stopPropagation();
+            setShowWootricHistory(true);
+          }}
+          disabled={!client.centralId}
+          className="shrink-0 rounded p-2 transition-all hover:shadow-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+          style={{ backgroundColor: "#EAF3FF" }}
+          title={
+            client.centralId
+              ? "Ver avaliações Wootric"
+              : "ID central não disponível para buscar avaliações"
+          }
+          aria-label={`Ver avaliações Wootric de ${client.nome}`}
+        >
+          <img
+            src="/manus-storage/pasted_file_4oN8S3_image_0adc343d.png"
+            alt=""
+            className="h-5 w-5 rounded-full object-cover"
+          />
         </button>
         <button
           onClick={e => {
@@ -212,6 +237,12 @@ export default function OngoingCard({
           Atendimento
         </button>
       </div>
+      <WootricClientHistoryModal
+        clientName={client.nome}
+        centralId={client.centralId}
+        open={showWootricHistory}
+        onClose={() => setShowWootricHistory(false)}
+      />
     </div>
   );
 }
