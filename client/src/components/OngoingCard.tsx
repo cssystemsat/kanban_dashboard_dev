@@ -2,6 +2,7 @@ import { OngoingClientData } from "@/hooks/useOngoingData";
 import { MessageCircle, Headphones, Star, Flag } from "lucide-react";
 import { useState } from "react";
 import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
+import { WootricMark } from "./WootricMark";
 
 interface OngoingCardProps {
   client: OngoingClientData;
@@ -218,11 +219,7 @@ export default function OngoingCard({
           }
           aria-label={`Ver avaliações Wootric de ${client.nome}`}
         >
-          <img
-            src="/manus-storage/pasted_file_4oN8S3_image_0adc343d.png"
-            alt=""
-            className="h-5 w-5 rounded-full object-cover"
-          />
+          <WootricMark className="h-5 w-5" />
         </button>
         <button
           onClick={e => {

@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.7",
-  "changes": ["Adicionado botão Wootric nos cards Marcos e Ongoing para consultar o histórico de avaliações de cada central."]
+  "appVersion": "8.8",
+  "changes": ["Corrigidos o ícone Wootric dos cards e a área de confirmação do aviso de avaliações NPS."]
 }

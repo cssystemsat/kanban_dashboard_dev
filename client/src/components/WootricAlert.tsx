@@ -59,8 +59,8 @@ export function WootricAlert() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/20 p-4 backdrop-blur-[1px]">
-      <div className="flex max-h-[88vh] w-[min(95vw,720px)] flex-col overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-2xl">
-        <div className="flex items-center gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-5">
+      <div className="flex h-[min(88vh,760px)] w-[min(95vw,720px)] flex-col overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-2xl">
+        <div className="flex shrink-0 items-center gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-5">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm">
             <MessageSquareHeart className="h-5 w-5" aria-hidden="true" />
           </div>
@@ -72,7 +72,7 @@ export function WootricAlert() {
           </div>
         </div>
 
-        <div className="flex-1 space-y-3 overflow-auto px-6 py-5">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 py-5">
           {responses.map(response => (
             <article key={response.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -100,7 +100,7 @@ export function WootricAlert() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-6 py-4">
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"

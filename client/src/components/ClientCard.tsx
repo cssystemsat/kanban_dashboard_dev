@@ -26,6 +26,7 @@ import {
 } from "@/hooks/useAgendaData";
 import { calculateClientCriticality } from "@/lib/criticality";
 import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
+import { WootricMark } from "./WootricMark";
 
 interface ClientCardProps {
   client: ClientData;
@@ -388,11 +389,7 @@ export default function ClientCard({
             }
             aria-label={`Ver avaliações Wootric de ${client.nome}`}
           >
-            <img
-              src="/manus-storage/pasted_file_4oN8S3_image_0adc343d.png"
-              alt=""
-              className="h-4 w-4 rounded-full object-cover"
-            />
+            <WootricMark className="h-4 w-4" />
           </button>
 
           {/* Botão Registrar acontecimento */}

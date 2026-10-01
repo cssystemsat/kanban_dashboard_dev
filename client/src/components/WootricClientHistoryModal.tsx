@@ -1,7 +1,6 @@
 import { X, Star, LoaderCircle, MessageSquare } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-
-const WOOTRIC_ICON = "/manus-storage/pasted_file_4oN8S3_image_0adc343d.png";
+import { WootricMark } from "./WootricMark";
 
 type WootricClientHistoryModalProps = {
   clientName: string;
@@ -59,11 +58,7 @@ export function WootricClientHistoryModal({
         onClick={event => event.stopPropagation()}
       >
         <header className="flex items-start gap-3 border-b border-slate-100 p-5">
-          <img
-            src={WOOTRIC_ICON}
-            alt="Wootric"
-            className="h-10 w-10 rounded-lg object-cover ring-1 ring-blue-100"
-          />
+          <WootricMark className="h-10 w-10 shrink-0 ring-1 ring-blue-100" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
               Histórico Wootric

@@ -355,6 +355,9 @@ export async function upsertWootricResponse(
       .update(wootricResponses)
       .set({
         ...values,
+        // Uma consulta de histórico não pode ocultar uma avaliação recém-chegada
+        // que ainda aguarda ciência de outros usuários.
+        showInAlert: existing[0].showInAlert === 1 ? 1 : values.showInAlert,
         receivedAt: existing[0].receivedAt,
       })
       .where(eq(wootricResponses.id, existing[0].id));
