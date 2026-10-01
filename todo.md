@@ -89,7 +89,7 @@
 - [x] Reduzir o TTL dos dados do Painel e forçar a recarga autenticada nas atualizações manual e automática.
 - [x] Exibir a atualização em curso e validar a propagação no ambiente de desenvolvimento.
 - [x] Criar teste de regressão do cache e salvar checkpoint corretivo.
-- [ ] Confirmar no domínio publicado a propagação rápida após publicar esta versão.
+- [x] Confirmar no domínio publicado a propagação rápida após publicar esta versão.
 - [x] Remover a opção Red Flags do menu lateral.
 - [x] Adicionar a opção Migração apontando para https://migracao-web.onrender.com/ em nova aba segura.
 - [x] Validar o novo item no menu lateral e salvar checkpoint.
@@ -99,9 +99,9 @@
 - [x] Atualizar a aba KPI’s para exibir o snapshot fechado da semana anterior e manter a semana retrasada zerada até o próximo fechamento.
 - [x] Criar testes para zeragem, fechamento idempotente e transição semanal dos KPI’s.
 - [x] Validar visualmente a aba KPI’s, TypeScript, build e testes; salvar checkpoint antes da ativação do job em produção.
-- [ ] Publicar a versão com o callback de fechamento semanal de KPI’s antes de criar o schedule em produção.
-- [ ] Ativar as automações pela aba Performance após a publicação e registrar o taskUid do job `kpi_weekly_snapshot`.
-- [ ] Confirmar em produção que o schedule de sexta-feira às 23:59 BRT aparece como ativo e que o callback responde com sucesso.
+- [x] Publicar a versão com o callback de fechamento semanal de KPI’s antes de criar o schedule em produção.
+- [x] Ativar as automações pela aba Performance após a publicação e registrar o taskUid do job `kpi_weekly_snapshot`.
+- [x] Confirmar em produção que o schedule de sexta-feira às 23:59 BRT aparece como ativo e que o callback responde com sucesso.
 - [x] Contar os clientes ativos de Onboarding a partir da aba Marcos e usar o total real no card.
 - [x] Contar os concluídos na coluna AK da aba KPI’s, filtrando pela semana passada usando a coluna AM.
 - [x] Exibir no modal de Clientes ativos a lista dos clientes da aba Marcos.

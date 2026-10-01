@@ -5,6 +5,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 
 type WootricAlertResponse = {
   id: number;
+  centralName: string | null;
+  externalId: string | null;
+  endUserId: string | null;
   email: string | null;
   score: number;
   text: string | null;
@@ -75,9 +78,13 @@ export function WootricAlert() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-slate-950">
-                    {response.email || "Cliente sem e-mail"}
+                    {response.centralName || "Cliente não encontrado"}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
+                    {response.externalId || response.endUserId
+                      ? `ID central: ${response.externalId || response.endUserId} · `
+                      : ""}
+                    {response.email ? `${response.email} · ` : ""}
                     Recebida em {formatDate(response.createdAtWootric)}
                   </p>
                 </div>

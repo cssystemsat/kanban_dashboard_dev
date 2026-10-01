@@ -1,0 +1,1 @@
+ALTER TABLE `wootric_responses` ADD `centralName` varchar(255);

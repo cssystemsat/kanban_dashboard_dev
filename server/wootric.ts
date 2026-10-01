@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, isNull } from "drizzle-orm";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   InsertWootricResponse,
@@ -7,6 +7,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { getDb } from "./db";
+import { getSheetCsv } from "./googleSheets";
 
 const WOOTRIC_API_BASE_URL = "https://api.wootric.com";
 const TOKEN_ENDPOINT = `${WOOTRIC_API_BASE_URL}/oauth/token`;
@@ -35,14 +36,117 @@ export type WootricResponseInput = {
   excluded_from_calculations?: boolean;
 };
 
-type WootricApiResponse = WootricResponseInput & {
-  end_user?: WootricUser;
+type WootricApiResponse = WootricResponseInput;
+
+type WootricEndUser = {
+  id?: number | string;
+  email?: string | null;
+  external_id?: string | null;
+  properties?: Record<string, unknown> | null;
 };
 
 type WootricWebhookPayload = {
   response?: WootricResponseInput;
   event_name?: "created" | "updated" | string;
 };
+
+const ONBOARDING_GID = 0;
+const ONGOING_GID = 1152476970;
+const CENTRAL_MAP_TTL_MS = 5 * 60_000;
+let centralMapCache: { expiresAt: number; values: Map<string, string> } | null = null;
+
+function normalizeLookup(value: unknown): string {
+  return String(value ?? "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function centralIdFromEmail(value?: string | null): string | null {
+  const match = value?.match(/-\s*(\d+)\s*$/);
+  return match?.[1] ?? null;
+}
+
+function parseCsvRows(csv: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < csv.length; index += 1) {
+    const char = csv[index];
+    const next = csv[index + 1];
+    if (char === '"') {
+      if (quoted && next === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (char === "," && !quoted) {
+      row.push(cell.trim());
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(cell.trim());
+      if (row.some(value => value)) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+  if (cell || row.length > 0) {
+    row.push(cell.trim());
+    if (row.some(value => value)) rows.push(row);
+  }
+  return rows;
+}
+
+export function mapCentralIds(csv: string): Map<string, string> {
+  const rows = parseCsvRows(csv);
+  const header = rows[0] ?? [];
+  const clientIndex = header.findIndex(value => normalizeLookup(value).includes("cliente"));
+  const centralIdIndex = header.findIndex(value => normalizeLookup(value).includes("id central"));
+  const values = new Map<string, string>();
+  if (clientIndex < 0 || centralIdIndex < 0) return values;
+  for (const row of rows.slice(1)) {
+    const clientName = row[clientIndex]?.trim();
+    const centralId = row[centralIdIndex]?.trim();
+    if (clientName && centralId) values.set(normalizeLookup(centralId), clientName);
+  }
+  return values;
+}
+
+async function getCentralNameMap(): Promise<Map<string, string>> {
+  if (centralMapCache && centralMapCache.expiresAt > Date.now()) {
+    return centralMapCache.values;
+  }
+  const [onboardingCsv, ongoingCsv] = await Promise.all([
+    getSheetCsv("primary", ONBOARDING_GID),
+    getSheetCsv("primary", ONGOING_GID),
+  ]);
+  const values = mapCentralIds(onboardingCsv);
+  for (const [centralId, clientName] of mapCentralIds(ongoingCsv)) {
+    values.set(centralId, clientName);
+  }
+  centralMapCache = { expiresAt: Date.now() + CENTRAL_MAP_TTL_MS, values };
+  return values;
+}
+
+function centralIdFromResponse(response: WootricResponseInput): string | null {
+  if (response.external_id) return String(response.external_id);
+  const inferredFromEmail = centralIdFromEmail(
+    response.email ?? response.end_user?.email
+  );
+  if (inferredFromEmail) return inferredFromEmail;
+  if (response.end_user_id !== null && response.end_user_id !== undefined) {
+    return String(response.end_user_id);
+  }
+  const properties = response.end_user_properties ?? response.end_user?.properties ?? {};
+  const candidate = properties.central_id ?? properties.id_central ?? properties["Id central"];
+  return candidate === undefined || candidate === null ? null : String(candidate);
+}
 
 function parseExternalDate(value?: string | null): Date | null {
   if (!value) return null;
@@ -61,15 +165,21 @@ function jsonOrNull(value: unknown): string | null {
 
 export function normalizeWootricResponse(
   response: WootricResponseInput,
-  rawPayload: unknown = response
+  rawPayload: unknown = response,
+  centralName: string | null = null
 ): InsertWootricResponse {
   const endUser = response.end_user ?? null;
   const endUserProperties =
     response.end_user_properties ?? endUser?.properties ?? null;
+  const inferredCentralId = centralIdFromEmail(
+    response.email ?? endUser?.email
+  );
 
   return {
     wootricId: String(response.id),
-    externalId: response.external_id ?? endUser?.external_id ?? null,
+    externalId:
+      response.external_id ?? endUser?.external_id ?? inferredCentralId ?? null,
+    centralName,
     email: response.email ?? endUser?.email ?? null,
     endUserId:
       response.end_user_id === null || response.end_user_id === undefined
@@ -111,6 +221,41 @@ async function getAccessToken(): Promise<string> {
   return payload.access_token;
 }
 
+async function fetchWootricEndUser(
+  accessToken: string,
+  endUserId: string
+): Promise<WootricEndUser | null> {
+  const response = await fetch(
+    `${WOOTRIC_API_BASE_URL}/v1/end_users/${encodeURIComponent(endUserId)}`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    }
+  );
+  if (!response.ok) return null;
+  return (await response.json()) as WootricEndUser;
+}
+
+async function enrichWithEndUser(
+  response: WootricResponseInput,
+  accessToken: string
+): Promise<WootricResponseInput> {
+  if (response.external_id || !response.end_user_id) return response;
+  const endUser = await fetchWootricEndUser(accessToken, String(response.end_user_id));
+  if (!endUser) return response;
+  return {
+    ...response,
+    email: response.email ?? endUser.email ?? null,
+    external_id: endUser.external_id ?? null,
+    end_user: {
+      id: endUser.id,
+      email: endUser.email,
+      external_id: endUser.external_id,
+      properties: endUser.properties,
+    },
+    end_user_properties: response.end_user_properties ?? endUser.properties ?? null,
+  };
+}
+
 export async function fetchWootricResponses(options?: {
   createdGte?: Date;
   updatedGte?: Date;
@@ -147,17 +292,18 @@ export async function fetchWootricResponses(options?: {
     responses.push(...pageResponses);
     if (pageResponses.length < 50) break;
   }
-  return responses;
+  return Promise.all(responses.map(response => enrichWithEndUser(response, token)));
 }
 
 export async function upsertWootricResponse(
   response: WootricResponseInput,
-  rawPayload: unknown = response
+  rawPayload: unknown = response,
+  centralName?: string | null
 ) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível.");
 
-  const values = normalizeWootricResponse(response, rawPayload);
+  const values = normalizeWootricResponse(response, rawPayload, centralName ?? null);
   const existing = await db
     .select()
     .from(wootricResponses)
@@ -202,21 +348,59 @@ export async function syncWootricResponses() {
     ? new Date(latest[0].createdAtWootric.getTime() - 5 * 60_000)
     : new Date(Date.now() - 7 * 24 * 60 * 60_000);
   const responses = await fetchWootricResponses({ createdGte });
+  const centralNames = await getCentralNameMap();
   let inserted = 0;
   let updated = 0;
   for (const response of responses) {
-    const result = await upsertWootricResponse(response, response);
+    const centralId = centralIdFromResponse(response);
+    const centralName = centralId ? centralNames.get(normalizeLookup(centralId)) ?? null : null;
+    const result = await upsertWootricResponse(response, response, centralName);
     if (result.inserted) inserted += 1;
     else updated += 1;
   }
   return { fetched: responses.length, inserted, updated };
 }
 
+export async function hydrateExistingWootricCentralNames() {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível.");
+  const rows = await db
+    .select()
+    .from(wootricResponses)
+    .where(isNull(wootricResponses.centralName));
+  if (rows.length === 0) return { hydrated: 0, unmatched: 0 };
+
+  const centralNames = await getCentralNameMap();
+  let hydrated = 0;
+  let unmatched = 0;
+  for (const row of rows) {
+    const centralId = row.externalId ?? centralIdFromEmail(row.email);
+    const centralName = centralId
+      ? centralNames.get(normalizeLookup(centralId)) ?? null
+      : null;
+    if (!centralName) unmatched += 1;
+    await db
+      .update(wootricResponses)
+      .set({
+        externalId: centralId ?? null,
+        centralName,
+      })
+      .where(eq(wootricResponses.id, row.id));
+    if (centralName) hydrated += 1;
+  }
+  return { hydrated, unmatched };
+}
+
 export async function handleWootricWebhook(payload: WootricWebhookPayload) {
   if (!payload.response || !["created", "updated"].includes(payload.event_name ?? "created")) {
     return { accepted: true, ignored: true };
   }
-  const result = await upsertWootricResponse(payload.response, payload);
+  const accessToken = await getAccessToken();
+  const response = await enrichWithEndUser(payload.response, accessToken);
+  const centralId = centralIdFromResponse(response);
+  const centralNames = await getCentralNameMap();
+  const centralName = centralId ? centralNames.get(normalizeLookup(centralId)) ?? null : null;
+  const result = await upsertWootricResponse(response, payload, centralName);
   return { accepted: true, ignored: false, inserted: result.inserted };
 }
 

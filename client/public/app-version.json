@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.5",
-  "changes": ["Adicionado alerta de novas avaliações NPS da Wootric, com confirmação individual por usuário."]
+  "appVersion": "8.6",
+  "changes": ["O alerta de avaliações NPS agora identifica o nome da central pelo ID central da planilha."]
 }

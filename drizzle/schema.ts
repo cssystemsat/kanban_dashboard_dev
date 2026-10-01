@@ -332,6 +332,7 @@ export const wootricResponses = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     wootricId: varchar("wootricId", { length: 64 }).notNull(),
     externalId: varchar("externalId", { length: 255 }),
+    centralName: varchar("centralName", { length: 255 }),
     email: varchar("email", { length: 320 }),
     endUserId: varchar("endUserId", { length: 64 }),
     surveyId: varchar("surveyId", { length: 64 }),

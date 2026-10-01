@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  mapCentralIds,
   normalizeWootricResponse,
   verifyWootricWebhookSignature,
 } from "./wootric";
@@ -11,7 +12,7 @@ describe("Wootric", () => {
   it("normaliza respostas com os campos necessários para o alerta", () => {
     const normalized = normalizeWootricResponse({
       id: 42,
-      email: "cliente@example.com",
+      email: "cliente@example.com - 1089",
       end_user_id: 7,
       survey_id: 9,
       score: 11,
@@ -22,8 +23,20 @@ describe("Wootric", () => {
     });
     expect(normalized.wootricId).toBe("42");
     expect(normalized.score).toBe(10);
-    expect(normalized.email).toBe("cliente@example.com");
+    expect(normalized.email).toBe("cliente@example.com - 1089");
+    expect(normalized.externalId).toBe("1089");
     expect(normalized.tags).toBe('["produto"]');
+  });
+
+  it("relaciona o ID central ao nome da central pela coluna indicada", () => {
+    const onboarding = mapCentralIds(
+      'Código,Cliente,Outros,Id central\nSSX_1,Central Marcos,,1089\n'
+    );
+    const ongoing = mapCentralIds(
+      'Código,Cliente,Outros,ID central\nSSX_2,Central Ongoing,,636\n'
+    );
+    expect(onboarding.get("1089")).toBe("Central Marcos");
+    expect(ongoing.get("636")).toBe("Central Ongoing");
   });
 
   it("valida a assinatura HMAC-SHA1 do webhook", () => {
@@ -42,6 +55,8 @@ describe("Wootric", () => {
     const server = readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8");
     expect(component).toContain("trpc.wootric.pending");
     expect(component).toContain("Estou ciente das novas avaliações");
+    expect(component).toContain("Cliente não encontrado");
+    expect(component).toContain("ID central:");
     expect(server).toContain("WOOTRIC");
     expect(component).not.toMatch(/CLIENT_SECRET|CLIENT_ID|API_KEY/);
   });
