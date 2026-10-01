@@ -234,12 +234,14 @@ export default function OngoingCard({
           Atendimento
         </button>
       </div>
-      <WootricClientHistoryModal
-        clientName={client.nome}
-        centralId={client.centralId}
-        open={showWootricHistory}
-        onClose={() => setShowWootricHistory(false)}
-      />
+      {showWootricHistory && (
+        <WootricClientHistoryModal
+          clientName={client.nome}
+          centralId={client.centralId}
+          open
+          onClose={() => setShowWootricHistory(false)}
+        />
+      )}
     </div>
   );
 }

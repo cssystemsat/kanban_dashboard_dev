@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.2",
-  "changes": ["Removido o círculo azul grande do histórico de avaliações Wootric de cada cliente."]
+  "appVersion": "9.3",
+  "changes": ["O histórico Wootric agora só é carregado ao abrir o cliente, eliminando consultas em massa e o ciclo de atualização em Marcos."]
 }

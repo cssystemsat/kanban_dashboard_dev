@@ -80,6 +80,8 @@ describe("Wootric", () => {
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     expect(marcosCard).toContain("WootricClientHistoryModal");
     expect(ongoingCard).toContain("WootricClientHistoryModal");
+    expect(marcosCard).toContain("showWootricHistory &&");
+    expect(ongoingCard).toContain("showWootricHistory &&");
     expect(marcosCard).toContain("WootricMark");
     expect(ongoingCard).toContain("WootricMark");
     const historyModal = readFileSync(
