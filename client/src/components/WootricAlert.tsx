@@ -1,4 +1,4 @@
-import { MessageSquareHeart, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -60,10 +60,7 @@ export function WootricAlert() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/20 p-4 backdrop-blur-[1px]">
       <div className="flex h-[min(88vh,760px)] w-[min(95vw,720px)] flex-col overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-2xl">
-        <div className="flex shrink-0 items-center gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm">
-            <MessageSquareHeart className="h-5 w-5" aria-hidden="true" />
-          </div>
+        <div className="shrink-0 border-b border-indigo-100 bg-indigo-50 px-6 py-5">
           <div>
             <h2 className="text-lg font-bold text-slate-950">Nova avaliação NPS</h2>
             <p className="text-sm text-slate-600">

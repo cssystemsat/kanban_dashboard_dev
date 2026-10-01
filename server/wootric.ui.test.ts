@@ -61,6 +61,7 @@ describe("Wootric", () => {
     expect(server).toContain("WOOTRIC");
     expect(component).not.toMatch(/CLIENT_SECRET|CLIENT_ID|API_KEY/);
     expect(component).toContain("min-h-0 flex-1");
+    expect(component).not.toContain("MessageSquareHeart");
   });
 
   it("oferece histórico Wootric por ID central nos cards Marcos e Ongoing", () => {
@@ -77,6 +78,7 @@ describe("Wootric", () => {
     expect(ongoingCard).toContain("WootricClientHistoryModal");
     expect(marcosCard).toContain("WootricMark");
     expect(ongoingCard).toContain("WootricMark");
+    expect(marcosCard).toContain("EMPTY_OBJECTIVE_INDEXES");
     expect(router).toContain("historyByCentral");
     expect(router).toContain("getWootricHistoryByCentralId");
     expect(router).not.toContain("WOOTRIC_CLIENT_SECRET");

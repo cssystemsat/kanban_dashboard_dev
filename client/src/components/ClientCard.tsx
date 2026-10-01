@@ -34,6 +34,8 @@ interface ClientCardProps {
   onFriccao?: (client: ClientData) => void;
 }
 
+const EMPTY_OBJECTIVE_INDEXES: number[] = [];
+
 /** Cor do ícone de bandeira para cada nível */
 function getFlagColor(flag: string): string | null {
   switch (flag) {
@@ -60,7 +62,7 @@ export default function ClientCard({
   const [completedObjectives, setCompletedObjectives] = useState<
     Record<string, boolean>
   >({});
-  const { data: sharedObjectiveIndexes = [] } =
+  const { data: sharedObjectiveIndexes = EMPTY_OBJECTIVE_INDEXES } =
     trpc.marcos.objectiveCompletions.useQuery(
       { clientId: client.id },
       { staleTime: 30_000 }

@@ -1,4 +1,4 @@
 {
-  "appVersion": "8.9",
-  "changes": ["O histórico Wootric agora localiza todas as avaliações pelo ID central, incluindo registros mais antigos."]
+  "appVersion": "9.0",
+  "changes": ["Corrigido o loop de atualização dos cards Marcos e removido o círculo azul grande do aviso NPS."]
 }
