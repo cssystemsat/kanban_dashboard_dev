@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.3",
-  "changes": ["O histórico Wootric agora só é carregado ao abrir o cliente, eliminando consultas em massa e o ciclo de atualização em Marcos."]
+  "appVersion": "9.4",
+  "changes": ["A aba BI agora pode ser liberada ou restringida individualmente nas configurações de usuários."]
 }

@@ -15,6 +15,12 @@ const appSource = readFileSync(
 );
 
 describe("permissões do App Personalizado", () => {
+  it("inclui BI na lista normal de abas configuráveis", () => {
+    expect(configSource).toContain('{ id: "bi", label: "BI" }');
+    expect(menuSource).toContain('{ id: "bi", label: "BI"');
+    expect(appSource).toContain('case "bi":');
+  });
+
   it("trata App Personalizado como uma aba normal configurável", () => {
     expect(configSource).toContain(
       '{ id: "apppersonalizado", label: "App Personalizado" }'
