@@ -46,6 +46,10 @@ describe("BI shell", () => {
     expect(biMetricsSource).toContain("getUnflaggedOverdueGroups");
     expect(biMetricsSource).toContain("calculateAverageTTV");
     expect(biPageSource).toContain("Todos os CSMs");
+    expect(biPageSource).toContain("Filtrar por objetivo");
+    expect(biPageSource).toContain("selectedObjectives");
+    expect(biPageSource).toContain("filterClientsByObjectives");
+    expect(biPageSource).toContain("pelo menos um deles");
     expect(biPageSource).toContain("Gerar relatório");
     expect(biPageSource).toContain("TTV médio");
     expect(biPageSource).toContain("Atrasados sem Flag");

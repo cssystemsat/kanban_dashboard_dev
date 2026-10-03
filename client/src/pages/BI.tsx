@@ -31,6 +31,7 @@ import {
   BI_CRITICAL_DEFINITIONS,
   BI_SEGMENT_DEFINITIONS,
   calculateAverageTTV,
+  filterClientsByObjectives,
   getBICriticalGroups,
   getBIClientGroups,
   getUnflaggedOverdueGroups,
@@ -38,6 +39,7 @@ import {
   groupBoletoByCSM,
   groupClientCountByCSM,
   listCSMs,
+  listObjectives,
   normalizeCSM,
 } from "@/lib/biMetrics";
 import {
@@ -95,6 +97,9 @@ const normalizeStatus = (value: string) =>
     .trim()
     .toLocaleLowerCase("pt-BR");
 
+const normalizeCompanyName = (value: string) =>
+  normalizeStatus(value).replace(/[^a-z0-9]+/g, "");
+
 function clientEntry(client: ClientData): BIListEntry {
   return {
     id: client.id,
@@ -137,6 +142,8 @@ export default function BI() {
     fetchData: fetchMigrationData,
   } = useMigracaoListData();
   const [selectedCSM, setSelectedCSM] = useState("");
+  const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
+  const [objectivesOpen, setObjectivesOpen] = useState(false);
   const [searchCliente, setSearchCliente] = useState("");
   const [selectedList, setSelectedList] = useState<SelectedList | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -175,9 +182,10 @@ export default function BI() {
   }, [refreshData]);
 
   const csmOptions = useMemo(() => listCSMs(data), [data]);
+  const objectiveOptions = useMemo(() => listObjectives(data), [data]);
   const filteredData = useMemo(() => {
     const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
-    return data.filter(client => {
+    const baseFiltered = data.filter(client => {
       if (selectedCSM && normalizeCSM(client.atendente) !== normalizeCSM(selectedCSM)) {
         return false;
       }
@@ -189,10 +197,14 @@ export default function BI() {
       }
       return true;
     });
-  }, [data, searchCliente, selectedCSM]);
+    return filterClientsByObjectives(baseFiltered, selectedObjectives);
+  }, [data, searchCliente, selectedCSM, selectedObjectives]);
 
   const filteredMigrationData = useMemo(() => {
     const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
+    const filteredClientNames = new Set(
+      filteredData.map(client => normalizeCompanyName(client.nome))
+    );
     return migrationData.filter(migration => {
       if (
         selectedCSM &&
@@ -206,9 +218,21 @@ export default function BI() {
       ) {
         return false;
       }
+      if (
+        selectedObjectives.length > 0 &&
+        !filteredClientNames.has(normalizeCompanyName(migration.empresa))
+      ) {
+        return false;
+      }
       return normalizeStatus(migration.situacao) === "em andamento";
     });
-  }, [migrationData, searchCliente, selectedCSM]);
+  }, [
+    migrationData,
+    searchCliente,
+    selectedCSM,
+    selectedObjectives.length,
+    filteredData,
+  ]);
 
   const stageGroups = useMemo(() => getBIClientGroups(filteredData), [filteredData]);
   const criticalGroups = useMemo(
@@ -220,12 +244,22 @@ export default function BI() {
     [filteredData]
   );
   const ttv = useMemo(
-    () => calculateAverageTTV(filteredData, objectiveCompletionMetrics),
-    [filteredData, objectiveCompletionMetrics]
+    () =>
+      calculateAverageTTV(
+        filteredData,
+        objectiveCompletionMetrics,
+        selectedObjectives
+      ),
+    [filteredData, objectiveCompletionMetrics, selectedObjectives]
   );
   const ttvByObjective = useMemo(
-    () => groupAverageTTVByObjective(filteredData, objectiveCompletionMetrics),
-    [filteredData, objectiveCompletionMetrics]
+    () =>
+      groupAverageTTVByObjective(
+        filteredData,
+        objectiveCompletionMetrics,
+        selectedObjectives
+      ),
+    [filteredData, objectiveCompletionMetrics, selectedObjectives]
   );
   const clientCountByCSM = useMemo(
     () => groupClientCountByCSM(filteredData),
@@ -392,6 +426,73 @@ export default function BI() {
                 ))}
               </select>
             </label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setObjectivesOpen(current => !current)}
+                className="inline-flex min-w-[190px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:border-blue-300"
+                aria-expanded={objectivesOpen}
+                aria-haspopup="true"
+              >
+                <span className="truncate">
+                  Objetivos
+                  {selectedObjectives.length > 0
+                    ? ` (${selectedObjectives.length})`
+                    : ": Todos"}
+                </span>
+                <span className="text-xs text-slate-400">⌄</span>
+              </button>
+              {objectivesOpen && (
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
+                    <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                      Filtrar por objetivo
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedObjectives([])}
+                      className="text-xs font-semibold text-blue-700 hover:text-blue-900"
+                    >
+                      Limpar
+                    </button>
+                  </div>
+                  {objectiveOptions.length === 0 ? (
+                    <p className="px-2 py-4 text-xs text-slate-500">
+                      Nenhum objetivo encontrado nos clientes carregados.
+                    </p>
+                  ) : (
+                    <div className="mt-1 space-y-0.5">
+                      {objectiveOptions.map(objective => {
+                        const checked = selectedObjectives.includes(objective);
+                        return (
+                          <label
+                            key={objective}
+                            className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setSelectedObjectives(current =>
+                                  checked
+                                    ? current.filter(item => item !== objective)
+                                    : [...current, objective]
+                                )
+                              }
+                              className="h-4 w-4 rounded border-slate-300 accent-blue-700"
+                            />
+                            <span className="truncate">{objective}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="border-t border-slate-100 px-2 pt-2 text-[11px] text-slate-400">
+                    Com mais de um objetivo, entram clientes que tenham pelo menos um deles.
+                  </p>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2 text-xs text-slate-500 xl:ml-auto">
               <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2">
                 <Clock3 className="h-4 w-4 text-slate-400" aria-hidden="true" />

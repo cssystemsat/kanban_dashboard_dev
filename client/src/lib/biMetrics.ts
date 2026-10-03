@@ -20,11 +20,51 @@ type BICriticalClient = Pick<
 >;
 type BIFlaggableClient = BICriticalClient &
   Pick<ClientData, "flag">;
-type BITTVCandidate = Pick<ClientData, "id" | "nome" | "entrada">;
+type BITTVCandidate = Pick<ClientData, "id" | "nome" | "entrada"> & {
+  tags?: string[];
+};
 type BICSMClient = Pick<
   ClientData,
   "atendente" | "ultimoBoleto" | "nome"
 >;
+
+function normalizeObjective(value: string | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("pt-BR");
+}
+
+export function listObjectives<T extends { tags?: string[] }>(clients: T[]): string[] {
+  const objectives = new Map<string, string>();
+  for (const client of clients) {
+    for (const tag of client.tags ?? []) {
+      const display = tag.trim();
+      const normalized = normalizeObjective(display);
+      if (normalized && !objectives.has(normalized)) {
+        objectives.set(normalized, display);
+      }
+    }
+  }
+  return [...objectives.values()].sort((a, b) =>
+    a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+  );
+}
+
+export function filterClientsByObjectives<T extends { tags?: string[] }>(
+  clients: T[],
+  selectedObjectives: string[]
+): T[] {
+  const selected = new Set(
+    selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
+  if (selected.size === 0) return clients;
+  return clients.filter(client =>
+    (client.tags ?? []).some(tag => selected.has(normalizeObjective(tag)))
+  );
+}
 
 export const BI_SEGMENT_DEFINITIONS: Record<
   "implantacao" | "onboarding" | "implantados" | "migracao",
@@ -185,12 +225,20 @@ function parseCompletedAt(value: Date | string | null): Date | null {
 
 export function calculateAverageTTV<T extends BITTVCandidate>(
   clients: T[],
-  completions: ObjectiveCompletionMetric[]
+  completions: ObjectiveCompletionMetric[],
+  selectedObjectives: string[] = []
 ) {
   const clientsById = new Map(clients.map(client => [client.id, client]));
+  const selected = new Set(
+    selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
   const entries = completions
     .map(completion => {
       const client = clientsById.get(completion.clientId);
+      const objectiveName = client?.tags?.[completion.objectiveIndex];
+      if (selected.size > 0 && !selected.has(normalizeObjective(objectiveName))) {
+        return null;
+      }
       const startDate = client ? parseBrazilianDate(client.entrada) : null;
       const completedAt = parseCompletedAt(completion.completedAt);
       if (!client || !startDate || !completedAt) return null;
@@ -216,22 +264,38 @@ export function calculateAverageTTV<T extends BITTVCandidate>(
 
 export function groupAverageTTVByObjective<T extends BITTVCandidate & {
   tags?: string[];
-}>(clients: T[], completions: ObjectiveCompletionMetric[]) {
+}>(
+  clients: T[],
+  completions: ObjectiveCompletionMetric[],
+  selectedObjectives: string[] = []
+) {
   const clientsById = new Map(clients.map(client => [client.id, client]));
+  const selected = new Set(
+    selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
   const allObjectiveNames = new Set<string>();
   for (const client of clients) {
     for (const objective of client.tags ?? []) {
       const name = objective.trim();
-      if (name) allObjectiveNames.add(name);
+      if (name && (selected.size === 0 || selected.has(normalizeObjective(name)))) {
+        allObjectiveNames.add(name);
+      }
     }
   }
 
   const totals = new Map<string, { totalDays: number; completions: number }>();
-  for (const completion of calculateAverageTTV(clients, completions).entries) {
+  for (const completion of calculateAverageTTV(
+    clients,
+    completions,
+    selectedObjectives
+  ).entries) {
     const client = clientsById.get(completion.clientId);
     const objectiveName =
       client?.tags?.[completion.objectiveIndex]?.trim() ||
       `Objetivo ${completion.objectiveIndex + 1}`;
+    if (selected.size > 0 && !selected.has(normalizeObjective(objectiveName))) {
+      continue;
+    }
     allObjectiveNames.add(objectiveName);
     const current = totals.get(objectiveName) ?? {
       totalDays: 0,

@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.9",
-  "changes": ["A aba Marcos agora mantém a leitura dos clientes mesmo quando a quota autenticada do Google Sheets é atingida."]
+  "appVersion": "10.0",
+  "changes": ["O BI ganhou filtro múltiplo por objetivo; os KPIs, TTV, atrasados e gráficos agora acompanham os clientes selecionados."]
 }

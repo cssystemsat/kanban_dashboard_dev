@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateAverageTTV,
+  filterClientsByObjectives,
   getBICriticalGroups,
   getBIClientGroups,
   getUnflaggedOverdueGroups,
   groupAverageTTVByObjective,
   groupBoletoByCSM,
   groupClientCountByCSM,
+  listObjectives,
   parseBoleto,
 } from "../client/src/lib/biMetrics";
 
@@ -184,6 +186,35 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
     expect(ttv.averageDays).toBe(15);
   });
 
+  it("calcula TTV apenas para os objetivos selecionados", () => {
+    const ttv = calculateAverageTTV(
+      [
+        {
+          id: "cliente-a",
+          nome: "Cliente A",
+          entrada: "01/01/2026",
+          tags: ["Diagnóstico", "Treinamento"],
+        },
+      ],
+      [
+        {
+          clientId: "cliente-a",
+          objectiveIndex: 0,
+          completedAt: new Date(2026, 0, 11),
+        },
+        {
+          clientId: "cliente-a",
+          objectiveIndex: 1,
+          completedAt: new Date(2026, 0, 31),
+        },
+      ],
+      ["Treinamento"]
+    );
+
+    expect(ttv.entries.map(entry => entry.days)).toEqual([30]);
+    expect(ttv.averageDays).toBe(30);
+  });
+
   it("separa a média de implantação por cada objetivo existente", () => {
     const rows = groupAverageTTVByObjective(
       [
@@ -219,5 +250,25 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
       { objective: "Expansão", dias: null, conclusoes: 0 },
       { objective: "Treinamento", dias: null, conclusoes: 0 },
     ]);
+  });
+
+  it("lista objetivos sem duplicidade e aceita seleção simultânea", () => {
+    const clients = [
+      { nome: "A", tags: ["Treinamento", "Implantação"] },
+      { nome: "B", tags: ["treinamento", "Financeiro"] },
+      { nome: "C", tags: [] },
+    ];
+
+    expect(listObjectives(clients)).toEqual([
+      "Financeiro",
+      "Implantação",
+      "Treinamento",
+    ]);
+    expect(
+      filterClientsByObjectives(clients, ["Implantação", "Financeiro"]).map(
+        client => client.nome
+      )
+    ).toEqual(["A", "B"]);
+    expect(filterClientsByObjectives(clients, [])).toEqual(clients);
   });
 });
