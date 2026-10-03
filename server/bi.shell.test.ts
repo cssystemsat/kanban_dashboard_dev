@@ -17,6 +17,10 @@ const biPageSource = readFileSync(
   new URL("../client/src/pages/BI.tsx", import.meta.url),
   "utf8"
 );
+const biMetricsSource = readFileSync(
+  new URL("../client/src/lib/biMetrics.ts", import.meta.url),
+  "utf8"
+);
 
 describe("BI shell", () => {
   it("exposes BI between Ongoing and CHURNs", () => {
@@ -31,8 +35,11 @@ describe("BI shell", () => {
     expect(appSource).toContain('case "bi":');
   });
 
-  it("keeps the BI page intentionally ready for future financial rules", () => {
-    expect(biPageSource).toContain("Área de BI preparada");
+  it("exibe os três KPIs dinâmicos baseados na aba Marcos", () => {
+    expect(biMetricsSource).toContain("Clientes em implantação");
+    expect(biMetricsSource).toContain("Clientes em onboarding");
+    expect(biMetricsSource).toContain('label: "Implantados"');
+    expect(biPageSource).toContain("Clique para ver os clientes");
     expect(biPageSource).not.toContain("localStorage");
   });
 

@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.4",
-  "changes": ["A aba BI agora pode ser liberada ou restringida individualmente nas configurações de usuários."]
+  "appVersion": "9.5",
+  "changes": ["A aba BI agora exibe KPIs clicáveis de implantação, onboarding e clientes implantados, calculados dinamicamente a partir da aba Marcos."]
 }
