@@ -63,6 +63,9 @@ describe("BI shell", () => {
     expect(biPageSource).not.toContain("localStorage");
     expect(biPageSource).toContain("2xl:grid-cols-5");
     expect(biPageSource).toContain("overflow-x-hidden");
+    expect(biPageSource).toContain('className="min-h-screen overflow-x-hidden');
+    expect(biPageSource).toContain("xl:grid-cols-4");
+    expect(biPageSource).toContain("xl:grid-cols-2");
     expect(sideMenuSource).toContain("adminOnly: true");
   });
 

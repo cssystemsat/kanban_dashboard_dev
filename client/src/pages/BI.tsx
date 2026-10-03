@@ -381,15 +381,15 @@ export default function BI() {
   const isLoading = loading || migrationLoading;
 
   return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-[#F5F7FA] px-3 py-3 text-[#001F3F] sm:px-4 lg:px-5 md:ml-20">
-      <div className="mx-auto w-full max-w-[1600px] min-w-0">
+    <main className="min-h-screen overflow-x-hidden bg-[#F5F7FA] px-3 py-3 text-[#001F3F] sm:px-4 lg:px-5 md:ml-20">
+      <div className="w-full min-w-0 space-y-3">
         <section className="sticky top-0 z-10 min-w-0 rounded-2xl border border-slate-200 bg-[#F5F7FA]/95 p-2.5 backdrop-blur sm:p-3">
-          <div className="flex min-w-0 flex-col gap-2.5 2xl:flex-row 2xl:items-center">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <BarChart3 className="h-4 w-4 text-blue-700" aria-hidden="true" />
               Filtros
             </div>
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+            <label className="flex min-w-[220px] flex-1 basis-[240px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
               <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
               <span className="sr-only">Buscar cliente</span>
               <input
@@ -493,7 +493,7 @@ export default function BI() {
                 </div>
               )}
             </div>
-            <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 2xl:ml-auto">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 xl:ml-auto">
               <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2">
                 <Clock3 className="h-4 w-4 text-slate-400" aria-hidden="true" />
                 <span>{formatCountdown(secondsUntilRefresh)}</span>
@@ -539,7 +539,7 @@ export default function BI() {
           </div>
         </section>
 
-        <section className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5" aria-label="KPIs de operação">
+        <section className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" aria-label="KPIs de operação">
           {normalCards.map(card => {
             const Icon = card.icon;
             const toneClasses = {
@@ -576,7 +576,7 @@ export default function BI() {
           <div className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <section className="mt-2 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5" aria-label="KPIs críticos">
+        <section className="mt-2 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" aria-label="KPIs críticos">
           {criticalCards.map(card => (
             <button
               key={card.key}
@@ -600,7 +600,7 @@ export default function BI() {
           ))}
         </section>
 
-        <section className="mt-5 grid min-w-0 gap-3 2xl:grid-cols-2">
+        <section className="mt-5 grid min-w-0 gap-3 xl:grid-cols-2">
           <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
