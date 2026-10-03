@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.3",
-  "changes": ["O mapa do Painel ganhou indicadores discretos por estado e a tabela agora lista cliente, boleto, cidade, estado e comercial com exportação XLSX."]
+  "appVersion": "10.4",
+  "changes": ["Os rótulos de estados do mapa agora ficam fora dos círculos, ligados por linhas-guia, preservando a leitura das quantidades."]
 }

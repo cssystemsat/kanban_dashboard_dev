@@ -15,6 +15,8 @@ describe("mapa e lista detalhada do Painel", () => {
     expect(component).toContain("estado e contagem");
     expect(component).toContain("borderColor: borderColor");
     expect(component).toContain("clientsByState[state]?.length");
+    expect(component).toContain("STATE_LABEL_OFFSETS");
+    expect(component).toContain("{state}");
   });
 
   it("lista cliente, boleto, cidade, estado e comercial", () => {

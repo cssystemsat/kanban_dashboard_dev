@@ -50,6 +50,20 @@ const STATE_POSITIONS: Record<string, { x: number; y: number }> = {
   TO: { x: 56.21, y: 39.66 },
 };
 
+// Rótulos dos estados pequenos seguem para áreas livres e são ligados ao ponto
+// por uma linha-guia. Nos demais casos, uma etiqueta curta acima do estado basta.
+const STATE_LABEL_OFFSETS: Record<string, { x: number; y: number }> = {
+  AL: { x: 25, y: 12 },
+  CE: { x: 18, y: -18 },
+  DF: { x: -20, y: 14 },
+  ES: { x: 24, y: 18 },
+  PB: { x: 26, y: -4 },
+  PE: { x: 30, y: 12 },
+  RJ: { x: 28, y: 17 },
+  RN: { x: 26, y: -18 },
+  SE: { x: 28, y: 19 },
+};
+
 export default function BrazilMapPainel({
   title,
   clients,
@@ -226,24 +240,39 @@ export default function BrazilMapPainel({
               const circleSize = compactStates.has(state)
                 ? 22
                 : Math.min(34, Math.max(22, 19 + Math.log10(count + 1) * 5));
+              const labelOffset = STATE_LABEL_OFFSETS[state] || { x: 0, y: -20 };
+              const guideLength = Math.hypot(labelOffset.x, labelOffset.y);
+              const guideAngle =
+                (Math.atan2(labelOffset.y, labelOffset.x) * 180) / Math.PI;
 
               return (
                 <div key={state}>
                   {/* Rótulo curto com estado e contagem, conectado ao local no mapa. */}
                   <div
-                    className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border bg-white/95 px-1.5 py-0.5 text-[9px] font-bold leading-none shadow-sm"
+                    className="absolute pointer-events-none"
                     style={{
                       left: `${pos.x}%`,
                       top: `${pos.y}%`,
-                      color: "#0D47A1",
-                      borderColor: borderColor,
                     }}
                   >
-                    {state} · {count}
                     <span
-                      className="absolute left-1/2 top-full h-2 w-px -translate-x-1/2"
-                      style={{ backgroundColor: borderColor }}
+                      className="absolute left-0 top-0 h-px origin-left"
+                      style={{
+                        width: `${guideLength}px`,
+                        backgroundColor: borderColor,
+                        transform: `rotate(${guideAngle}deg)`,
+                      }}
                     />
+                    <span
+                      className="absolute whitespace-nowrap rounded-md border bg-white/95 px-1.5 py-0.5 text-[9px] font-bold leading-none shadow-sm"
+                      style={{
+                        color: "#0D47A1",
+                        borderColor: borderColor,
+                        transform: `translate(${labelOffset.x}px, ${labelOffset.y}px) translate(-50%, -50%)`,
+                      }}
+                    >
+                      {state}
+                    </span>
                   </div>
                   {/* Círculo no centro exato do estado */}
                   <div
