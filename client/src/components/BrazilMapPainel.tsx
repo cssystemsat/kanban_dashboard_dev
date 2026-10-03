@@ -1,12 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Download } from "lucide-react";
-import { X } from "lucide-react";
+import { Download, X } from "lucide-react";
+import * as XLSX from "xlsx";
 import brazilMapSvg from "./brasil-estados.svg?raw";
 
 interface ClienteEstado {
   nome: string;
   estado?: string;
+  cidade?: string;
   faturamento?: string;
   atendente?: string;
   comercial?: string;
@@ -79,51 +80,38 @@ export default function BrazilMapPainel({
       .sort((a, b) => b.count - a.count);
   }, [clientsByState]);
 
-  // Função para exportar tabela como CSV com clientes
-  const exportToCSV = () => {
-    const headers = [
-      "Estado",
-      "Cliente",
-      "Faturamento",
-      "Atendente",
-      "Comercial",
+  const clientRows = useMemo(
+    () =>
+      [...clients].sort((a, b) => {
+        const stateCompare = (a.estado || "").localeCompare(b.estado || "");
+        return stateCompare || a.nome.localeCompare(b.nome, "pt-BR");
+      }),
+    [clients]
+  );
+
+  // Exporta a mesma lista detalhada exibida na tela em um XLSX verdadeiro.
+  const exportToXLSX = () => {
+    const rows = clientRows.map(client => ({
+      Cliente: client.nome,
+      Boleto: client.faturamento || "—",
+      Cidade: client.cidade || "—",
+      Estado: client.estado || "—",
+      Comercial: client.comercial || "—",
+    }));
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet["!cols"] = [
+      { wch: 34 },
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 12 },
+      { wch: 24 },
     ];
-    const rows: string[][] = [];
-
-    // Agrupar clientes por estado
-    stateRanking.forEach(({ state }) => {
-      const stateClients = clientsByState[state] || [];
-      stateClients.forEach(client => {
-        rows.push([
-          state,
-          client.nome,
-          client.faturamento || "—",
-          client.atendente || "—",
-          client.comercial || "—",
-        ]);
-      });
-    });
-
-    // Escapar aspas duplas e envolver campos em aspas
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(row =>
-        row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(",")
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `clientes_por_estado_${new Date().toISOString().split("T")[0]}.csv`
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+    XLSX.writeFile(
+      workbook,
+      `clientes_painel_${new Date().toISOString().split("T")[0]}.xlsx`
     );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const selectedStateClients = selectedState
@@ -241,7 +229,23 @@ export default function BrazilMapPainel({
 
               return (
                 <div key={state}>
-                  {/* Círculo com número */}
+                  {/* Rótulo curto com estado e contagem, conectado ao local no mapa. */}
+                  <div
+                    className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border bg-white/95 px-1.5 py-0.5 text-[9px] font-bold leading-none shadow-sm"
+                    style={{
+                      left: `${pos.x}%`,
+                      top: `${pos.y}%`,
+                      color: "#0D47A1",
+                      borderColor: borderColor,
+                    }}
+                  >
+                    {state} · {count}
+                    <span
+                      className="absolute left-1/2 top-full h-2 w-px -translate-x-1/2"
+                      style={{ backgroundColor: borderColor }}
+                    />
+                  </div>
+                  {/* Círculo no centro exato do estado */}
                   <div
                     className="absolute pointer-events-auto cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all hover:scale-110"
                     style={{
@@ -278,13 +282,13 @@ export default function BrazilMapPainel({
         </div>
       </div>
 
-      {/* Ranking de Estados - Clicável */}
+      {/* Lista detalhada de clientes */}
       <div className="flex justify-between items-center mb-3">
         <p className="text-sm font-semibold" style={{ color: "#001F3F" }}>
-          Todos os Estados ({stateRanking.length})
+          Clientes por estado ({clientRows.length})
         </p>
         <button
-          onClick={exportToCSV}
+          onClick={exportToXLSX}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
           style={{ backgroundColor: "#E0E8F0", color: "#001F3F" }}
           onMouseEnter={e =>
@@ -295,7 +299,7 @@ export default function BrazilMapPainel({
           }
         >
           <Download className="w-4 h-4" />
-          Exportar CSV
+          Exportar XLSX
         </button>
       </div>
       <div className="overflow-x-auto">
@@ -311,46 +315,46 @@ export default function BrazilMapPainel({
                 className="text-left py-2 px-2 font-semibold text-xs"
                 style={{ color: "#001F3F" }}
               >
+                Cliente
+              </th>
+              <th className="text-left py-2 px-2 font-semibold text-xs" style={{ color: "#001F3F" }}>
+                Boleto
+              </th>
+              <th className="text-left py-2 px-2 font-semibold text-xs" style={{ color: "#001F3F" }}>
+                Cidade
+              </th>
+              <th className="text-left py-2 px-2 font-semibold text-xs" style={{ color: "#001F3F" }}>
                 Estado
               </th>
-              <th
-                className="text-right py-2 px-2 font-semibold text-xs"
-                style={{ color: "#001F3F" }}
-              >
-                Qtd
-              </th>
-              <th
-                className="text-right py-2 px-2 font-semibold text-xs"
-                style={{ color: "#001F3F" }}
-              >
-                %
+              <th className="text-left py-2 px-2 font-semibold text-xs" style={{ color: "#001F3F" }}>
+                Comercial
               </th>
             </tr>
           </thead>
           <tbody>
-            {stateRanking.map(({ state, count }) => {
-              const percentage = ((count / totalClients) * 100).toFixed(0);
+            {clientRows.map((client, index) => {
               return (
                 <tr
-                  key={state}
+                  key={`${client.nome}-${client.estado}-${index}`}
                   style={{
                     borderBottom: "1px solid #E0E8F0",
-                    cursor: "pointer",
                   }}
-                  onClick={() => setSelectedState(state)}
-                  className={
-                    selectedState === state ? "bg-blue-50" : "hover:bg-gray-50"
-                  }
+                  className="hover:bg-gray-50"
                 >
-                  <td className="py-2 px-2 font-semibold">{state}</td>
-                  <td
-                    className="py-2 px-2 text-right font-bold"
-                    style={{ color: "#0052CC" }}
-                  >
-                    {count}
+                  <td className="max-w-[280px] truncate py-2 px-2 font-semibold" title={client.nome}>
+                    {client.nome}
                   </td>
-                  <td className="py-2 px-2 text-right text-gray-600">
-                    {percentage}%
+                  <td className="py-2 px-2 text-gray-700">
+                    {client.faturamento || "—"}
+                  </td>
+                  <td className="py-2 px-2 text-gray-700">
+                    {client.cidade || "—"}
+                  </td>
+                  <td className="py-2 px-2 font-semibold text-gray-700">
+                    {client.estado || "—"}
+                  </td>
+                  <td className="py-2 px-2 text-gray-700">
+                    {client.comercial || "—"}
                   </td>
                 </tr>
               );
@@ -396,6 +400,9 @@ export default function BrazilMapPainel({
                   </p>
                   <p className="text-xs text-gray-600">
                     Fat: {client.faturamento || "—"}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    Cidade/UF: {client.cidade || "—"} / {client.estado || "—"}
                   </p>
                   <p className="text-xs text-gray-600">
                     Atend: {client.atendente || "—"}

@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.2",
-  "changes": ["A auditoria de pendências agora permite filtrar os clientes por CSM."]
+  "appVersion": "10.3",
+  "changes": ["O mapa do Painel ganhou indicadores discretos por estado e a tabela agora lista cliente, boleto, cidade, estado e comercial com exportação XLSX."]
 }
