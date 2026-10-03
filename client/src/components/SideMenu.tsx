@@ -21,6 +21,7 @@ import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
 import { APP_VERSION } from "@/lib/appVersion";
+import CompletionAuditBadge from "@/components/CompletionAuditBadge";
 
 interface SideMenuProps {
   currentPage: string;
@@ -151,19 +152,47 @@ export default function SideMenu({
 
     if (item.href) {
       return (
-        <a
-          key={item.id}
-          href={item.href}
-          target="_blank"
-          rel="noreferrer"
+        <div key={item.id} className="relative">
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
+            style={itemStyle}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor =
+                "rgba(255,255,255,0.08)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = "";
+            }}
+            title={!isExpanded ? item.label : ""}
+          >
+            <Icon className="w-5 h-5 flex-shrink-0" />
+            {isExpanded && (
+              <span className="text-sm font-medium whitespace-nowrap">
+                {item.label}
+              </span>
+            )}
+          </a>
+        </div>
+      );
+    }
+
+    return (
+      <div key={item.id} className="relative">
+        <button
+          onClick={() => onPageChange(item.id)}
           className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
           style={itemStyle}
           onMouseEnter={e => {
-            (e.currentTarget as HTMLElement).style.backgroundColor =
-              "rgba(255,255,255,0.08)";
+            if (!isActive)
+              (e.currentTarget as HTMLElement).style.backgroundColor =
+                "rgba(255,255,255,0.08)";
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.backgroundColor = "";
+            if (!isActive)
+              (e.currentTarget as HTMLElement).style.backgroundColor = "";
           }}
           title={!isExpanded ? item.label : ""}
         >
@@ -173,34 +202,14 @@ export default function SideMenu({
               {item.label}
             </span>
           )}
-        </a>
-      );
-    }
-
-    return (
-      <button
-        key={item.id}
-        onClick={() => onPageChange(item.id)}
-        className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200 w-full"
-        style={itemStyle}
-        onMouseEnter={e => {
-          if (!isActive)
-            (e.currentTarget as HTMLElement).style.backgroundColor =
-              "rgba(255,255,255,0.08)";
-        }}
-        onMouseLeave={e => {
-          if (!isActive)
-            (e.currentTarget as HTMLElement).style.backgroundColor = "";
-        }}
-        title={!isExpanded ? item.label : ""}
-      >
-        <Icon className="w-5 h-5 flex-shrink-0" />
-        {isExpanded && (
-          <span className="text-sm font-medium whitespace-nowrap">
-            {item.label}
-          </span>
+        </button>
+        {(item.id === "marcos" || item.id === "ongoing") && (
+          <CompletionAuditBadge
+            area={item.id as "marcos" | "ongoing"}
+            enabled={isActive}
+          />
         )}
-      </button>
+      </div>
     );
   };
 

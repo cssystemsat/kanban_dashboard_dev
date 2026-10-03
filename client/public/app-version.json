@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.0",
-  "changes": ["O BI ganhou filtro múltiplo por objetivo; os KPIs, TTV, atrasados e gráficos agora acompanham os clientes selecionados."]
+  "appVersion": "10.1",
+  "changes": ["Marcos e Ongoing agora exibem um alerta de preenchimento pendente por CSM, cliente e campo obrigatório."]
 }
