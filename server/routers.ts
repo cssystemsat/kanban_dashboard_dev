@@ -129,7 +129,11 @@ export const appRouter = router({
       )
       .query(async ({ input }) => {
         try {
-          return { csv: await getSheetCsv(input.source, input.gid) };
+          return {
+            csv: await getSheetCsv(input.source, input.gid, {
+              forceRefresh: Boolean(input.refreshKey),
+            }),
+          };
         } catch (error) {
           console.error("[Sheets] Falha ao ler aba", input, error);
           throw new TRPCError({

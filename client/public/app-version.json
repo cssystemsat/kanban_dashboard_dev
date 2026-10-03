@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.8",
-  "changes": ["Agora cada objetivo pode receber uma data de conclusão retroativa e o BI mostra o tempo médio de implantação por objetivo."]
+  "appVersion": "9.9",
+  "changes": ["A aba Marcos agora mantém a leitura dos clientes mesmo quando a quota autenticada do Google Sheets é atingida."]
 }

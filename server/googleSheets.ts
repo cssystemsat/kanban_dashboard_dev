@@ -10,6 +10,14 @@ type ValuesResponse = { values?: unknown[][] };
 type TokenCache = { accessToken: string; expiresAt: number };
 let tokenCache: TokenCache | null = null;
 
+type TimedCacheEntry<T> = { value: T; expiresAt: number };
+const SHEET_NAME_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const SHEET_CSV_CACHE_TTL_MS = 30 * 1000;
+const sheetNameCache = new Map<string, TimedCacheEntry<string | null>>();
+const sheetNamePending = new Map<string, Promise<string | null>>();
+const sheetCsvCache = new Map<string, TimedCacheEntry<string>>();
+const sheetCsvPending = new Map<string, Promise<string>>();
+
 const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
@@ -124,18 +132,53 @@ async function getSheetNameBySpreadsheetId(
   spreadsheetId: string,
   gid: number
 ): Promise<string | null> {
-  const spreadsheet = await sheetsRequest<SheetsResponse>(
+  const cacheKey = `${spreadsheetId}:${gid}`;
+  const cached = sheetNameCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const pending = sheetNamePending.get(cacheKey);
+  if (pending) return pending;
+
+  const request = sheetsRequest<SheetsResponse>(
     `/${encodeURIComponent(spreadsheetId)}?fields=sheets.properties(sheetId,title)`
-  );
-  return (
-    spreadsheet.sheets?.find(sheet => sheet.properties?.sheetId === gid)
-      ?.properties?.title ?? null
-  );
+  )
+    .then(spreadsheet =>
+      spreadsheet.sheets?.find(sheet => sheet.properties?.sheetId === gid)
+        ?.properties?.title ?? null
+    )
+    .then(sheetName => {
+      sheetNameCache.set(cacheKey, {
+        value: sheetName,
+        expiresAt: Date.now() + SHEET_NAME_CACHE_TTL_MS,
+      });
+      return sheetName;
+    })
+    .finally(() => sheetNamePending.delete(cacheKey));
+
+  sheetNamePending.set(cacheKey, request);
+  return request;
 }
 
 function csvCell(value: unknown): string {
   const cell = value == null ? "" : String(value);
   return /[",\n\r]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell;
+}
+
+function isSheetsQuotaError(error: unknown): boolean {
+  return error instanceof Error && /Google Sheets API 429|quota exceeded/i.test(error.message);
+}
+
+/** Usa o export CSV somente como fallback para planilhas compartilhadas. */
+async function fetchSharedCsv(spreadsheetId: string, gid: number): Promise<string> {
+  const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(spreadsheetId)}/export?format=csv&gid=${gid}&_=${Date.now()}`;
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: { "cache-control": "no-cache" },
+  });
+  if (!response.ok) {
+    throw new Error(`CSV público da planilha indisponível: HTTP ${response.status}`);
+  }
+  return response.text();
 }
 
 /** Lê uma célula por GID usando o valor formatado da planilha. */
@@ -159,26 +202,60 @@ export async function getSheetCellByGid(
 /** Lê uma aba por GID e devolve CSV compatível com os hooks restaurados. */
 export async function getSheetCsv(
   source: SheetSource,
-  gid: number
+  gid: number,
+  options?: { forceRefresh?: boolean }
 ): Promise<string> {
-  return getSheetCsvBySpreadsheetId(getSpreadsheetId(source), gid);
+  return getSheetCsvBySpreadsheetId(getSpreadsheetId(source), gid, options);
 }
 
 /** Lê uma aba de uma planilha autorizada sem alterar os IDs configurados do projeto. */
 export async function getSheetCsvBySpreadsheetId(
   spreadsheetId: string,
-  gid: number
+  gid: number,
+  options?: { forceRefresh?: boolean }
 ): Promise<string> {
-  const sheetName = await getSheetNameBySpreadsheetId(spreadsheetId, gid);
-  if (!sheetName)
-    throw new Error(`Aba com gid=${gid} não encontrada na planilha informada.`);
-  const range = `'${sheetName.replace(/'/g, "''")}'`;
-  const result = await sheetsRequest<ValuesResponse>(
-    `${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`
-  );
-  return (result.values ?? [])
-    .map(row => row.map(csvCell).join(","))
-    .join("\n");
+  const cacheKey = `${spreadsheetId}:${gid}`;
+  const forceRefresh = options?.forceRefresh === true;
+  const cached = sheetCsvCache.get(cacheKey);
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
+  const pending = sheetCsvPending.get(cacheKey);
+  if (pending) return pending;
+
+  const request = (async () => {
+    try {
+      const sheetName = await getSheetNameBySpreadsheetId(spreadsheetId, gid);
+      if (!sheetName)
+        throw new Error(`Aba com gid=${gid} não encontrada na planilha informada.`);
+      const range = `'${sheetName.replace(/'/g, "''")}'`;
+      const result = await sheetsRequest<ValuesResponse>(
+        `${valuesPath(spreadsheetId, range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`
+      );
+      return (result.values ?? [])
+        .map(row => row.map(csvCell).join(","))
+        .join("\n");
+    } catch (error) {
+      if (!isSheetsQuotaError(error)) throw error;
+      console.warn("[Sheets] Quota atingida; usando export CSV compartilhado", {
+        spreadsheetId,
+        gid,
+      });
+      return fetchSharedCsv(spreadsheetId, gid);
+    }
+  })()
+    .then(csv => {
+      sheetCsvCache.set(cacheKey, {
+        value: csv,
+        expiresAt: Date.now() + SHEET_CSV_CACHE_TTL_MS,
+      });
+      return csv;
+    })
+    .finally(() => sheetCsvPending.delete(cacheKey));
+
+  sheetCsvPending.set(cacheKey, request);
+  return request;
 }
 
 async function getSheetValues(
