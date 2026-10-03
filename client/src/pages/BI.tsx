@@ -381,10 +381,10 @@ export default function BI() {
   const isLoading = loading || migrationLoading;
 
   return (
-    <main className="min-h-screen bg-[#F5F7FA] px-4 py-5 text-[#001F3F] sm:px-8 md:ml-20">
-      <div className="mx-auto max-w-7xl">
-        <section className="sticky top-0 z-10 rounded-2xl border border-slate-200 bg-[#F5F7FA]/95 p-3 backdrop-blur sm:p-4">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+    <main className="min-h-screen w-full overflow-x-hidden bg-[#F5F7FA] px-3 py-3 text-[#001F3F] sm:px-4 lg:px-5 md:ml-20">
+      <div className="mx-auto w-full max-w-[1600px] min-w-0">
+        <section className="sticky top-0 z-10 min-w-0 rounded-2xl border border-slate-200 bg-[#F5F7FA]/95 p-2.5 backdrop-blur sm:p-3">
+          <div className="flex min-w-0 flex-col gap-2.5 2xl:flex-row 2xl:items-center">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <BarChart3 className="h-4 w-4 text-blue-700" aria-hidden="true" />
               Filtros
@@ -493,7 +493,7 @@ export default function BI() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 xl:ml-auto">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 2xl:ml-auto">
               <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2">
                 <Clock3 className="h-4 w-4 text-slate-400" aria-hidden="true" />
                 <span>{formatCountdown(secondsUntilRefresh)}</span>
@@ -539,7 +539,7 @@ export default function BI() {
           </div>
         </section>
 
-        <section className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" aria-label="KPIs de operação">
+        <section className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5" aria-label="KPIs de operação">
           {normalCards.map(card => {
             const Icon = card.icon;
             const toneClasses = {
@@ -576,7 +576,7 @@ export default function BI() {
           <div className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <section className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" aria-label="KPIs críticos">
+        <section className="mt-2 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5" aria-label="KPIs críticos">
           {criticalCards.map(card => (
             <button
               key={card.key}
@@ -600,8 +600,8 @@ export default function BI() {
           ))}
         </section>
 
-        <section className="mt-7 grid gap-4 xl:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="mt-5 grid min-w-0 gap-3 2xl:grid-cols-2">
+          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="font-semibold text-slate-800">Quantidade de clientes por CSM</h2>
@@ -609,7 +609,7 @@ export default function BI() {
               </div>
               <Users className="h-5 w-5 text-blue-600" aria-hidden="true" />
             </div>
-            <div className="mt-4 h-[290px] w-full">
+            <div className="mt-3 h-[240px] w-full min-w-0 sm:h-[270px]">
               {clientCountByCSM.length === 0 ? (
                 <div className="flex h-full items-center justify-center text-sm text-slate-400">Nenhum dado para exibir.</div>
               ) : (
@@ -626,7 +626,7 @@ export default function BI() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="font-semibold text-slate-800">Valor financeiro por CSM</h2>
@@ -634,7 +634,7 @@ export default function BI() {
               </div>
               <span className="text-lg font-bold text-emerald-700">{formatCurrency(boletoByCSM.reduce((sum, item) => sum + item.valor, 0))}</span>
             </div>
-            <div className="mt-4 h-[290px] w-full">
+            <div className="mt-3 h-[240px] w-full min-w-0 sm:h-[270px]">
               {boletoByCSM.length === 0 ? (
                 <div className="flex h-full items-center justify-center text-sm text-slate-400">Nenhum boleto válido para exibir.</div>
               ) : (
@@ -652,7 +652,7 @@ export default function BI() {
           </div>
         </section>
 
-        <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="mt-3 min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold text-slate-800">
@@ -664,7 +664,7 @@ export default function BI() {
             </div>
             <Timer className="h-5 w-5 text-cyan-700" aria-hidden="true" />
           </div>
-          <div className="mt-4 h-[330px] w-full">
+          <div className="mt-3 h-[270px] w-full min-w-0 sm:h-[310px]">
             {ttvByObjective.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-slate-400">
                 Nenhum objetivo informado nos clientes visíveis.

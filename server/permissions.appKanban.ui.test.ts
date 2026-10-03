@@ -15,10 +15,11 @@ const appSource = readFileSync(
 );
 
 describe("permissões do App Personalizado", () => {
-  it("inclui BI na lista normal de abas configuráveis", () => {
-    expect(configSource).toContain('{ id: "bi", label: "BI" }');
-    expect(menuSource).toContain('{ id: "bi", label: "BI"');
+  it("mantém BI exclusivo para administradores", () => {
+    expect(configSource).not.toContain('{ id: "bi", label: "BI" }');
+    expect(menuSource).toContain('{ id: "bi", label: "BI", icon: BarChart3, adminOnly: true }');
     expect(appSource).toContain('case "bi":');
+    expect(appSource).toContain('permission.isAdmin ? <BI /> : <AdminOnlyScreen area="A aba BI" />');
   });
 
   it("trata App Personalizado como uma aba normal configurável", () => {

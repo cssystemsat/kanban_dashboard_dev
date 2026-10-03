@@ -61,7 +61,9 @@ describe("BI shell", () => {
     expect(biPageSource).not.toContain("Área de BI preparada");
     expect(biPageSource).toContain("Clique para ver os clientes");
     expect(biPageSource).not.toContain("localStorage");
-    expect(biPageSource).toContain("xl:grid-cols-5");
+    expect(biPageSource).toContain("2xl:grid-cols-5");
+    expect(biPageSource).toContain("overflow-x-hidden");
+    expect(sideMenuSource).toContain("adminOnly: true");
   });
 
   it("replaces the blue atendimento action icon without implementing BI rules yet", () => {

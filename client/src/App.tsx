@@ -85,7 +85,7 @@ function AccessRestrictedScreen() {
   );
 }
 
-function AdminOnlyScreen() {
+function AdminOnlyScreen({ area = "esta área" }: { area?: string }) {
   return (
     <main className="min-h-screen bg-background px-6 py-16 text-foreground">
       <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 text-center shadow-sm">
@@ -96,8 +96,8 @@ function AdminOnlyScreen() {
           Área exclusiva para administradores
         </h1>
         <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
-          O painel Performance está disponível somente para usuários com perfil
-          administrativo autorizado.
+          {area} está disponível somente para usuários com perfil administrativo
+          autorizado.
         </p>
       </div>
     </main>
@@ -221,7 +221,8 @@ function AppInner() {
       case "ongoing":
         return <Ongoing />;
       case "bi":
-        return <BI />;
+        if (permission === undefined) return null;
+        return permission.isAdmin ? <BI /> : <AdminOnlyScreen area="A aba BI" />;
       case "churns":
         return <Churns />;
       case "configuracoes":

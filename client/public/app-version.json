@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.5",
-  "changes": ["O pop-up NPS agora mostra somente avaliações recebidas no dia atual, considerando o fuso de Brasília."]
+  "appVersion": "10.6",
+  "changes": ["A aba BI agora é exclusiva para administradores e sua tela se adapta melhor a diferentes níveis de zoom."]
 }

@@ -49,7 +49,7 @@ const PROTECTED_ITEMS = [
   { id: "marcos", label: "Marcos", icon: CheckSquare },
   { id: "timeline", label: "Timeline", icon: UserRound },
   { id: "ongoing", label: "Ongoing", icon: Users },
-  { id: "bi", label: "BI", icon: BarChart3 },
+  { id: "bi", label: "BI", icon: BarChart3, adminOnly: true },
   { id: "churns", label: "CHURNs", icon: TrendingDown },
   {
     id: "migracao-externa",
@@ -119,9 +119,14 @@ export default function SideMenu({
   // Abas protegidas visíveis para o usuário logado
   const visibleProtectedItems = (() => {
     if (!isLoggedIn || !isAllowed) return [];
-    if (myPerms?.allowedPages === null) return PROTECTED_ITEMS; // acesso total
-    return PROTECTED_ITEMS.filter(item =>
-      myPerms?.allowedPages?.includes(item.id)
+    if (myPerms?.allowedPages === null) {
+      return PROTECTED_ITEMS.filter(item => !item.adminOnly || isAdmin);
+    }
+    return PROTECTED_ITEMS.filter(
+      item =>
+        item.adminOnly
+          ? isAdmin
+          : myPerms?.allowedPages?.includes(item.id)
     );
   })();
 
