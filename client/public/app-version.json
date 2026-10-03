@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.4",
-  "changes": ["Os rótulos de estados do mapa agora ficam fora dos círculos, ligados por linhas-guia, preservando a leitura das quantidades."]
+  "appVersion": "10.5",
+  "changes": ["O pop-up NPS agora mostra somente avaliações recebidas no dia atual, considerando o fuso de Brasília."]
 }

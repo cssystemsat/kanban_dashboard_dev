@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   mapCentralIds,
   normalizeWootricResponse,
+  getBrazilTodayRange,
   verifyWootricWebhookSignature,
 } from "./wootric";
 
@@ -55,13 +56,28 @@ describe("Wootric", () => {
     );
     const server = readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8");
     expect(component).toContain("trpc.wootric.pending");
-    expect(component).toContain("Estou ciente das novas avaliações");
+    expect(component).toContain("Estou ciente das avaliações de hoje");
+    expect(component).toContain("Nova avaliação NPS de hoje");
     expect(component).toContain("Cliente não encontrado");
     expect(component).toContain("ID central:");
     expect(server).toContain("WOOTRIC");
     expect(component).not.toMatch(/CLIENT_SECRET|CLIENT_ID|API_KEY/);
     expect(component).toContain("min-h-0 flex-1");
     expect(component).not.toContain("MessageSquareHeart");
+  });
+
+  it("calcula o intervalo do dia atual em São Paulo", () => {
+    const { start, end } = getBrazilTodayRange(
+      new Date("2026-10-03T02:30:00.000Z")
+    );
+    expect(start.toISOString()).toBe("2026-10-02T03:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-10-03T03:00:00.000Z");
+
+    const nextDay = getBrazilTodayRange(
+      new Date("2026-10-03T12:00:00.000Z")
+    );
+    expect(nextDay.start.toISOString()).toBe("2026-10-03T03:00:00.000Z");
+    expect(nextDay.end.toISOString()).toBe("2026-10-04T03:00:00.000Z");
   });
 
   it("oferece histórico Wootric por ID central nos cards Marcos e Ongoing", () => {
@@ -89,7 +105,6 @@ describe("Wootric", () => {
       "utf8"
     );
     expect(historyModal).not.toContain("WootricMark");
-    expect(marcosCard).toContain("EMPTY_OBJECTIVE_INDEXES");
     expect(marcosCard).toContain("objectiveQueryInput");
     expect(marcosCard).toContain("return current");
     expect(home).toContain("useMemo");

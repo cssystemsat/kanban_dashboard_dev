@@ -62,7 +62,7 @@ export function WootricAlert() {
       <div className="flex h-[min(88vh,760px)] w-[min(95vw,720px)] flex-col overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-2xl">
         <div className="shrink-0 border-b border-indigo-100 bg-indigo-50 px-6 py-5">
           <div>
-            <h2 className="text-lg font-bold text-slate-950">Nova avaliação NPS</h2>
+            <h2 className="text-lg font-bold text-slate-950">Nova avaliação NPS de hoje</h2>
             <p className="text-sm text-slate-600">
               {responses.length} avaliação{responses.length !== 1 ? "ões" : ""} aguardando sua ciência.
             </p>
@@ -106,7 +106,7 @@ export function WootricAlert() {
               className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span className="text-sm font-medium text-slate-700">
-              Estou ciente das novas avaliações
+              Estou ciente das avaliações de hoje
             </span>
           </label>
           <button

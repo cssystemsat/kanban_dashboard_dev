@@ -1,4 +1,4 @@
-import { desc, eq, inArray, isNull, like } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, like, lt } from "drizzle-orm";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   InsertWootricResponse,
@@ -593,14 +593,37 @@ export function verifyWootricWebhookSignature(
   return received.length === calculated.length && timingSafeEqual(received, calculated);
 }
 
+/**
+ * Retorna o intervalo do dia corrente no fuso operacional do painel.
+ * A Wootric persiste os timestamps em UTC; o painel é operado em São Paulo.
+ */
+export function getBrazilTodayRange(now = new Date()) {
+  const localDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+  const start = new Date(`${localDate}T03:00:00.000Z`);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
 export async function getPendingWootricResponses(userId: number) {
   const db = await getDb();
   if (!db) return [];
+  const { start, end } = getBrazilTodayRange();
   const [responses, acknowledgments] = await Promise.all([
     db
       .select()
       .from(wootricResponses)
-      .where(eq(wootricResponses.showInAlert, 1))
+      .where(
+        and(
+          eq(wootricResponses.showInAlert, 1),
+          gte(wootricResponses.createdAtWootric, start),
+          lt(wootricResponses.createdAtWootric, end)
+        )
+      )
       .orderBy(desc(wootricResponses.createdAtWootric))
       .limit(50),
     db
