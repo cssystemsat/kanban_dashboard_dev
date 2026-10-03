@@ -18,11 +18,19 @@ export default function CompletionAuditBadge({
   enabled,
 }: CompletionAuditBadgeProps) {
   const [open, setOpen] = useState(false);
+  const [selectedCsm, setSelectedCsm] = useState("todos");
   const { audit, loading, error, refresh } = useCompletionAudit(area, enabled);
 
   if (!enabled) return null;
 
-  const groupedIssues = audit.issues.reduce<Map<string, typeof audit.issues>>(
+  const csms = Array.from(new Set(audit.issues.map(issue => issue.csm))).sort(
+    (a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+  );
+  const visibleIssues =
+    selectedCsm === "todos"
+      ? audit.issues
+      : audit.issues.filter(issue => issue.csm === selectedCsm);
+  const groupedIssues = visibleIssues.reduce<Map<string, typeof audit.issues>>(
     (groups, issue) => {
       const current = groups.get(issue.csm) ?? [];
       current.push(issue);
@@ -82,8 +90,8 @@ export default function CompletionAuditBadge({
                   Pendências de {AREA_LABELS[area]}
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {audit.totalMissingClients > 0
-                    ? `${audit.totalMissingClients} cliente${audit.totalMissingClients === 1 ? "" : "s"} com campos obrigatórios vazios.`
+                  {visibleIssues.length > 0
+                    ? `${visibleIssues.length} cliente${visibleIssues.length === 1 ? "" : "s"} com campos obrigatórios vazios${selectedCsm === "todos" ? "." : ` para ${selectedCsm}.`}`
                     : "Nenhum campo obrigatório vazio foi encontrado."}
                 </p>
               </div>
@@ -129,6 +137,32 @@ export default function CompletionAuditBadge({
                 </div>
               ) : (
                 <div className="space-y-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <label
+                      htmlFor={`completion-audit-${area}-csm`}
+                      className="text-xs font-bold uppercase tracking-wide text-slate-500"
+                    >
+                      Filtrar por CSM
+                    </label>
+                    <select
+                      id={`completion-audit-${area}-csm`}
+                      value={selectedCsm}
+                      onChange={event => setSelectedCsm(event.target.value)}
+                      className="min-w-[220px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="todos">Todos os CSMs</option>
+                      {csms.map(csm => (
+                        <option key={csm} value={csm}>
+                          {csm}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {visibleIssues.length === 0 ? (
+                    <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center text-sm font-medium text-green-800">
+                      Nenhuma pendência encontrada para este CSM.
+                    </div>
+                  ) : null}
                   {Array.from(groupedIssues.entries()).map(([csm, issues]) => (
                     <div key={csm}>
                       <div className="mb-2 flex items-center gap-2">

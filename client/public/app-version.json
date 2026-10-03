@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.1",
-  "changes": ["Marcos e Ongoing agora exibem um alerta de preenchimento pendente por CSM, cliente e campo obrigatório."]
+  "appVersion": "10.2",
+  "changes": ["A auditoria de pendências agora permite filtrar os clientes por CSM."]
 }

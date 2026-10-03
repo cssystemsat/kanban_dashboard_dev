@@ -18,6 +18,9 @@ describe("completion audit UI", () => {
     expect(badge).toContain("O que falta preencher");
     expect(badge).toContain("Ver pendências de preenchimento");
     expect(badge).toContain("audit.totalMissingClients > 0");
+    expect(badge).toContain("Filtrar por CSM");
+    expect(badge).toContain("Todos os CSMs");
+    expect(badge).toContain("selectedCsm");
   });
 
   it("usa as abas corretas das planilhas principal", () => {
