@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getBIClientGroups } from "../client/src/lib/biMetrics";
+import {
+  getBICriticalGroups,
+  getBIClientGroups,
+  groupBoletoByCSM,
+  groupClientCountByCSM,
+  parseBoleto,
+} from "../client/src/lib/biMetrics";
 
 describe("KPIs do BI baseados nos marcos de Marcos", () => {
   it("conta implantação nos marcos 1, 2 e 3", () => {
@@ -49,5 +55,61 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
 
     expect(groups.implantacao).toHaveLength(1);
     expect(groups.onboarding).toHaveLength(1);
+  });
+
+  it("separa os três indicadores críticos pelas regras de atraso", () => {
+    const groups = getBICriticalGroups([
+      {
+        nome: "Implantação atrasada",
+        marco: 2,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 40,
+      },
+      {
+        nome: "Onboarding atrasado",
+        marco: 4,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 90,
+      },
+      {
+        nome: "Ongoing atrasado",
+        marco: 5,
+        marcoStatus: "ok",
+        isComplete: true,
+        diasCorridos: 366,
+      },
+    ]);
+
+    expect(groups.atrasoImplantacao.map(client => client.nome)).toEqual([
+      "Implantação atrasada",
+    ]);
+    expect(groups.atrasoOnboarding.map(client => client.nome)).toEqual([
+      "Onboarding atrasado",
+    ]);
+    expect(groups.atrasoOngoing.map(client => client.nome)).toEqual([
+      "Ongoing atrasado",
+    ]);
+  });
+
+  it("agrega clientes e boletos por CSM com moeda brasileira", () => {
+    expect(parseBoleto("R$ 1.250,50")).toBe(1250.5);
+    expect(groupClientCountByCSM([
+      { nome: "A", atendente: "Ana", ultimoBoleto: "R$ 100,00" },
+      { nome: "B", atendente: "Ana", ultimoBoleto: "R$ 250,00" },
+      { nome: "C", atendente: "Bruno", ultimoBoleto: "R$ 300,00" },
+    ])).toEqual([
+      { csm: "Ana", clientes: 2 },
+      { csm: "Bruno", clientes: 1 },
+    ]);
+    expect(groupBoletoByCSM([
+      { nome: "A", atendente: "Ana", ultimoBoleto: "R$ 100,00" },
+      { nome: "B", atendente: "Ana", ultimoBoleto: "R$ 250,00" },
+      { nome: "C", atendente: "Bruno", ultimoBoleto: "R$ 300,00" },
+    ])).toEqual([
+      { csm: "Ana", valor: 350 },
+      { csm: "Bruno", valor: 300 },
+    ]);
   });
 });

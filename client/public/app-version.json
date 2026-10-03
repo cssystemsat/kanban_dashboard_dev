@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.5",
-  "changes": ["A aba BI agora exibe KPIs clicáveis de implantação, onboarding e clientes implantados, calculados dinamicamente a partir da aba Marcos."]
+  "appVersion": "9.6",
+  "changes": ["A aba BI foi reorganizada com filtros por CSM e cliente, KPIs de migração e atrasos, além de gráficos de clientes e valores financeiros por CSM."]
 }

@@ -35,10 +35,19 @@ describe("BI shell", () => {
     expect(appSource).toContain('case "bi":');
   });
 
-  it("exibe os três KPIs dinâmicos baseados na aba Marcos", () => {
+  it("exibe filtros, KPIs normais e críticos baseados na operação", () => {
     expect(biMetricsSource).toContain("Clientes em implantação");
     expect(biMetricsSource).toContain("Clientes em onboarding");
     expect(biMetricsSource).toContain('label: "Implantados"');
+    expect(biMetricsSource).toContain("Clientes em migração");
+    expect(biMetricsSource).toContain("Implantação atrasada");
+    expect(biMetricsSource).toContain("Onboarding atrasado");
+    expect(biMetricsSource).toContain("Atrasados para Ongoing");
+    expect(biPageSource).toContain("Todos os CSMs");
+    expect(biPageSource).toContain("Quantidade de clientes por CSM");
+    expect(biPageSource).toContain("Valor financeiro por CSM");
+    expect(biPageSource).not.toContain("Inteligência financeira");
+    expect(biPageSource).not.toContain("Área de BI preparada");
     expect(biPageSource).toContain("Clique para ver os clientes");
     expect(biPageSource).not.toContain("localStorage");
   });
