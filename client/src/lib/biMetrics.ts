@@ -202,6 +202,30 @@ export function getUnflaggedOverdueGroups<T extends BIFlaggableClient>(
   };
 }
 
+export function getFlaggedOverdueGroups<T extends BIFlaggableClient>(
+  clients: T[]
+): Record<"implantacao" | "onboarding", T[]> {
+  const flagged = clients.filter(client => hasRiskFlag(client.flag));
+  return {
+    implantacao: sortedByName(
+      flagged.filter(
+        client =>
+          client.marcoStatus === "atrasado" &&
+          client.marco >= 1 &&
+          client.marco <= 3
+      )
+    ),
+    onboarding: sortedByName(
+      flagged.filter(
+        client =>
+          client.marcoStatus === "atrasado" &&
+          client.marco >= 4 &&
+          client.marco <= 5
+      )
+    ),
+  };
+}
+
 export type ObjectiveCompletionMetric = {
   clientId: string;
   objectiveIndex: number;

@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.7",
-  "changes": ["O BI agora acompanha a largura útil da tela como o Painel, com filtros, KPIs e gráficos adaptados ao zoom sem cortes."]
+  "appVersion": "10.8",
+  "changes": ["O botão Gerar relatório do BI agora baixa um PDF gerencial com atrasados sem/com flag e TTV médio geral e por objetivo."]
 }

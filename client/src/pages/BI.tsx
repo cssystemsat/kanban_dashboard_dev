@@ -34,6 +34,7 @@ import {
   filterClientsByObjectives,
   getBICriticalGroups,
   getBIClientGroups,
+  getFlaggedOverdueGroups,
   getUnflaggedOverdueGroups,
   groupAverageTTVByObjective,
   groupBoletoByCSM,
@@ -42,6 +43,7 @@ import {
   listObjectives,
   normalizeCSM,
 } from "@/lib/biMetrics";
+import { generateBIManagementReport } from "@/lib/biReportPdf";
 import {
   Dialog,
   DialogContent,
@@ -147,6 +149,7 @@ export default function BI() {
   const [searchCliente, setSearchCliente] = useState("");
   const [selectedList, setSelectedList] = useState<SelectedList | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
   const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(
     REFRESH_INTERVAL_SECONDS
   );
@@ -241,6 +244,10 @@ export default function BI() {
   );
   const unflaggedOverdueGroups = useMemo(
     () => getUnflaggedOverdueGroups(filteredData),
+    [filteredData]
+  );
+  const flaggedOverdueGroups = useMemo(
+    () => getFlaggedOverdueGroups(filteredData),
     [filteredData]
   );
   const ttv = useMemo(
@@ -512,13 +519,31 @@ export default function BI() {
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  toast.info("A geração de relatório será configurada em breve.")
-                }
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-3 py-2 font-semibold text-white transition hover:bg-blue-800"
+                disabled={generatingReport || isLoading}
+                onClick={() => {
+                  setGeneratingReport(true);
+                  try {
+                    generateBIManagementReport({
+                      unflaggedImplantation: unflaggedOverdueGroups.implantacao,
+                      flaggedImplantation: flaggedOverdueGroups.implantacao,
+                      ttvClients: filteredData,
+                      completions: objectiveCompletionMetrics,
+                      selectedObjectives,
+                      csmLabel: selectedCSM || "Todos",
+                      searchLabel: searchCliente || "Todos",
+                    });
+                    toast.success("PDF gerencial gerado com sucesso.");
+                  } catch (error) {
+                    console.error("[BI] Erro ao gerar PDF gerencial", error);
+                    toast.error("Não foi possível gerar o PDF gerencial.");
+                  } finally {
+                    setGeneratingReport(false);
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-3 py-2 font-semibold text-white transition hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60"
               >
-                <FileText className="h-4 w-4" aria-hidden="true" />
-                Gerar relatório
+                <FileText className={`h-4 w-4 ${generatingReport ? "animate-pulse" : ""}`} aria-hidden="true" />
+                {generatingReport ? "Gerando PDF..." : "Gerar relatório"}
               </button>
             </div>
           </div>

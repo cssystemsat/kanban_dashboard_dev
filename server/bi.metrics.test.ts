@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateAverageTTV,
   filterClientsByObjectives,
+  getFlaggedOverdueGroups,
   getBICriticalGroups,
   getBIClientGroups,
   getUnflaggedOverdueGroups,
@@ -159,6 +160,42 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
     ]);
     expect(groups.onboarding.map(client => client.nome)).toEqual([
       "Onboarding sem flag",
+    ]);
+  });
+
+  it("separa atrasados com flag para o relatório gerencial", () => {
+    const groups = getFlaggedOverdueGroups([
+      {
+        nome: "Implantação com red",
+        marco: 2,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 20,
+        flag: "Red Flag",
+      },
+      {
+        nome: "Implantação sem flag",
+        marco: 2,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 20,
+        flag: "",
+      },
+      {
+        nome: "Onboarding com black",
+        marco: 4,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 40,
+        flag: "Black Flag",
+      },
+    ]);
+
+    expect(groups.implantacao.map(client => client.nome)).toEqual([
+      "Implantação com red",
+    ]);
+    expect(groups.onboarding.map(client => client.nome)).toEqual([
+      "Onboarding com black",
     ]);
   });
 

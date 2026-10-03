@@ -21,6 +21,10 @@ const biMetricsSource = readFileSync(
   new URL("../client/src/lib/biMetrics.ts", import.meta.url),
   "utf8"
 );
+const biReportPdfSource = readFileSync(
+  new URL("../client/src/lib/biReportPdf.ts", import.meta.url),
+  "utf8"
+);
 
 describe("BI shell", () => {
   it("exposes BI between Ongoing and CHURNs", () => {
@@ -57,6 +61,14 @@ describe("BI shell", () => {
     expect(biPageSource).toContain("Valor financeiro por CSM");
     expect(biPageSource).toContain("Tempo de implantação por objetivo");
     expect(biPageSource).toContain("groupAverageTTVByObjective");
+    expect(biPageSource).toContain("generateBIManagementReport");
+    expect(biPageSource).toContain("PDF gerencial gerado com sucesso.");
+    expect(biPageSource).toContain("getFlaggedOverdueGroups");
+    expect(biReportPdfSource).toContain("Clientes atrasados em implantação sem flag");
+    expect(biReportPdfSource).toContain("Clientes atrasados em implantação com flag");
+    expect(biReportPdfSource).toContain("TTV médio geral");
+    expect(biReportPdfSource).toContain("TTV médio por objetivo");
+    expect(biReportPdfSource).toContain("doc.save");
     expect(biPageSource).not.toContain("Inteligência financeira");
     expect(biPageSource).not.toContain("Área de BI preparada");
     expect(biPageSource).toContain("Clique para ver os clientes");
