@@ -161,6 +161,7 @@ export const clientObjectiveCompletions = mysqlTable(
     objectiveIndex: int("objectiveIndex").notNull(),
     completed: boolean("completed").default(true).notNull(),
     updatedBy: varchar("updatedBy", { length: 320 }),
+    completedAt: timestamp("completedAt"),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
   table => ({

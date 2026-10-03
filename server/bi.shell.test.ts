@@ -43,13 +43,21 @@ describe("BI shell", () => {
     expect(biMetricsSource).toContain("Implantação atrasada");
     expect(biMetricsSource).toContain("Onboarding atrasado");
     expect(biMetricsSource).toContain("Atrasados para Ongoing");
+    expect(biMetricsSource).toContain("getUnflaggedOverdueGroups");
+    expect(biMetricsSource).toContain("calculateAverageTTV");
     expect(biPageSource).toContain("Todos os CSMs");
+    expect(biPageSource).toContain("Gerar relatório");
+    expect(biPageSource).toContain("TTV médio");
+    expect(biPageSource).toContain("Atrasados sem Flag");
     expect(biPageSource).toContain("Quantidade de clientes por CSM");
     expect(biPageSource).toContain("Valor financeiro por CSM");
+    expect(biPageSource).toContain("Tempo de implantação por objetivo");
+    expect(biPageSource).toContain("groupAverageTTVByObjective");
     expect(biPageSource).not.toContain("Inteligência financeira");
     expect(biPageSource).not.toContain("Área de BI preparada");
     expect(biPageSource).toContain("Clique para ver os clientes");
     expect(biPageSource).not.toContain("localStorage");
+    expect(biPageSource).toContain("xl:grid-cols-5");
   });
 
   it("replaces the blue atendimento action icon without implementing BI rules yet", () => {

@@ -1,4 +1,4 @@
 {
-  "appVersion": "9.6",
-  "changes": ["A aba BI foi reorganizada com filtros por CSM e cliente, KPIs de migração e atrasos, além de gráficos de clientes e valores financeiros por CSM."]
+  "appVersion": "9.8",
+  "changes": ["Agora cada objetivo pode receber uma data de conclusão retroativa e o BI mostra o tempo médio de implantação por objetivo."]
 }

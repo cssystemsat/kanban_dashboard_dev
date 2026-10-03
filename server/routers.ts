@@ -71,6 +71,7 @@ import {
   getAnalystScoreSchedules,
   saveAnalystScoreSchedule,
   getClientObjectiveCompletions,
+  getCompletedObjectiveMetrics,
   setClientObjectiveCompletion,
 } from "./db";
 import { TRPCError } from "@trpc/server";
@@ -173,14 +174,21 @@ export const appRouter = router({
       .input(z.object({ clientId: z.string().min(1).max(255) }))
       .query(async ({ input }) => {
         const rows = await getClientObjectiveCompletions(input.clientId);
-        return rows.map(row => row.objectiveIndex);
+        return rows;
       }),
+    objectiveCompletionMetrics: protectedProcedure.query(async () => {
+      return getCompletedObjectiveMetrics();
+    }),
     setObjectiveCompletion: protectedProcedure
       .input(
         z.object({
           clientId: z.string().min(1).max(255),
           objectiveIndex: z.number().int().nonnegative(),
           completed: z.boolean(),
+          completedAt: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -188,7 +196,10 @@ export const appRouter = router({
           input.clientId,
           input.objectiveIndex,
           input.completed,
-          ctx.user.email
+          ctx.user.email,
+          input.completedAt
+            ? new Date(`${input.completedAt}T12:00:00`)
+            : undefined
         );
         return { success: true };
       }),

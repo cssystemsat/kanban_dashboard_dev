@@ -370,7 +370,10 @@ export async function getClientObjectiveCompletions(clientId: string) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   return db
-    .select({ objectiveIndex: clientObjectiveCompletions.objectiveIndex })
+    .select({
+      objectiveIndex: clientObjectiveCompletions.objectiveIndex,
+      completedAt: clientObjectiveCompletions.completedAt,
+    })
     .from(clientObjectiveCompletions)
     .where(
       and(
@@ -380,16 +383,31 @@ export async function getClientObjectiveCompletions(clientId: string) {
     );
 }
 
+export async function getCompletedObjectiveMetrics() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db
+    .select({
+      clientId: clientObjectiveCompletions.clientId,
+      objectiveIndex: clientObjectiveCompletions.objectiveIndex,
+      completedAt: clientObjectiveCompletions.completedAt,
+    })
+    .from(clientObjectiveCompletions)
+    .where(eq(clientObjectiveCompletions.completed, true));
+}
+
 export async function setClientObjectiveCompletion(
   clientId: string,
   objectiveIndex: number,
   completed: boolean,
-  updatedBy?: string | null
+  updatedBy?: string | null,
+  completedAt?: Date
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
 
   if (completed) {
+    const completionDate = completedAt ?? new Date();
     await db
       .insert(clientObjectiveCompletions)
       .values({
@@ -397,9 +415,14 @@ export async function setClientObjectiveCompletion(
         objectiveIndex,
         completed: true,
         updatedBy: updatedBy ?? null,
+        completedAt: completionDate,
       })
       .onDuplicateKeyUpdate({
-        set: { completed: true, updatedBy: updatedBy ?? null },
+        set: {
+          completed: true,
+          updatedBy: updatedBy ?? null,
+          completedAt: completionDate,
+        },
       });
   } else {
     await db

@@ -15,6 +15,10 @@ describe("Marcos — objetivos do cliente", () => {
     resolve(process.cwd(), "server/routers.ts"),
     "utf8"
   );
+  const schema = readFileSync(
+    resolve(process.cwd(), "drizzle/schema.ts"),
+    "utf8"
+  );
 
   it("substitui o botão de grupo por uma seta que abre os objetivos", () => {
     expect(clientCard).toContain("Ver objetivos do cliente");
@@ -33,6 +37,10 @@ describe("Marcos — objetivos do cliente", () => {
     expect(clientCard).toContain("line-through");
     expect(clientCard).toContain("trpc.marcos.objectiveCompletions.useQuery");
     expect(clientCard).toContain("trpc.marcos.setObjectiveCompletion.useMutation");
+    expect(clientCard).toContain("objectiveCompletionMetrics.invalidate");
+    expect(clientCard).toContain("Data da conclusão");
+    expect(clientCard).toContain('type="date"');
+    expect(clientCard).toContain("completedAt,");
     expect(clientCard).not.toContain("localStorage");
   });
 
@@ -45,5 +53,8 @@ describe("Marcos — objetivos do cliente", () => {
     expect(routers).toContain("objectiveCompletions: protectedProcedure");
     expect(routers).toContain("setObjectiveCompletion: protectedProcedure");
     expect(routers).toContain("setClientObjectiveCompletion(");
+    expect(routers).toContain("objectiveCompletionMetrics: protectedProcedure");
+    expect(routers).toContain("completedAt: z");
+    expect(schema).toContain('completedAt: timestamp("completedAt")');
   });
 });

@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
-  CalendarDays,
   CheckCircle2,
   Clock3,
+  FileText,
   RefreshCw,
   Rocket,
   Search,
+  Timer,
   TriangleAlert,
   Users,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -28,8 +30,11 @@ import {
 import {
   BI_CRITICAL_DEFINITIONS,
   BI_SEGMENT_DEFINITIONS,
+  calculateAverageTTV,
   getBICriticalGroups,
   getBIClientGroups,
+  getUnflaggedOverdueGroups,
+  groupAverageTTVByObjective,
   groupBoletoByCSM,
   groupClientCountByCSM,
   listCSMs,
@@ -42,6 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { trpc } from "@/lib/trpc";
 
 const REFRESH_INTERVAL_SECONDS = 10 * 60;
 
@@ -78,6 +84,9 @@ const formatCompactCurrency = (value: number) => {
   if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(0)} mil`;
   return `R$ ${value.toFixed(0)}`;
 };
+
+const formatDays = (value: number) =>
+  `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}d`;
 
 const normalizeStatus = (value: string) =>
   value
@@ -135,6 +144,10 @@ export default function BI() {
     REFRESH_INTERVAL_SECONDS
   );
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const { data: objectiveCompletionMetrics = [] } =
+    trpc.marcos.objectiveCompletionMetrics.useQuery(undefined, {
+      staleTime: 30_000,
+    });
 
   const refreshData = useCallback(async () => {
     setRefreshing(true);
@@ -202,6 +215,18 @@ export default function BI() {
     () => getBICriticalGroups(filteredData),
     [filteredData]
   );
+  const unflaggedOverdueGroups = useMemo(
+    () => getUnflaggedOverdueGroups(filteredData),
+    [filteredData]
+  );
+  const ttv = useMemo(
+    () => calculateAverageTTV(filteredData, objectiveCompletionMetrics),
+    [filteredData, objectiveCompletionMetrics]
+  );
+  const ttvByObjective = useMemo(
+    () => groupAverageTTVByObjective(filteredData, objectiveCompletionMetrics),
+    [filteredData, objectiveCompletionMetrics]
+  );
   const clientCountByCSM = useMemo(
     () => groupClientCountByCSM(filteredData),
     [filteredData]
@@ -211,6 +236,16 @@ export default function BI() {
   const migrationEntries = useMemo(
     () => filteredMigrationData.map(migrationEntry),
     [filteredMigrationData]
+  );
+  const ttvEntries = useMemo(
+    () =>
+      ttv.entries.map(entry => ({
+        id: `${entry.clientId}-${entry.objectiveIndex}-${entry.completedAt.toISOString()}`,
+        nome: entry.clientName,
+        badge: `${entry.days} dias`,
+        detail: `Objetivo ${entry.objectiveIndex + 1} concluído em ${entry.completedAt.toLocaleDateString("pt-BR")}`,
+      })),
+    [ttv.entries]
   );
 
   const normalCards = [
@@ -250,6 +285,15 @@ export default function BI() {
       icon: RefreshCw,
       tone: "amber",
     },
+    {
+      key: "ttv",
+      label: "TTV médio",
+      description: "Tempo entre a entrada e a conclusão dos objetivos.",
+      count: ttv.averageDays === null ? "—" : formatDays(ttv.averageDays),
+      entries: ttvEntries,
+      icon: Timer,
+      tone: "cyan",
+    },
   ] as const;
 
   const criticalCards = [
@@ -261,11 +305,27 @@ export default function BI() {
       tone: "red",
     },
     {
+      key: "semFlagImplantacao",
+      label: "Atrasados sem Flag",
+      description: "Atrasados nos marcos 1, 2 ou 3 sem Red, Yellow ou Black Flag.",
+      count: unflaggedOverdueGroups.implantacao.length,
+      entries: unflaggedOverdueGroups.implantacao.map(clientEntry),
+      tone: "rose",
+    },
+    {
       key: "atrasoOnboarding",
       ...BI_CRITICAL_DEFINITIONS.atrasoOnboarding,
       count: criticalGroups.atrasoOnboarding.length,
       entries: criticalGroups.atrasoOnboarding.map(clientEntry),
       tone: "orange",
+    },
+    {
+      key: "semFlagOnboarding",
+      label: "Atrasados sem Flag",
+      description: "Atrasados nos marcos 4 ou 5 sem Red, Yellow ou Black Flag.",
+      count: unflaggedOverdueGroups.onboarding.length,
+      entries: unflaggedOverdueGroups.onboarding.map(clientEntry),
+      tone: "rose",
     },
     {
       key: "atrasoOngoing",
@@ -349,6 +409,16 @@ export default function BI() {
                 />
                 Atualizar
               </button>
+              <button
+                type="button"
+                onClick={() =>
+                  toast.info("A geração de relatório será configurada em breve.")
+                }
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-3 py-2 font-semibold text-white transition hover:bg-blue-800"
+              >
+                <FileText className="h-4 w-4" aria-hidden="true" />
+                Gerar relatório
+              </button>
             </div>
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-400">
@@ -360,10 +430,15 @@ export default function BI() {
                   ? "Carregando dados..."
                   : "Aguardando leitura"}
             </span>
+            {hasError && (
+              <span className="text-amber-700">
+                Uma fonte está temporariamente indisponível.
+              </span>
+            )}
           </div>
         </section>
 
-        <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="KPIs de operação">
+        <section className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" aria-label="KPIs de operação">
           {normalCards.map(card => {
             const Icon = card.icon;
             const toneClasses = {
@@ -371,54 +446,55 @@ export default function BI() {
               violet: "bg-violet-50 text-violet-700 ring-violet-100",
               emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
               amber: "bg-amber-50 text-amber-700 ring-amber-100",
+              cyan: "bg-cyan-50 text-cyan-700 ring-cyan-100",
             }[card.tone];
             return (
               <button
                 key={card.key}
                 type="button"
                 onClick={() => openList(card)}
-                className="group rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="group rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ring-1 ${toneClasses}`}>
-                  <Icon className="h-4 w-4" aria-hidden="true" />
+                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ring-1 ${toneClasses}`}>
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                 </div>
-                <p className="mt-4 text-3xl font-bold text-slate-800">
+                <p className="mt-3 text-2xl font-bold leading-none text-slate-800">
                   {isLoading && data.length === 0 ? "—" : card.count}
                 </p>
-                <h2 className="mt-1 text-sm font-semibold text-slate-800">{card.label}</h2>
-                <p className="mt-1 text-xs leading-4 text-slate-500">{card.description}</p>
-                <p className="mt-3 text-xs font-semibold text-blue-700">Clique para ver os clientes</p>
+                <h2 className="mt-1.5 text-sm font-semibold text-slate-800">{card.label}</h2>
+                <p className="mt-1 text-[11px] leading-4 text-slate-500">{card.description}</p>
+                <p className="mt-2 text-[11px] font-semibold text-blue-700">Clique para ver os clientes</p>
               </button>
             );
           })}
         </section>
 
-        <div className="mt-7 flex items-center gap-3">
+        <div className="mt-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-slate-200" />
           <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Indicadores críticos</h2>
           <div className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <section className="mt-3 grid gap-3 md:grid-cols-3" aria-label="KPIs críticos">
+        <section className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" aria-label="KPIs críticos">
           {criticalCards.map(card => (
             <button
               key={card.key}
               type="button"
               onClick={() => openList(card)}
-              className="group rounded-2xl border border-red-100 bg-white p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              className="group rounded-xl border border-red-100 bg-white p-3 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-700 ring-1 ring-red-100">
-                  <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-700 ring-1 ring-red-100">
+                  <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" />
                 </div>
                 <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-red-700">
                   Atenção
                 </span>
               </div>
-              <p className="mt-4 text-3xl font-bold text-red-700">{card.count}</p>
-              <h3 className="mt-1 text-sm font-semibold text-slate-800">{card.label}</h3>
-              <p className="mt-1 text-xs leading-4 text-slate-500">{card.description}</p>
-              <p className="mt-3 text-xs font-semibold text-red-700">Clique para ver os clientes</p>
+              <p className="mt-3 text-2xl font-bold leading-none text-red-700">{card.count}</p>
+              <h3 className="mt-1.5 text-sm font-semibold text-slate-800">{card.label}</h3>
+              <p className="mt-1 text-[11px] leading-4 text-slate-500">{card.description}</p>
+              <p className="mt-2 text-[11px] font-semibold text-red-700">Clique para ver os clientes</p>
             </button>
           ))}
         </section>
@@ -475,11 +551,68 @@ export default function BI() {
           </div>
         </section>
 
-        {hasError && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            Não foi possível atualizar todos os dados do BI: {hasError}
+        <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-slate-800">
+                Tempo de implantação por objetivo
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Média em dias entre a entrada do cliente e a data de conclusão de cada objetivo.
+              </p>
+            </div>
+            <Timer className="h-5 w-5 text-cyan-700" aria-hidden="true" />
           </div>
-        )}
+          <div className="mt-4 h-[330px] w-full">
+            {ttvByObjective.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                Nenhum objetivo informado nos clientes visíveis.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={ttvByObjective}
+                  margin={{ top: 8, right: 16, left: -8, bottom: 92 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#E2E8F0"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="objective"
+                    angle={-28}
+                    textAnchor="end"
+                    interval={0}
+                    height={104}
+                    tick={{ fontSize: 11, fill: "#64748B" }}
+                  />
+                  <YAxis
+                    tickFormatter={value => `${value}d`}
+                    allowDecimals={false}
+                    tick={{ fontSize: 11, fill: "#64748B" }}
+                  />
+                  <Tooltip
+                    formatter={(value, _name, item) => [
+                      value === null || value === undefined
+                        ? "Sem conclusão datada"
+                        : formatDays(Number(value)),
+                      `Tempo médio • ${item.payload.conclusoes} conclusão(ões)`,
+                    ]}
+                    cursor={{ fill: "#F8FAFC" }}
+                  />
+                  <Bar
+                    dataKey="dias"
+                    name="Tempo médio"
+                    fill="#0E7490"
+                    radius={[5, 5, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </section>
+
       </div>
 
       <Dialog

@@ -12,8 +12,15 @@ export type BIMetricKey =
 type BIStageClient = Pick<ClientData, "nome" | "marco" | "isComplete">;
 type BICriticalClient = Pick<
   ClientData,
-  "nome" | "marco" | "isComplete" | "marcoStatus" | "diasCorridos"
+  | "nome"
+  | "marco"
+  | "isComplete"
+  | "marcoStatus"
+  | "diasCorridos"
 >;
+type BIFlaggableClient = BICriticalClient &
+  Pick<ClientData, "flag">;
+type BITTVCandidate = Pick<ClientData, "id" | "nome" | "entrada">;
 type BICSMClient = Pick<
   ClientData,
   "atendente" | "ultimoBoleto" | "nome"
@@ -120,6 +127,132 @@ export function getBICriticalGroups<T extends BICriticalClient>(
       )
     ),
   };
+}
+
+function hasRiskFlag(flag: string | undefined): boolean {
+  const normalized = (flag ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+  return ["red flag", "yellow flag", "black flag"].includes(normalized);
+}
+
+export function getUnflaggedOverdueGroups<T extends BIFlaggableClient>(
+  clients: T[]
+): Record<"implantacao" | "onboarding", T[]> {
+  const unflagged = clients.filter(client => !hasRiskFlag(client.flag));
+  return {
+    implantacao: sortedByName(
+      unflagged.filter(
+        client =>
+          client.marcoStatus === "atrasado" &&
+          client.marco >= 1 &&
+          client.marco <= 3
+      )
+    ),
+    onboarding: sortedByName(
+      unflagged.filter(
+        client =>
+          client.marcoStatus === "atrasado" &&
+          client.marco >= 4 &&
+          client.marco <= 5
+      )
+    ),
+  };
+}
+
+export type ObjectiveCompletionMetric = {
+  clientId: string;
+  objectiveIndex: number;
+  completedAt: Date | string | null;
+};
+
+function parseBrazilianDate(value: string): Date | null {
+  const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (!match) return null;
+  const [, day, month, rawYear] = match;
+  const year = rawYear.length === 2 ? Number(`20${rawYear}`) : Number(rawYear);
+  const date = new Date(year, Number(month) - 1, Number(day));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseCompletedAt(value: Date | string | null): Date | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function calculateAverageTTV<T extends BITTVCandidate>(
+  clients: T[],
+  completions: ObjectiveCompletionMetric[]
+) {
+  const clientsById = new Map(clients.map(client => [client.id, client]));
+  const entries = completions
+    .map(completion => {
+      const client = clientsById.get(completion.clientId);
+      const startDate = client ? parseBrazilianDate(client.entrada) : null;
+      const completedAt = parseCompletedAt(completion.completedAt);
+      if (!client || !startDate || !completedAt) return null;
+      const days = Math.floor(
+        (completedAt.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (days < 0) return null;
+      return {
+        clientId: client.id,
+        clientName: client.nome,
+        objectiveIndex: completion.objectiveIndex,
+        completedAt,
+        days,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
+  const averageDays = entries.length
+    ? entries.reduce((total, entry) => total + entry.days, 0) / entries.length
+    : null;
+  return { averageDays, entries };
+}
+
+export function groupAverageTTVByObjective<T extends BITTVCandidate & {
+  tags?: string[];
+}>(clients: T[], completions: ObjectiveCompletionMetric[]) {
+  const clientsById = new Map(clients.map(client => [client.id, client]));
+  const allObjectiveNames = new Set<string>();
+  for (const client of clients) {
+    for (const objective of client.tags ?? []) {
+      const name = objective.trim();
+      if (name) allObjectiveNames.add(name);
+    }
+  }
+
+  const totals = new Map<string, { totalDays: number; completions: number }>();
+  for (const completion of calculateAverageTTV(clients, completions).entries) {
+    const client = clientsById.get(completion.clientId);
+    const objectiveName =
+      client?.tags?.[completion.objectiveIndex]?.trim() ||
+      `Objetivo ${completion.objectiveIndex + 1}`;
+    allObjectiveNames.add(objectiveName);
+    const current = totals.get(objectiveName) ?? {
+      totalDays: 0,
+      completions: 0,
+    };
+    totals.set(objectiveName, {
+      totalDays: current.totalDays + completion.days,
+      completions: current.completions + 1,
+    });
+  }
+
+  return Array.from(allObjectiveNames)
+    .map(objective => {
+      const metric = totals.get(objective);
+      return {
+        objective,
+        dias: metric ? metric.totalDays / metric.completions : null,
+        conclusoes: metric?.completions ?? 0,
+      };
+    })
+    .sort((a, b) => a.objective.localeCompare(b.objective, "pt-BR"));
 }
 
 export function normalizeCSM(value: string | undefined): string {

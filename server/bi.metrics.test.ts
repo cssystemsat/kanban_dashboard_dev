@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateAverageTTV,
   getBICriticalGroups,
   getBIClientGroups,
+  getUnflaggedOverdueGroups,
+  groupAverageTTVByObjective,
   groupBoletoByCSM,
   groupClientCountByCSM,
   parseBoleto,
@@ -110,6 +113,111 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
     ])).toEqual([
       { csm: "Ana", valor: 350 },
       { csm: "Bruno", valor: 300 },
+    ]);
+  });
+
+  it("mostra atrasados sem Flag apenas quando não há Red, Yellow ou Black Flag", () => {
+    const groups = getUnflaggedOverdueGroups([
+      {
+        nome: "Implantação sem flag",
+        marco: 2,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 20,
+        flag: "",
+      },
+      {
+        nome: "Onboarding sem flag",
+        marco: 4,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 40,
+        flag: "",
+      },
+      {
+        nome: "Com red flag",
+        marco: 2,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 20,
+        flag: "Red Flag",
+      },
+      {
+        nome: "Com yellow flag",
+        marco: 4,
+        marcoStatus: "atrasado",
+        isComplete: false,
+        diasCorridos: 40,
+        flag: "Yellow Flag",
+      },
+    ]);
+
+    expect(groups.implantacao.map(client => client.nome)).toEqual([
+      "Implantação sem flag",
+    ]);
+    expect(groups.onboarding.map(client => client.nome)).toEqual([
+      "Onboarding sem flag",
+    ]);
+  });
+
+  it("calcula TTV pela diferença entre a entrada e a data do objetivo concluído", () => {
+    const ttv = calculateAverageTTV(
+      [
+        { id: "cliente-a", nome: "Cliente A", entrada: "01/01/2026" },
+        { id: "cliente-b", nome: "Cliente B", entrada: "10/01/2026" },
+      ],
+      [
+        {
+          clientId: "cliente-a",
+          objectiveIndex: 0,
+          completedAt: new Date(2026, 0, 11),
+        },
+        {
+          clientId: "cliente-b",
+          objectiveIndex: 1,
+          completedAt: new Date(2026, 0, 30),
+        },
+      ]
+    );
+
+    expect(ttv.entries.map(entry => entry.days)).toEqual([10, 20]);
+    expect(ttv.averageDays).toBe(15);
+  });
+
+  it("separa a média de implantação por cada objetivo existente", () => {
+    const rows = groupAverageTTVByObjective(
+      [
+        {
+          id: "cliente-a",
+          nome: "Cliente A",
+          entrada: "01/01/2026",
+          tags: ["Diagnóstico", "Treinamento", "Expansão"],
+        },
+        {
+          id: "cliente-b",
+          nome: "Cliente B",
+          entrada: "01/01/2026",
+          tags: ["Diagnóstico", "Treinamento"],
+        },
+      ],
+      [
+        {
+          clientId: "cliente-a",
+          objectiveIndex: 0,
+          completedAt: new Date(2026, 0, 11),
+        },
+        {
+          clientId: "cliente-b",
+          objectiveIndex: 0,
+          completedAt: new Date(2026, 0, 21),
+        },
+      ]
+    );
+
+    expect(rows).toEqual([
+      { objective: "Diagnóstico", dias: 15, conclusoes: 2 },
+      { objective: "Expansão", dias: null, conclusoes: 0 },
+      { objective: "Treinamento", dias: null, conclusoes: 0 },
     ]);
   });
 });

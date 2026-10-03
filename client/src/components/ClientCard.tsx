@@ -34,7 +34,23 @@ interface ClientCardProps {
   onFriccao?: (client: ClientData) => void;
 }
 
-const EMPTY_OBJECTIVE_INDEXES: number[] = [];
+const EMPTY_OBJECTIVE_COMPLETIONS: Array<{
+  objectiveIndex: number;
+  completedAt: Date | string | null;
+}> = [];
+
+function getTodayInputDate(): string {
+  return new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
+}
+
+function toInputDate(value: Date | string | null): string {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+}
 
 /** Cor do ícone de bandeira para cada nível */
 function getFlagColor(flag: string): string | null {
@@ -62,17 +78,25 @@ export default function ClientCard({
   const [completedObjectives, setCompletedObjectives] = useState<
     Record<string, boolean>
   >({});
+  const [completionDates, setCompletionDates] = useState<Record<string, string>>(
+    {}
+  );
   const objectiveQueryInput = useMemo(
     () => ({ clientId: client.id }),
     [client.id]
   );
-  const { data: sharedObjectiveIndexes = EMPTY_OBJECTIVE_INDEXES } =
+  const { data: sharedObjectiveCompletions = EMPTY_OBJECTIVE_COMPLETIONS } =
     trpc.marcos.objectiveCompletions.useQuery(
       objectiveQueryInput,
       { staleTime: 30_000 }
     );
-  const setObjectiveCompletion =
-    trpc.marcos.setObjectiveCompletion.useMutation();
+  const utils = trpc.useUtils();
+  const setObjectiveCompletion = trpc.marcos.setObjectiveCompletion.useMutation({
+    onSuccess: () => {
+      void utils.marcos.objectiveCompletionMetrics.invalidate();
+      void utils.marcos.objectiveCompletions.invalidate(objectiveQueryInput);
+    },
+  });
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -93,7 +117,10 @@ export default function ClientCard({
   useEffect(() => {
     setCompletedObjectives(current => {
       const next = Object.fromEntries(
-        sharedObjectiveIndexes.map(index => [`${index}`, true])
+        sharedObjectiveCompletions.map(completion => [
+          `${completion.objectiveIndex}`,
+          true,
+        ])
       );
       const currentKeys = Object.keys(current);
       const nextKeys = Object.keys(next);
@@ -105,7 +132,26 @@ export default function ClientCard({
       }
       return next;
     });
-  }, [sharedObjectiveIndexes]);
+    setCompletionDates(current => {
+      const next = Object.fromEntries(
+        sharedObjectiveCompletions
+          .map(completion => [
+            `${completion.objectiveIndex}`,
+            toInputDate(completion.completedAt),
+          ])
+          .filter(([, date]) => Boolean(date))
+      );
+      const currentKeys = Object.keys(current);
+      const nextKeys = Object.keys(next);
+      if (
+        currentKeys.length === nextKeys.length &&
+        currentKeys.every(key => current[key] === next[key])
+      ) {
+        return current;
+      }
+      return next;
+    });
+  }, [sharedObjectiveCompletions]);
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -470,29 +516,67 @@ export default function ClientCard({
                       onChange={event =>
                         (() => {
                           const completed = event.target.checked;
+                          const completedAt = completed
+                            ? completionDates[`${index}`] || getTodayInputDate()
+                            : undefined;
                           setCompletedObjectives(current => ({
                             ...current,
                             [`${index}`]: completed,
                           }));
+                          if (completed && completedAt) {
+                            setCompletionDates(current => ({
+                              ...current,
+                              [`${index}`]: completedAt,
+                            }));
+                          }
                           setObjectiveCompletion.mutate({
                             clientId: client.id,
                             objectiveIndex: index,
                             completed,
+                            completedAt,
                           });
                         })()
                       }
                       className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
                       aria-label={`Marcar objetivo como concluído: ${objective}`}
                     />
-                    <span
-                      className={
-                        completedObjectives[`${index}`]
-                          ? "font-medium line-through"
-                          : ""
-                      }
-                    >
-                      {objective}
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className={
+                          completedObjectives[`${index}`]
+                            ? "font-medium line-through"
+                            : ""
+                        }
+                      >
+                        {objective}
+                      </span>
+                      {completedObjectives[`${index}`] && (
+                        <label className="mt-1.5 flex items-center gap-2 text-[10px] font-medium text-emerald-900">
+                          Data da conclusão
+                          <input
+                            type="date"
+                            value={completionDates[`${index}`] ?? ""}
+                            onChange={event => {
+                              const completedAt = event.target.value;
+                              setCompletionDates(current => ({
+                                ...current,
+                                [`${index}`]: completedAt,
+                              }));
+                              if (completedAt) {
+                                setObjectiveCompletion.mutate({
+                                  clientId: client.id,
+                                  objectiveIndex: index,
+                                  completed: true,
+                                  completedAt,
+                                });
+                              }
+                            }}
+                            className="h-6 rounded border border-emerald-300 bg-white px-1.5 text-[10px] text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400"
+                            aria-label={`Data de conclusão: ${objective}`}
+                          />
+                        </label>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
