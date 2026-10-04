@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.8",
-  "changes": ["O botão Gerar relatório do BI agora baixa um PDF gerencial com atrasados sem/com flag e TTV médio geral e por objetivo."]
+  "appVersion": "10.9",
+  "changes": ["Criada a aba Problemas: Kanban compartilhado dos clientes Marcos com Yellow, Red e Black Flag, dados de tratativa e sincronização com a planilha."]
 }

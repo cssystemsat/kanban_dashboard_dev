@@ -18,6 +18,7 @@ import KPIs from "./pages/KPIs";
 import Performance from "./pages/Performance";
 import Timeline from "./pages/Timeline";
 import BI from "./pages/BI";
+import Problemas from "./pages/Problemas";
 import ChecklistPanel from "./components/ChecklistPanel";
 import { DailyLossesAlert } from "./components/DailyLossesAlert";
 import { NewClientsAlert } from "./components/NewClientsAlert";
@@ -35,6 +36,7 @@ const VALID_PAGES = new Set([
   "marcos",
   "timeline",
   "ongoing",
+  "problemas",
   "bi",
   "churns",
   "configuracoes",
@@ -220,6 +222,8 @@ function AppInner() {
         return <Timeline sidebarExpanded={isSideMenuExpanded} />;
       case "ongoing":
         return <Ongoing />;
+      case "problemas":
+        return <Problemas />;
       case "bi":
         if (permission === undefined) return null;
         return permission.isAdmin ? <BI /> : <AdminOnlyScreen area="A aba BI" />;

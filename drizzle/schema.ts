@@ -305,6 +305,40 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
 export type AppKanbanCard = typeof appKanbanCards.$inferSelect;
 export type InsertAppKanbanCard = typeof appKanbanCards.$inferInsert;
 
+// Cards de problemas originados por Yellow, Red ou Black Flag na aba Marcos.
+// O estado e os campos de tratativa são compartilhados entre todos os usuários.
+export const problemasCards = mysqlTable(
+  "problemas_cards",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientKey: varchar("clientKey", { length: 255 }).notNull(),
+    clientName: varchar("clientName", { length: 255 }).notNull(),
+    boleto: varchar("boleto", { length: 255 }).default("").notNull(),
+    comercial: varchar("comercial", { length: 255 }).default("").notNull(),
+    csm: varchar("csm", { length: 255 }).default("").notNull(),
+    flag: varchar("flag", { length: 64 }).notNull(),
+    stage: varchar("stage", { length: 64 }).default("nova_flag").notNull(),
+    problem: text("problem"),
+    actionPlan: text("actionPlan"),
+    dueDate: varchar("dueDate", { length: 10 }),
+    responsible: varchar("responsible", { length: 255 }),
+    isActive: int("isActive").default(1).notNull(),
+    updatedBy: varchar("updatedBy", { length: 320 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    clientKeyUnique: uniqueIndex("problemas_cards_client_key_unique").on(
+      table.clientKey
+    ),
+    stageIdx: index("problemas_cards_stage_idx").on(table.stage),
+    activeIdx: index("problemas_cards_active_idx").on(table.isActive),
+  })
+);
+
+export type ProblemasCard = typeof problemasCards.$inferSelect;
+export type InsertProblemasCard = typeof problemasCards.$inferInsert;
+
 // Registro de ciência dos avisos de novos clientes sincronizados da planilha
 export const appKanbanNewClientAcknowledgments = mysqlTable(
   "app_kanban_new_client_ack",

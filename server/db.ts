@@ -32,10 +32,17 @@ import {
   kpiWeeklySnapshots,
   InsertKpiWeeklySnapshot,
   clientObjectiveCompletions,
+  problemasCards,
+  InsertProblemasCard,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
 import { normalizeCompanyName } from "./appKanbanSheetSync";
+import {
+  PROBLEM_STAGES,
+  type ProblemasSyncRow,
+  type ProblemStage,
+} from "./problemsSync";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -955,6 +962,114 @@ export async function getAppKanbanHistory(cardId: number) {
     .from(appKanbanHistory)
     .where(eq(appKanbanHistory.cardId, cardId))
     .orderBy(desc(appKanbanHistory.movedAt));
+}
+
+// ─── Problemas Kanban ───
+
+export async function getProblemasCards() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(problemasCards)
+    .where(eq(problemasCards.isActive, 1))
+    .orderBy(asc(problemasCards.stage), desc(problemasCards.updatedAt));
+}
+
+/**
+ * Atualiza os dados vindos de Marcos sem apagar relato, plano, prazo,
+ * responsável ou a coluna manual escolhida no Kanban.
+ * Se a flag for removida da planilha, o card é encerrado e some da tela.
+ */
+export async function syncProblemasCards(rows: ProblemasSyncRow[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+
+  const currentCards = await db.select().from(problemasCards);
+  const currentByKey = new Map(currentCards.map(card => [card.clientKey, card]));
+  const activeKeys = new Set(rows.map(row => row.clientKey));
+
+  let created = 0;
+  let refreshed = 0;
+  let closed = 0;
+
+  for (const row of rows) {
+    const current = currentByKey.get(row.clientKey);
+    const sheetData = {
+      clientName: row.clientName,
+      boleto: row.boleto,
+      comercial: row.comercial,
+      csm: row.csm,
+      flag: row.flag,
+      isActive: 1,
+    };
+
+    if (!current) {
+      await db.insert(problemasCards).values({
+        ...sheetData,
+        clientKey: row.clientKey,
+        stage: "nova_flag",
+      });
+      created += 1;
+      continue;
+    }
+
+    await db
+      .update(problemasCards)
+      .set(sheetData)
+      .where(eq(problemasCards.id, current.id));
+    refreshed += 1;
+  }
+
+  for (const current of currentCards) {
+    if (current.isActive === 1 && !activeKeys.has(current.clientKey)) {
+      await db
+        .update(problemasCards)
+        .set({ isActive: 0 })
+        .where(eq(problemasCards.id, current.id));
+      closed += 1;
+    }
+  }
+
+  return { created, refreshed, closed, total: rows.length };
+}
+
+export async function updateProblemasCard(
+  id: number,
+  data: Pick<
+    Partial<InsertProblemasCard>,
+    "problem" | "actionPlan" | "dueDate" | "responsible" | "updatedBy"
+  >
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.update(problemasCards).set(data).where(eq(problemasCards.id, id));
+  const updated = await db
+    .select()
+    .from(problemasCards)
+    .where(eq(problemasCards.id, id));
+  return updated[0] ?? null;
+}
+
+export async function moveProblemasCard(
+  id: number,
+  stage: string,
+  updatedBy: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  const nextStage = PROBLEM_STAGES.includes(stage as ProblemStage)
+    ? (stage as ProblemStage)
+    : "nova_flag";
+  await db
+    .update(problemasCards)
+    .set({ stage: nextStage, updatedBy })
+    .where(eq(problemasCards.id, id));
+  const updated = await db
+    .select()
+    .from(problemasCards)
+    .where(eq(problemasCards.id, id));
+  return updated[0] ?? null;
 }
 
 // === App Kanban Checklist ===

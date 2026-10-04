@@ -32,6 +32,7 @@ const ALL_PAGES = [
   { id: "dashboard", label: "Dashboard" },
   { id: "marcos", label: "Marcos" },
   { id: "ongoing", label: "Ongoing" },
+  { id: "problemas", label: "Problemas" },
   { id: "churns", label: "CHURNs" },
   { id: "apppersonalizado", label: "App Personalizado" },
   { id: "migracao", label: "Migração" },

@@ -73,6 +73,10 @@ import {
   getClientObjectiveCompletions,
   getCompletedObjectiveMetrics,
   setClientObjectiveCompletion,
+  getProblemasCards,
+  syncProblemasCards,
+  updateProblemasCard,
+  moveProblemasCard,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 import { createHeartbeatJob } from "./_core/heartbeat";
@@ -89,6 +93,10 @@ import {
   getPendingWootricResponses,
   syncWootricResponses,
 } from "./wootric";
+import {
+  parseProblemasMarcosRows,
+  PROBLEM_STAGES,
+} from "./problemsSync";
 
 function isProjectOwner(user: { openId: string } | null | undefined): boolean {
   return Boolean(ENV.ownerOpenId && user?.openId === ENV.ownerOpenId);
@@ -1057,6 +1065,50 @@ export const appRouter = router({
           name: ctx.user.name ?? undefined,
         });
       }),
+  }),
+  problemas: router({
+    list: protectedProcedure.query(async () => getProblemasCards()),
+    syncFromMarcos: protectedProcedure.mutation(async () => {
+      const csv = await getSheetCsv("primary", 0, { forceRefresh: true });
+      const rows = parseProblemasMarcosRows(csv);
+      return syncProblemasCards(rows);
+    }),
+    update: protectedProcedure
+      .input(
+        z.object({
+          cardId: z.number().int().positive(),
+          problem: z.string().max(6000).optional(),
+          actionPlan: z.string().max(6000).optional(),
+          dueDate: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .nullable()
+            .optional(),
+          responsible: z.string().max(255).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { cardId, dueDate, ...fields } = input;
+        return updateProblemasCard(cardId, {
+          ...fields,
+          dueDate: dueDate ?? null,
+          updatedBy: ctx.user.email ?? ctx.user.name ?? "Usuário do painel",
+        });
+      }),
+    move: protectedProcedure
+      .input(
+        z.object({
+          cardId: z.number().int().positive(),
+          stage: z.enum(PROBLEM_STAGES),
+        })
+      )
+      .mutation(async ({ input, ctx }) =>
+        moveProblemasCard(
+          input.cardId,
+          input.stage,
+          ctx.user.email ?? ctx.user.name ?? "Usuário do painel"
+        )
+      ),
   }),
   appKanban: router({
     list: protectedProcedure.query(async () => {
