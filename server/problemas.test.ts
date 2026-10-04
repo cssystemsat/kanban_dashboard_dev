@@ -6,6 +6,7 @@ import {
   parseProblemasMarcosRows,
   PROBLEM_STAGES,
 } from "./problemsSync";
+import { filterProblemCards } from "@/lib/problemasFilters";
 
 const root = resolve(__dirname, "..");
 const pageSource = readFileSync(
@@ -84,6 +85,45 @@ describe("aba Problemas", () => {
     expect(pageSource).toContain("Responsável");
     expect(pageSource).toContain("Atualizar flags");
     expect(pageSource).toContain("syncFromMarcos");
+  });
+
+  it("filtra cards por CSM e por tipo de flag", () => {
+    const cards = [
+      {
+        id: 1,
+        csm: "Ana",
+        flag: "Red Flag",
+      },
+      {
+        id: 2,
+        csm: "Bruno",
+        flag: "Yellow Flag",
+      },
+      {
+        id: 3,
+        csm: "Ana",
+        flag: "Black Flag",
+      },
+    ] as Parameters<typeof filterProblemCards>[0];
+
+    expect(filterProblemCards(cards, "ana", "").map(card => card.id)).toEqual([
+      1,
+      3,
+    ]);
+    expect(
+      filterProblemCards(cards, "Ana", "Black Flag").map(card => card.id)
+    ).toEqual([3]);
+    expect(filterProblemCards(cards, "", "Yellow Flag").map(card => card.id)).toEqual([
+      2,
+    ]);
+  });
+
+  it("mantém filtros e colunas sem overflow em diferentes larguras", () => {
+    expect(pageSource).toContain('aria-label="Filtrar problemas por CSM"');
+    expect(pageSource).toContain('aria-label="Filtrar problemas por tipo de flag"');
+    expect(pageSource).toContain("overflow-x-hidden");
+    expect(pageSource).toContain("lg:h-[calc(100vh-185px)]");
+    expect(pageSource).toContain("2xl:grid-cols-6");
   });
 
   it("preserva a tratativa e encerra cards apenas quando a flag é removida", () => {

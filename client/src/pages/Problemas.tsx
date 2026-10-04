@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +16,14 @@ import {
   CalendarDays,
   ChevronRight,
   CircleDollarSign,
+  Filter,
   LoaderCircle,
   RefreshCw,
   Save,
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
+import { filterProblemCards } from "@/lib/problemasFilters";
 
 const STAGES = [
   { id: "nova_flag", label: "Nova Flag", accent: "border-l-amber-400" },
@@ -33,6 +35,15 @@ const STAGES = [
 ] as const;
 
 type ProblemStage = (typeof STAGES)[number]["id"];
+
+export const PROBLEM_FLAG_OPTIONS = [
+  { value: "", label: "Todas as flags" },
+  { value: "Yellow Flag", label: "Yellow" },
+  { value: "Red Flag", label: "Red" },
+  { value: "Black Flag", label: "Black" },
+] as const;
+
+type ProblemFlagFilter = (typeof PROBLEM_FLAG_OPTIONS)[number]["value"];
 
 type ProblemasCard = {
   id: number;
@@ -86,6 +97,8 @@ export default function Problemas() {
   const [draggedCard, setDraggedCard] = useState<ProblemasCard | null>(null);
   const [selectedCard, setSelectedCard] = useState<ProblemasCard | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [selectedCSM, setSelectedCSM] = useState("");
+  const [selectedFlag, setSelectedFlag] = useState<ProblemFlagFilter>("");
   const initialSyncDone = useRef(false);
 
   const cardsQuery = trpc.problemas.list.useQuery(undefined, {
@@ -97,6 +110,17 @@ export default function Problemas() {
   const updateMutation = trpc.problemas.update.useMutation();
 
   const cards = (cardsQuery.data ?? []) as ProblemasCard[];
+  const csmOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(cards.map(card => card.csm.trim()).filter(Boolean))
+      ).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [cards]
+  );
+  const visibleCards = useMemo(
+    () => filterProblemCards(cards, selectedCSM, selectedFlag),
+    [cards, selectedCSM, selectedFlag]
+  );
 
   const refreshFromMarcos = async (notify = true) => {
     try {
@@ -169,38 +193,90 @@ export default function Problemas() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-[#f5f7fa] px-3 py-4 md:pl-24 md:pr-4 lg:px-5">
-      <section className="mx-auto flex w-full max-w-[1920px] flex-col gap-3">
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600">
-                <AlertTriangle className="h-4 w-4" />
-              </span>
-              <div>
-                <h1 className="text-base font-semibold tracking-tight text-slate-900">
+    <main className="min-h-screen min-w-0 overflow-x-hidden bg-[#F5F7FA] px-3 py-3 text-[#001F3F] sm:px-4 lg:px-5 md:ml-20">
+      <section className="mx-auto flex w-full max-w-[1920px] min-w-0 flex-col gap-3">
+        <header className="sticky top-0 z-10 min-w-0 rounded-2xl border border-slate-200 bg-[#F5F7FA]/95 p-2.5 shadow-sm backdrop-blur sm:p-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <Filter className="h-4 w-4 text-red-600" aria-hidden="true" />
+              Filtros
+            </div>
+            <div className="flex min-w-[220px] flex-1 basis-[240px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" aria-hidden="true" />
+              <div className="min-w-0">
+                <h1 className="truncate text-sm font-semibold tracking-tight text-slate-900">
                   Problemas
                 </h1>
-                <p className="text-xs text-slate-500">
-                  Flags Yellow, Red e Black da aba Marcos.
+                <p className="truncate text-[11px] text-slate-500">
+                  Flags da aba Marcos
                 </p>
               </div>
             </div>
+            <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+              <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500">
+                CSM
+              </span>
+              <select
+                value={selectedCSM}
+                onChange={event => setSelectedCSM(event.target.value)}
+                className="min-w-[150px] max-w-full bg-transparent text-sm font-medium text-slate-700 outline-none"
+                aria-label="Filtrar problemas por CSM"
+              >
+                <option value="">Todos os CSMs</option>
+                {csmOptions.map(csm => (
+                  <option key={csm} value={csm}>
+                    {csm}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+              <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Flag
+              </span>
+              <select
+                value={selectedFlag}
+                onChange={event =>
+                  setSelectedFlag(event.target.value as ProblemFlagFilter)
+                }
+                className="min-w-[145px] max-w-full bg-transparent text-sm font-medium text-slate-700 outline-none"
+                aria-label="Filtrar problemas por tipo de flag"
+              >
+                {PROBLEM_FLAG_OPTIONS.map(option => (
+                  <option key={option.value || "all"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 xl:ml-auto">
+              <span className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2">
+                {visibleCards.length} de {cards.length} cards
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void refreshFromMarcos()}
+                disabled={syncMutation.isPending}
+                className="h-9 gap-1.5 border-slate-300 text-xs"
+              >
+                {syncMutation.isPending ? (
+                  <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5" />
+                )}
+                Atualizar flags
+              </Button>
+            </div>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void refreshFromMarcos()}
-            disabled={syncMutation.isPending}
-            className="h-8 gap-1.5 border-slate-300 text-xs"
-          >
-            {syncMutation.isPending ? (
-              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-            Atualizar flags
-          </Button>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-slate-400">
+            <span>Kanban compartilhado · Yellow, Red e Black</span>
+            <span>
+              {selectedCSM || selectedFlag
+                ? "Filtros aplicados"
+                : "Todos os problemas ativos"}
+            </span>
+          </div>
         </header>
 
         {cardsQuery.isLoading ? (
@@ -213,13 +289,13 @@ export default function Problemas() {
             Não foi possível carregar os problemas. Atualize a página e tente novamente.
           </div>
         ) : (
-          <div className="grid min-h-[calc(100vh-140px)] grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <div className="grid min-h-[calc(100vh-185px)] auto-rows-fr grid-cols-1 gap-2 sm:grid-cols-2 lg:h-[calc(100vh-185px)] lg:min-h-0 lg:grid-cols-3 2xl:grid-cols-6">
             {STAGES.map(stage => {
-              const stageCards = cards.filter(card => card.stage === stage.id);
+              const stageCards = visibleCards.filter(card => card.stage === stage.id);
               return (
                 <section
                   key={stage.id}
-                  className={`flex min-h-[240px] flex-col overflow-hidden rounded-xl border border-slate-200 border-l-4 bg-white shadow-sm ${stage.accent} ${
+                  className={`flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 border-l-4 bg-white shadow-sm ${stage.accent} lg:min-h-0 ${
                     draggedCard && draggedCard.stage !== stage.id
                       ? "ring-2 ring-blue-200"
                       : ""
@@ -240,7 +316,7 @@ export default function Problemas() {
                     </div>
                   </div>
 
-                  <div className="flex-1 space-y-2 overflow-y-auto bg-slate-50/40 p-2">
+                  <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-slate-50/40 p-2">
                     {stageCards.map(card => (
                       <article
                         key={card.id}

@@ -1,4 +1,4 @@
 {
-  "appVersion": "10.9",
-  "changes": ["Criada a aba Problemas: Kanban compartilhado dos clientes Marcos com Yellow, Red e Black Flag, dados de tratativa e sincronização com a planilha."]
+  "appVersion": "11.0",
+  "changes": ["A aba Problemas agora tem filtros por CSM e tipo de flag, além de layout responsivo otimizado para diferentes níveis de zoom."]
 }
