@@ -18,9 +18,16 @@ type PublishedRelease = {
 };
 
 async function fetchPublishedVersion(): Promise<PublishedRelease | null> {
-  const response = await fetch(`${VERSION_ENDPOINT}?t=${Date.now()}`, {
+  const requestUrl = new URL(VERSION_ENDPOINT, window.location.origin);
+  requestUrl.searchParams.set("current", APP_VERSION);
+  requestUrl.searchParams.set("t", String(Date.now()));
+  const response = await fetch(requestUrl.toString(), {
     cache: "no-store",
-    headers: { "Cache-Control": "no-cache" },
+    credentials: "same-origin",
+    headers: {
+      "Cache-Control": "no-cache, no-store, max-age=0",
+      Pragma: "no-cache",
+    },
   });
   if (!response.ok) return null;
 

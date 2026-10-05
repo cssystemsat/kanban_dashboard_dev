@@ -21,6 +21,13 @@ describe("version update prompt", () => {
     expect(promptSource).toContain(".slice(-1)");
   });
 
+  it("consulta o manifesto com cache-busting e sem cache HTTP", () => {
+    expect(promptSource).toContain('searchParams.set("current", APP_VERSION)');
+    expect(promptSource).toContain('searchParams.set("t", String(Date.now()))');
+    expect(promptSource).toContain('cache: "no-store"');
+    expect(promptSource).toContain('credentials: "same-origin"');
+  });
+
   it("mantém a versão publicada sincronizada com a versão do bundle", () => {
     const published = JSON.parse(
       readFileSync(
