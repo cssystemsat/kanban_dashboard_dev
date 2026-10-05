@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.2",
-  "changes": ["BI agora exibe os seis KPIs principais na mesma linha em desktop e permite filtrar por objetivos globais e subobjetivos."]
+  "appVersion": "11.3",
+  "changes": ["Os filtros do BI agora são separados: o filtro de subobjetivos mostra apenas as opções dos objetivos globais selecionados e limpa seleções incompatíveis automaticamente."]
 }

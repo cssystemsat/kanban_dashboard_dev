@@ -54,7 +54,8 @@ describe("BI shell", () => {
     expect(biPageSource).toContain("Filtrar por objetivo");
     expect(biPageSource).toContain("selectedObjectives");
     expect(biPageSource).toContain("filterClientsByObjectiveFilters");
-    expect(biPageSource).toContain("pelo menos um objetivo ou subobjetivo");
+    expect(biPageSource).toContain("Filtrar por objetivo global");
+    expect(biPageSource).toContain("Filtrar por subobjetivo");
     expect(biPageSource).toContain("Gerar relatório");
     expect(biPageSource).toContain("TTV médio");
     expect(biPageSource).toContain("TTV médio dos subobjetivos");

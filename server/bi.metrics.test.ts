@@ -12,6 +12,7 @@ import {
   groupBoletoByCSM,
   groupClientCountByCSM,
   listObjectives,
+  listSubobjectives,
   parseBoleto,
 } from "../client/src/lib/biMetrics";
 
@@ -359,5 +360,10 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
         client => client.nome
       )
     ).toEqual(["B"]);
+    expect(
+      listSubobjectives(clients, ["Migração"]).every(
+        option => option.objective === "Migração"
+      )
+    ).toBe(true);
   });
 });

@@ -70,6 +70,99 @@ type SelectedList = {
   entries: BIListEntry[];
 };
 
+type FilterOption = {
+  value: string;
+  label: string;
+  description?: string;
+};
+
+function MultiSelectFilter({
+  buttonLabel,
+  heading,
+  options,
+  selected,
+  onChange,
+  disabled = false,
+  emptyText,
+}: {
+  buttonLabel: string;
+  heading: string;
+  options: FilterOption[];
+  selected: string[];
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  emptyText: string;
+}) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen(current => !current)}
+        className="inline-flex min-w-[170px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        <span className="truncate">
+          {buttonLabel}{selected.length > 0 ? ` (${selected.length})` : ": Todos"}
+        </span>
+        <span className="text-xs text-slate-400">⌄</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
+            <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+              {heading}
+            </span>
+            <button
+              type="button"
+              onClick={() => selected.forEach(onChange)}
+              className="text-xs font-semibold text-blue-700 hover:text-blue-900"
+            >
+              Limpar
+            </button>
+          </div>
+          {options.length === 0 ? (
+            <p className="px-2 py-4 text-xs text-slate-500">{emptyText}</p>
+          ) : (
+            <div className="mt-1 space-y-0.5">
+              {options.map(option => {
+                const checked = selected.includes(option.value);
+                return (
+                  <label
+                    key={option.value}
+                    className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => onChange(option.value)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-blue-700"
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{option.label}</span>
+                      {option.description && (
+                        <span className="block truncate text-[10px] text-slate-400">
+                          {option.description}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const formatCountdown = (seconds: number) => {
   const minutes = Math.floor(seconds / 60)
     .toString()
@@ -148,7 +241,6 @@ export default function BI() {
   const [selectedCSM, setSelectedCSM] = useState("");
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
   const [selectedSubobjectives, setSelectedSubobjectives] = useState<string[]>([]);
-  const [objectivesOpen, setObjectivesOpen] = useState(false);
   const [searchCliente, setSearchCliente] = useState("");
   const [selectedList, setSelectedList] = useState<SelectedList | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -193,7 +285,20 @@ export default function BI() {
 
   const csmOptions = useMemo(() => listCSMs(data), [data]);
   const objectiveOptions = useMemo(() => listObjectives(data), [data]);
-  const subobjectiveOptions = useMemo(() => listSubobjectives(data), [data]);
+  const subobjectiveOptions = useMemo(
+    () =>
+      selectedObjectives.length > 0
+        ? listSubobjectives(data, selectedObjectives)
+        : [],
+    [data, selectedObjectives]
+  );
+  useEffect(() => {
+    const availableKeys = new Set(subobjectiveOptions.map(option => option.key));
+    setSelectedSubobjectives(current => {
+      const next = current.filter(key => availableKeys.has(key));
+      return next.length === current.length ? current : next;
+    });
+  }, [subobjectiveOptions]);
   const selectedObjectiveFilterCount =
     selectedObjectives.length + selectedSubobjectives.length;
   const filteredData = useMemo(() => {
@@ -485,112 +590,42 @@ export default function BI() {
                 ))}
               </select>
             </label>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setObjectivesOpen(current => !current)}
-                className="inline-flex min-w-[190px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:border-blue-300"
-                aria-expanded={objectivesOpen}
-                aria-haspopup="true"
-              >
-                <span className="truncate">
-                  Objetivos
-                  {selectedObjectiveFilterCount > 0
-                    ? ` (${selectedObjectiveFilterCount})`
-                    : ": Todos"}
-                </span>
-                <span className="text-xs text-slate-400">⌄</span>
-              </button>
-              {objectivesOpen && (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
-                  <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
-                    <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                      Filtrar por objetivo
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedObjectives([]);
-                        setSelectedSubobjectives([]);
-                      }}
-                      className="text-xs font-semibold text-blue-700 hover:text-blue-900"
-                    >
-                      Limpar
-                    </button>
-                  </div>
-                  {objectiveOptions.length === 0 ? (
-                    <p className="px-2 py-4 text-xs text-slate-500">
-                      Nenhum objetivo encontrado nos clientes carregados.
-                    </p>
-                  ) : (
-                    <div className="mt-1 space-y-0.5">
-                      <p className="px-2 pt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        Objetivos globais
-                      </p>
-                      {objectiveOptions.map(objective => {
-                        const checked = selectedObjectives.includes(objective);
-                        return (
-                          <label
-                            key={objective}
-                            className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() =>
-                                setSelectedObjectives(current =>
-                                  checked
-                                    ? current.filter(item => item !== objective)
-                                    : [...current, objective]
-                                )
-                              }
-                              className="h-4 w-4 rounded border-slate-300 accent-blue-700"
-                            />
-                            <span className="truncate">{objective}</span>
-                          </label>
-                        );
-                      })}
-                      {subobjectiveOptions.length > 0 && (
-                        <>
-                          <p className="mt-2 border-t border-slate-100 px-2 pt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                            Subobjetivos
-                          </p>
-                          {subobjectiveOptions.map(option => {
-                            const checked = selectedSubobjectives.includes(option.key);
-                            return (
-                              <label
-                                key={option.key}
-                                className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={() =>
-                                    setSelectedSubobjectives(current =>
-                                      checked
-                                        ? current.filter(item => item !== option.key)
-                                        : [...current, option.key]
-                                    )
-                                  }
-                                  className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-teal-600"
-                                />
-                                <span className="min-w-0">
-                                  <span className="block truncate font-medium">{option.subobjective}</span>
-                                  <span className="block truncate text-[10px] text-slate-400">{option.objective}</span>
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </>
-                      )}
-                    </div>
-                  )}
-                  <p className="border-t border-slate-100 px-2 pt-2 text-[11px] text-slate-400">
-                    Com mais de um item, entram clientes que tenham pelo menos um objetivo ou subobjetivo selecionado.
-                  </p>
-                </div>
-              )}
-            </div>
+            <MultiSelectFilter
+              buttonLabel="Objetivos globais"
+              heading="Filtrar por objetivo global"
+              options={objectiveOptions.map(objective => ({
+                value: objective,
+                label: objective,
+              }))}
+              selected={selectedObjectives}
+              onChange={value =>
+                setSelectedObjectives(current =>
+                  current.includes(value)
+                    ? current.filter(item => item !== value)
+                    : [...current, value]
+                )
+              }
+              emptyText="Nenhum objetivo global encontrado."
+            />
+            <MultiSelectFilter
+              buttonLabel="Subobjetivos"
+              heading="Filtrar por subobjetivo"
+              options={subobjectiveOptions.map(option => ({
+                value: option.key,
+                label: option.subobjective,
+                description: option.objective,
+              }))}
+              selected={selectedSubobjectives}
+              onChange={value =>
+                setSelectedSubobjectives(current =>
+                  current.includes(value)
+                    ? current.filter(item => item !== value)
+                    : [...current, value]
+                )
+              }
+              disabled={selectedObjectives.length === 0}
+              emptyText="Selecione ao menos um objetivo global primeiro."
+            />
             <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 xl:ml-auto">
               <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2">
                 <Clock3 className="h-4 w-4 text-slate-400" aria-hidden="true" />

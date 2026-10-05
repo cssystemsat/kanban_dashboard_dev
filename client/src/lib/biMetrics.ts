@@ -74,13 +74,20 @@ export type SubobjectiveFilterOption = {
 };
 
 export function listSubobjectives<T extends { tags?: string[] }>(
-  clients: T[]
+  clients: T[],
+  selectedObjectives: string[] = []
 ): SubobjectiveFilterOption[] {
   const options = new Map<string, SubobjectiveFilterOption>();
+  const selected = new Set(
+    selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
   for (const client of clients) {
     for (const tag of client.tags ?? []) {
       const definition = getGlobalObjectiveDefinition(tag);
       if (!definition) continue;
+      if (selected.size > 0 && !selected.has(normalizeObjective(definition.name))) {
+        continue;
+      }
       definition.subobjectives.forEach(subobjective => {
         const key = `${definition.name}::${subobjective}`;
         if (!options.has(key)) {
