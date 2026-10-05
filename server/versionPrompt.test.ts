@@ -13,8 +13,8 @@ const promptSource = readFileSync(
 );
 
 describe("version update prompt", () => {
-  it("publica a versão funcional 11.1 nesta publicação", () => {
-    expect(APP_VERSION).toBe("11.1");
+  it("publica a versão funcional 11.2 nesta publicação", () => {
+    expect(APP_VERSION).toBe("11.2");
   });
 
   it("exibe somente a última alteração publicada", () => {

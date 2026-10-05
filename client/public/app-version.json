@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.1",
-  "changes": ["Objetivos da aba Marcos agora são globais com subobjetivos padrão, conclusão compartilhada e novo KPI de TTV médio dos subobjetivos."]
+  "appVersion": "11.2",
+  "changes": ["BI agora exibe os seis KPIs principais na mesma linha em desktop e permite filtrar por objetivos globais e subobjetivos."]
 }

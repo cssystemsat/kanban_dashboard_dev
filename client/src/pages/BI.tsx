@@ -32,7 +32,7 @@ import {
   BI_SEGMENT_DEFINITIONS,
   calculateAverageTTV,
   calculateAverageSubobjectiveTTV,
-  filterClientsByObjectives,
+  filterClientsByObjectiveFilters,
   getBICriticalGroups,
   getBIClientGroups,
   getFlaggedOverdueGroups,
@@ -42,6 +42,7 @@ import {
   groupClientCountByCSM,
   listCSMs,
   listObjectives,
+  listSubobjectives,
   normalizeCSM,
 } from "@/lib/biMetrics";
 import { generateBIManagementReport } from "@/lib/biReportPdf";
@@ -146,6 +147,7 @@ export default function BI() {
   } = useMigracaoListData();
   const [selectedCSM, setSelectedCSM] = useState("");
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
+  const [selectedSubobjectives, setSelectedSubobjectives] = useState<string[]>([]);
   const [objectivesOpen, setObjectivesOpen] = useState(false);
   const [searchCliente, setSearchCliente] = useState("");
   const [selectedList, setSelectedList] = useState<SelectedList | null>(null);
@@ -191,6 +193,9 @@ export default function BI() {
 
   const csmOptions = useMemo(() => listCSMs(data), [data]);
   const objectiveOptions = useMemo(() => listObjectives(data), [data]);
+  const subobjectiveOptions = useMemo(() => listSubobjectives(data), [data]);
+  const selectedObjectiveFilterCount =
+    selectedObjectives.length + selectedSubobjectives.length;
   const filteredData = useMemo(() => {
     const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
     const baseFiltered = data.filter(client => {
@@ -205,8 +210,12 @@ export default function BI() {
       }
       return true;
     });
-    return filterClientsByObjectives(baseFiltered, selectedObjectives);
-  }, [data, searchCliente, selectedCSM, selectedObjectives]);
+    return filterClientsByObjectiveFilters(
+      baseFiltered,
+      selectedObjectives,
+      selectedSubobjectives
+    );
+  }, [data, searchCliente, selectedCSM, selectedObjectives, selectedSubobjectives]);
 
   const filteredMigrationData = useMemo(() => {
     const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
@@ -227,7 +236,7 @@ export default function BI() {
         return false;
       }
       if (
-        selectedObjectives.length > 0 &&
+        selectedObjectiveFilterCount > 0 &&
         !filteredClientNames.has(normalizeCompanyName(migration.empresa))
       ) {
         return false;
@@ -238,7 +247,7 @@ export default function BI() {
     migrationData,
     searchCliente,
     selectedCSM,
-    selectedObjectives.length,
+    selectedObjectiveFilterCount,
     filteredData,
   ]);
 
@@ -269,9 +278,15 @@ export default function BI() {
       calculateAverageSubobjectiveTTV(
         filteredData,
         subobjectiveCompletionMetrics,
-        selectedObjectives
+        selectedObjectives,
+        selectedSubobjectives
       ),
-    [filteredData, subobjectiveCompletionMetrics, selectedObjectives]
+    [
+      filteredData,
+      subobjectiveCompletionMetrics,
+      selectedObjectives,
+      selectedSubobjectives,
+    ]
   );
   const ttvByObjective = useMemo(
     () =>
@@ -480,8 +495,8 @@ export default function BI() {
               >
                 <span className="truncate">
                   Objetivos
-                  {selectedObjectives.length > 0
-                    ? ` (${selectedObjectives.length})`
+                  {selectedObjectiveFilterCount > 0
+                    ? ` (${selectedObjectiveFilterCount})`
                     : ": Todos"}
                 </span>
                 <span className="text-xs text-slate-400">⌄</span>
@@ -494,7 +509,10 @@ export default function BI() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setSelectedObjectives([])}
+                      onClick={() => {
+                        setSelectedObjectives([]);
+                        setSelectedSubobjectives([]);
+                      }}
                       className="text-xs font-semibold text-blue-700 hover:text-blue-900"
                     >
                       Limpar
@@ -506,6 +524,9 @@ export default function BI() {
                     </p>
                   ) : (
                     <div className="mt-1 space-y-0.5">
+                      <p className="px-2 pt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        Objetivos globais
+                      </p>
                       {objectiveOptions.map(objective => {
                         const checked = selectedObjectives.includes(objective);
                         return (
@@ -529,10 +550,43 @@ export default function BI() {
                           </label>
                         );
                       })}
+                      {subobjectiveOptions.length > 0 && (
+                        <>
+                          <p className="mt-2 border-t border-slate-100 px-2 pt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                            Subobjetivos
+                          </p>
+                          {subobjectiveOptions.map(option => {
+                            const checked = selectedSubobjectives.includes(option.key);
+                            return (
+                              <label
+                                key={option.key}
+                                className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() =>
+                                    setSelectedSubobjectives(current =>
+                                      checked
+                                        ? current.filter(item => item !== option.key)
+                                        : [...current, option.key]
+                                    )
+                                  }
+                                  className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-teal-600"
+                                />
+                                <span className="min-w-0">
+                                  <span className="block truncate font-medium">{option.subobjective}</span>
+                                  <span className="block truncate text-[10px] text-slate-400">{option.objective}</span>
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </>
+                      )}
                     </div>
                   )}
                   <p className="border-t border-slate-100 px-2 pt-2 text-[11px] text-slate-400">
-                    Com mais de um objetivo, entram clientes que tenham pelo menos um deles.
+                    Com mais de um item, entram clientes que tenham pelo menos um objetivo ou subobjetivo selecionado.
                   </p>
                 </div>
               )}
@@ -601,7 +655,7 @@ export default function BI() {
           </div>
         </section>
 
-        <section className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" aria-label="KPIs de operação">
+        <section className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6" aria-label="KPIs de operação">
           {normalCards.map(card => {
             const Icon = card.icon;
             const toneClasses = {

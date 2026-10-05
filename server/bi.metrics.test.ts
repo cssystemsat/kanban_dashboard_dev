@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateAverageSubobjectiveTTV,
   calculateAverageTTV,
+  filterClientsByObjectiveFilters,
   filterClientsByObjectives,
   getFlaggedOverdueGroups,
   getBICriticalGroups,
@@ -339,5 +340,24 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
       )
     ).toEqual(["A", "B"]);
     expect(filterClientsByObjectives(clients, [])).toEqual(clients);
+  });
+
+  it("filtra clientes por objetivo global ou subobjetivo selecionado", () => {
+    const clients = [
+      { nome: "A", tags: ["Videotelemetria"] },
+      { nome: "B", tags: ["Migração"] },
+      { nome: "C", tags: ["BI"] },
+    ];
+
+    expect(
+      filterClientsByObjectiveFilters(clients, [], [
+        "Videotelemetria::Apontar 1° câmera",
+      ]).map(client => client.nome)
+    ).toEqual(["A"]);
+    expect(
+      filterClientsByObjectiveFilters(clients, ["Migração"], []).map(
+        client => client.nome
+      )
+    ).toEqual(["B"]);
   });
 });

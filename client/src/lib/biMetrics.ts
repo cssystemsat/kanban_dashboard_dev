@@ -67,6 +67,62 @@ export function filterClientsByObjectives<T extends { tags?: string[] }>(
   );
 }
 
+export type SubobjectiveFilterOption = {
+  key: string;
+  objective: string;
+  subobjective: string;
+};
+
+export function listSubobjectives<T extends { tags?: string[] }>(
+  clients: T[]
+): SubobjectiveFilterOption[] {
+  const options = new Map<string, SubobjectiveFilterOption>();
+  for (const client of clients) {
+    for (const tag of client.tags ?? []) {
+      const definition = getGlobalObjectiveDefinition(tag);
+      if (!definition) continue;
+      definition.subobjectives.forEach(subobjective => {
+        const key = `${definition.name}::${subobjective}`;
+        if (!options.has(key)) {
+          options.set(key, { key, objective: definition.name, subobjective });
+        }
+      });
+    }
+  }
+  return [...options.values()].sort(
+    (a, b) =>
+      a.objective.localeCompare(b.objective, "pt-BR") ||
+      a.subobjective.localeCompare(b.subobjective, "pt-BR")
+  );
+}
+
+export function filterClientsByObjectiveFilters<T extends { tags?: string[] }>(
+  clients: T[],
+  selectedObjectives: string[],
+  selectedSubobjectiveKeys: string[]
+): T[] {
+  const selectedGlobal = new Set(
+    selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
+  const selectedSubobjectives = new Set(
+    selectedSubobjectiveKeys.map(value => normalizeObjective(value)).filter(Boolean)
+  );
+  if (selectedGlobal.size === 0 && selectedSubobjectives.size === 0) return clients;
+
+  return clients.filter(client =>
+    (client.tags ?? []).some(tag => {
+      const definition = getGlobalObjectiveDefinition(tag);
+      if (!definition) return false;
+      if (selectedGlobal.has(normalizeObjective(definition.name))) return true;
+      return definition.subobjectives.some(subobjective =>
+        selectedSubobjectives.has(
+          normalizeObjective(`${definition.name}::${subobjective}`)
+        )
+      );
+    })
+  );
+}
+
 export const BI_SEGMENT_DEFINITIONS: Record<
   "implantacao" | "onboarding" | "implantados" | "migracao",
   { label: string; description: string }
@@ -297,11 +353,15 @@ export function calculateAverageTTV<T extends BITTVCandidate>(
 export function calculateAverageSubobjectiveTTV<T extends BITTVCandidate>(
   clients: T[],
   completions: SubobjectiveCompletionMetric[],
-  selectedObjectives: string[] = []
+  selectedObjectives: string[] = [],
+  selectedSubobjectiveKeys: string[] = []
 ) {
   const clientsById = new Map(clients.map(client => [client.id, client]));
   const selected = new Set(
     selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
+  const selectedSubobjectives = new Set(
+    selectedSubobjectiveKeys.map(normalizeObjective).filter(Boolean)
   );
   const entries = completions
     .map(completion => {
@@ -316,6 +376,14 @@ export function calculateAverageSubobjectiveTTV<T extends BITTVCandidate>(
       const subobjectiveName =
         definition?.subobjectives[completion.subobjectiveIndex] ??
         `Subobjetivo ${completion.subobjectiveIndex + 1}`;
+      if (
+        selectedSubobjectives.size > 0 &&
+        !selectedSubobjectives.has(
+          normalizeObjective(`${objectiveName}::${subobjectiveName}`)
+        )
+      ) {
+        return null;
+      }
       if (!client || !startDate || !completedAt) return null;
       const days = Math.floor(
         (completedAt.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)

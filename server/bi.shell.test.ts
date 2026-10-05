@@ -53,8 +53,8 @@ describe("BI shell", () => {
     expect(biPageSource).toContain("Todos os CSMs");
     expect(biPageSource).toContain("Filtrar por objetivo");
     expect(biPageSource).toContain("selectedObjectives");
-    expect(biPageSource).toContain("filterClientsByObjectives");
-    expect(biPageSource).toContain("pelo menos um deles");
+    expect(biPageSource).toContain("filterClientsByObjectiveFilters");
+    expect(biPageSource).toContain("pelo menos um objetivo ou subobjetivo");
     expect(biPageSource).toContain("Gerar relatório");
     expect(biPageSource).toContain("TTV médio");
     expect(biPageSource).toContain("TTV médio dos subobjetivos");
@@ -76,7 +76,8 @@ describe("BI shell", () => {
     expect(biPageSource).not.toContain("Área de BI preparada");
     expect(biPageSource).toContain("Clique para ver os clientes");
     expect(biPageSource).not.toContain("localStorage");
-    expect(biPageSource).toContain("2xl:grid-cols-5");
+    expect(biPageSource).toContain("xl:grid-cols-6");
+    expect(biPageSource).toContain("Subobjetivos");
     expect(biPageSource).toContain("overflow-x-hidden");
     expect(biPageSource).toContain('className="min-h-screen overflow-x-hidden');
     expect(biPageSource).toContain("xl:grid-cols-4");
