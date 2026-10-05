@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateAverageSubobjectiveTTV,
   calculateAverageTTV,
   filterClientsByObjectives,
   getFlaggedOverdueGroups,
@@ -250,6 +251,37 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
 
     expect(ttv.entries.map(entry => entry.days)).toEqual([30]);
     expect(ttv.averageDays).toBe(30);
+  });
+
+  it("calcula TTV médio dos subobjetivos e respeita o filtro do objetivo global", () => {
+    const ttv = calculateAverageSubobjectiveTTV(
+      [
+        { id: "cliente-a", nome: "Cliente A", entrada: "01/01/2026" },
+        { id: "cliente-b", nome: "Cliente B", entrada: "10/01/2026" },
+      ],
+      [
+        {
+          clientId: "cliente-a",
+          objectiveName: "Videotelemetria",
+          subobjectiveIndex: 0,
+          completedAt: new Date(2026, 0, 11),
+        },
+        {
+          clientId: "cliente-b",
+          objectiveName: "Migração",
+          subobjectiveIndex: 1,
+          completedAt: new Date(2026, 0, 30),
+        },
+      ],
+      ["Videotelemetria"]
+    );
+
+    expect(ttv.entries[0]).toMatchObject({
+      objectiveName: "Videotelemetria",
+      subobjectiveName: "Apontar 1° câmera",
+      days: 10,
+    });
+    expect(ttv.averageDays).toBe(10);
   });
 
   it("separa a média de implantação por cada objetivo existente", () => {

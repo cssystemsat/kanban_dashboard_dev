@@ -23,21 +23,23 @@ describe("Marcos — objetivos do cliente", () => {
   it("substitui o botão de grupo por uma seta que abre os objetivos", () => {
     expect(clientCard).toContain("Ver objetivos do cliente");
     expect(clientCard).toContain("setShowObjectives(value => !value)");
-    expect(clientCard).toContain("client.tags.map");
+    expect(clientCard).toContain("getGlobalObjectiveDefinition(tag)");
     expect(clientCard).not.toContain('title="Abrir grupo do WhatsApp"');
   });
 
-  it("mostra um modal maior com checkbox contrastante e guarda a marcação", () => {
-    expect(clientCard).toContain('width: "min(32rem, calc(100vw - 2rem))"');
+  it("mostra objetivos globais e subobjetivos com checkbox compartilhado", () => {
+    expect(clientCard).toContain('width: "min(42rem, calc(100vw - 2rem))"');
     expect(clientCard).toContain("fixed left-1/2 top-1/2");
     expect(clientCard).toContain("max-h-[calc(100vh-2rem)]");
     expect(clientCard).toContain("createPortal");
     expect(clientCard).toContain('type="checkbox"');
     expect(clientCard).toContain("accent-emerald-600");
     expect(clientCard).toContain("line-through");
-    expect(clientCard).toContain("trpc.marcos.objectiveCompletions.useQuery");
-    expect(clientCard).toContain("trpc.marcos.setObjectiveCompletion.useMutation");
-    expect(clientCard).toContain("objectiveCompletionMetrics.invalidate");
+    expect(clientCard).toContain("trpc.marcos.subobjectiveCompletions.useQuery");
+    expect(clientCard).toContain("trpc.marcos.setSubobjectiveCompletion.useMutation");
+    expect(clientCard).toContain("subobjectiveCompletionMetrics.invalidate");
+    expect(clientCard).toContain("isGlobalObjectiveComplete");
+    expect(clientCard).toContain("O global conclui quando todos os subobjetivos");
     expect(clientCard).toContain("Data da conclusão");
     expect(clientCard).toContain('type="date"');
     expect(clientCard).toContain("completedAt,");
@@ -50,11 +52,12 @@ describe("Marcos — objetivos do cliente", () => {
   });
 
   it("persiste a conclusão no backend compartilhado", () => {
-    expect(routers).toContain("objectiveCompletions: protectedProcedure");
-    expect(routers).toContain("setObjectiveCompletion: protectedProcedure");
-    expect(routers).toContain("setClientObjectiveCompletion(");
-    expect(routers).toContain("objectiveCompletionMetrics: protectedProcedure");
+    expect(routers).toContain("subobjectiveCompletions: protectedProcedure");
+    expect(routers).toContain("setSubobjectiveCompletion: protectedProcedure");
+    expect(routers).toContain("setClientSubobjectiveCompletion(");
+    expect(routers).toContain("subobjectiveCompletionMetrics: protectedProcedure");
     expect(routers).toContain("completedAt: z");
     expect(schema).toContain('completedAt: timestamp("completedAt")');
+    expect(schema).toContain("client_subobjective_completions");
   });
 });

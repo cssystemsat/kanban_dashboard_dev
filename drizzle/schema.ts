@@ -176,6 +176,37 @@ export type ClientObjectiveCompletion =
   typeof clientObjectiveCompletions.$inferSelect;
 export type InsertClientObjectiveCompletion =
   typeof clientObjectiveCompletions.$inferInsert;
+
+// Conclusões compartilhadas dos subobjetivos padrão de cada objetivo global.
+// A conclusão do objetivo global é derivada quando todos os seus subobjetivos
+// estão concluídos para o cliente.
+export const clientSubobjectiveCompletions = mysqlTable(
+  "client_subobjective_completions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientId: varchar("clientId", { length: 255 }).notNull(),
+    objectiveName: varchar("objectiveName", { length: 255 }).notNull(),
+    subobjectiveIndex: int("subobjectiveIndex").notNull(),
+    completed: boolean("completed").default(true).notNull(),
+    updatedBy: varchar("updatedBy", { length: 320 }),
+    completedAt: timestamp("completedAt"),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    clientSubobjectiveUnique: uniqueIndex(
+      "client_subobjective_unique"
+    ).on(table.clientId, table.objectiveName, table.subobjectiveIndex),
+    clientObjectiveIdx: index("client_subobjective_client_objective_idx").on(
+      table.clientId,
+      table.objectiveName
+    ),
+  })
+);
+
+export type ClientSubobjectiveCompletion =
+  typeof clientSubobjectiveCompletions.$inferSelect;
+export type InsertClientSubobjectiveCompletion =
+  typeof clientSubobjectiveCompletions.$inferInsert;
 // Comentários sobre clientes no painel de Evolução de UR's
 export const clientComments = mysqlTable("client_comments", {
   id: int("id").autoincrement().primaryKey(),

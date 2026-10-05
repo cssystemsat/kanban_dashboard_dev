@@ -27,6 +27,10 @@ import {
 import { calculateClientCriticality } from "@/lib/criticality";
 import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
 import { WootricMark } from "./WootricMark";
+import {
+  getGlobalObjectiveDefinition,
+  type GlobalObjectiveDefinition,
+} from "@shared/globalObjectives";
 
 interface ClientCardProps {
   client: ClientData;
@@ -34,8 +38,9 @@ interface ClientCardProps {
   onFriccao?: (client: ClientData) => void;
 }
 
-const EMPTY_OBJECTIVE_COMPLETIONS: Array<{
-  objectiveIndex: number;
+const EMPTY_SUBOBJECTIVE_COMPLETIONS: Array<{
+  objectiveName: string;
+  subobjectiveIndex: number;
   completedAt: Date | string | null;
 }> = [];
 
@@ -75,28 +80,37 @@ export default function ClientCard({
   const [showScoreReasons, setShowScoreReasons] = useState(false);
   const [showObjectives, setShowObjectives] = useState(false);
   const [showWootricHistory, setShowWootricHistory] = useState(false);
-  const [completedObjectives, setCompletedObjectives] = useState<
+  const [completedSubobjectives, setCompletedSubobjectives] = useState<
     Record<string, boolean>
   >({});
-  const [completionDates, setCompletionDates] = useState<Record<string, string>>(
-    {}
-  );
-  const objectiveQueryInput = useMemo(
+  const [subobjectiveDates, setSubobjectiveDates] = useState<
+    Record<string, string>
+  >({});
+  const subobjectiveQueryInput = useMemo(
     () => ({ clientId: client.id }),
     [client.id]
   );
-  const { data: sharedObjectiveCompletions = EMPTY_OBJECTIVE_COMPLETIONS } =
-    trpc.marcos.objectiveCompletions.useQuery(
-      objectiveQueryInput,
-      { staleTime: 30_000 }
-    );
+  const { data: sharedSubobjectiveCompletions = EMPTY_SUBOBJECTIVE_COMPLETIONS } =
+    trpc.marcos.subobjectiveCompletions.useQuery(subobjectiveQueryInput, {
+      staleTime: 30_000,
+    });
   const utils = trpc.useUtils();
-  const setObjectiveCompletion = trpc.marcos.setObjectiveCompletion.useMutation({
+  const setSubobjectiveCompletion = trpc.marcos.setSubobjectiveCompletion.useMutation({
     onSuccess: () => {
-      void utils.marcos.objectiveCompletionMetrics.invalidate();
-      void utils.marcos.objectiveCompletions.invalidate(objectiveQueryInput);
+      void utils.marcos.subobjectiveCompletionMetrics.invalidate();
+      void utils.marcos.subobjectiveCompletions.invalidate(subobjectiveQueryInput);
     },
   });
+  const globalObjectives = useMemo(() => {
+    const seen = new Set<string>();
+    return (client.tags ?? [])
+      .map(tag => getGlobalObjectiveDefinition(tag))
+      .filter((objective): objective is GlobalObjectiveDefinition => {
+        if (!objective || seen.has(objective.name)) return false;
+        seen.add(objective.name);
+        return true;
+      });
+  }, [client.tags]);
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -115,10 +129,10 @@ export default function ClientCard({
   const shouldHighlightRedBorder = diasCorridos > 60 && urs < 30;
 
   useEffect(() => {
-    setCompletedObjectives(current => {
+    setCompletedSubobjectives(current => {
       const next = Object.fromEntries(
-        sharedObjectiveCompletions.map(completion => [
-          `${completion.objectiveIndex}`,
+        sharedSubobjectiveCompletions.map(completion => [
+          `${completion.objectiveName}::${completion.subobjectiveIndex}`,
           true,
         ])
       );
@@ -132,11 +146,11 @@ export default function ClientCard({
       }
       return next;
     });
-    setCompletionDates(current => {
+    setSubobjectiveDates(current => {
       const next = Object.fromEntries(
-        sharedObjectiveCompletions
+        sharedSubobjectiveCompletions
           .map(completion => [
-            `${completion.objectiveIndex}`,
+            `${completion.objectiveName}::${completion.subobjectiveIndex}`,
             toInputDate(completion.completedAt),
           ])
           .filter(([, date]) => Boolean(date))
@@ -151,7 +165,12 @@ export default function ClientCard({
       }
       return next;
     });
-  }, [sharedObjectiveCompletions]);
+  }, [sharedSubobjectiveCompletions]);
+
+  const isGlobalObjectiveComplete = (objective: GlobalObjectiveDefinition) =>
+    objective.subobjectives.every(
+      (_, index) => completedSubobjectives[`${objective.name}::${index}`]
+    );
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -472,118 +491,148 @@ export default function ClientCard({
         {showObjectives &&
           typeof document !== "undefined" &&
           createPortal(
-          <div
-            className="fixed left-1/2 top-1/2 z-[100] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border-2 border-emerald-300 bg-white p-5 text-left text-xs shadow-2xl"
-            style={{
-              width: "min(32rem, calc(100vw - 2rem))",
-            }}
-            role="dialog"
-            aria-label={`Objetivos de ${client.nome}`}
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="mb-2 flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
-              <div>
-                <span className="block text-sm font-bold text-slate-900">
-                  Objetivos do cliente
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Marque o que já foi concluído
-                </span>
+            <div
+              className="fixed left-1/2 top-1/2 z-[100] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border-2 border-emerald-300 bg-white p-5 text-left text-xs shadow-2xl"
+              style={{ width: "min(42rem, calc(100vw - 2rem))" }}
+              role="dialog"
+              aria-label={`Objetivos globais de ${client.nome}`}
+              onClick={event => event.stopPropagation()}
+            >
+              <div className="mb-3 flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
+                <div>
+                  <span className="block text-sm font-bold text-slate-900">
+                    Objetivos globais e subobjetivos
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    O global conclui quando todos os subobjetivos forem marcados.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Fechar objetivos"
+                  onClick={() => setShowObjectives(false)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
-              <button
-                type="button"
-                className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Fechar objetivos"
-                onClick={() => setShowObjectives(false)}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            {client.tags && client.tags.length > 0 ? (
-              <ul className="space-y-2 text-slate-700">
-                {client.tags.map((objective, index) => (
-                  <li
-                    key={`${objective}-${index}`}
-                    className={`flex items-start gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
-                      completedObjectives[`${index}`]
-                        ? "border-emerald-300 bg-emerald-100 text-emerald-900"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={Boolean(completedObjectives[`${index}`])}
-                      onChange={event =>
-                        (() => {
-                          const completed = event.target.checked;
-                          const completedAt = completed
-                            ? completionDates[`${index}`] || getTodayInputDate()
-                            : undefined;
-                          setCompletedObjectives(current => ({
-                            ...current,
-                            [`${index}`]: completed,
-                          }));
-                          if (completed && completedAt) {
-                            setCompletionDates(current => ({
-                              ...current,
-                              [`${index}`]: completedAt,
-                            }));
-                          }
-                          setObjectiveCompletion.mutate({
-                            clientId: client.id,
-                            objectiveIndex: index,
-                            completed,
-                            completedAt,
-                          });
-                        })()
-                      }
-                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
-                      aria-label={`Marcar objetivo como concluído: ${objective}`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <span
-                        className={
-                          completedObjectives[`${index}`]
-                            ? "font-medium line-through"
-                            : ""
-                        }
+              {globalObjectives.length > 0 ? (
+                <div className="space-y-3 text-slate-700">
+                  {globalObjectives.map(objective => {
+                    const globalCompleted = isGlobalObjectiveComplete(objective);
+                    return (
+                      <section
+                        key={objective.name}
+                        className={`rounded-lg border p-3 transition-colors ${
+                          globalCompleted
+                            ? "border-emerald-300 bg-emerald-50"
+                            : "border-slate-200 bg-white"
+                        }`}
                       >
-                        {objective}
-                      </span>
-                      {completedObjectives[`${index}`] && (
-                        <label className="mt-1.5 flex items-center gap-2 text-[10px] font-medium text-emerald-900">
-                          Data da conclusão
-                          <input
-                            type="date"
-                            value={completionDates[`${index}`] ?? ""}
-                            onChange={event => {
-                              const completedAt = event.target.value;
-                              setCompletionDates(current => ({
-                                ...current,
-                                [`${index}`]: completedAt,
-                              }));
-                              if (completedAt) {
-                                setObjectiveCompletion.mutate({
-                                  clientId: client.id,
-                                  objectiveIndex: index,
-                                  completed: true,
-                                  completedAt,
-                                });
-                              }
-                            }}
-                            className="h-6 rounded border border-emerald-300 bg-white px-1.5 text-[10px] text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400"
-                            aria-label={`Data de conclusão: ${objective}`}
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-slate-500">Nenhum objetivo informado na coluna AA.</p>
-            )}
-          </div>,
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <h4 className="font-semibold text-slate-900">
+                            {objective.name}
+                          </h4>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              globalCompleted
+                                ? "bg-emerald-600 text-white"
+                                : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            {globalCompleted ? "Concluído" : "Em andamento"}
+                          </span>
+                        </div>
+                        <ul className="space-y-1.5">
+                          {objective.subobjectives.map((subobjective, index) => {
+                            const key = `${objective.name}::${index}`;
+                            const completed = Boolean(completedSubobjectives[key]);
+                            return (
+                              <li
+                                key={key}
+                                className={`rounded-md border px-2.5 py-2 ${
+                                  completed
+                                    ? "border-emerald-200 bg-emerald-100/70"
+                                    : "border-slate-100 bg-slate-50"
+                                }`}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={completed}
+                                    onChange={event => {
+                                      const checked = event.target.checked;
+                                      const completedAt = checked
+                                        ? subobjectiveDates[key] || getTodayInputDate()
+                                        : undefined;
+                                      setCompletedSubobjectives(current => ({
+                                        ...current,
+                                        [key]: checked,
+                                      }));
+                                      if (checked && completedAt) {
+                                        setSubobjectiveDates(current => ({
+                                          ...current,
+                                          [key]: completedAt,
+                                        }));
+                                      }
+                                      setSubobjectiveCompletion.mutate({
+                                        clientId: client.id,
+                                        objectiveName: objective.name,
+                                        subobjectiveIndex: index,
+                                        completed: checked,
+                                        completedAt,
+                                      });
+                                    }}
+                                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
+                                    aria-label={`Marcar subobjetivo como concluído: ${subobjective}`}
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <span className={completed ? "font-medium line-through" : ""}>
+                                      {subobjective}
+                                    </span>
+                                    {completed && (
+                                      <label className="mt-1.5 flex items-center gap-2 text-[10px] font-medium text-emerald-900">
+                                        Data da conclusão
+                                        <input
+                                          type="date"
+                                          value={subobjectiveDates[key] ?? ""}
+                                          onChange={event => {
+                                            const completedAt = event.target.value;
+                                            setSubobjectiveDates(current => ({
+                                              ...current,
+                                              [key]: completedAt,
+                                            }));
+                                            if (completedAt) {
+                                              setSubobjectiveCompletion.mutate({
+                                                clientId: client.id,
+                                                objectiveName: objective.name,
+                                                subobjectiveIndex: index,
+                                                completed: true,
+                                                completedAt,
+                                              });
+                                            }
+                                          }}
+                                          className="h-6 rounded border border-emerald-300 bg-white px-1.5 text-[10px] text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400"
+                                          aria-label={`Data de conclusão: ${subobjective}`}
+                                        />
+                                      </label>
+                                    )}
+                                  </div>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-slate-500">
+                  Nenhum objetivo global configurado para este cliente.
+                </p>
+              )}
+            </div>,
             document.body
           )}
         {showScoreReasons && (

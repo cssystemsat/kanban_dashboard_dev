@@ -31,6 +31,7 @@ import {
   BI_CRITICAL_DEFINITIONS,
   BI_SEGMENT_DEFINITIONS,
   calculateAverageTTV,
+  calculateAverageSubobjectiveTTV,
   filterClientsByObjectives,
   getBICriticalGroups,
   getBIClientGroups,
@@ -158,6 +159,10 @@ export default function BI() {
     trpc.marcos.objectiveCompletionMetrics.useQuery(undefined, {
       staleTime: 30_000,
     });
+  const { data: subobjectiveCompletionMetrics = [] } =
+    trpc.marcos.subobjectiveCompletionMetrics.useQuery(undefined, {
+      staleTime: 30_000,
+    });
 
   const refreshData = useCallback(async () => {
     setRefreshing(true);
@@ -259,6 +264,15 @@ export default function BI() {
       ),
     [filteredData, objectiveCompletionMetrics, selectedObjectives]
   );
+  const subobjectiveTtv = useMemo(
+    () =>
+      calculateAverageSubobjectiveTTV(
+        filteredData,
+        subobjectiveCompletionMetrics,
+        selectedObjectives
+      ),
+    [filteredData, subobjectiveCompletionMetrics, selectedObjectives]
+  );
   const ttvByObjective = useMemo(
     () =>
       groupAverageTTVByObjective(
@@ -287,6 +301,16 @@ export default function BI() {
         detail: `Objetivo ${entry.objectiveIndex + 1} concluído em ${entry.completedAt.toLocaleDateString("pt-BR")}`,
       })),
     [ttv.entries]
+  );
+  const subobjectiveTtvEntries = useMemo(
+    () =>
+      subobjectiveTtv.entries.map(entry => ({
+        id: `${entry.clientId}-${entry.objectiveName}-${entry.subobjectiveIndex}-${entry.completedAt.toISOString()}`,
+        nome: entry.clientName,
+        badge: `${entry.days} dias`,
+        detail: `${entry.objectiveName} · ${entry.subobjectiveName}`,
+      })),
+    [subobjectiveTtv.entries]
   );
 
   const normalCards = [
@@ -334,6 +358,19 @@ export default function BI() {
       entries: ttvEntries,
       icon: Timer,
       tone: "cyan",
+    },
+    {
+      key: "subobjectiveTtv",
+      label: "TTV médio dos subobjetivos",
+      description:
+        "Tempo entre a entrada do cliente e a conclusão de cada subobjetivo.",
+      count:
+        subobjectiveTtv.averageDays === null
+          ? "—"
+          : formatDays(subobjectiveTtv.averageDays),
+      entries: subobjectiveTtvEntries,
+      icon: Timer,
+      tone: "teal",
     },
   ] as const;
 
@@ -573,6 +610,7 @@ export default function BI() {
               emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
               amber: "bg-amber-50 text-amber-700 ring-amber-100",
               cyan: "bg-cyan-50 text-cyan-700 ring-cyan-100",
+              teal: "bg-teal-50 text-teal-700 ring-teal-100",
             }[card.tone];
             return (
               <button

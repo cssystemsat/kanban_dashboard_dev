@@ -32,6 +32,7 @@ import {
   kpiWeeklySnapshots,
   InsertKpiWeeklySnapshot,
   clientObjectiveCompletions,
+  clientSubobjectiveCompletions,
   problemasCards,
   InsertProblemasCard,
 } from "../drizzle/schema";
@@ -438,6 +439,84 @@ export async function setClientObjectiveCompletion(
         and(
           eq(clientObjectiveCompletions.clientId, clientId),
           eq(clientObjectiveCompletions.objectiveIndex, objectiveIndex)
+        )
+      );
+  }
+}
+
+export async function getClientSubobjectiveCompletions(clientId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db
+    .select({
+      objectiveName: clientSubobjectiveCompletions.objectiveName,
+      subobjectiveIndex: clientSubobjectiveCompletions.subobjectiveIndex,
+      completedAt: clientSubobjectiveCompletions.completedAt,
+    })
+    .from(clientSubobjectiveCompletions)
+    .where(
+      and(
+        eq(clientSubobjectiveCompletions.clientId, clientId),
+        eq(clientSubobjectiveCompletions.completed, true)
+      )
+    );
+}
+
+export async function getCompletedSubobjectiveMetrics() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db
+    .select({
+      clientId: clientSubobjectiveCompletions.clientId,
+      objectiveName: clientSubobjectiveCompletions.objectiveName,
+      subobjectiveIndex: clientSubobjectiveCompletions.subobjectiveIndex,
+      completedAt: clientSubobjectiveCompletions.completedAt,
+    })
+    .from(clientSubobjectiveCompletions)
+    .where(eq(clientSubobjectiveCompletions.completed, true));
+}
+
+export async function setClientSubobjectiveCompletion(
+  clientId: string,
+  objectiveName: string,
+  subobjectiveIndex: number,
+  completed: boolean,
+  updatedBy?: string | null,
+  completedAt?: Date
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  if (completed) {
+    const completionDate = completedAt ?? new Date();
+    await db
+      .insert(clientSubobjectiveCompletions)
+      .values({
+        clientId,
+        objectiveName,
+        subobjectiveIndex,
+        completed: true,
+        updatedBy: updatedBy ?? null,
+        completedAt: completionDate,
+      })
+      .onDuplicateKeyUpdate({
+        set: {
+          completed: true,
+          updatedBy: updatedBy ?? null,
+          completedAt: completionDate,
+        },
+      });
+  } else {
+    await db
+      .delete(clientSubobjectiveCompletions)
+      .where(
+        and(
+          eq(clientSubobjectiveCompletions.clientId, clientId),
+          eq(clientSubobjectiveCompletions.objectiveName, objectiveName),
+          eq(
+            clientSubobjectiveCompletions.subobjectiveIndex,
+            subobjectiveIndex
+          )
         )
       );
   }

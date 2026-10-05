@@ -1,4 +1,5 @@
 import type { ClientData } from "@/hooks/useKanbanData";
+import { getGlobalObjectiveDefinition } from "@shared/globalObjectives";
 
 export type BIMetricKey =
   | "implantacao"
@@ -232,6 +233,13 @@ export type ObjectiveCompletionMetric = {
   completedAt: Date | string | null;
 };
 
+export type SubobjectiveCompletionMetric = {
+  clientId: string;
+  objectiveName: string;
+  subobjectiveIndex: number;
+  completedAt: Date | string | null;
+};
+
 function parseBrazilianDate(value: string): Date | null {
   const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
   if (!match) return null;
@@ -274,6 +282,51 @@ export function calculateAverageTTV<T extends BITTVCandidate>(
         clientId: client.id,
         clientName: client.nome,
         objectiveIndex: completion.objectiveIndex,
+        completedAt,
+        days,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
+  const averageDays = entries.length
+    ? entries.reduce((total, entry) => total + entry.days, 0) / entries.length
+    : null;
+  return { averageDays, entries };
+}
+
+export function calculateAverageSubobjectiveTTV<T extends BITTVCandidate>(
+  clients: T[],
+  completions: SubobjectiveCompletionMetric[],
+  selectedObjectives: string[] = []
+) {
+  const clientsById = new Map(clients.map(client => [client.id, client]));
+  const selected = new Set(
+    selectedObjectives.map(normalizeObjective).filter(Boolean)
+  );
+  const entries = completions
+    .map(completion => {
+      const client = clientsById.get(completion.clientId);
+      const definition = getGlobalObjectiveDefinition(completion.objectiveName);
+      const objectiveName = definition?.name ?? completion.objectiveName;
+      if (selected.size > 0 && !selected.has(normalizeObjective(objectiveName))) {
+        return null;
+      }
+      const startDate = client ? parseBrazilianDate(client.entrada) : null;
+      const completedAt = parseCompletedAt(completion.completedAt);
+      const subobjectiveName =
+        definition?.subobjectives[completion.subobjectiveIndex] ??
+        `Subobjetivo ${completion.subobjectiveIndex + 1}`;
+      if (!client || !startDate || !completedAt) return null;
+      const days = Math.floor(
+        (completedAt.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (days < 0) return null;
+      return {
+        clientId: client.id,
+        clientName: client.nome,
+        objectiveName,
+        subobjectiveName,
+        subobjectiveIndex: completion.subobjectiveIndex,
         completedAt,
         days,
       };

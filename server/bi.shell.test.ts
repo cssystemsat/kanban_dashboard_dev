@@ -49,6 +49,7 @@ describe("BI shell", () => {
     expect(biMetricsSource).toContain("Atrasados para Ongoing");
     expect(biMetricsSource).toContain("getUnflaggedOverdueGroups");
     expect(biMetricsSource).toContain("calculateAverageTTV");
+    expect(biMetricsSource).toContain("calculateAverageSubobjectiveTTV");
     expect(biPageSource).toContain("Todos os CSMs");
     expect(biPageSource).toContain("Filtrar por objetivo");
     expect(biPageSource).toContain("selectedObjectives");
@@ -56,6 +57,8 @@ describe("BI shell", () => {
     expect(biPageSource).toContain("pelo menos um deles");
     expect(biPageSource).toContain("Gerar relatório");
     expect(biPageSource).toContain("TTV médio");
+    expect(biPageSource).toContain("TTV médio dos subobjetivos");
+    expect(biPageSource).toContain("subobjectiveCompletionMetrics");
     expect(biPageSource).toContain("Atrasados sem Flag");
     expect(biPageSource).toContain("Quantidade de clientes por CSM");
     expect(biPageSource).toContain("Valor financeiro por CSM");

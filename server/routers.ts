@@ -73,6 +73,9 @@ import {
   getClientObjectiveCompletions,
   getCompletedObjectiveMetrics,
   setClientObjectiveCompletion,
+  getClientSubobjectiveCompletions,
+  getCompletedSubobjectiveMetrics,
+  setClientSubobjectiveCompletion,
   getProblemasCards,
   syncProblemasCards,
   updateProblemasCard,
@@ -191,6 +194,14 @@ export const appRouter = router({
     objectiveCompletionMetrics: protectedProcedure.query(async () => {
       return getCompletedObjectiveMetrics();
     }),
+    subobjectiveCompletions: protectedProcedure
+      .input(z.object({ clientId: z.string().min(1).max(255) }))
+      .query(async ({ input }) => {
+        return getClientSubobjectiveCompletions(input.clientId);
+      }),
+    subobjectiveCompletionMetrics: protectedProcedure.query(async () => {
+      return getCompletedSubobjectiveMetrics();
+    }),
     setObjectiveCompletion: protectedProcedure
       .input(
         z.object({
@@ -207,6 +218,32 @@ export const appRouter = router({
         await setClientObjectiveCompletion(
           input.clientId,
           input.objectiveIndex,
+          input.completed,
+          ctx.user.email,
+          input.completedAt
+            ? new Date(`${input.completedAt}T12:00:00`)
+            : undefined
+        );
+        return { success: true };
+      }),
+    setSubobjectiveCompletion: protectedProcedure
+      .input(
+        z.object({
+          clientId: z.string().min(1).max(255),
+          objectiveName: z.string().trim().min(1).max(255),
+          subobjectiveIndex: z.number().int().nonnegative(),
+          completed: z.boolean(),
+          completedAt: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await setClientSubobjectiveCompletion(
+          input.clientId,
+          input.objectiveName,
+          input.subobjectiveIndex,
           input.completed,
           ctx.user.email,
           input.completedAt
