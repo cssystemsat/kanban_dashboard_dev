@@ -303,6 +303,59 @@ export type SubobjectiveCompletionMetric = {
   completedAt: Date | string | null;
 };
 
+export function deriveObjectiveCompletionsFromSubobjectives<
+  T extends { id: string; tags?: string[] }
+>(
+  clients: T[],
+  completions: SubobjectiveCompletionMetric[]
+): ObjectiveCompletionMetric[] {
+  const completionByKey = new Map<string, SubobjectiveCompletionMetric>();
+  for (const completion of completions) {
+    completionByKey.set(
+      `${completion.clientId}::${normalizeObjective(completion.objectiveName)}::${completion.subobjectiveIndex}`,
+      completion
+    );
+  }
+
+  return clients.flatMap(client =>
+    (client.tags ?? []).flatMap((tag, objectiveIndex) => {
+      const definition = getGlobalObjectiveDefinition(tag);
+      if (!definition) return [];
+      const objectiveKey = normalizeObjective(definition.name);
+      const objectiveCompletions = definition.subobjectives.map((_, index) =>
+        completionByKey.get(`${client.id}::${objectiveKey}::${index}`)
+      );
+      if (objectiveCompletions.some(completion => !completion)) return [];
+
+      const dates = objectiveCompletions
+        .map(completion => parseCompletedAt(completion?.completedAt ?? null))
+        .filter((date): date is Date => date !== null);
+      const completedAt =
+        dates.length === definition.subobjectives.length
+          ? new Date(Math.max(...dates.map(date => date.getTime())))
+          : null;
+      return [{ clientId: client.id, objectiveIndex, completedAt }];
+    })
+  );
+}
+
+export function mergeObjectiveCompletions(
+  stored: ObjectiveCompletionMetric[],
+  derived: ObjectiveCompletionMetric[]
+): ObjectiveCompletionMetric[] {
+  const merged = new Map(
+    stored.map(completion => [
+      `${completion.clientId}::${completion.objectiveIndex}`,
+      completion,
+    ])
+  );
+  for (const completion of derived) {
+    const key = `${completion.clientId}::${completion.objectiveIndex}`;
+    if (!merged.has(key)) merged.set(key, completion);
+  }
+  return [...merged.values()];
+}
+
 function parseBrazilianDate(value: string): Date | null {
   const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
   if (!match) return null;

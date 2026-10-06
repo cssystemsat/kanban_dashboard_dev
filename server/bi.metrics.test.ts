@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateAverageSubobjectiveTTV,
   calculateAverageTTV,
+  deriveObjectiveCompletionsFromSubobjectives,
   filterClientsByObjectiveFilters,
   filterClientsByObjectives,
   getFlaggedOverdueGroups,
@@ -13,6 +14,7 @@ import {
   groupClientCountByCSM,
   listObjectives,
   listSubobjectives,
+  mergeObjectiveCompletions,
   parseBoleto,
 } from "../client/src/lib/biMetrics";
 
@@ -253,6 +255,38 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
 
     expect(ttv.entries.map(entry => entry.days)).toEqual([30]);
     expect(ttv.averageDays).toBe(30);
+  });
+
+  it("deriva o TTV global de Migração quando todos os subobjetivos estão concluídos", () => {
+    const clients = [
+      {
+        id: "JG soluções-80",
+        nome: "JG soluções",
+        entrada: "01/08/2026",
+        tags: ["Migração"],
+      },
+    ];
+    const subobjectiveCompletions = [0, 1, 2, 3, 4].map(index => ({
+      clientId: "JG soluções-80",
+      objectiveName: "Migração",
+      subobjectiveIndex: index,
+      completedAt: new Date(2026, 7, 5 + index),
+    }));
+
+    const derived = deriveObjectiveCompletionsFromSubobjectives(
+      clients,
+      subobjectiveCompletions
+    );
+    const ttv = calculateAverageTTV(clients, mergeObjectiveCompletions([], derived));
+
+    expect(derived).toEqual([
+      {
+        clientId: "JG soluções-80",
+        objectiveIndex: 0,
+        completedAt: new Date(2026, 7, 9),
+      },
+    ]);
+    expect(ttv.averageDays).toBe(8);
   });
 
   it("calcula TTV médio dos subobjetivos e respeita o filtro do objetivo global", () => {

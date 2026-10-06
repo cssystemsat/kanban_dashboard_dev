@@ -32,6 +32,7 @@ import {
   BI_SEGMENT_DEFINITIONS,
   calculateAverageTTV,
   calculateAverageSubobjectiveTTV,
+  deriveObjectiveCompletionsFromSubobjectives,
   filterClientsByObjectiveFilters,
   getBICriticalGroups,
   getBIClientGroups,
@@ -43,6 +44,7 @@ import {
   listCSMs,
   listObjectives,
   listSubobjectives,
+  mergeObjectiveCompletions,
   normalizeCSM,
 } from "@/lib/biMetrics";
 import { generateBIManagementReport } from "@/lib/biReportPdf";
@@ -322,6 +324,18 @@ export default function BI() {
     );
   }, [data, searchCliente, selectedCSM, selectedObjectives, selectedSubobjectives]);
 
+  const effectiveObjectiveCompletionMetrics = useMemo(
+    () =>
+      mergeObjectiveCompletions(
+        objectiveCompletionMetrics,
+        deriveObjectiveCompletionsFromSubobjectives(
+          filteredData,
+          subobjectiveCompletionMetrics
+        )
+      ),
+    [filteredData, objectiveCompletionMetrics, subobjectiveCompletionMetrics]
+  );
+
   const filteredMigrationData = useMemo(() => {
     const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
     const filteredClientNames = new Set(
@@ -373,10 +387,10 @@ export default function BI() {
     () =>
       calculateAverageTTV(
         filteredData,
-        objectiveCompletionMetrics,
+        effectiveObjectiveCompletionMetrics,
         selectedObjectives
       ),
-    [filteredData, objectiveCompletionMetrics, selectedObjectives]
+    [filteredData, effectiveObjectiveCompletionMetrics, selectedObjectives]
   );
   const subobjectiveTtv = useMemo(
     () =>
@@ -397,10 +411,10 @@ export default function BI() {
     () =>
       groupAverageTTVByObjective(
         filteredData,
-        objectiveCompletionMetrics,
+        effectiveObjectiveCompletionMetrics,
         selectedObjectives
       ),
-    [filteredData, objectiveCompletionMetrics, selectedObjectives]
+    [filteredData, effectiveObjectiveCompletionMetrics, selectedObjectives]
   );
   const clientCountByCSM = useMemo(
     () => groupClientCountByCSM(filteredData),
@@ -653,7 +667,7 @@ export default function BI() {
                       unflaggedImplantation: unflaggedOverdueGroups.implantacao,
                       flaggedImplantation: flaggedOverdueGroups.implantacao,
                       ttvClients: filteredData,
-                      completions: objectiveCompletionMetrics,
+                      completions: effectiveObjectiveCompletionMetrics,
                       selectedObjectives,
                       csmLabel: selectedCSM || "Todos",
                       searchLabel: searchCliente || "Todos",

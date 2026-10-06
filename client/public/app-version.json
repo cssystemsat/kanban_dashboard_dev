@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.3",
-  "changes": ["Os filtros do BI agora são separados: o filtro de subobjetivos mostra apenas as opções dos objetivos globais selecionados e limpa seleções incompatíveis automaticamente."]
+  "appVersion": "11.4",
+  "changes": ["Objetivos globais agora são reconhecidos como concluídos quando todos os subobjetivos estão marcados; o TTV global passa a aparecer, incluindo a Migração da JG Soluções."]
 }
