@@ -10,6 +10,7 @@ import {
   getBIClientGroups,
   getUnflaggedOverdueGroups,
   groupAverageTTVByObjective,
+  groupAverageTTVBySubobjective,
   groupBoletoByCSM,
   groupClientCountByCSM,
   listObjectives,
@@ -354,6 +355,19 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
       { objective: "Diagnóstico", dias: 15, conclusoes: 2 },
       { objective: "Expansão", dias: null, conclusoes: 0 },
       { objective: "Treinamento", dias: null, conclusoes: 0 },
+    ]);
+  });
+
+  it("agrupa subobjetivos com o mesmo nome entre objetivos globais", () => {
+    expect(
+      groupAverageTTVBySubobjective([
+        { subobjectiveName: "Apontar 1° equipamento", days: 10 },
+        { subobjectiveName: "Apontar 1° equipamento", days: 20 },
+        { subobjectiveName: "Criar regras principais", days: 30 },
+      ])
+    ).toEqual([
+      { subobjective: "Apontar 1° equipamento", dias: 15, conclusoes: 2 },
+      { subobjective: "Criar regras principais", dias: 30, conclusoes: 1 },
     ]);
   });
 

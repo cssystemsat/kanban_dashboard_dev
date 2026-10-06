@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.4",
-  "changes": ["Objetivos globais agora são reconhecidos como concluídos quando todos os subobjetivos estão marcados; o TTV global passa a aparecer, incluindo a Migração da JG Soluções."]
+  "appVersion": "11.5",
+  "changes": ["BI agora possui um gráfico vertical de tempo médio por subobjetivo; subobjetivos com o mesmo nome em objetivos globais diferentes são agrupados em uma única barra."]
 }

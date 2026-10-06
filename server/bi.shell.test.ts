@@ -64,6 +64,9 @@ describe("BI shell", () => {
     expect(biPageSource).toContain("Quantidade de clientes por CSM");
     expect(biPageSource).toContain("Valor financeiro por CSM");
     expect(biPageSource).toContain("Tempo de implantação por objetivo");
+    expect(biPageSource).toContain("Tempo de conclusão por subobjetivo");
+    expect(biPageSource).toContain("groupAverageTTVBySubobjective");
+    expect(biPageSource).toContain("Nomes iguais em objetivos globais diferentes");
     expect(biPageSource).toContain("groupAverageTTVByObjective");
     expect(biPageSource).toContain("generateBIManagementReport");
     expect(biPageSource).toContain("PDF gerencial gerado com sucesso.");

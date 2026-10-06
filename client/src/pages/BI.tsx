@@ -39,6 +39,7 @@ import {
   getFlaggedOverdueGroups,
   getUnflaggedOverdueGroups,
   groupAverageTTVByObjective,
+  groupAverageTTVBySubobjective,
   groupBoletoByCSM,
   groupClientCountByCSM,
   listCSMs,
@@ -406,6 +407,10 @@ export default function BI() {
       selectedObjectives,
       selectedSubobjectives,
     ]
+  );
+  const subobjectiveTtvByName = useMemo(
+    () => groupAverageTTVBySubobjective(subobjectiveTtv.entries),
+    [subobjectiveTtv.entries]
   );
   const ttvByObjective = useMemo(
     () =>
@@ -872,6 +877,68 @@ export default function BI() {
                     dataKey="dias"
                     name="Tempo médio"
                     fill="#0E7490"
+                    radius={[5, 5, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </section>
+
+        <section className="mt-3 min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-slate-800">
+                Tempo de conclusão por subobjetivo
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Média em dias por subobjetivo. Nomes iguais em objetivos globais diferentes são agrupados em uma única barra.
+              </p>
+            </div>
+            <Timer className="h-5 w-5 text-teal-700" aria-hidden="true" />
+          </div>
+          <div className="mt-3 h-[360px] w-full min-w-0 sm:h-[430px]">
+            {subobjectiveTtvByName.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                Nenhum subobjetivo concluído com data para exibir.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={subobjectiveTtvByName}
+                  margin={{ top: 8, right: 16, left: -8, bottom: 125 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#E2E8F0"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="subobjective"
+                    angle={-42}
+                    textAnchor="end"
+                    interval={0}
+                    height={138}
+                    tick={{ fontSize: 10, fill: "#64748B" }}
+                  />
+                  <YAxis
+                    tickFormatter={value => `${value}d`}
+                    allowDecimals={false}
+                    tick={{ fontSize: 11, fill: "#64748B" }}
+                  />
+                  <Tooltip
+                    formatter={(value, _name, item) => [
+                      value === null || value === undefined
+                        ? "Sem conclusão datada"
+                        : formatDays(Number(value)),
+                      `Tempo médio • ${item.payload.conclusoes} conclusão(ões)`,
+                    ]}
+                    cursor={{ fill: "#F8FAFC" }}
+                  />
+                  <Bar
+                    dataKey="dias"
+                    name="Tempo médio"
+                    fill="#0F766E"
                     radius={[5, 5, 0, 0]}
                   />
                 </BarChart>

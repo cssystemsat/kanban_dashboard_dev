@@ -467,6 +467,42 @@ export function calculateAverageSubobjectiveTTV<T extends BITTVCandidate>(
   return { averageDays, entries };
 }
 
+export function groupAverageTTVBySubobjective(
+  entries: Array<{
+    subobjectiveName: string;
+    days: number;
+  }>
+) {
+  const grouped = new Map<
+    string,
+    { subobjective: string; totalDays: number; completions: number }
+  >();
+  for (const entry of entries) {
+    const subobjective = entry.subobjectiveName.trim();
+    if (!subobjective) continue;
+    const key = normalizeObjective(subobjective);
+    const current = grouped.get(key) ?? {
+      subobjective,
+      totalDays: 0,
+      completions: 0,
+    };
+    grouped.set(key, {
+      ...current,
+      totalDays: current.totalDays + entry.days,
+      completions: current.completions + 1,
+    });
+  }
+  return [...grouped.values()]
+    .map(item => ({
+      subobjective: item.subobjective,
+      dias: item.completions
+        ? item.totalDays / item.completions
+        : null,
+      conclusoes: item.completions,
+    }))
+    .sort((a, b) => a.subobjective.localeCompare(b.subobjective, "pt-BR"));
+}
+
 export function groupAverageTTVByObjective<T extends BITTVCandidate & {
   tags?: string[];
 }>(
