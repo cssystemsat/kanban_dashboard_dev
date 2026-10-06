@@ -15,6 +15,8 @@ export type ProblemasSyncRow = {
   boleto: string;
   comercial: string;
   csm: string;
+  persona: string;
+  status: string;
   flag: "Yellow Flag" | "Red Flag" | "Black Flag";
 };
 
@@ -95,7 +97,7 @@ export function normalizeProblemClientKey(value: string): string {
 
 /**
  * Colunas da aba Marcos (gid=0): A Código, B Cliente, C CSM, F Boleto,
- * O Flag, S ID Central e X Comercial. Linhas sem cliente são ignoradas.
+ * N Status, O Flag, S ID Central, X Comercial e Y Persona. Linhas sem cliente são ignoradas.
  */
 export function parseProblemasMarcosRows(csv: string): ProblemasSyncRow[] {
   const rows = parseCsvRows(csv);
@@ -121,6 +123,8 @@ export function parseProblemasMarcosRows(csv: string): ProblemasSyncRow[] {
       boleto: (row[5] ?? "").trim(),
       comercial: (row[23] ?? "").trim(),
       csm: (row[2] ?? "").trim(),
+      persona: (row[24] ?? "").trim(),
+      status: (row[13] ?? "").trim(),
       flag,
     });
   }

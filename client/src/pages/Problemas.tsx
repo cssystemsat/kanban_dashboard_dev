@@ -52,6 +52,8 @@ type ProblemasCard = {
   boleto: string;
   comercial: string;
   csm: string;
+  persona: string;
+  status: string;
   flag: string;
   stage: ProblemStage;
   problem: string | null;
@@ -99,6 +101,8 @@ export default function Problemas() {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [selectedCSM, setSelectedCSM] = useState("");
   const [selectedFlag, setSelectedFlag] = useState<ProblemFlagFilter>("");
+  const [selectedPersona, setSelectedPersona] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const initialSyncDone = useRef(false);
 
   const cardsQuery = trpc.problemas.list.useQuery(undefined, {
@@ -117,9 +121,30 @@ export default function Problemas() {
       ).sort((a, b) => a.localeCompare(b, "pt-BR")),
     [cards]
   );
+  const personaOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(cards.map(card => card.persona.trim()).filter(Boolean))
+      ).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [cards]
+  );
+  const statusOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(cards.map(card => card.status.trim()).filter(Boolean))
+      ).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [cards]
+  );
   const visibleCards = useMemo(
-    () => filterProblemCards(cards, selectedCSM, selectedFlag),
-    [cards, selectedCSM, selectedFlag]
+    () =>
+      filterProblemCards(
+        cards,
+        selectedCSM,
+        selectedFlag,
+        selectedPersona,
+        selectedStatus
+      ),
+    [cards, selectedCSM, selectedFlag, selectedPersona, selectedStatus]
   );
 
   const refreshFromMarcos = async (notify = true) => {
@@ -249,6 +274,42 @@ export default function Problemas() {
                 ))}
               </select>
             </label>
+            <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+              <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Persona
+              </span>
+              <select
+                value={selectedPersona}
+                onChange={event => setSelectedPersona(event.target.value)}
+                className="min-w-[155px] max-w-full bg-transparent text-sm font-medium text-slate-700 outline-none"
+                aria-label="Filtrar problemas por Persona"
+              >
+                <option value="">Todas as personas</option>
+                {personaOptions.map(persona => (
+                  <option key={persona} value={persona}>
+                    {persona}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+              <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Status
+              </span>
+              <select
+                value={selectedStatus}
+                onChange={event => setSelectedStatus(event.target.value)}
+                className="min-w-[145px] max-w-full bg-transparent text-sm font-medium text-slate-700 outline-none"
+                aria-label="Filtrar problemas por Status"
+              >
+                <option value="">Todos os status</option>
+                {statusOptions.map(status => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 xl:ml-auto">
               <span className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2">
                 {visibleCards.length} de {cards.length} cards
@@ -272,7 +333,7 @@ export default function Problemas() {
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-slate-400">
             <span>Kanban compartilhado · Yellow, Red e Black</span>
             <span>
-              {selectedCSM || selectedFlag
+              {selectedCSM || selectedFlag || selectedPersona || selectedStatus
                 ? "Filtros aplicados"
                 : "Todos os problemas ativos"}
             </span>

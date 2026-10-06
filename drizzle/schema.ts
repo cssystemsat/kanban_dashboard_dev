@@ -347,6 +347,8 @@ export const problemasCards = mysqlTable(
     boleto: varchar("boleto", { length: 255 }).default("").notNull(),
     comercial: varchar("comercial", { length: 255 }).default("").notNull(),
     csm: varchar("csm", { length: 255 }).default("").notNull(),
+    persona: varchar("persona", { length: 255 }).default("").notNull(),
+    status: varchar("status", { length: 255 }).default("").notNull(),
     flag: varchar("flag", { length: 64 }).notNull(),
     stage: varchar("stage", { length: 64 }).default("nova_flag").notNull(),
     problem: text("problem"),

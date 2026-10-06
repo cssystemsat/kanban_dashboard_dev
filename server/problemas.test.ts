@@ -35,10 +35,10 @@ describe("aba Problemas", () => {
   });
 
   it("mapeia os campos de Marcos e ignora clientes sem flag", () => {
-    const header = Array.from({ length: 24 }, (_, index) => `C${index}`).join(
+    const header = Array.from({ length: 25 }, (_, index) => `C${index}`).join(
       ","
     );
-    const flagged = Array.from({ length: 24 }, () => "");
+    const flagged = Array.from({ length: 25 }, () => "");
     flagged[0] = "COD-100";
     flagged[1] = "Central Exemplo";
     flagged[2] = "CSM Ana";
@@ -46,7 +46,9 @@ describe("aba Problemas", () => {
     flagged[14] = "Red Flag";
     flagged[18] = "1024";
     flagged[23] = "Comercial João";
-    const ignored = Array.from({ length: 24 }, () => "");
+    flagged[13] = "Em andamento";
+    flagged[24] = "Empreendedor";
+    const ignored = Array.from({ length: 25 }, () => "");
     ignored[1] = "Sem flag";
 
     const rows = parseProblemasMarcosRows(
@@ -61,6 +63,8 @@ describe("aba Problemas", () => {
         comercial: "Comercial João",
         boleto: "R$ 1.250,00",
         flag: "Red Flag",
+        status: "Em andamento",
+        persona: "Empreendedor",
       }),
     ]);
   });
@@ -87,22 +91,28 @@ describe("aba Problemas", () => {
     expect(pageSource).toContain("syncFromMarcos");
   });
 
-  it("filtra cards por CSM e por tipo de flag", () => {
+  it("filtra cards por CSM, flag, Persona e Status", () => {
     const cards = [
       {
         id: 1,
         csm: "Ana",
         flag: "Red Flag",
+        persona: "Empreendedor",
+        status: "Em andamento",
       },
       {
         id: 2,
         csm: "Bruno",
         flag: "Yellow Flag",
+        persona: "Cliente final",
+        status: "Concluído",
       },
       {
         id: 3,
         csm: "Ana",
         flag: "Black Flag",
+        persona: "Empreendedor",
+        status: "Em andamento",
       },
     ] as Parameters<typeof filterProblemCards>[0];
 
@@ -116,11 +126,25 @@ describe("aba Problemas", () => {
     expect(filterProblemCards(cards, "", "Yellow Flag").map(card => card.id)).toEqual([
       2,
     ]);
+    expect(
+      filterProblemCards(cards, "Ana", "Red Flag", "Empreendedor", "Em andamento").map(
+        card => card.id
+      )
+    ).toEqual([1]);
+    expect(
+      filterProblemCards(cards, "", "", "Cliente final", "Concluído").map(
+        card => card.id
+      )
+    ).toEqual([2]);
   });
 
   it("mantém filtros e colunas sem overflow em diferentes larguras", () => {
     expect(pageSource).toContain('aria-label="Filtrar problemas por CSM"');
     expect(pageSource).toContain('aria-label="Filtrar problemas por tipo de flag"');
+    expect(pageSource).toContain('aria-label="Filtrar problemas por Persona"');
+    expect(pageSource).toContain('aria-label="Filtrar problemas por Status"');
+    expect(pageSource).toContain("selectedPersona");
+    expect(pageSource).toContain("selectedStatus");
     expect(pageSource).toContain("overflow-x-hidden");
     expect(pageSource).toContain("lg:h-[calc(100vh-185px)]");
     expect(pageSource).toContain("2xl:grid-cols-6");

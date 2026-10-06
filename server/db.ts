@@ -1079,6 +1079,8 @@ export async function syncProblemasCards(rows: ProblemasSyncRow[]) {
       boleto: row.boleto,
       comercial: row.comercial,
       csm: row.csm,
+      persona: row.persona,
+      status: row.status,
       flag: row.flag,
       isActive: 1,
     };

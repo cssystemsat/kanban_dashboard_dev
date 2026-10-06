@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.5",
-  "changes": ["BI agora possui um gráfico vertical de tempo médio por subobjetivo; subobjetivos com o mesmo nome em objetivos globais diferentes são agrupados em uma única barra."]
+  "appVersion": "11.6",
+  "changes": ["Problemas agora permite filtrar simultaneamente por CSM, tipo de flag, Persona (coluna Y) e Status (coluna N) da aba Marcos."]
 }
