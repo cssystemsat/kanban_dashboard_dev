@@ -51,6 +51,12 @@ describe("Marcos — objetivos do cliente", () => {
     expect(kanbanData).toContain("tagsRaw");
   });
 
+  it("usa o ID Central estável em vez do índice da linha", () => {
+    expect(kanbanData).toContain("buildStableClientId");
+    expect(kanbanData).toContain("central:${central}");
+    expect(kanbanData).not.toContain('id: `${nome}-${i}`');
+  });
+
   it("persiste a conclusão no backend compartilhado", () => {
     expect(routers).toContain("subobjectiveCompletions: protectedProcedure");
     expect(routers).toContain("setSubobjectiveCompletion: protectedProcedure");

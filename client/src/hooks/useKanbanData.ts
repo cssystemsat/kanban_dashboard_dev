@@ -38,6 +38,23 @@ export interface ClientData {
   cidade?: string; // Coluna AI - Cidade do cliente
 }
 
+/**
+ * Identificador persistente para dados compartilhados do cliente.
+ * O índice da linha da planilha não pode ser usado: novas linhas podem ser
+ * inseridas e fazer objetivos já marcados desaparecerem da tela.
+ */
+export function buildStableClientId(
+  centralId: string | undefined,
+  codigoCliente: string,
+  nome: string
+): string {
+  const central = centralId?.trim();
+  if (central) return `central:${central}`;
+  const codigo = codigoCliente.trim();
+  if (codigo) return `codigo:${codigo}`;
+  return `nome:${nome.trim().toLocaleLowerCase("pt-BR")}`;
+}
+
 interface RawRow {
   [key: string]: string;
 }
@@ -234,7 +251,7 @@ export const useKanbanData = () => {
         const centralId = row[centralIdIdx]?.trim() || undefined;
 
         clients.push({
-          id: `${nome}-${i}`,
+          id: buildStableClientId(centralId, codigoCliente, nome),
           nome,
           codigoCliente,
           centralId,

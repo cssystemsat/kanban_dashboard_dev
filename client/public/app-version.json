@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.6",
-  "changes": ["Problemas agora permite filtrar simultaneamente por CSM, tipo de flag, Persona (coluna Y) e Status (coluna N) da aba Marcos."]
+  "appVersion": "11.7",
+  "changes": ["Corrigido o vínculo das conclusões de objetivos: agora ele usa o ID Central estável da aba Marcos, sem depender da posição da linha na planilha."]
 }
