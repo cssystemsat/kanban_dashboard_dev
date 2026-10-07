@@ -1,4 +1,4 @@
 {
   "appVersion": "12.0",
-  "changes": ["Avaliações NPS agora são lidas do banco persistido: média exibida nos cards Ongoing, impacto no Health Score e histórico sem nova chamada à API ao abrir o card."]
+  "changes": ["Implementação da versão beta do Health Score para o Ongoing."]
 }
