@@ -13,6 +13,7 @@ export interface OngoingClientData {
   percentualDesatualizado: number; // Coluna I - % Base Desatualizada
   unidadesDesatualizadas: number; // Coluna J - Unidades Desatualizadas
   ultimoContato: string; // Coluna L - Último Contato
+  diasUltimoContato: number; // Coluna M - Dias desde o último contato
   flag: string; // Coluna O — 'Red Flag' | 'Yellow Flag' | 'Black Flag' | ''
   estrela: boolean; // Coluna Q — checkbox
   situacao: string; // Coluna V - Situação
@@ -20,6 +21,7 @@ export interface OngoingClientData {
   decisor: string; // Coluna AE - Decisor
   contatoDecissor: string; // Coluna AF - Contato do Decisor
   deltaConsumo: number; // Coluna BK (36) - Delta Consumo
+  perdaPlacasMes: number; // Coluna AD (29) - Perda de placas no mês
   entrada: string; // Coluna D - Data de Entrada
   cidade: string; // Coluna AI - Cidade
   estado: string; // Coluna AJ - Estado
@@ -112,6 +114,7 @@ export function useOngoingData() {
               parseFloat((row[8] || "0").replace("%", "")) || 0; // Coluna I (8)
             const unidadesDesatualizadas = parseInt(row[9] || "0"); // Coluna J (9)
             const ultimoContato = String(row[11] || "").trim(); // Coluna L (11)
+            const diasUltimoContato = extractNumber(row[12] || ""); // Coluna M (12)
             const flag = String(row[14] || "").trim(); // Coluna O (14) — texto do nível de flag
             const estrelaStr = String(row[16] || "")
               .trim()
@@ -123,6 +126,7 @@ export function useOngoingData() {
             const decisor = String(row[30] || "").trim(); // Coluna AE (30)
             const contatoDecissor = String(row[31] || "").trim(); // Coluna AF (31) - Contato do Decisor
             const deltaConsumo = extractNumber(row[36] || ""); // Coluna BK (36) - Delta Consumo
+            const perdaPlacasMes = Math.abs(extractNumber(row[29] || "")); // Coluna AD (29) - P
             const cidade = String(row[34] || "").trim(); // Coluna AI (34) - Cidade
             const estado = String(row[35] || "").trim(); // Coluna AJ (35) - Estado
 
@@ -143,6 +147,7 @@ export function useOngoingData() {
                 percentualDesatualizado,
                 unidadesDesatualizadas,
                 ultimoContato,
+                diasUltimoContato,
                 flag,
                 estrela,
                 situacao,
@@ -150,6 +155,7 @@ export function useOngoingData() {
                 decisor,
                 contatoDecissor,
                 deltaConsumo,
+                perdaPlacasMes,
                 cidade,
                 estado,
               });

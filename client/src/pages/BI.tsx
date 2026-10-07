@@ -23,6 +23,7 @@ import {
   YAxis,
 } from "recharts";
 import { useKanbanData, type ClientData } from "@/hooks/useKanbanData";
+import { useOngoingData } from "@/hooks/useOngoingData";
 import {
   useMigracaoListData,
   type MigracaoCard,
@@ -57,6 +58,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
+import { groupHealthScoreByCSM } from "@/lib/criticality";
 
 const REFRESH_INTERVAL_SECONDS = 10 * 60;
 
@@ -235,6 +237,7 @@ export default function BI() {
     error,
     fetchData: fetchMarcosData,
   } = useKanbanData();
+  const { data: ongoingData } = useOngoingData();
   const {
     data: migrationData,
     loading: migrationLoading,
@@ -426,6 +429,19 @@ export default function BI() {
     [filteredData]
   );
   const boletoByCSM = useMemo(() => groupBoletoByCSM(filteredData), [filteredData]);
+  const filteredOngoingForHealth = useMemo(() => {
+    const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
+    return ongoingData.filter(client => {
+      if (selectedCSM && normalizeCSM(client.csm) !== normalizeCSM(selectedCSM)) {
+        return false;
+      }
+      return !normalizedSearch || client.nome.toLocaleLowerCase("pt-BR").includes(normalizedSearch);
+    });
+  }, [ongoingData, searchCliente, selectedCSM]);
+  const healthScoreByCSM = useMemo(
+    () => groupHealthScoreByCSM(filteredData, filteredOngoingForHealth),
+    [filteredData, filteredOngoingForHealth]
+  );
 
   const migrationEntries = useMemo(
     () => filteredMigrationData.map(migrationEntry),
@@ -771,7 +787,7 @@ export default function BI() {
           ))}
         </section>
 
-        <section className="mt-5 grid min-w-0 gap-3 xl:grid-cols-2">
+        <section className="mt-5 grid min-w-0 gap-3 xl:grid-cols-3">
           <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -816,6 +832,31 @@ export default function BI() {
                     <YAxis tickFormatter={value => formatCompactCurrency(Number(value))} width={72} tick={{ fontSize: 10, fill: "#64748B" }} />
                     <Tooltip formatter={value => formatCurrency(Number(value))} cursor={{ fill: "#F8FAFC" }} />
                     <Bar dataKey="valor" name="Boletos" fill="#059669" radius={[5, 5, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-slate-800">Health Score médio por CSM</h2>
+                <p className="mt-1 text-xs text-slate-500">Média dos clientes de Marcos e Ongoing.</p>
+              </div>
+              <span className="text-lg font-bold text-violet-700">{healthScoreByCSM.length} CSMs</span>
+            </div>
+            <div className="mt-3 h-[240px] w-full min-w-0 sm:h-[270px]">
+              {healthScoreByCSM.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-slate-400">Nenhum dado para exibir.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={healthScoreByCSM} margin={{ top: 8, right: 8, left: -8, bottom: 50 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                    <XAxis dataKey="csm" angle={-30} textAnchor="end" interval={0} height={62} tick={{ fontSize: 10, fill: "#64748B" }} />
+                    <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10, fill: "#64748B" }} />
+                    <Tooltip formatter={value => [`${Number(value).toFixed(1)} pontos`, "Health Score"]} cursor={{ fill: "#F8FAFC" }} />
+                    <Bar dataKey="score" name="Health Score" fill="#7C3AED" radius={[5, 5, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

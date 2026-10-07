@@ -85,7 +85,8 @@ describe("BI shell", () => {
     expect(biPageSource).toContain("overflow-x-hidden");
     expect(biPageSource).toContain('className="min-h-screen overflow-x-hidden');
     expect(biPageSource).toContain("xl:grid-cols-4");
-    expect(biPageSource).toContain("xl:grid-cols-2");
+    expect(biPageSource).toContain("xl:grid-cols-3");
+    expect(biPageSource).toContain("Health Score médio por CSM");
     expect(sideMenuSource).toContain("adminOnly: true");
   });
 

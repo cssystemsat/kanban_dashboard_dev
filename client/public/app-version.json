@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.8",
-  "changes": ["Corrigido o vínculo das conclusões de objetivos pelo ID Central e endurecida a detecção do pop-up de atualização contra manifestos antigos em cache."]
+  "appVersion": "11.9",
+  "changes": ["Health Score no Ongoing com quatro sinais graduais e gráfico de Health Score médio por CSM no BI, combinando Marcos e Ongoing."]
 }

@@ -2,5 +2,5 @@
  * Versão funcional exibida aos usuários.
  * Incrementar este número a cada publicação que deve ser comunicada no painel.
  */
-// Incremento funcional após endurecer a detecção de atualizações em produção.
-export const APP_VERSION = "11.8";
+// Health Score do Ongoing e média combinada por CSM no BI.
+export const APP_VERSION = "11.9";

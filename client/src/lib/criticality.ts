@@ -1,4 +1,5 @@
 import type { ClientData } from "@/hooks/useKanbanData";
+import type { OngoingClientData } from "@/hooks/useOngoingData";
 
 export type CriticalSignal = {
   label: string;
@@ -22,6 +23,60 @@ export const parseCriticalityNumber = (
     .replace(",", ".");
   return Number.parseFloat(normalized.replace(/[^\d.-]/g, "")) || 0;
 };
+
+/**
+ * Regras iniciais do Ongoing — descontos graduais, transparentes e limitados:
+ * delta negativo até 25 pts, perdas do mês até 30 pts, desatualização acima
+ * de 20% até 30 pts e mais de 30 dias sem contato até 20 pts.
+ */
+export function calculateOngoingHealthScore(
+  client: OngoingClientData
+): CriticalityResult {
+  let penalty = 0;
+  const signals: CriticalSignal[] = [];
+  const addSignal = (label: string, value: string, points: number) => {
+    if (points <= 0) return;
+    penalty += points;
+    signals.push({ label, value, points });
+  };
+
+  if (client.deltaConsumo < 0) {
+    addSignal(
+      "Delta consumo negativo",
+      `R$ ${client.deltaConsumo.toFixed(2).replace(".", ",")}`,
+      Math.min(25, Math.max(5, Math.abs(client.deltaConsumo) / 100))
+    );
+  }
+
+  if (client.perdaPlacasMes > 0) {
+    addSignal(
+      "Perda de placas no mês",
+      `${client.perdaPlacasMes} placa${client.perdaPlacasMes === 1 ? "" : "s"}`,
+      Math.min(30, Math.max(5, client.perdaPlacasMes * 2))
+    );
+  }
+
+  if (client.percentualDesatualizado >= 20) {
+    addSignal(
+      "Base desatualizada",
+      `${client.percentualDesatualizado.toFixed(1).replace(".", ",")}%`,
+      Math.min(30, 10 + (client.percentualDesatualizado - 20) * 0.5)
+    );
+  }
+
+  if (client.diasUltimoContato > 30) {
+    addSignal(
+      "Mais de 1 mês sem contato",
+      `${client.diasUltimoContato} dias`,
+      Math.min(20, 10 + (client.diasUltimoContato - 30) / 15)
+    );
+  }
+
+  return {
+    score: Math.round((100 - penalty) * 10) / 10,
+    signals,
+  };
+}
 
 export function calculateClientCriticality(
   client: ClientData
@@ -78,4 +133,35 @@ export function calculateClientCriticality(
     score: Math.round((100 - penalty) * 10) / 10,
     signals,
   };
+}
+
+export type HealthScoreByCSM = { csm: string; score: number; clientes: number };
+
+export function groupHealthScoreByCSM(
+  marcos: ClientData[],
+  ongoing: OngoingClientData[]
+): HealthScoreByCSM[] {
+  const groups = new Map<string, { total: number; clientes: number }>();
+  const add = (csm: string, score: number) => {
+    const key = csm.trim() || "Não informado";
+    const current = groups.get(key) ?? { total: 0, clientes: 0 };
+    current.total += score;
+    current.clientes += 1;
+    groups.set(key, current);
+  };
+
+  for (const client of marcos) {
+    add(client.atendente, calculateClientCriticality(client).score);
+  }
+  for (const client of ongoing) {
+    add(client.csm, calculateOngoingHealthScore(client).score);
+  }
+
+  return [...groups.entries()]
+    .map(([csm, value]) => ({
+      csm,
+      clientes: value.clientes,
+      score: Math.round((value.total / value.clientes) * 10) / 10,
+    }))
+    .sort((a, b) => a.csm.localeCompare(b.csm, "pt-BR"));
 }

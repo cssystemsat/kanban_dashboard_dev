@@ -3,6 +3,7 @@ import { MessageCircle, Headphones, Star, Flag } from "lucide-react";
 import { useState } from "react";
 import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
 import { WootricMark } from "./WootricMark";
+import { calculateOngoingHealthScore } from "@/lib/criticality";
 
 interface OngoingCardProps {
   client: OngoingClientData;
@@ -28,6 +29,7 @@ export default function OngoingCard({
   onAtendimento,
 }: OngoingCardProps) {
   const [showWootricHistory, setShowWootricHistory] = useState(false);
+  const [showScoreReasons, setShowScoreReasons] = useState(false);
   const getDeltaColor = (delta: number) => {
     if (delta > 0) return { bg: "#D1FAE5", text: "#059669" };
     if (delta < 0) return { bg: "#FEE2E2", text: "#DC2626" };
@@ -37,6 +39,14 @@ export default function OngoingCard({
   const deltaColor = getDeltaColor(client.deltaConsumo);
   const flagColor = getFlagColor(client.flag);
   const hasFlag = !!flagColor;
+  const { score: healthScore, signals: healthSignals } =
+    calculateOngoingHealthScore(client);
+  const scoreTone =
+    healthScore < 40
+      ? { backgroundColor: "#FEE2E2", color: "#B91C1C" }
+      : healthScore <= 80
+        ? { backgroundColor: "#FEF3C7", color: "#92400E" }
+        : { backgroundColor: "#DCFCE7", color: "#166534" };
 
   return (
     <div
@@ -44,10 +54,10 @@ export default function OngoingCard({
       style={{ borderColor: "#E0E8F0" }}
     >
       {/* Header: Nome (quebra linha) + bandeira + nome da flag */}
-      <div className="mb-2">
+      <div className="relative mb-2">
         {/* Nome — sem truncate, quebra linha */}
         <h3
-          className="font-bold text-xs leading-snug"
+          className="pr-12 font-bold text-xs leading-snug"
           style={{ color: "#001F3F", wordBreak: "break-word" }}
         >
           {client.nome}
@@ -66,6 +76,20 @@ export default function OngoingCard({
             {client.estado}
           </p>
         )}
+
+        <button
+          type="button"
+          onClick={event => {
+            event.stopPropagation();
+            setShowScoreReasons(value => !value);
+          }}
+          className="absolute right-0 top-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          style={scoreTone}
+          title="Ver motivos do Health Score"
+          aria-label={`Ver motivos do Health Score ${healthScore}`}
+        >
+          {healthScore}
+        </button>
 
         {/* Bandeira + nome da flag + estrela */}
         {hasFlag && (
@@ -93,6 +117,29 @@ export default function OngoingCard({
           </div>
         )}
       </div>
+
+      {showScoreReasons && (
+        <div className="absolute right-2 top-10 z-20 w-64 rounded-xl border border-slate-200 bg-white p-3 text-left shadow-xl">
+          <p className="text-xs font-bold text-slate-800">Motivos do Health Score</p>
+          <p className="mt-1 text-[10px] text-slate-500">Começa em 100 pontos.</p>
+          {healthSignals.length === 0 ? (
+            <p className="mt-2 text-xs text-emerald-700">Nenhum sinal de risco.</p>
+          ) : (
+            <div className="mt-2 space-y-1.5">
+              {healthSignals.map(signal => (
+                <div key={signal.label} className="flex items-start justify-between gap-2 text-[11px]">
+                  <span className="text-slate-600">
+                    {signal.label}
+                    <br />
+                    <span className="text-[10px] text-slate-400">{signal.value}</span>
+                  </span>
+                  <span className="shrink-0 font-bold text-red-600">−{signal.points.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Informações Principais em Grid */}
       <div className="grid grid-cols-2 gap-1 mb-2">
