@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.7",
-  "changes": ["Corrigido o vínculo das conclusões de objetivos: agora ele usa o ID Central estável da aba Marcos, sem depender da posição da linha na planilha."]
+  "appVersion": "11.8",
+  "changes": ["Corrigido o vínculo das conclusões de objetivos pelo ID Central e endurecida a detecção do pop-up de atualização contra manifestos antigos em cache."]
 }

@@ -1,6 +1,9 @@
 import { RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { shouldShowVersionPrompt } from "@/lib/versionCheck";
+import {
+  compareSemanticVersions,
+  shouldShowVersionPrompt,
+} from "@/lib/versionCheck";
 import { APP_VERSION } from "@/lib/appVersion";
 
 const VERSION_ENDPOINT = "/app-version.json";
@@ -22,9 +25,10 @@ async function fetchPublishedVersion(): Promise<PublishedRelease | null> {
   requestUrl.searchParams.set("current", APP_VERSION);
   requestUrl.searchParams.set("t", String(Date.now()));
   const response = await fetch(requestUrl.toString(), {
-    cache: "no-store",
+    cache: "reload",
     credentials: "same-origin",
     headers: {
+      Accept: "application/json",
       "Cache-Control": "no-cache, no-store, max-age=0",
       Pragma: "no-cache",
     },
@@ -64,6 +68,11 @@ export default function VersionUpdatePrompt() {
       try {
         const publishedVersion = await fetchPublishedVersion();
         if (!active || !publishedVersion) return;
+        // Um proxy/CDN pode devolver temporariamente um manifesto antigo.
+        // Nunca deixe essa resposta apagar uma atualização já detectada.
+        if (compareSemanticVersions(publishedVersion.version, currentVersion) <= 0) {
+          return;
+        }
 
         setAvailableVersion(existing =>
           existing === publishedVersion.version

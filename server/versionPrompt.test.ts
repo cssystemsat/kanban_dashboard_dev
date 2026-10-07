@@ -13,8 +13,8 @@ const promptSource = readFileSync(
 );
 
 describe("version update prompt", () => {
-  it("publica a versão funcional 11.7 nesta publicação", () => {
-    expect(APP_VERSION).toBe("11.7");
+  it("publica a versão funcional 11.8 nesta publicação", () => {
+    expect(APP_VERSION).toBe("11.8");
   });
 
   it("exibe somente a última alteração publicada", () => {
@@ -24,8 +24,10 @@ describe("version update prompt", () => {
   it("consulta o manifesto com cache-busting e sem cache HTTP", () => {
     expect(promptSource).toContain('searchParams.set("current", APP_VERSION)');
     expect(promptSource).toContain('searchParams.set("t", String(Date.now()))');
-    expect(promptSource).toContain('cache: "no-store"');
+    expect(promptSource).toContain('cache: "reload"');
+    expect(promptSource).toContain('Accept: "application/json"');
     expect(promptSource).toContain('credentials: "same-origin"');
+    expect(promptSource).toContain("compareSemanticVersions(publishedVersion.version, currentVersion)");
   });
 
   it("mantém a versão publicada sincronizada com a versão do bundle", () => {

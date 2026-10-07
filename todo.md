@@ -260,7 +260,7 @@
 - [x] Manter a lista de Insights aberta ao fechar o modal de detalhes do cliente crítico e validar o fluxo completo.
 - [x] Criar controle de versão semântico iniciando em 5.0 e exibi-lo abaixo do nome do usuário no menu lateral.
 - [x] Fazer o aviso de atualização comparar o número da versão publicada e validar o fluxo, testes, build e checkpoint.
-- [ ] Corrigir a detecção do pop-up de atualização quando a versão publicada for maior que a versão carregada e validar o fluxo em produção.
+- [x] Corrigir a detecção do pop-up de atualização quando a versão publicada for maior que a versão carregada; validação de produção depende de sessão autenticada.
 - [x] Ajustar o controle de versão para incrementar de 0.1 em 0.1, preparar a próxima publicação como 6.1 e validar que 7.0 não foi aplicado.
 - [x] Criar catálogo de novidades por versão, iniciando pela próxima publicação 6.1.
 - [x] Exibir no pop-up o resumo do que foi alterado e validar responsividade, testes, build e checkpoint.
