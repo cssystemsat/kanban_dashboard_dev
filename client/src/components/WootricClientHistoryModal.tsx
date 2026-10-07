@@ -78,7 +78,7 @@ export function WootricClientHistoryModal({
           {historyQuery.isLoading ? (
             <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-slate-500">
               <LoaderCircle className="h-5 w-5 animate-spin text-blue-600" />
-              Buscando avaliações na Wootric...
+              Carregando avaliações salvas no painel...
             </div>
           ) : historyQuery.isError ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">

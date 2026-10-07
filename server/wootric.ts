@@ -491,51 +491,34 @@ export async function getWootricHistoryByCentralId(centralId: string) {
       .where(like(wootricResponses.email, `%- ${requestedCentralId}`))
       .orderBy(desc(wootricResponses.createdAtWootric));
   }
-  const accessToken = await getAccessToken();
-  const knownEndUsers = existing
-    .map(row => ({ id: row.endUserId, email: row.email }))
-    .filter((user): user is { id: string; email: string | null } => Boolean(user.id));
-  const externalIdUser =
-    knownEndUsers.length === 0
-      ? await fetchWootricEndUserByExternalId(accessToken, requestedCentralId)
-      : null;
-  const matchedEndUsers =
-    knownEndUsers.length > 0
-      ? knownEndUsers
-      : externalIdUser?.id
-        ? [externalIdUser]
-        : await findWootricEndUsersByCentralId(accessToken, requestedCentralId);
+  // A tela consulta somente o cache persistido. A sincronização agendada ou o
+  // webhook são responsáveis por trazer novas avaliações sem repetir chamadas
+  // à API a cada abertura de card.
+  return existing;
+}
 
-  if (matchedEndUsers.length > 0) {
-    const centralNames = await getCentralNameMap();
-    const centralName =
-      centralNames.get(normalizeLookup(requestedCentralId)) ?? null;
-    for (const endUser of matchedEndUsers) {
-      if (!endUser.id) continue;
-      const history = await fetchWootricEndUserResponses(
-        accessToken,
-        String(endUser.id)
-      );
-      for (const response of history) {
-        await upsertWootricResponse(
-          {
-            ...response,
-            external_id: requestedCentralId,
-            email: response.email ?? endUser.email ?? existing[0]?.email ?? null,
-          },
-          response,
-          centralName,
-          false
-        );
-      }
-    }
-  }
-
-  return db
-    .select()
+export async function getWootricAveragesByCentralIds(centralIds: string[]) {
+  const db = await getDb();
+  if (!db) return [];
+  const ids = [...new Set(centralIds.map(id => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return [];
+  const rows = await db
+    .select({ externalId: wootricResponses.externalId, score: wootricResponses.score })
     .from(wootricResponses)
-    .where(eq(wootricResponses.externalId, requestedCentralId))
-    .orderBy(desc(wootricResponses.createdAtWootric));
+    .where(inArray(wootricResponses.externalId, ids));
+  const grouped = new Map<string, { total: number; count: number }>();
+  for (const row of rows) {
+    if (!row.externalId) continue;
+    const current = grouped.get(row.externalId) ?? { total: 0, count: 0 };
+    current.total += row.score;
+    current.count += 1;
+    grouped.set(row.externalId, current);
+  }
+  return [...grouped.entries()].map(([centralId, value]) => ({
+    centralId,
+    average: Math.round((value.total / value.count) * 10) / 10,
+    count: value.count,
+  }));
 }
 
 export async function hydrateExistingWootricCentralNames() {

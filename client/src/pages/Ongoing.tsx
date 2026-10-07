@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { RefreshCw, Flag } from "lucide-react";
 import { useOngoingData, OngoingClientData } from "@/hooks/useOngoingData";
 import OngoingCard from "@/components/OngoingCard";
@@ -7,6 +7,7 @@ import AtendimentoModal from "@/components/AtendimentoModal";
 import URsTrendIndicator from "@/components/URsTrendIndicator";
 import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
 import type { ClientData } from "@/hooks/useKanbanData";
+import { trpc } from "@/lib/trpc";
 
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
 type FlagLevel = (typeof FLAG_LEVELS)[number];
@@ -46,6 +47,18 @@ const FLAG_STYLES: Record<
 
 export default function Ongoing() {
   const { data, loading } = useOngoingData();
+  const ongoingCentralIds = useMemo(
+    () => [...new Set(data.map(client => client.centralId.trim()).filter(Boolean))].sort(),
+    [data]
+  );
+  const { data: npsAverages = [] } = trpc.wootric.averagesByCentral.useQuery(
+    { centralIds: ongoingCentralIds },
+    { enabled: ongoingCentralIds.length > 0, staleTime: 5 * 60_000 }
+  );
+  const npsAverageByCentralId = useMemo(
+    () => new Map(npsAverages.map(item => [item.centralId, item.average])),
+    [npsAverages]
+  );
   const [selectedClient, setSelectedClient] =
     useState<OngoingClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -614,6 +627,7 @@ export default function Ongoing() {
                     >
                       <OngoingCard
                         client={client}
+                        npsAverage={npsAverageByCentralId.get(client.centralId) ?? null}
                         onAtendimento={c => {
                           setAtendimentoClient({ nome: c.nome } as ClientData);
                         }}

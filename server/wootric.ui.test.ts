@@ -120,5 +120,23 @@ describe("Wootric", () => {
     expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
       "showInAlert"
     );
+    expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
+      "getWootricAveragesByCentralIds"
+    );
+    expect(readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8")).toContain(
+      "averagesByCentral"
+    );
+    const historyFunction = readFileSync(
+      resolve(process.cwd(), "server/wootric.ts"),
+      "utf8"
+    ).slice(
+      readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8").indexOf(
+        "export async function getWootricHistoryByCentralId"
+      ),
+      readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8").indexOf(
+        "export async function getWootricAveragesByCentralIds"
+      )
+    );
+    expect(historyFunction).not.toContain("getAccessToken()");
   });
 });

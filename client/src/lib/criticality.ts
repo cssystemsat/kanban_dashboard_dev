@@ -30,7 +30,8 @@ export const parseCriticalityNumber = (
  * de 20% até 30 pts e mais de 30 dias sem contato até 20 pts.
  */
 export function calculateOngoingHealthScore(
-  client: OngoingClientData
+  client: OngoingClientData,
+  npsAverage: number | null = null
 ): CriticalityResult {
   let penalty = 0;
   const signals: CriticalSignal[] = [];
@@ -70,6 +71,12 @@ export function calculateOngoingHealthScore(
       `${client.diasUltimoContato} dias`,
       Math.min(20, 10 + (client.diasUltimoContato - 30) / 15)
     );
+  }
+
+  if (npsAverage !== null && npsAverage <= 6) {
+    addSignal("NPS médio baixo", `${npsAverage.toFixed(1)}/10`, 20);
+  } else if (npsAverage !== null && npsAverage <= 8) {
+    addSignal("NPS médio em atenção", `${npsAverage.toFixed(1)}/10`, 8);
   }
 
   return {
@@ -139,7 +146,8 @@ export type HealthScoreByCSM = { csm: string; score: number; clientes: number };
 
 export function groupHealthScoreByCSM(
   marcos: ClientData[],
-  ongoing: OngoingClientData[]
+  ongoing: OngoingClientData[],
+  ongoingNpsByCentralId: Map<string, number> = new Map()
 ): HealthScoreByCSM[] {
   const groups = new Map<string, { total: number; clientes: number }>();
   const add = (csm: string, score: number) => {
@@ -154,7 +162,10 @@ export function groupHealthScoreByCSM(
     add(client.atendente, calculateClientCriticality(client).score);
   }
   for (const client of ongoing) {
-    add(client.csm, calculateOngoingHealthScore(client).score);
+    add(
+      client.csm,
+      calculateOngoingHealthScore(client, ongoingNpsByCentralId.get(client.centralId) ?? null).score
+    );
   }
 
   return [...groups.entries()]

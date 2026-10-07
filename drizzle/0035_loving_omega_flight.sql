@@ -1,0 +1,1 @@
+CREATE INDEX `wootric_responses_external_id_idx` ON `wootric_responses` (`externalId`);

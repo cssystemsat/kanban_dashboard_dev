@@ -132,4 +132,10 @@ describe("client criticality score", () => {
 
     expect(groups).toEqual([{ csm: "CSM", clientes: 2, score: 74 }]);
   });
+
+  it("deducts points from a low persisted NPS average", () => {
+    expect(calculateOngoingHealthScore(makeOngoingClient(), 5).score).toBe(80);
+    expect(calculateOngoingHealthScore(makeOngoingClient(), 7).score).toBe(92);
+    expect(calculateOngoingHealthScore(makeOngoingClient(), 9).score).toBe(100);
+  });
 });

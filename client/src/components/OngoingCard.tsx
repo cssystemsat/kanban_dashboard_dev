@@ -7,6 +7,7 @@ import { calculateOngoingHealthScore } from "@/lib/criticality";
 
 interface OngoingCardProps {
   client: OngoingClientData;
+  npsAverage?: number | null;
   onAtendimento?: (client: OngoingClientData) => void;
 }
 
@@ -26,6 +27,7 @@ function getFlagColor(flag: string): string | null {
 
 export default function OngoingCard({
   client,
+  npsAverage = null,
   onAtendimento,
 }: OngoingCardProps) {
   const [showWootricHistory, setShowWootricHistory] = useState(false);
@@ -40,7 +42,7 @@ export default function OngoingCard({
   const flagColor = getFlagColor(client.flag);
   const hasFlag = !!flagColor;
   const { score: healthScore, signals: healthSignals } =
-    calculateOngoingHealthScore(client);
+    calculateOngoingHealthScore(client, npsAverage);
   const scoreTone =
     healthScore < 40
       ? { backgroundColor: "#FEE2E2", color: "#B91C1C" }
@@ -50,7 +52,7 @@ export default function OngoingCard({
 
   return (
     <div
-      className="bg-white rounded-lg border-2 p-2 hover:shadow-lg transition-all cursor-pointer"
+      className="relative bg-white rounded-lg border-2 p-2 hover:shadow-lg transition-all cursor-pointer"
       style={{ borderColor: "#E0E8F0" }}
     >
       {/* Header: Nome (quebra linha) + bandeira + nome da flag */}
@@ -176,6 +178,14 @@ export default function OngoingCard({
             {client.situacao || "-"}
           </p>
         </div>
+        {npsAverage !== null && (
+          <div className="rounded p-1 bg-indigo-50">
+            <p className="text-xs text-indigo-700">NPS médio</p>
+            <p className="font-bold text-xs text-indigo-800">
+              {npsAverage.toFixed(1)}/10
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Contatos */}

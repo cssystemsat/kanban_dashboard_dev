@@ -421,6 +421,9 @@ export const wootricResponses = mysqlTable(
     createdAtIdx: index("wootric_responses_created_at_idx").on(
       table.createdAtWootric
     ),
+    externalIdIdx: index("wootric_responses_external_id_idx").on(
+      table.externalId
+    ),
   })
 );
 

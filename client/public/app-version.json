@@ -1,4 +1,4 @@
 {
-  "appVersion": "11.9",
-  "changes": ["Health Score no Ongoing com quatro sinais graduais e gráfico de Health Score médio por CSM no BI, combinando Marcos e Ongoing."]
+  "appVersion": "12.0",
+  "changes": ["Avaliações NPS agora são lidas do banco persistido: média exibida nos cards Ongoing, impacto no Health Score e histórico sem nova chamada à API ao abrir o card."]
 }

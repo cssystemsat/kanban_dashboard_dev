@@ -238,6 +238,18 @@ export default function BI() {
     fetchData: fetchMarcosData,
   } = useKanbanData();
   const { data: ongoingData } = useOngoingData();
+  const ongoingCentralIds = useMemo(
+    () => [...new Set(ongoingData.map(client => client.centralId.trim()).filter(Boolean))].sort(),
+    [ongoingData]
+  );
+  const { data: ongoingNpsAverages = [] } = trpc.wootric.averagesByCentral.useQuery(
+    { centralIds: ongoingCentralIds },
+    { enabled: ongoingCentralIds.length > 0, staleTime: 5 * 60_000 }
+  );
+  const ongoingNpsByCentralId = useMemo(
+    () => new Map(ongoingNpsAverages.map(item => [item.centralId, item.average])),
+    [ongoingNpsAverages]
+  );
   const {
     data: migrationData,
     loading: migrationLoading,
@@ -439,8 +451,8 @@ export default function BI() {
     });
   }, [ongoingData, searchCliente, selectedCSM]);
   const healthScoreByCSM = useMemo(
-    () => groupHealthScoreByCSM(filteredData, filteredOngoingForHealth),
-    [filteredData, filteredOngoingForHealth]
+    () => groupHealthScoreByCSM(filteredData, filteredOngoingForHealth, ongoingNpsByCentralId),
+    [filteredData, filteredOngoingForHealth, ongoingNpsByCentralId]
   );
 
   const migrationEntries = useMemo(
