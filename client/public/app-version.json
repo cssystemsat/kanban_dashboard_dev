@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.2",
-  "changes": ["Marcação de contato na planilha e filtro de tempo sem contato no Ongoing."]
+  "appVersion": "12.3",
+  "changes": ["Cores e bloqueio do botão de contato em Marcos conforme o tempo desde o último contato."]
 }

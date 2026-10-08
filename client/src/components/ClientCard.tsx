@@ -72,6 +72,18 @@ function getFlagColor(flag: string): string | null {
   }
 }
 
+function getContactButtonState(daysSinceContact: number | undefined) {
+  const days = Number.isFinite(daysSinceContact)
+    ? Math.max(0, daysSinceContact ?? 0)
+    : -1;
+  if (days === 0) return { backgroundColor: "#9CA3AF", disabled: true, label: "Contato feito hoje" };
+  if (days > 30) return { backgroundColor: "#991B1B", disabled: false, label: "Último contato há mais de 30 dias" };
+  if (days > 14) return { backgroundColor: "#FCA5A5", disabled: false, label: "Último contato há mais de 14 dias" };
+  if (days > 7) return { backgroundColor: "#FACC15", disabled: false, label: "Último contato na semana passada" };
+  if (days > 0) return { backgroundColor: "#166534", disabled: false, label: "Último contato nesta semana" };
+  return { backgroundColor: "#1D4ED8", disabled: false, label: "Marcar contato realizado" };
+}
+
 export default function ClientCard({
   client,
   onAtendimento,
@@ -81,6 +93,7 @@ export default function ClientCard({
   const [showScoreReasons, setShowScoreReasons] = useState(false);
   const [showObjectives, setShowObjectives] = useState(false);
   const [showWootricHistory, setShowWootricHistory] = useState(false);
+  const [contactMarkedToday, setContactMarkedToday] = useState(false);
   const [completedSubobjectives, setCompletedSubobjectives] = useState<
     Record<string, boolean>
   >({});
@@ -103,9 +116,15 @@ export default function ClientCard({
     },
   });
   const markContact = trpc.contato.marcar.useMutation({
-    onSuccess: () => toast.success(`Contato de ${client.nome} marcado na planilha.`),
+    onSuccess: () => {
+      setContactMarkedToday(true);
+      toast.success(`Contato de ${client.nome} marcado na planilha.`);
+    },
     onError: error => toast.error(`Não foi possível marcar o contato: ${error.message}`),
   });
+  const contactButton = getContactButtonState(
+    contactMarkedToday ? 0 : client.diasUltimoContato
+  );
   const globalObjectives = useMemo(() => {
     const seen = new Set<string>();
     return (client.tags ?? [])
@@ -452,10 +471,10 @@ export default function ClientCard({
               e.stopPropagation();
               markContact.mutate({ cliente: client.nome, aba: "marcos" });
             }}
-            disabled={markContact.isPending}
-            className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95 disabled:cursor-wait disabled:opacity-60"
-            style={{ backgroundColor: "#1D4ED8", color: "#FFFFFF" }}
-            title="Marcar contato realizado"
+            disabled={markContact.isPending || contactButton.disabled}
+            className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+            style={{ backgroundColor: contactButton.backgroundColor, color: "#FFFFFF" }}
+            title={contactButton.label}
             aria-label={`Marcar contato realizado de ${client.nome}`}
           >
             <Phone className="w-4 h-4" />

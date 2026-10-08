@@ -106,7 +106,7 @@ describe("BI shell", () => {
   });
 
   it("uses the blue action icon to mark contact in Marcos", () => {
-    expect(cardSource).toContain('title="Marcar contato realizado"');
+    expect(cardSource).toContain("contactButton.label");
     expect(cardSource).toContain("<Phone className=\"w-4 h-4\" />");
     expect(cardSource).toContain('aba: "marcos"');
   });
