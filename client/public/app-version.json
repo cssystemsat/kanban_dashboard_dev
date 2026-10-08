@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.1",
-  "changes": ["Correções de bugs."]
+  "appVersion": "12.2",
+  "changes": ["Marcação de contato na planilha e filtro de tempo sem contato no Ongoing."]
 }

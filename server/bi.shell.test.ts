@@ -25,6 +25,18 @@ const biReportPdfSource = readFileSync(
   new URL("../client/src/lib/biReportPdf.ts", import.meta.url),
   "utf8"
 );
+const ongoingPageSource = readFileSync(
+  new URL("../client/src/pages/Ongoing.tsx", import.meta.url),
+  "utf8"
+);
+const ongoingCardSource = readFileSync(
+  new URL("../client/src/components/OngoingCard.tsx", import.meta.url),
+  "utf8"
+);
+const atendimentoModalSource = readFileSync(
+  new URL("../client/src/components/AtendimentoModal.tsx", import.meta.url),
+  "utf8"
+);
 
 describe("BI shell", () => {
   it("exposes BI between Ongoing and CHURNs", () => {
@@ -93,9 +105,18 @@ describe("BI shell", () => {
     expect(sideMenuSource).toContain("adminOnly: true");
   });
 
-  it("replaces the blue atendimento action icon without implementing BI rules yet", () => {
-    expect(cardSource).toContain('title="BI do cliente"');
-    expect(cardSource).toContain("<BarChart3 className=\"w-4 h-4\" />");
-    expect(cardSource).not.toContain('title="Registrar atendimento"');
+  it("uses the blue action icon to mark contact in Marcos", () => {
+    expect(cardSource).toContain('title="Marcar contato realizado"');
+    expect(cardSource).toContain("<Phone className=\"w-4 h-4\" />");
+    expect(cardSource).toContain('aba: "marcos"');
+  });
+
+  it("offers contact age filters in Ongoing and marks column K after attendance", () => {
+    expect(ongoingPageSource).toContain("Sem contato há");
+    expect(ongoingPageSource).toContain('value="mais60"');
+    expect(ongoingPageSource).toContain("origem=\"ongoing\"");
+    expect(ongoingCardSource).toContain('title="Registrar Atendimento"');
+    expect(atendimentoModalSource).toContain("origem?: \"marcos\" | \"ongoing\"");
+    expect(atendimentoModalSource).toContain("origem,");
   });
 });

@@ -384,6 +384,34 @@ export async function appendAtendimento(data: {
   return { row: nextRow, sheetName };
 }
 
+/** Marca o checkbox de contato (coluna K) do cliente na aba indicada. */
+export async function markClientContact(data: {
+  cliente: string;
+  aba: "marcos" | "ongoing";
+}): Promise<{ row: number; sheetName: string }> {
+  const gid = data.aba === "marcos" ? 0 : 1152476970;
+  const spreadsheetId = getSpreadsheetId("primary");
+  const sheetName = await getSheetNameByGid(gid, "primary");
+  if (!sheetName) {
+    throw new Error(`Aba de ${data.aba} não encontrada na planilha principal.`);
+  }
+  const values = await getSheetValues(spreadsheetId, `${sheetName}!A:K`);
+  const expected = data.cliente.trim().toLocaleLowerCase("pt-BR");
+  let targetRow = -1;
+  for (let i = 1; i < values.length; i++) {
+    const current = String(values[i]?.[1] ?? "").trim().toLocaleLowerCase("pt-BR");
+    if (current && current === expected) {
+      targetRow = i + 1;
+      break;
+    }
+  }
+  if (targetRow === -1) {
+    throw new Error(`Cliente não encontrado para marcar contato: ${data.cliente}`);
+  }
+  await updateValues(spreadsheetId, `${sheetName}!K${targetRow}`, [[true]]);
+  return { row: targetRow, sheetName };
+}
+
 /** Grava uma Fricção na aba indicada da planilha principal (gid=594161358). */
 export async function appendFriccao(data: {
   central: string;

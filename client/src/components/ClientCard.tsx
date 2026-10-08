@@ -13,11 +13,12 @@ import {
   TrendingUp,
   TrendingDown,
   X,
-  BarChart3,
   Star,
+  Phone,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
   useAgendaData,
@@ -100,6 +101,10 @@ export default function ClientCard({
       void utils.marcos.subobjectiveCompletionMetrics.invalidate();
       void utils.marcos.subobjectiveCompletions.invalidate(subobjectiveQueryInput);
     },
+  });
+  const markContact = trpc.contato.marcar.useMutation({
+    onSuccess: () => toast.success(`Contato de ${client.nome} marcado na planilha.`),
+    onError: error => toast.error(`Não foi possível marcar o contato: ${error.message}`),
   });
   const globalObjectives = useMemo(() => {
     const seen = new Set<string>();
@@ -441,17 +446,19 @@ export default function ClientCard({
             </button>
           ) : null}
 
-          {/* Botão BI — reservado para as análises financeiras dos clientes */}
+          {/* Botão de contato — marca o checkbox K na aba Marcos */}
           <button
             onClick={e => {
               e.stopPropagation();
+              markContact.mutate({ cliente: client.nome, aba: "marcos" });
             }}
-            className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
+            disabled={markContact.isPending}
+            className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95 disabled:cursor-wait disabled:opacity-60"
             style={{ backgroundColor: "#1D4ED8", color: "#FFFFFF" }}
-            title="BI do cliente"
-            aria-label={`Abrir BI do cliente ${client.nome}`}
+            title="Marcar contato realizado"
+            aria-label={`Marcar contato realizado de ${client.nome}`}
           >
-            <BarChart3 className="w-4 h-4" />
+            <Phone className="w-4 h-4" />
           </button>
 
           {/* Botão Wootric — avaliações NPS pelo ID central */}

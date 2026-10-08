@@ -76,6 +76,7 @@ export default function Ongoing() {
   const [ultimoBoletoMin, setUltimoBoletoMin] = useState<number | null>(null);
   const [ultimoBoletoMax, setUltimoBoletoMax] = useState<number | null>(null);
   const [selectedSituacao, setSelectedSituacao] = useState<string | null>(null);
+  const [contactAgeFilter, setContactAgeFilter] = useState<string>("");
   const [deltaMaxInput, setDeltaMaxInput] = useState<string>("");
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
@@ -114,6 +115,17 @@ export default function Ongoing() {
     filteredData = filteredData.filter(
       client => client.situacao === selectedSituacao
     );
+  }
+  if (contactAgeFilter) {
+    filteredData = filteredData.filter(client => {
+      const days = client.diasUltimoContato;
+      if (contactAgeFilter === "7") return days >= 7 && days < 14;
+      if (contactAgeFilter === "14") return days >= 14 && days < 30;
+      if (contactAgeFilter === "30") return days >= 30 && days < 60;
+      if (contactAgeFilter === "60") return days === 60;
+      if (contactAgeFilter === "mais60") return days > 60;
+      return true;
+    });
   }
   // Filtro de Delta Consumo: mostra quem tem delta <= -threshold (paga mais do que usa)
   const deltaThreshold =
@@ -184,6 +196,7 @@ export default function Ongoing() {
     selectedAtendente ||
     selectedComercial ||
     selectedSituacao ||
+    contactAgeFilter ||
     deltaActive
   );
 
@@ -354,6 +367,24 @@ export default function Ongoing() {
           </div>
 
           <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Sem contato há
+            </label>
+            <select
+              value={contactAgeFilter || "todos"}
+              onChange={e => setContactAgeFilter(e.target.value === "todos" ? "" : e.target.value)}
+              className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
+            >
+              <option value="todos">Todos</option>
+              <option value="7">7 dias</option>
+              <option value="14">14 dias</option>
+              <option value="30">30 dias</option>
+              <option value="60">60 dias</option>
+              <option value="mais60">&gt;60 dias</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
             <label
               className="text-[10px] font-semibold uppercase tracking-wider"
               style={{ color: "#DC2626" }}
@@ -436,6 +467,7 @@ export default function Ongoing() {
               setUltimoBoletoMin(null);
               setUltimoBoletoMax(null);
               setSelectedSituacao(null);
+              setContactAgeFilter("");
               setDeltaMaxInput("");
               setTopBoleto(0);
               setTopVolume(0);
@@ -488,6 +520,11 @@ export default function Ongoing() {
           {selectedSituacao && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
               Situação: {selectedSituacao}
+            </span>
+          )}
+          {contactAgeFilter && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Sem contato há: {contactAgeFilter === "mais60" ? ">60 dias" : `${contactAgeFilter} dias`}
             </span>
           )}
           {deltaActive && (
@@ -652,10 +689,11 @@ export default function Ongoing() {
 
       {/* Modal de Atendimento */}
       {atendimentoClient && (
-        <AtendimentoModal
-          client={atendimentoClient}
-          onClose={() => setAtendimentoClient(null)}
-        />
+          <AtendimentoModal
+            client={atendimentoClient}
+            origem="ongoing"
+            onClose={() => setAtendimentoClient(null)}
+          />
       )}
     </div>
   );

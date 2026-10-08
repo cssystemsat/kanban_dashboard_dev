@@ -15,6 +15,7 @@ import { getLoginUrl } from "@/const";
 interface AtendimentoModalProps {
   client: ClientData;
   onClose: () => void;
+  origem?: "marcos" | "ongoing";
 }
 
 const TIPOS_ATENDIMENTO = [
@@ -58,6 +59,7 @@ const INITIAL_FORM = {
 export default function AtendimentoModal({
   client,
   onClose,
+  origem = "marcos",
 }: AtendimentoModalProps) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [enviado, setEnviado] = useState(false);
@@ -100,6 +102,7 @@ export default function AtendimentoModal({
     }
     gravar.mutate({
       cliente: client.nome,
+      origem,
       tipo: form.tipo,
       situacao: form.situacao,
       razao: form.topico,

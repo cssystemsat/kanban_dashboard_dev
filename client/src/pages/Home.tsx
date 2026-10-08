@@ -1089,10 +1089,11 @@ export default function Home() {
 
       {/* Modal de Atendimento */}
       {atendimentoClient && (
-        <AtendimentoModal
-          client={atendimentoClient}
-          onClose={() => setAtendimentoClient(null)}
-        />
+      <AtendimentoModal
+        client={atendimentoClient}
+        origem="marcos"
+        onClose={() => setAtendimentoClient(null)}
+      />
       )}
 
       {/* Modal de Fricção */}

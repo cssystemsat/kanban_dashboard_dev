@@ -15,6 +15,7 @@ import {
   appendFriccao,
   getSheetCsv,
   getSheetCsvBySpreadsheetId,
+  markClientContact,
   updateChurnMotivo,
   updateMigracao,
 } from "./googleSheets";
@@ -563,6 +564,7 @@ export const appRouter = router({
       .input(
         z.object({
           cliente: z.string(),
+          origem: z.enum(["marcos", "ongoing"]).default("marcos"),
           tipo: z.string(),
           situacao: z.string(),
           razao: z.string(),
@@ -623,6 +625,9 @@ export const appRouter = router({
           duracao: normalizarDuracao(input.duracao),
           usuario: ctx.user.name ?? ctx.user.email,
         });
+        if (input.origem === "ongoing") {
+          await markClientContact({ cliente: input.cliente, aba: "ongoing" });
+        }
         return { success: true, row: result.row, sheetName: result.sheetName };
       }),
     checkPermission: publicProcedure.query(async ({ ctx }) => {
@@ -637,6 +642,26 @@ export const appRouter = router({
         canLaunch: owner || entry.canLaunch === 1,
       };
     }),
+  }),
+  contato: router({
+    marcar: allowlistedProcedure
+      .input(
+        z.object({
+          cliente: z.string().trim().min(1),
+          aba: z.enum(["marcos", "ongoing"]),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+        const entry = await getEmailEntry(ctx.user.email);
+        if (!entry || entry.canLaunch !== 1) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado." });
+        }
+        const result = await markClientContact(input);
+        return { success: true, row: result.row, sheetName: result.sheetName };
+      }),
   }),
   config: router({
     listEmails: allowlistedProcedure.query(async ({ ctx }) => {
