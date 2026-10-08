@@ -44,6 +44,9 @@ describe("BI shell", () => {
     expect(biMetricsSource).toContain("Clientes em onboarding");
     expect(biMetricsSource).toContain('label: "Implantados"');
     expect(biMetricsSource).toContain("Clientes em migração");
+    expect(biPageSource).toContain("Migrações paralisadas");
+    expect(biPageSource).toContain("Motivo: ${migration.motivo}");
+    expect(biPageSource).toContain("filteredPausedMigrationData");
     expect(biMetricsSource).toContain("Implantação atrasada");
     expect(biMetricsSource).toContain("Onboarding atrasado");
     expect(biMetricsSource).toContain("Atrasados para Ongoing");
@@ -80,7 +83,7 @@ describe("BI shell", () => {
     expect(biPageSource).not.toContain("Área de BI preparada");
     expect(biPageSource).toContain("Clique para ver os clientes");
     expect(biPageSource).not.toContain("localStorage");
-    expect(biPageSource).toContain("xl:grid-cols-6");
+    expect(biPageSource).toContain("xl:grid-cols-7");
     expect(biPageSource).toContain("Subobjetivos");
     expect(biPageSource).toContain("overflow-x-hidden");
     expect(biPageSource).toContain('className="min-h-screen overflow-x-hidden');

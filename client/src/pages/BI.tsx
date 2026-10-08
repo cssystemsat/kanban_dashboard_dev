@@ -230,6 +230,20 @@ function migrationEntry(migration: MigracaoCard): BIListEntry {
   };
 }
 
+function pausedMigrationEntry(migration: MigracaoCard): BIListEntry {
+  return {
+    id: migration.id,
+    nome: migration.empresa,
+    badge: "Paralisado",
+    detail: [
+      migration.motivo ? `Motivo: ${migration.motivo}` : "Motivo não informado",
+      migration.responsavel
+        ? `Responsável: ${migration.responsavel}`
+        : "Responsável não informado",
+    ].join(" • "),
+  };
+}
+
 export default function BI() {
   const {
     data,
@@ -352,7 +366,7 @@ export default function BI() {
     [filteredData, objectiveCompletionMetrics, subobjectiveCompletionMetrics]
   );
 
-  const filteredMigrationData = useMemo(() => {
+  const filteredMigrationCandidates = useMemo(() => {
     const normalizedSearch = searchCliente.trim().toLocaleLowerCase("pt-BR");
     const filteredClientNames = new Set(
       filteredData.map(client => normalizeCompanyName(client.nome))
@@ -376,7 +390,7 @@ export default function BI() {
       ) {
         return false;
       }
-      return normalizeStatus(migration.situacao) === "em andamento";
+      return true;
     });
   }, [
     migrationData,
@@ -385,6 +399,14 @@ export default function BI() {
     selectedObjectiveFilterCount,
     filteredData,
   ]);
+  const filteredMigrationData = useMemo(
+    () => filteredMigrationCandidates.filter(migration => normalizeStatus(migration.situacao) === "em andamento"),
+    [filteredMigrationCandidates]
+  );
+  const filteredPausedMigrationData = useMemo(
+    () => filteredMigrationCandidates.filter(migration => normalizeStatus(migration.situacao) === "paralisado"),
+    [filteredMigrationCandidates]
+  );
 
   const stageGroups = useMemo(() => getBIClientGroups(filteredData), [filteredData]);
   const criticalGroups = useMemo(
@@ -516,6 +538,15 @@ export default function BI() {
       entries: migrationEntries,
       icon: RefreshCw,
       tone: "amber",
+    },
+    {
+      key: "migracoesParalisadas",
+      label: "Migrações paralisadas",
+      description: "Migrações com status Paralisado na coluna T.",
+      count: filteredPausedMigrationData.length,
+      entries: filteredPausedMigrationData.map(pausedMigrationEntry),
+      icon: TriangleAlert,
+      tone: "rose",
     },
     {
       key: "ttv",
@@ -737,7 +768,7 @@ export default function BI() {
           </div>
         </section>
 
-        <section className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6" aria-label="KPIs de operação">
+        <section className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-7" aria-label="KPIs de operação">
           {normalCards.map(card => {
             const Icon = card.icon;
             const toneClasses = {
@@ -747,6 +778,7 @@ export default function BI() {
               amber: "bg-amber-50 text-amber-700 ring-amber-100",
               cyan: "bg-cyan-50 text-cyan-700 ring-cyan-100",
               teal: "bg-teal-50 text-teal-700 ring-teal-100",
+              rose: "bg-rose-50 text-rose-700 ring-rose-100",
             }[card.tone];
             return (
               <button

@@ -9,6 +9,7 @@ export interface MigracaoCard {
   duracao: number | null;
   responsavel: string;
   status: string;
+  motivo: string; // Coluna H - motivo da paralisação
   levantamentoDados: string;
   envioDados: string;
   situacao: string;
@@ -91,7 +92,7 @@ export const useMigracaoListData = () => {
         // D (3) = Duração em dias
         // E (4) = Cliente
         // F (5) = Responsável
-        // H (7) = Status
+        // H (7) = Motivo
         // L (11) = Levantamento de dados
         // P (15) = Envio de comandos
         // T (19) = Situação atual
@@ -106,7 +107,8 @@ export const useMigracaoListData = () => {
         const dataFim = row[2] || null;
         const duracao = parseNum(row[3]);
         const responsavel = row[5] || "";
-        const status = row[7] || "";
+        const status = row[19] || "";
+        const motivo = row[7] || "";
         const levantamentoDados = row[11] || "";
         const envioDados = row[15] || "";
         const situacao = row[19] || "";
@@ -125,6 +127,7 @@ export const useMigracaoListData = () => {
           duracao: duracao > 0 ? duracao : null,
           responsavel,
           status,
+          motivo,
           levantamentoDados,
           envioDados,
           situacao,

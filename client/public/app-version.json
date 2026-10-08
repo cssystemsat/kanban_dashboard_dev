@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.0",
-  "changes": ["Implementação da versão beta do Health Score para o Ongoing."]
+  "appVersion": "12.1",
+  "changes": ["Novo KPI de Migrações paralisadas no BI, com o motivo exibido no modal."]
 }
