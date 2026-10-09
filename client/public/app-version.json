@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.8",
-  "changes": ["Auditoria de Marcos agora exibe AQ até BB como Pendente valores do contrato."]
+  "appVersion": "12.9",
+  "changes": ["Correção do loop de atualização ao abrir a aba Marcos."]
 }

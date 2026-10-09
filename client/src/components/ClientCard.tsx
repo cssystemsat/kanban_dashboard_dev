@@ -97,6 +97,17 @@ export default function ClientCard({
     trpc.marcos.subobjectiveCompletions.useQuery(subobjectiveQueryInput, {
       staleTime: 30_000,
     });
+  const sharedSubobjectiveSignature = useMemo(
+    () =>
+      JSON.stringify(
+        sharedSubobjectiveCompletions.map(completion => ({
+          objectiveName: completion.objectiveName,
+          subobjectiveIndex: completion.subobjectiveIndex,
+          completedAt: completion.completedAt,
+        }))
+      ),
+    [sharedSubobjectiveCompletions]
+  );
   const utils = trpc.useUtils();
   const setSubobjectiveCompletion = trpc.marcos.setSubobjectiveCompletion.useMutation({
     onSuccess: () => {
@@ -178,7 +189,7 @@ export default function ClientCard({
       }
       return next;
     });
-  }, [sharedSubobjectiveCompletions]);
+  }, [sharedSubobjectiveSignature]);
 
   const isGlobalObjectiveComplete = (objective: GlobalObjectiveDefinition) =>
     objective.subobjectives.every(

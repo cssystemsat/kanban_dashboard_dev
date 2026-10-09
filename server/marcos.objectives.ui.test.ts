@@ -36,6 +36,8 @@ describe("Marcos — objetivos do cliente", () => {
     expect(clientCard).toContain("accent-emerald-600");
     expect(clientCard).toContain("line-through");
     expect(clientCard).toContain("trpc.marcos.subobjectiveCompletions.useQuery");
+    expect(clientCard).toContain("sharedSubobjectiveSignature");
+    expect(clientCard).toContain("[sharedSubobjectiveSignature]");
     expect(clientCard).toContain("trpc.marcos.setSubobjectiveCompletion.useMutation");
     expect(clientCard).toContain("subobjectiveCompletionMetrics.invalidate");
     expect(clientCard).toContain("isGlobalObjectiveComplete");
