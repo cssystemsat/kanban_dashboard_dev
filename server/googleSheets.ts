@@ -408,7 +408,12 @@ export async function markClientContact(data: {
   if (targetRow === -1) {
     throw new Error(`Cliente não encontrado para marcar contato: ${data.cliente}`);
   }
-  await updateValues(spreadsheetId, `${sheetName}!K${targetRow}`, [[true]]);
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date());
+  await updateValues(spreadsheetId, `${sheetName}!K${targetRow}:L${targetRow}`, [
+    [true, today],
+  ]);
   return { row: targetRow, sheetName };
 }
 

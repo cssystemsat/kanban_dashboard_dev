@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.4",
-  "changes": ["Mesmas cores e bloqueio do botão de atendimento no Ongoing conforme o tempo desde o último contato."]
+  "appVersion": "12.5",
+  "changes": ["Checkbox de contato agora grava também a data atual na coluna L em Marcos e Ongoing."]
 }

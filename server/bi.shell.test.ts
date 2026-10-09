@@ -37,6 +37,10 @@ const atendimentoModalSource = readFileSync(
   new URL("../client/src/components/AtendimentoModal.tsx", import.meta.url),
   "utf8"
 );
+const googleSheetsSource = readFileSync(
+  new URL("../server/googleSheets.ts", import.meta.url),
+  "utf8"
+);
 
 describe("BI shell", () => {
   it("exposes BI between Ongoing and CHURNs", () => {
@@ -121,5 +125,7 @@ describe("BI shell", () => {
     expect(atendimentoModalSource).toContain("origem?: \"marcos\" | \"ongoing\"");
     expect(atendimentoModalSource).toContain("onSubmitted?: () => void");
     expect(atendimentoModalSource).toContain("origem,");
+    expect(googleSheetsSource).toContain('`${sheetName}!K${targetRow}:L${targetRow}`');
+    expect(googleSheetsSource).toContain("[true, today]");
   });
 });
