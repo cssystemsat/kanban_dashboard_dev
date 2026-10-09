@@ -3,10 +3,8 @@ import { RefreshCw, Flag } from "lucide-react";
 import { useOngoingData, OngoingClientData } from "@/hooks/useOngoingData";
 import OngoingCard from "@/components/OngoingCard";
 import OngoingClientModal from "@/components/OngoingClientModal";
-import AtendimentoModal from "@/components/AtendimentoModal";
 import URsTrendIndicator from "@/components/URsTrendIndicator";
 import { filterByCommercial, listCommercials } from "@shared/commercialFilter";
-import type { ClientData } from "@/hooks/useKanbanData";
 import { trpc } from "@/lib/trpc";
 
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
@@ -62,12 +60,6 @@ export default function Ongoing() {
   const [selectedClient, setSelectedClient] =
     useState<OngoingClientData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(
-    null
-  );
-  const [contactMarkedIds, setContactMarkedIds] = useState<Set<string>>(
-    () => new Set()
-  );
   const [flagFilter, setFlagFilter] = useState<FlagLevel | null>(null);
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(
     null
@@ -668,10 +660,6 @@ export default function Ongoing() {
                       <OngoingCard
                         client={client}
                         npsAverage={npsAverageByCentralId.get(client.centralId) ?? null}
-                        contactMarkedToday={contactMarkedIds.has(client.id)}
-                        onAtendimento={c => {
-                          setAtendimentoClient({ nome: c.nome } as ClientData);
-                        }}
                       />
                     </div>
                   </div>
@@ -691,24 +679,6 @@ export default function Ongoing() {
         />
       )}
 
-      {/* Modal de Atendimento */}
-      {atendimentoClient && (
-          <AtendimentoModal
-            client={atendimentoClient}
-            origem="ongoing"
-            onSubmitted={() => {
-              const matched = data.find(client => client.nome === atendimentoClient.nome);
-              if (matched) {
-                setContactMarkedIds(current => {
-                  const next = new Set(current);
-                  next.add(matched.id);
-                  return next;
-                });
-              }
-            }}
-            onClose={() => setAtendimentoClient(null)}
-          />
-      )}
     </div>
   );
 }

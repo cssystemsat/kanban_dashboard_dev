@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.5",
-  "changes": ["Checkbox de contato agora grava também a data atual na coluna L em Marcos e Ongoing."]
+  "appVersion": "12.6",
+  "changes": ["O botão Atendimento do Ongoing agora marca diretamente as colunas K e L, sem abrir modal."]
 }

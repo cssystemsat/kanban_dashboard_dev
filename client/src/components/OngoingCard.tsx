@@ -5,11 +5,12 @@ import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
 import { WootricMark } from "./WootricMark";
 import { calculateOngoingHealthScore } from "@/lib/criticality";
 import { getContactButtonState } from "@/lib/contactStatus";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 interface OngoingCardProps {
   client: OngoingClientData;
   npsAverage?: number | null;
-  onAtendimento?: (client: OngoingClientData) => void;
   contactMarkedToday?: boolean;
 }
 
@@ -30,11 +31,18 @@ function getFlagColor(flag: string): string | null {
 export default function OngoingCard({
   client,
   npsAverage = null,
-  onAtendimento,
   contactMarkedToday = false,
 }: OngoingCardProps) {
   const [showWootricHistory, setShowWootricHistory] = useState(false);
   const [showScoreReasons, setShowScoreReasons] = useState(false);
+  const [markedToday, setMarkedToday] = useState(contactMarkedToday);
+  const markContact = trpc.contato.marcar.useMutation({
+    onSuccess: () => {
+      setMarkedToday(true);
+      toast.success(`Contato de ${client.nome} marcado na planilha.`);
+    },
+    onError: error => toast.error(`Não foi possível marcar o contato: ${error.message}`),
+  });
   const getDeltaColor = (delta: number) => {
     if (delta > 0) return { bg: "#D1FAE5", text: "#059669" };
     if (delta < 0) return { bg: "#FEE2E2", text: "#DC2626" };
@@ -54,7 +62,7 @@ export default function OngoingCard({
         : { backgroundColor: "#DCFCE7", color: "#166534" };
   const contactButton = getContactButtonState(
     client.diasUltimoContato,
-    contactMarkedToday
+    markedToday
   );
 
   return (
@@ -288,9 +296,9 @@ export default function OngoingCard({
         <button
           onClick={e => {
             e.stopPropagation();
-            onAtendimento?.(client);
+            markContact.mutate({ cliente: client.nome, aba: "ongoing" });
           }}
-          disabled={contactButton.disabled}
+          disabled={contactButton.disabled || markContact.isPending}
           className="flex-1 text-white rounded py-2 flex items-center justify-center gap-2 transition-colors text-sm font-medium hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           style={{ backgroundColor: contactButton.backgroundColor }}
           title={contactButton.disabled ? contactButton.label : "Registrar Atendimento"}

@@ -33,10 +33,6 @@ const ongoingCardSource = readFileSync(
   new URL("../client/src/components/OngoingCard.tsx", import.meta.url),
   "utf8"
 );
-const atendimentoModalSource = readFileSync(
-  new URL("../client/src/components/AtendimentoModal.tsx", import.meta.url),
-  "utf8"
-);
 const googleSheetsSource = readFileSync(
   new URL("../server/googleSheets.ts", import.meta.url),
   "utf8"
@@ -118,13 +114,11 @@ describe("BI shell", () => {
   it("offers contact age filters in Ongoing and marks column K after attendance", () => {
     expect(ongoingPageSource).toContain("Sem contato há");
     expect(ongoingPageSource).toContain('value="mais60"');
-    expect(ongoingPageSource).toContain("origem=\"ongoing\"");
+    expect(ongoingPageSource).not.toContain("AtendimentoModal");
     expect(ongoingCardSource).toContain('"Registrar Atendimento"');
     expect(ongoingCardSource).toContain("contactButton.backgroundColor");
     expect(ongoingCardSource).toContain("contactButton.disabled");
-    expect(atendimentoModalSource).toContain("origem?: \"marcos\" | \"ongoing\"");
-    expect(atendimentoModalSource).toContain("onSubmitted?: () => void");
-    expect(atendimentoModalSource).toContain("origem,");
+    expect(ongoingCardSource).toContain('aba: "ongoing"');
     expect(googleSheetsSource).toContain('`${sheetName}!K${targetRow}:L${targetRow}`');
     expect(googleSheetsSource).toContain("[true, today]");
   });
