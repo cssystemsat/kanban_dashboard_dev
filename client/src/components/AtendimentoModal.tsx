@@ -16,6 +16,7 @@ interface AtendimentoModalProps {
   client: ClientData;
   onClose: () => void;
   origem?: "marcos" | "ongoing";
+  onSubmitted?: () => void;
 }
 
 const TIPOS_ATENDIMENTO = [
@@ -60,6 +61,7 @@ export default function AtendimentoModal({
   client,
   onClose,
   origem = "marcos",
+  onSubmitted,
 }: AtendimentoModalProps) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [enviado, setEnviado] = useState(false);
@@ -83,6 +85,7 @@ export default function AtendimentoModal({
   const gravar = trpc.atendimento.gravar.useMutation({
     onSuccess: data => {
       toast.success(`Atendimento registrado na linha ${data.row} da planilha!`);
+      onSubmitted?.();
       setEnviado(true);
       // Limpa o formulário após 1.5s e volta ao estado inicial
       setTimeout(() => {

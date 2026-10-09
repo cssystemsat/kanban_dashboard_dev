@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.3",
-  "changes": ["Cores e bloqueio do botão de contato em Marcos conforme o tempo desde o último contato."]
+  "appVersion": "12.4",
+  "changes": ["Mesmas cores e bloqueio do botão de atendimento no Ongoing conforme o tempo desde o último contato."]
 }

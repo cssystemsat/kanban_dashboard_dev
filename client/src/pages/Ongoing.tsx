@@ -65,6 +65,9 @@ export default function Ongoing() {
   const [atendimentoClient, setAtendimentoClient] = useState<ClientData | null>(
     null
   );
+  const [contactMarkedIds, setContactMarkedIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const [flagFilter, setFlagFilter] = useState<FlagLevel | null>(null);
   const [selectedAtendente, setSelectedAtendente] = useState<string | null>(
     null
@@ -665,6 +668,7 @@ export default function Ongoing() {
                       <OngoingCard
                         client={client}
                         npsAverage={npsAverageByCentralId.get(client.centralId) ?? null}
+                        contactMarkedToday={contactMarkedIds.has(client.id)}
                         onAtendimento={c => {
                           setAtendimentoClient({ nome: c.nome } as ClientData);
                         }}
@@ -692,6 +696,16 @@ export default function Ongoing() {
           <AtendimentoModal
             client={atendimentoClient}
             origem="ongoing"
+            onSubmitted={() => {
+              const matched = data.find(client => client.nome === atendimentoClient.nome);
+              if (matched) {
+                setContactMarkedIds(current => {
+                  const next = new Set(current);
+                  next.add(matched.id);
+                  return next;
+                });
+              }
+            }}
             onClose={() => setAtendimentoClient(null)}
           />
       )}

@@ -115,8 +115,11 @@ describe("BI shell", () => {
     expect(ongoingPageSource).toContain("Sem contato há");
     expect(ongoingPageSource).toContain('value="mais60"');
     expect(ongoingPageSource).toContain("origem=\"ongoing\"");
-    expect(ongoingCardSource).toContain('title="Registrar Atendimento"');
+    expect(ongoingCardSource).toContain('"Registrar Atendimento"');
+    expect(ongoingCardSource).toContain("contactButton.backgroundColor");
+    expect(ongoingCardSource).toContain("contactButton.disabled");
     expect(atendimentoModalSource).toContain("origem?: \"marcos\" | \"ongoing\"");
+    expect(atendimentoModalSource).toContain("onSubmitted?: () => void");
     expect(atendimentoModalSource).toContain("origem,");
   });
 });
