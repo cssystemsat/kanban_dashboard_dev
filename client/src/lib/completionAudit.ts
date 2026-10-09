@@ -61,7 +61,7 @@ function isHeaderName(value: string): boolean {
 
 function buildAudit(
   csv: string,
-  fields: Array<{ label: string; index: number }>
+  fields: Array<{ label: string; index?: number; indices?: number[] }>
 ): CompletionAudit {
   const rows = parseCsvRows(csv);
   const issues: CompletionIssue[] = [];
@@ -71,7 +71,11 @@ function buildAudit(
     if (!client || isHeaderName(client)) continue;
 
     const missingFields = fields
-      .filter(field => isEmpty(row[field.index]))
+      .filter(field =>
+        field.indices
+          ? field.indices.some(index => isEmpty(row[index]))
+          : isEmpty(row[field.index ?? -1])
+      )
       .map(field => field.label);
 
     if (missingFields.length > 0) {
@@ -94,17 +98,6 @@ function buildAudit(
   };
 }
 
-function columnLabel(index: number): string {
-  let value = index + 1;
-  let label = "";
-  while (value > 0) {
-    const remainder = (value - 1) % 26;
-    label = String.fromCharCode(65 + remainder) + label;
-    value = Math.floor((value - 1) / 26);
-  }
-  return label;
-}
-
 const MARCOS_FIELDS = [
   { label: "Código (A)", index: 0 },
   { label: "Comercial (X)", index: 23 },
@@ -112,10 +105,10 @@ const MARCOS_FIELDS = [
   { label: "Objetivos (AA)", index: 26 },
   { label: "Cidade (AI)", index: 34 },
   { label: "Estado (AJ)", index: 35 },
-  ...Array.from({ length: 12 }, (_, offset) => ({
-    label: `Primeiro boleto (${columnLabel(42 + offset)})`,
-    index: 42 + offset,
-  })),
+  {
+    label: "Pendente valores do contrato",
+    indices: Array.from({ length: 12 }, (_, offset) => 42 + offset),
+  },
 ];
 
 const ONGOING_FIELDS = [

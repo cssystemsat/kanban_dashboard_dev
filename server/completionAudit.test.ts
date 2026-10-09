@@ -33,16 +33,7 @@ describe("completion audit", () => {
       client: "Alpha\nRastreamento",
     });
     expect(audit.issues[0]?.missingFields).toEqual([
-      "Primeiro boleto (AR)",
-      "Primeiro boleto (AS)",
-      "Primeiro boleto (AT)",
-      "Primeiro boleto (AU)",
-      "Primeiro boleto (AV)",
-      "Primeiro boleto (AW)",
-      "Primeiro boleto (AX)",
-      "Primeiro boleto (AY)",
-      "Primeiro boleto (AZ)",
-      "Primeiro boleto (BA)",
+      "Pendente valores do contrato",
     ]);
   });
 

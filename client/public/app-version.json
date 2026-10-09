@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.7",
-  "changes": ["Filtros do Ongoing subidos para o topo e botão Atualizar integrado ao quadro de filtros."]
+  "appVersion": "12.8",
+  "changes": ["Auditoria de Marcos agora exibe AQ até BB como Pendente valores do contrato."]
 }
