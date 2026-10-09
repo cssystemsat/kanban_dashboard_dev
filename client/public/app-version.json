@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.6",
-  "changes": ["O botão Atendimento do Ongoing agora marca diretamente as colunas K e L, sem abrir modal."]
+  "appVersion": "12.7",
+  "changes": ["Filtros do Ongoing subidos para o topo e botão Atualizar integrado ao quadro de filtros."]
 }

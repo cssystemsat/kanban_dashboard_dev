@@ -44,7 +44,7 @@ const FLAG_STYLES: Record<
 };
 
 export default function Ongoing() {
-  const { data, loading } = useOngoingData();
+  const { data, loading, refresh } = useOngoingData();
   const ongoingCentralIds = useMemo(
     () => [...new Set(data.map(client => client.centralId.trim()).filter(Boolean))].sort(),
     [data]
@@ -200,23 +200,21 @@ export default function Ongoing() {
       className="md:ml-20 p-4 md:p-6"
       style={{ backgroundColor: "#F5F7FA", minHeight: "100vh" }}
     >
-      {/* Topo compacto: os filtros ocupam a primeira área útil da aba. */}
-      <header className="mb-2 flex justify-end">
-        <button
-          disabled={loading}
-          className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors flex items-center gap-2"
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          {loading ? "Atualizando..." : "Atualizar"}
-        </button>
-      </header>
-
-      {/* Filtros */}
+      {/* Filtros compactos no topo, com atualização manual integrada. */}
       <div
-        className="bg-white rounded-xl p-3 border shadow-sm"
+        className="bg-white rounded-xl p-2 border shadow-sm"
         style={{ borderColor: "#E0E8F0" }}
       >
         <div className="flex flex-wrap items-end gap-3">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={refresh}
+            className="h-8 px-3 rounded-md bg-green-600 hover:bg-green-700 text-white text-xs font-semibold transition-colors flex items-center gap-2 disabled:cursor-wait disabled:opacity-70"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            {loading ? "Atualizando..." : "Atualizar"}
+          </button>
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
               Cliente

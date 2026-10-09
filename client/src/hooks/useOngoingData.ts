@@ -65,6 +65,7 @@ function parseCSVLine(line: string): string[] {
 export function useOngoingData() {
   const [data, setData] = useState<OngoingClientData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -178,7 +179,7 @@ export function useOngoingData() {
     };
 
     fetchData();
-  }, []);
+  }, [reloadKey]);
 
-  return { data, loading, error };
+  return { data, loading, error, refresh: () => setReloadKey(value => value + 1) };
 }

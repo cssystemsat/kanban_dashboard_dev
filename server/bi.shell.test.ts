@@ -114,6 +114,8 @@ describe("BI shell", () => {
   it("offers contact age filters in Ongoing and marks column K after attendance", () => {
     expect(ongoingPageSource).toContain("Sem contato há");
     expect(ongoingPageSource).toContain('value="mais60"');
+    expect(ongoingPageSource).toContain("onClick={refresh}");
+    expect(ongoingPageSource).toContain("Filtros compactos no topo");
     expect(ongoingPageSource).not.toContain("AtendimentoModal");
     expect(ongoingCardSource).toContain('"Registrar Atendimento"');
     expect(ongoingCardSource).toContain("contactButton.backgroundColor");
