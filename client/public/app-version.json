@@ -1,4 +1,4 @@
 {
-  "appVersion": "12.9",
-  "changes": ["Correção do loop de atualização ao abrir a aba Marcos."]
+  "appVersion": "13.0",
+  "changes": ["Adicionado gráfico de evolução financeira mensal nos modais de Marcos e Ongoing."]
 }

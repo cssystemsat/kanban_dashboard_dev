@@ -33,6 +33,22 @@ const ongoingCardSource = readFileSync(
   new URL("../client/src/components/OngoingCard.tsx", import.meta.url),
   "utf8"
 );
+const clientDetailsModalSource = readFileSync(
+  new URL("../client/src/components/ClientDetailsModal.tsx", import.meta.url),
+  "utf8"
+);
+const ongoingClientModalSource = readFileSync(
+  new URL("../client/src/components/OngoingClientModal.tsx", import.meta.url),
+  "utf8"
+);
+const financialChartSource = readFileSync(
+  new URL("../client/src/components/FinancialEvolutionChart.tsx", import.meta.url),
+  "utf8"
+);
+const financialMetricsSource = readFileSync(
+  new URL("../client/src/lib/financialEvolution.ts", import.meta.url),
+  "utf8"
+);
 const googleSheetsSource = readFileSync(
   new URL("../server/googleSheets.ts", import.meta.url),
   "utf8"
@@ -123,5 +139,17 @@ describe("BI shell", () => {
     expect(ongoingCardSource).toContain('aba: "ongoing"');
     expect(googleSheetsSource).toContain('`${sheetName}!K${targetRow}:L${targetRow}`');
     expect(googleSheetsSource).toContain("[true, today]");
+  });
+
+  it("exibe evolução financeira abaixo do gráfico de URs nos dois modais", () => {
+    expect(clientDetailsModalSource).toContain("FinancialEvolutionChart");
+    expect(clientDetailsModalSource).toContain("centralId={client.centralId}");
+    expect(ongoingClientModalSource).toContain("FinancialEvolutionChart");
+    expect(ongoingClientModalSource).toContain("centralId={client.centralId}");
+    expect(financialChartSource).toContain("FINANCIAL_GID = 202474765");
+    expect(financialChartSource).toContain("Boleto mensal");
+    expect(financialChartSource).toContain("Valor mínimo");
+    expect(financialMetricsSource).toContain("repete o último boleto válido");
+    expect(financialMetricsSource).toContain("row[10 + monthIndex]");
   });
 });

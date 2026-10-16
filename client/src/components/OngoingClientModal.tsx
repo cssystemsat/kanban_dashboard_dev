@@ -1,6 +1,7 @@
 import { OngoingClientData } from "@/hooks/useOngoingData";
 import { useURsEvolution } from "@/hooks/useURsEvolution";
 import URsEvolutionChart from "./URsEvolutionChart";
+import FinancialEvolutionChart from "./FinancialEvolutionChart";
 import { X, MessageCircle } from "lucide-react";
 
 interface OngoingClientModalProps {
@@ -216,6 +217,8 @@ export default function OngoingClientModal({
           <div className="mb-6">
             <URsEvolutionChart codigoCliente={client.codigoCliente} />
           </div>
+
+          <FinancialEvolutionChart centralId={client.centralId} />
 
           {/* Botões de Ação */}
           <div

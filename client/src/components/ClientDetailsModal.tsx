@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import URsEvolutionChart from "./URsEvolutionChart";
+import FinancialEvolutionChart from "./FinancialEvolutionChart";
 import { useURsEvolution } from "@/hooks/useURsEvolution";
 import {
   useAgendaData,
@@ -618,6 +619,8 @@ export default function ClientDetailsModal({
                 <URsEvolutionChart codigoCliente={client.codigoCliente} />
               </div>
             )}
+
+            <FinancialEvolutionChart centralId={client.centralId} />
 
             {/* Botões de Ação */}
             <div
