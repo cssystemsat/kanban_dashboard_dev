@@ -64,14 +64,14 @@ function parseMoney(value: string | undefined): number | null {
 }
 
 /**
- * Constrói a série financeira de um cliente.
+ * Constrói a série financeira de um cliente até o mês anterior ao atual.
  * A planilha usa A = ID Central, D = mínimo e K em diante = Jan/2026 em diante.
  * Valores nulos, zero ou erros: repete o último boleto válido da série.
  */
 export function buildFinancialEvolution(
   csv: string,
   centralId: string,
-  monthCount = new Date().getMonth() + 1
+  monthCount = new Date().getMonth()
 ): FinancialEvolutionPoint[] {
   if (!csv || !centralId.trim()) return [];
 

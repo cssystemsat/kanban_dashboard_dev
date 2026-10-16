@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.1",
-  "changes": ["Gráfico financeiro agora termina automaticamente no mês atual."]
+  "appVersion": "13.2",
+  "changes": ["Gráfico financeiro agora termina sempre no mês anterior ao atual."]
 }

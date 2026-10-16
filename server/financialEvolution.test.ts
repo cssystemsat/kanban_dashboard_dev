@@ -16,7 +16,7 @@ describe("financial evolution", () => {
       .join(",");
     const points = buildFinancialEvolution(`A,B,C,D\n${csvRow}`, "1043");
 
-    expect(points).toHaveLength(new Date().getMonth() + 1);
+    expect(points).toHaveLength(new Date().getMonth());
     expect(points.slice(0, 4)).toEqual([
       { month: "Jan", boleto: 1250, minimo: 1000 },
       { month: "Fev", boleto: 1250, minimo: 1000 },
