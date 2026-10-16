@@ -81,6 +81,12 @@ import {
   syncProblemasCards,
   updateProblemasCard,
   moveProblemasCard,
+  getNoticeRecipients,
+  getAdminNotices,
+  createAdminNotice,
+  deactivateAdminNotice,
+  getPendingAdminNoticesForUser,
+  acknowledgeAdminNotice,
 } from "./db";
 import { TRPCError } from "@trpc/server";
 import { createHeartbeatJob } from "./_core/heartbeat";
@@ -105,6 +111,16 @@ import {
 
 function isProjectOwner(user: { openId: string } | null | undefined): boolean {
   return Boolean(ENV.ownerOpenId && user?.openId === ENV.ownerOpenId);
+}
+
+async function assertAdmin(ctx: { user: { openId: string; email?: string | null } }) {
+  const entry = ctx.user.email ? await getEmailEntry(ctx.user.email) : null;
+  if (!isProjectOwner(ctx.user) && entry?.isAdmin !== 1) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "A Central de Avisos está disponível apenas para administradores.",
+    });
+  }
 }
 
 export const appRouter = router({
@@ -155,6 +171,82 @@ export const appRouter = router({
             cause: error,
           });
         }
+      }),
+  }),
+  notices: router({
+    recipients: protectedProcedure.query(async ({ ctx }) => {
+      await assertAdmin(ctx);
+      return getNoticeRecipients();
+    }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      await assertAdmin(ctx);
+      return getAdminNotices();
+    }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          title: z.string().trim().min(1).max(255),
+          message: z.string().trim().min(1).max(10000),
+          scheduleType: z.enum(["unique", "periodic"]),
+          startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+          startTime: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
+          immediate: z.boolean(),
+          daysOfWeek: z.array(z.number().int().min(0).max(6)).max(7),
+          timesOfDay: z.array(z.string().regex(/^\d{2}:\d{2}$/)).max(24),
+          recipientMode: z.enum(["all", "selected"]),
+          recipientEmails: z.array(z.string().email()).max(500),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        await assertAdmin(ctx);
+        if (input.scheduleType === "unique" && !input.immediate && (!input.startDate || !input.startTime)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Informe a data e o horário do aviso único." });
+        }
+        if (input.scheduleType === "periodic" && (!input.daysOfWeek.length || !input.timesOfDay.length)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Informe ao menos um dia e um horário para o aviso periódico." });
+        }
+        if (input.recipientMode === "selected" && !input.recipientEmails.length) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Selecione ao menos um usuário destinatário." });
+        }
+        await createAdminNotice({
+          title: input.title,
+          message: input.message,
+          scheduleType: input.scheduleType,
+          startDate: input.startDate,
+          startTime: input.startTime,
+          immediate: input.immediate,
+          daysOfWeek: JSON.stringify(input.daysOfWeek),
+          timesOfDay: JSON.stringify(input.timesOfDay),
+          recipientMode: input.recipientMode,
+          recipientEmails: JSON.stringify(input.recipientEmails.map(email => email.toLowerCase())),
+          isActive: true,
+          createdBy: ctx.user.email ?? ctx.user.openId,
+        });
+        return { ok: true };
+      }),
+    deactivate: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        await assertAdmin(ctx);
+        await deactivateAdminNotice(input.id);
+        return { ok: true };
+      }),
+    pending: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user.email) return [];
+      const pending = await getPendingAdminNoticesForUser(ctx.user.email);
+      return pending.map(({ notice, occurrenceKey }) => ({
+        id: notice.id,
+        title: notice.title,
+        message: notice.message,
+        occurrenceKey,
+      }));
+    }),
+    acknowledge: protectedProcedure
+      .input(z.object({ noticeId: z.number().int().positive(), occurrenceKey: z.string().min(1).max(32) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.email) throw new TRPCError({ code: "UNAUTHORIZED" });
+        await acknowledgeAdminNotice(input.noticeId, ctx.user.email, input.occurrenceKey);
+        return { ok: true };
       }),
   }),
   wootric: router({

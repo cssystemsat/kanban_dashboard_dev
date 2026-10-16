@@ -25,6 +25,8 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  BellRing,
+  CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -62,12 +64,20 @@ const TOOLS = [
     icon: CheckSquare,
     description: "Gerencie suas listas de tarefas diárias",
   },
+  {
+    id: "notices",
+    label: "Central de Avisos",
+    icon: BellRing,
+    description: "Crie avisos agendados para os usuários do sistema",
+    adminOnly: true,
+  },
 ];
 
 export default function Ferramentas() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
   const { data: user, isLoading: authLoading } = trpc.auth.me.useQuery();
+  const { data: permission } = trpc.atendimento.checkPermission.useQuery();
 
   if (authLoading) {
     return (
@@ -133,7 +143,7 @@ export default function Ferramentas() {
       <main className="p-4">
         {!activeTool ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {TOOLS.map(tool => {
+            {TOOLS.filter(tool => !tool.adminOnly || permission?.isAdmin).map(tool => {
               const Icon = tool.icon;
               return (
                 <button
@@ -153,6 +163,8 @@ export default function Ferramentas() {
           </div>
         ) : activeTool === "checklists" ? (
           <ChecklistsPage />
+        ) : activeTool === "notices" && permission?.isAdmin ? (
+          <AdminNoticesPage />
         ) : null}
       </main>
     </div>
@@ -755,5 +767,207 @@ function EditChecklistDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+
+const NOTICE_WEEKDAYS = [
+  [1, "Segunda"],
+  [2, "Terça"],
+  [3, "Quarta"],
+  [4, "Quinta"],
+  [5, "Sexta"],
+  [6, "Sábado"],
+  [0, "Domingo"],
+] as const;
+
+function parseNoticeList(value: string | null): string[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function AdminNoticesPage() {
+  const { data: notices, isLoading } = trpc.notices.list.useQuery();
+  const { data: recipients } = trpc.notices.recipients.useQuery();
+  const utils = trpc.useUtils();
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [scheduleType, setScheduleType] = useState<"unique" | "periodic">("unique");
+  const [immediate, setImmediate] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("09:00");
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [timesOfDay, setTimesOfDay] = useState<string[]>(["09:00"]);
+  const [recipientMode, setRecipientMode] = useState<"all" | "selected">("all");
+  const [recipientEmails, setRecipientEmails] = useState<string[]>([]);
+
+  const createMutation = trpc.notices.create.useMutation({
+    onSuccess: async () => {
+      toast("Aviso criado com sucesso!");
+      setTitle("");
+      setMessage("");
+      setScheduleType("unique");
+      setImmediate(true);
+      setStartDate("");
+      setStartTime("09:00");
+      setRecipientMode("all");
+      setRecipientEmails([]);
+      await utils.notices.list.invalidate();
+    },
+    onError: error => toast("Erro: " + error.message),
+  });
+  const deactivateMutation = trpc.notices.deactivate.useMutation({
+    onSuccess: async () => {
+      toast("Aviso desativado.");
+      await utils.notices.list.invalidate();
+    },
+    onError: error => toast("Erro: " + error.message),
+  });
+
+  const toggleDay = (day: number) =>
+    setDaysOfWeek(current =>
+      current.includes(day)
+        ? current.filter(value => value !== day)
+        : [...current, day]
+    );
+  const updateRecipient = (email: string) =>
+    setRecipientEmails(current =>
+      current.includes(email)
+        ? current.filter(value => value !== email)
+        : [...current, email]
+    );
+
+  const submit = () => {
+    createMutation.mutate({
+      title,
+      message,
+      scheduleType,
+      startDate: startDate || null,
+      startTime: startTime || null,
+      immediate: scheduleType === "unique" && immediate,
+      daysOfWeek,
+      timesOfDay,
+      recipientMode,
+      recipientEmails,
+    });
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-5">
+      <div>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800">
+          <BellRing className="h-5 w-5 text-amber-600" /> Central de Avisos
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Crie comunicados importantes com agenda e destinatários personalizados.
+        </p>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+        <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: "#E0E8F0" }}>
+          <h3 className="mb-4 font-semibold text-gray-800">Criar aviso</h3>
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Título
+              <Input value={title} onChange={event => setTitle(event.target.value)} placeholder="Ex.: Reunião geral hoje" className="mt-1" />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              Mensagem
+              <textarea value={message} onChange={event => setMessage(event.target.value)} placeholder="Digite o aviso que os usuários deverão ler" className="mt-1 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
+            </label>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-700">Quando aparecer</p>
+              <div className="flex gap-2">
+                {(["unique", "periodic"] as const).map(type => (
+                  <button key={type} type="button" onClick={() => setScheduleType(type)} className={`rounded-md border px-3 py-2 text-sm font-medium ${scheduleType === type ? "border-amber-500 bg-amber-50 text-amber-800" : "border-gray-200 text-gray-600"}`}>
+                    {type === "unique" ? "Único" : "Periódico"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {scheduleType === "unique" ? (
+              <div className="space-y-3 rounded-lg bg-slate-50 p-3">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={immediate} onChange={event => setImmediate(event.target.checked)} className="h-4 w-4 accent-amber-600" />
+                  Mostrar imediatamente
+                </label>
+                {!immediate && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="text-xs font-medium text-gray-600">Dia<input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} className="mt-1 block w-full rounded-md border px-2 py-2 text-sm" /></label>
+                    <label className="text-xs font-medium text-gray-600">Horário<input type="time" value={startTime} onChange={event => setStartTime(event.target.value)} className="mt-1 block w-full rounded-md border px-2 py-2 text-sm" /></label>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-lg bg-slate-50 p-3">
+                <p className="text-xs font-medium text-gray-600">Dias da semana</p>
+                <div className="flex flex-wrap gap-2">
+                  {NOTICE_WEEKDAYS.map(([day, label]) => (
+                    <label key={day} className="flex items-center gap-1.5 rounded border bg-white px-2 py-1.5 text-xs text-gray-700">
+                      <input type="checkbox" checked={daysOfWeek.includes(day)} onChange={() => toggleDay(day)} className="h-3.5 w-3.5 accent-amber-600" />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs font-medium text-gray-600">Horários</p>
+                {timesOfDay.map((time, index) => (
+                  <div key={`${time}-${index}`} className="flex items-center gap-2">
+                    <input type="time" value={time} onChange={event => setTimesOfDay(current => current.map((value, i) => i === index ? event.target.value : value))} className="rounded-md border px-2 py-2 text-sm" />
+                    {timesOfDay.length > 1 && <button type="button" onClick={() => setTimesOfDay(current => current.filter((_, i) => i !== index))} className="text-xs text-red-600">Remover</button>}
+                  </div>
+                ))}
+                <button type="button" onClick={() => setTimesOfDay(current => [...current, "14:00"])} className="text-xs font-semibold text-blue-700">+ Adicionar horário</button>
+              </div>
+            )}
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-700">Quem receberá</p>
+              <div className="flex gap-2">
+                {(["all", "selected"] as const).map(mode => (
+                  <button key={mode} type="button" onClick={() => setRecipientMode(mode)} className={`rounded-md border px-3 py-2 text-sm font-medium ${recipientMode === mode ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 text-gray-600"}`}>
+                    {mode === "all" ? "Todos os usuários" : "Selecionar usuários"}
+                  </button>
+                ))}
+              </div>
+              {recipientMode === "selected" && (
+                <div className="mt-2 max-h-36 space-y-1 overflow-y-auto rounded-lg border p-2">
+                  {(recipients ?? []).filter(recipient => recipient.email).map(recipient => (
+                    <label key={recipient.id} className="flex items-center gap-2 px-1 py-1 text-xs text-gray-700">
+                      <input type="checkbox" checked={recipientEmails.includes(recipient.email ?? "")} onChange={() => updateRecipient(recipient.email ?? "")} className="h-3.5 w-3.5 accent-blue-600" />
+                      <span>{recipient.name || recipient.email}</span><span className="text-gray-400">({recipient.email})</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Button type="button" onClick={submit} disabled={createMutation.isPending || !title.trim() || !message.trim()} className="w-full gap-2 bg-[#001F3F] text-white hover:bg-[#0b3157]">
+              <CalendarClock className="h-4 w-4" />
+              {createMutation.isPending ? "Criando..." : "Criar aviso"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold text-gray-800">Avisos cadastrados</h3>
+          {isLoading ? <Loader2 className="h-5 w-5 animate-spin text-gray-400" /> : (notices ?? []).length === 0 ? <div className="rounded-xl border bg-white p-5 text-sm text-gray-500">Nenhum aviso cadastrado.</div> : (notices ?? []).map(notice => {
+            const days = parseNoticeList(notice.daysOfWeek);
+            const times = parseNoticeList(notice.timesOfDay);
+            return <div key={notice.id} className={`rounded-xl border bg-white p-4 shadow-sm ${notice.isActive ? "border-amber-200" : "border-gray-200 opacity-60"}`}>
+              <div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-gray-800">{notice.title}</p><p className="mt-1 whitespace-pre-wrap text-xs text-gray-500">{notice.message}</p></div><Badge variant="outline">{notice.isActive ? "Ativo" : "Desativado"}</Badge></div>
+              <p className="mt-3 text-[11px] text-gray-500">{notice.scheduleType === "unique" ? (notice.immediate ? "Imediato" : `${notice.startDate} às ${notice.startTime}`) : `Dias: ${days.join(", ")} · Horários: ${times.join(", ")}`} · {notice.recipientMode === "all" ? "Todos os usuários" : `${parseNoticeList(notice.recipientEmails).length} selecionado(s)`}</p>
+              {notice.isActive && <button type="button" onClick={() => deactivateMutation.mutate({ id: notice.id })} className="mt-3 text-xs font-semibold text-red-600">Desativar aviso</button>}
+            </div>;
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

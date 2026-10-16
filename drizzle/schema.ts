@@ -152,6 +152,53 @@ export const userActions = mysqlTable("user_actions", {
 export type UserAction = typeof userActions.$inferSelect;
 export type InsertUserAction = typeof userActions.$inferInsert;
 
+// Central de avisos administrativos. A agenda é interpretada no fuso
+// America/Sao_Paulo no momento da consulta, sem timers no processo web.
+export const adminNotices = mysqlTable("admin_notices", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  scheduleType: mysqlEnum("scheduleType", ["unique", "periodic"]).notNull(),
+  startDate: varchar("startDate", { length: 10 }), // YYYY-MM-DD
+  startTime: varchar("startTime", { length: 5 }), // HH:mm
+  immediate: boolean("immediate").default(false).notNull(),
+  daysOfWeek: text("daysOfWeek"), // JSON: [0..6], domingo = 0
+  timesOfDay: text("timesOfDay"), // JSON: ["09:00", "14:00"]
+  recipientMode: mysqlEnum("recipientMode", ["all", "selected"]).notNull(),
+  recipientEmails: text("recipientEmails"), // JSON quando recipientMode = selected
+  isActive: boolean("isActive").default(true).notNull(),
+  createdBy: varchar("createdBy", { length: 320 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AdminNotice = typeof adminNotices.$inferSelect;
+export type InsertAdminNotice = typeof adminNotices.$inferInsert;
+
+export const adminNoticeAcknowledgments = mysqlTable(
+  "admin_notice_acknowledgments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    noticeId: int("noticeId").notNull(),
+    userEmail: varchar("userEmail", { length: 320 }).notNull(),
+    occurrenceKey: varchar("occurrenceKey", { length: 32 }).notNull(),
+    acknowledgedAt: timestamp("acknowledgedAt").defaultNow().notNull(),
+  },
+  table => ({
+    noticeUserUnique: uniqueIndex("admin_notice_user_occurrence_unique").on(
+      table.noticeId,
+      table.userEmail,
+      table.occurrenceKey
+    ),
+    noticeIdx: index("admin_notice_ack_notice_idx").on(table.noticeId),
+  })
+);
+
+export type AdminNoticeAcknowledgment =
+  typeof adminNoticeAcknowledgments.$inferSelect;
+export type InsertAdminNoticeAcknowledgment =
+  typeof adminNoticeAcknowledgments.$inferInsert;
+
 // Objetivos da aba Marcos: estado compartilhado entre todos os usuários.
 export const clientObjectiveCompletions = mysqlTable(
   "client_objective_completions",

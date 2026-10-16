@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.2",
-  "changes": ["Gráfico financeiro agora termina sempre no mês anterior ao atual."]
+  "appVersion": "13.3",
+  "changes": ["Central de Avisos administrativa com agenda, destinatários e confirmação individual."]
 }

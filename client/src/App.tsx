@@ -25,6 +25,7 @@ import { NewClientsAlert } from "./components/NewClientsAlert";
 import { WootricAlert } from "./components/WootricAlert";
 import ErrorBoundary from "./components/ErrorBoundary";
 import VersionUpdatePrompt from "./components/VersionUpdatePrompt";
+import AdminNoticePrompt from "./components/AdminNoticePrompt";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "./const";
@@ -306,6 +307,7 @@ function AppInner() {
       <NewClientsAlert />
       <WootricAlert />
       <VersionUpdatePrompt />
+      {user && <AdminNoticePrompt />}
       <SideMenu
         currentPage={currentPage}
         onPageChange={handlePageChange}

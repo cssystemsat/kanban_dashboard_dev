@@ -253,6 +253,20 @@
       "when": 1791412776302,
       "tag": "0035_loving_omega_flight",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1792175265549,
+      "tag": "0036_light_luckman",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1792175364869,
+      "tag": "0037_outgoing_mongu",
+      "breakpoints": true
     }
   ]
 }

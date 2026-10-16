@@ -35,6 +35,9 @@ import {
   clientSubobjectiveCompletions,
   problemasCards,
   InsertProblemasCard,
+  adminNotices,
+  adminNoticeAcknowledgments,
+  InsertAdminNotice,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
@@ -44,6 +47,10 @@ import {
   type ProblemasSyncRow,
   type ProblemStage,
 } from "./problemsSync";
+import {
+  getCurrentNoticeOccurrence,
+  noticeTargetsUser,
+} from "./adminNotices";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -225,6 +232,89 @@ export async function getEmailEntry(email: string) {
     .where(eq(allowedEmails.email, email.toLowerCase()))
     .limit(1);
   return result.length > 0 ? result[0] : null;
+}
+
+// ---- Central de avisos administrativos ----
+
+export async function getNoticeRecipients() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({ id: users.id, name: users.name, email: users.email, role: users.role })
+    .from(users)
+    .orderBy(asc(users.email));
+}
+
+export async function getAdminNotices() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(adminNotices).orderBy(desc(adminNotices.createdAt));
+}
+
+export async function createAdminNotice(data: InsertAdminNotice) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(adminNotices).values(data);
+}
+
+export async function deactivateAdminNotice(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .update(adminNotices)
+    .set({ isActive: false })
+    .where(eq(adminNotices.id, id));
+}
+
+export async function getPendingAdminNoticesForUser(email: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const notices = await db
+    .select()
+    .from(adminNotices)
+    .where(eq(adminNotices.isActive, true));
+  const pending: Array<{
+    notice: (typeof notices)[number];
+    occurrenceKey: string;
+  }> = [];
+
+  for (const notice of notices) {
+    if (!noticeTargetsUser(notice, email)) continue;
+    const occurrenceKey = getCurrentNoticeOccurrence(notice);
+    if (!occurrenceKey) continue;
+    const acknowledged = await db
+      .select({ id: adminNoticeAcknowledgments.id })
+      .from(adminNoticeAcknowledgments)
+      .where(
+        and(
+          eq(adminNoticeAcknowledgments.noticeId, notice.id),
+          eq(adminNoticeAcknowledgments.userEmail, email.toLowerCase()),
+          eq(adminNoticeAcknowledgments.occurrenceKey, occurrenceKey)
+        )
+      )
+      .limit(1);
+    if (!acknowledged.length) pending.push({ notice, occurrenceKey });
+  }
+  return pending;
+}
+
+export async function acknowledgeAdminNotice(
+  noticeId: number,
+  userEmail: string,
+  occurrenceKey: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .insert(adminNoticeAcknowledgments)
+    .values({
+      noticeId,
+      userEmail: userEmail.toLowerCase(),
+      occurrenceKey,
+    })
+    .onDuplicateKeyUpdate({
+      set: { acknowledgedAt: new Date() },
+    });
 }
 
 // ---- Checklist helpers ----
