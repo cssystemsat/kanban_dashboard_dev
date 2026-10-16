@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.0",
-  "changes": ["Adicionado gráfico de evolução financeira mensal nos modais de Marcos e Ongoing."]
+  "appVersion": "13.1",
+  "changes": ["Gráfico financeiro agora termina automaticamente no mês atual."]
 }

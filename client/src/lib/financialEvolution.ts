@@ -71,7 +71,7 @@ function parseMoney(value: string | undefined): number | null {
 export function buildFinancialEvolution(
   csv: string,
   centralId: string,
-  monthCount = 12
+  monthCount = new Date().getMonth() + 1
 ): FinancialEvolutionPoint[] {
   if (!csv || !centralId.trim()) return [];
 

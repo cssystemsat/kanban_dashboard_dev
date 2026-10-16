@@ -3,4 +3,4 @@
  * Incrementar este número a cada publicação que deve ser comunicada no painel.
  */
 // Cache persistente de NPS, média no Ongoing e impacto no Health Score.
-export const APP_VERSION = "13.0";
+export const APP_VERSION = "13.1";
