@@ -97,6 +97,7 @@ import { ENV } from "./_core/env";
 import { getPreviousKpiWeeklyValues } from "./kpiSnapshots";
 import { getOnboardingKpiMetrics } from "./kpiMetrics";
 import { getMigrationKpiMetrics } from "./migrationMetrics";
+import { storagePut } from "./storage";
 import {
   acknowledgeWootricResponses,
   getWootricAveragesByCentralIds,
@@ -121,6 +122,21 @@ async function assertAdmin(ctx: { user: { openId: string; email?: string | null 
       message: "A Central de Avisos está disponível apenas para administradores.",
     });
   }
+}
+
+function decodeNoticeImage(imageData: string | null | undefined) {
+  if (!imageData) return null;
+  const match = /^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/.exec(imageData);
+  if (!match) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "A imagem deve ser PNG, JPEG, WebP ou GIF." });
+  }
+  const contentType = match[1];
+  const buffer = Buffer.from(match[2].replace(/\s/g, ""), "base64");
+  if (buffer.length > 5 * 1024 * 1024) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "A imagem deve ter no máximo 5 MB." });
+  }
+  const extension = contentType === "image/jpeg" ? "jpg" : contentType.split("/")[1];
+  return { buffer, contentType, extension };
 }
 
 export const appRouter = router({
@@ -195,6 +211,7 @@ export const appRouter = router({
           timesOfDay: z.array(z.string().regex(/^\d{2}:\d{2}$/)).max(24),
           recipientMode: z.enum(["all", "selected"]),
           recipientEmails: z.array(z.string().email()).max(500),
+          imageData: z.string().max(8_000_000).nullable().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -208,9 +225,19 @@ export const appRouter = router({
         if (input.recipientMode === "selected" && !input.recipientEmails.length) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Selecione ao menos um usuário destinatário." });
         }
+        const image = decodeNoticeImage(input.imageData);
+        const storedImage = image
+          ? await storagePut(
+              `admin-notices/${Date.now()}-${Math.random().toString(36).slice(2)}.${image.extension}`,
+              image.buffer,
+              image.contentType
+            )
+          : null;
         await createAdminNotice({
           title: input.title,
           message: input.message,
+          imageKey: storedImage?.key ?? null,
+          imageUrl: storedImage?.url ?? null,
           scheduleType: input.scheduleType,
           startDate: input.startDate,
           startTime: input.startTime,
@@ -238,6 +265,7 @@ export const appRouter = router({
         id: notice.id,
         title: notice.title,
         message: notice.message,
+        imageUrl: notice.imageUrl,
         occurrenceKey,
       }));
     }),

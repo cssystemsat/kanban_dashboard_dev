@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.3",
-  "changes": ["Central de Avisos administrativa com agenda, destinatários e confirmação individual."]
+  "appVersion": "13.4",
+  "changes": ["Central de Avisos com imagem opcional, pré-visualização e exibição no aviso recebido."]
 }

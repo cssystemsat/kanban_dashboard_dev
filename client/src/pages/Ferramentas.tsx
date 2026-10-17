@@ -27,6 +27,7 @@ import {
   ChevronUp,
   BellRing,
   CalendarClock,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -805,6 +806,7 @@ function AdminNoticesPage() {
   const [timesOfDay, setTimesOfDay] = useState<string[]>(["09:00"]);
   const [recipientMode, setRecipientMode] = useState<"all" | "selected">("all");
   const [recipientEmails, setRecipientEmails] = useState<string[]>([]);
+  const [imageData, setImageData] = useState<string | null>(null);
 
   const createMutation = trpc.notices.create.useMutation({
     onSuccess: async () => {
@@ -817,6 +819,7 @@ function AdminNoticesPage() {
       setStartTime("09:00");
       setRecipientMode("all");
       setRecipientEmails([]);
+      setImageData(null);
       await utils.notices.list.invalidate();
     },
     onError: error => toast("Erro: " + error.message),
@@ -842,6 +845,21 @@ function AdminNoticesPage() {
         : [...current, email]
     );
 
+  const handleImageChange = (file: File | undefined) => {
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) {
+      toast("Use uma imagem PNG, JPEG, WebP ou GIF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast("A imagem deve ter no máximo 5 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setImageData(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  };
+
   const submit = () => {
     createMutation.mutate({
       title,
@@ -854,6 +872,7 @@ function AdminNoticesPage() {
       timesOfDay,
       recipientMode,
       recipientEmails,
+      imageData,
     });
   };
 
@@ -880,6 +899,22 @@ function AdminNoticesPage() {
               Mensagem
               <textarea value={message} onChange={event => setMessage(event.target.value)} placeholder="Digite o aviso que os usuários deverão ler" className="mt-1 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
             </label>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-700">Imagem (opcional)</p>
+              <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                <ImageIcon className="h-4 w-4" />
+                <span>{imageData ? "Trocar imagem" : "Selecionar imagem"}</span>
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" onChange={event => handleImageChange(event.target.files?.[0])} />
+              </label>
+              {imageData && (
+                <div className="relative mt-2 w-fit">
+                  <img src={imageData} alt="Pré-visualização do aviso" className="max-h-40 max-w-full rounded-lg border object-contain" />
+                  <button type="button" onClick={() => setImageData(null)} className="absolute -right-2 -top-2 rounded-full bg-white px-2 py-1 text-xs font-bold text-red-600 shadow" aria-label="Remover imagem">×</button>
+                </div>
+              )}
+              <p className="mt-1 text-xs text-slate-400">PNG, JPEG, WebP ou GIF até 5 MB.</p>
+            </div>
 
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">Quando aparecer</p>
@@ -961,7 +996,7 @@ function AdminNoticesPage() {
             const days = parseNoticeList(notice.daysOfWeek);
             const times = parseNoticeList(notice.timesOfDay);
             return <div key={notice.id} className={`rounded-xl border bg-white p-4 shadow-sm ${notice.isActive ? "border-amber-200" : "border-gray-200 opacity-60"}`}>
-              <div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-gray-800">{notice.title}</p><p className="mt-1 whitespace-pre-wrap text-xs text-gray-500">{notice.message}</p></div><Badge variant="outline">{notice.isActive ? "Ativo" : "Desativado"}</Badge></div>
+              <div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-gray-800">{notice.title}</p>{notice.imageUrl && <img src={notice.imageUrl} alt="Imagem do aviso" className="mt-2 max-h-28 max-w-full rounded-md object-contain" />}<p className="mt-1 whitespace-pre-wrap text-xs text-gray-500">{notice.message}</p></div><Badge variant="outline">{notice.isActive ? "Ativo" : "Desativado"}</Badge></div>
               <p className="mt-3 text-[11px] text-gray-500">{notice.scheduleType === "unique" ? (notice.immediate ? "Imediato" : `${notice.startDate} às ${notice.startTime}`) : `Dias: ${days.join(", ")} · Horários: ${times.join(", ")}`} · {notice.recipientMode === "all" ? "Todos os usuários" : `${parseNoticeList(notice.recipientEmails).length} selecionado(s)`}</p>
               {notice.isActive && <button type="button" onClick={() => deactivateMutation.mutate({ id: notice.id })} className="mt-3 text-xs font-semibold text-red-600">Desativar aviso</button>}
             </div>;

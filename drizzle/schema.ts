@@ -158,6 +158,8 @@ export const adminNotices = mysqlTable("admin_notices", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
+  imageKey: varchar("imageKey", { length: 512 }),
+  imageUrl: varchar("imageUrl", { length: 1024 }),
   scheduleType: mysqlEnum("scheduleType", ["unique", "periodic"]).notNull(),
   startDate: varchar("startDate", { length: 10 }), // YYYY-MM-DD
   startTime: varchar("startTime", { length: 5 }), // HH:mm

@@ -56,6 +56,13 @@ export default function AdminNoticePrompt() {
         </div>
 
         <div className="px-6 py-7">
+          {notice.imageUrl ? (
+            <img
+              src={notice.imageUrl}
+              alt="Imagem do aviso"
+              className="mb-5 max-h-72 w-full rounded-xl border border-slate-200 object-contain"
+            />
+          ) : null}
           <p className="whitespace-pre-wrap text-base leading-7 text-slate-700">
             {notice.message}
           </p>

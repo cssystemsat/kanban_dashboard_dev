@@ -29,4 +29,14 @@ describe("Central de Avisos — contrato de interface", () => {
     expect(promptSource).toContain("trpc.notices.acknowledge.useMutation");
     expect(routerSource).toContain("occurrenceKey");
   });
+
+  it("permite imagem opcional com pré-visualização e validação no backend", () => {
+    expect(toolsSource).toContain('accept="image/png,image/jpeg,image/webp,image/gif"');
+    expect(toolsSource).toContain("Pré-visualização do aviso");
+    expect(promptSource).toContain('alt="Imagem do aviso"');
+    expect(routerSource).toContain("decodeNoticeImage");
+    expect(routerSource).toContain("5 * 1024 * 1024");
+    expect(routerSource).toContain("storagePut");
+    expect(routerSource).toContain("imageUrl: notice.imageUrl");
+  });
 });
