@@ -19,22 +19,25 @@ export default function LoginScreen() {
     try {
       localStorage.setItem("cs-keep-connected", String(keepConnected));
     } catch {
-      // A preferência é apenas uma conveniência visual; o OAuth continua normal.
+      // A preferência não impede o fluxo OAuth caso o armazenamento esteja bloqueado.
     }
     window.location.assign(getLoginUrl());
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#061A33] text-white">
-      <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[#18B6B2]/20 blur-3xl" />
-      <div className="absolute -bottom-48 -right-24 h-[34rem] w-[34rem] rounded-full bg-[#6D4AFF]/25 blur-3xl" />
-      <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:42px_42px]" />
+    <main className="login-shell relative min-h-screen overflow-hidden bg-[#061A33] text-white">
+      <div className="login-tech-grid pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div className="login-scanline pointer-events-none absolute inset-x-0 top-0 h-px" aria-hidden="true" />
+      <div className="login-orbit login-orbit-one pointer-events-none" aria-hidden="true" />
+      <div className="login-orbit login-orbit-two pointer-events-none" aria-hidden="true" />
+      <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-[#11B8B2]/10 blur-3xl" />
+      <div className="absolute -bottom-48 -right-32 h-[34rem] w-[34rem] rounded-full bg-[#6D4AFF]/15 blur-3xl" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-6 py-10 lg:px-12">
-        <div className="grid w-full items-center gap-12 lg:grid-cols-[1.1fr_.9fr] lg:gap-24">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-5 py-8 sm:px-8">
+        <div className="grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1fr)_430px] lg:gap-20">
           <section className="hidden lg:block">
-            <div className="mb-10 flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-3 shadow-2xl shadow-black/20">
+            <div className="mb-8 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-2.5 shadow-lg shadow-black/20">
                 <img
                   src={LOGO_SRC}
                   alt="Systemsat"
@@ -45,41 +48,30 @@ export default function LoginScreen() {
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[.28em] text-cyan-200">
+                <p className="text-xs font-semibold uppercase tracking-[.25em] text-cyan-200">
                   Systemsat
                 </p>
-                <p className="mt-1 text-sm text-slate-300">Customer Success</p>
+                <p className="mt-0.5 text-sm text-slate-400">Customer Success</p>
               </div>
             </div>
-
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-100/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[.18em] text-cyan-100">
-              <Sparkles className="h-3.5 w-3.5" /> Central de experiência
+            <p className="mb-4 flex items-center gap-2 text-sm font-medium text-cyan-200">
+              <Sparkles className="h-4 w-4" /> Gestão de experiência do cliente
             </p>
-            <h1 className="max-w-2xl text-5xl font-semibold leading-[1.08] tracking-tight text-white xl:text-6xl">
-              Sucesso do cliente começa com uma visão clara.
+            <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-white xl:text-5xl">
+              Uma visão mais clara para cuidar melhor de cada cliente.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
-              Acompanhe a jornada, os marcos, a saúde dos clientes e as ações do
-              time de CS em um único painel de gestão.
+            <p className="mt-5 max-w-lg text-base leading-7 text-slate-300">
+              Marcos, Ongoing, saúde da carteira e indicadores de CS em um só lugar.
             </p>
-
-            <div className="mt-10 grid max-w-xl gap-4 sm:grid-cols-3">
-              {[
-                ["Acompanhe", "cada etapa"],
-                ["Antecipe", "riscos"],
-                ["Evolua", "com dados"],
-              ].map(([title, text]) => (
-                <div key={title} className="border-l border-white/20 pl-4">
-                  <p className="text-sm font-semibold text-white">{title}</p>
-                  <p className="mt-1 text-xs text-slate-400">{text}</p>
-                </div>
-              ))}
+            <div className="mt-8 flex items-center gap-6 text-xs text-slate-400">
+              <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-cyan-300" /> Dados conectados</span>
+              <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-violet-300" /> Operação integrada</span>
             </div>
           </section>
 
-          <section className="mx-auto w-full max-w-md">
-            <div className="mb-8 flex items-center gap-3 lg:hidden">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-2.5">
+          <section className="mx-auto w-full max-w-[430px]">
+            <div className="mb-6 flex items-center gap-3 lg:hidden">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white p-2.5">
                 <img
                   src={LOGO_SRC}
                   alt="Systemsat"
@@ -90,27 +82,19 @@ export default function LoginScreen() {
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[.2em] text-cyan-200">
-                  Systemsat
-                </p>
-                <p className="text-xs text-slate-300">Customer Success</p>
+                <p className="text-xs font-semibold uppercase tracking-[.2em] text-cyan-200">Systemsat</p>
+                <p className="text-xs text-slate-400">Customer Success</p>
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/15 bg-white/[.97] p-7 text-slate-900 shadow-2xl shadow-black/30 sm:p-9">
+            <div className="rounded-3xl border border-white/70 bg-white p-7 text-slate-900 shadow-[0_24px_80px_rgba(0,0,0,.28)] sm:p-9">
               <div className="mb-8">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E8F8F7] text-[#0C8F8B]">
-                  <ShieldCheck className="h-6 w-6" />
+                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8F8F7] text-[#0C8F8B]">
+                  <ShieldCheck className="h-5 w-5" />
                 </div>
-                <p className="text-sm font-semibold uppercase tracking-[.16em] text-[#0C8F8B]">
-                  Bem-vindo ao painel
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[#061A33]">
-                  Entre para continuar
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-slate-500">
-                  Use sua conta Google autorizada para acessar a operação de CS.
-                </p>
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-[#0C8F8B]">Painel de Gestão CS</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#061A33]">Bem-vindo de volta</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-500">Entre com sua conta autorizada para continuar.</p>
               </div>
 
               <button
@@ -118,9 +102,7 @@ export default function LoginScreen() {
                 onClick={startLogin}
                 className="group flex w-full items-center justify-center gap-3 rounded-xl bg-[#0B5CAD] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#0B5CAD]/20 transition hover:bg-[#084B8D] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0B5CAD]/25 active:scale-[.99]"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0B5CAD]">
-                  G
-                </span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0B5CAD]">G</span>
                 Entrar com Google
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
@@ -132,20 +114,15 @@ export default function LoginScreen() {
                   onChange={event => setKeepConnected(event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 accent-[#0B5CAD]"
                 />
-                <span>Manter conectado</span>
+                Manter conectado
               </label>
 
-              <div className="mt-8 border-t border-slate-200 pt-5 text-center">
-                <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-[#0C8F8B]" />
-                  Acesso protegido e restrito a usuários liberados
-                </div>
+              <div className="mt-7 flex items-center justify-center gap-2 border-t border-slate-200 pt-5 text-[11px] text-slate-400">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#0C8F8B]" />
+                Acesso protegido para usuários liberados
               </div>
             </div>
-
-            <p className="mt-6 text-center text-xs text-slate-400">
-              Painel de Gestão CS · Systemsat
-            </p>
+            <p className="mt-5 text-center text-[11px] text-slate-500">Systemsat · Customer Success</p>
           </section>
         </div>
       </div>
