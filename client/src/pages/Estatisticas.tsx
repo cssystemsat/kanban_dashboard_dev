@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { useChurnsByCsmData } from "@/hooks/useChurnsByCsmData";
 import {
   Users,
   Clock,
@@ -13,20 +12,9 @@ import {
   BarChart2,
   Eye,
   Zap,
-  TrendingDown,
+  Gauge,
+  UserCheck,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-
 function formatDuration(seconds: number | null | undefined): string {
   if (!seconds || seconds <= 0) return "—";
   const h = Math.floor(seconds / 3600);
@@ -131,19 +119,6 @@ function PageName({ page }: { page: string }) {
 
 export default function Estatisticas() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
-  const [selectedCsm, setSelectedCsm] = useState<{
-    csm: string;
-    empresas: string[];
-  } | null>(null);
-  const {
-    data: churnsByCsm,
-    loading: loadingChurnsByCsm,
-    fetchData: fetchChurnsByCsm,
-  } = useChurnsByCsmData();
-
-  useEffect(() => {
-    fetchChurnsByCsm();
-  }, [fetchChurnsByCsm]);
 
   const { data: overview, isLoading: loadingOverview } =
     trpc.stats.overview.useQuery();
@@ -161,8 +136,7 @@ export default function Estatisticas() {
     loadingUsers ||
     loadingSessions ||
     loadingActions ||
-    loadingPages ||
-    loadingChurnsByCsm;
+    loadingPages;
 
   if (isLoading) {
     return (
@@ -211,65 +185,33 @@ export default function Estatisticas() {
         />
       </div>
 
-      {/* Gráfico de Churns por CSM */}
-      {churnsByCsm && churnsByCsm.length > 0 && (
-        <div
-          className="rounded-xl shadow-sm overflow-hidden"
-          style={{ border: "1px solid #E5E7EB", backgroundColor: "#FFFFFF" }}
-        >
-          <div
-            className="px-5 py-4 flex items-center gap-2"
-            style={{ borderBottom: "1px solid #F3F4F6" }}
-          >
-            <TrendingDown className="w-5 h-5" style={{ color: "#E53E3E" }} />
-            <h2
-              className="text-base font-semibold"
-              style={{ color: "#111827" }}
-            >
-              Churns por CSM
-            </h2>
-          </div>
-          <div className="p-5">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={churnsByCsm.map(item => ({
-                  name: `${item.percentage}% - ${item.csm}`,
-                  value: item.count,
-                  percentage: item.percentage,
-                  empresas: item.empresas,
-                  csm: item.csm,
-                }))}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis type="number" stroke="#9CA3AF" />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  stroke="#9CA3AF"
-                  width={140}
-                />
-                <Tooltip cursor={false} />
-                <Bar
-                  dataKey="value"
-                  fill="#E53E3E"
-                  radius={[0, 8, 8, 0]}
-                  onClick={data => {
-                    if (data && data.payload) {
-                      setSelectedCsm({
-                        csm: data.payload.csm,
-                        empresas: data.payload.empresas,
-                      });
-                    }
-                  }}
-                  style={{ cursor: "pointer" }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+      {/* Ritmo de uso: visão mais útil que o antigo gráfico de Churn por CSM */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          icon={UserCheck}
+          label="Ativos nas últimas 24h"
+          value={overview?.activeUsersLast24Hours ?? 0}
+          color="#0891B2"
+        />
+        <StatCard
+          icon={Users}
+          label="Ativos nos últimos 7 dias"
+          value={overview?.activeUsersLast7Days ?? 0}
+          color="#0F766E"
+        />
+        <StatCard
+          icon={LogIn}
+          label="Sessões nos últimos 7 dias"
+          value={overview?.sessionsLast7Days ?? 0}
+          color="#7C3AED"
+        />
+        <StatCard
+          icon={Gauge}
+          label="Duração média da sessão"
+          value={formatDuration(overview?.averageSessionDurationSeconds)}
+          color="#EA580C"
+        />
+      </div>
 
       {/* Páginas mais visitadas */}
       {topPages && topPages.length > 0 && (
@@ -767,99 +709,6 @@ export default function Estatisticas() {
         )}
       </div>
 
-      {/* Modal de Empresas por CSM */}
-      {selectedCsm && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setSelectedCsm(null)}
-        >
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              padding: "24px",
-              maxWidth: "500px",
-              maxHeight: "80vh",
-              overflow: "auto",
-              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <h2
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  color: "#111827",
-                  marginBottom: "4px",
-                }}
-              >
-                {selectedCsm.csm}
-              </h2>
-              <p style={{ fontSize: "14px", color: "#6B7280" }}>
-                {selectedCsm.empresas.length} empresa
-                {selectedCsm.empresas.length !== 1 ? "s" : ""} em churn
-              </p>
-            </div>
-
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-            >
-              {selectedCsm.empresas.map((empresa, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: "12px",
-                    backgroundColor: "#F9FAFB",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    color: "#374151",
-                  }}
-                >
-                  {idx + 1}. {empresa}
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setSelectedCsm(null)}
-              style={{
-                marginTop: "20px",
-                width: "100%",
-                padding: "10px",
-                backgroundColor: "#E53E3E",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-              }}
-              onMouseEnter={e =>
-                (e.currentTarget.style.backgroundColor = "#C92A2A")
-              }
-              onMouseLeave={e =>
-                (e.currentTarget.style.backgroundColor = "#E53E3E")
-              }
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

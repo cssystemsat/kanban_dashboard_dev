@@ -679,6 +679,8 @@ export async function getStatsOverview() {
   const db = await getDb();
   if (!db) return null;
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const [totalSessions] = await db
     .select({ count: sql<number>`count(*)` })
@@ -687,6 +689,22 @@ export async function getStatsOverview() {
     .select({ count: sql<number>`count(distinct ${userSessions.userEmail})` })
     .from(userSessions)
     .where(gte(userSessions.loginAt, thirtyDaysAgo));
+  const [activeLast7] = await db
+    .select({ count: sql<number>`count(distinct ${userSessions.userEmail})` })
+    .from(userSessions)
+    .where(gte(userSessions.loginAt, sevenDaysAgo));
+  const [activeLast24] = await db
+    .select({ count: sql<number>`count(distinct ${userSessions.userEmail})` })
+    .from(userSessions)
+    .where(gte(userSessions.loginAt, oneDayAgo));
+  const [sessionsLast7] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(userSessions)
+    .where(gte(userSessions.loginAt, sevenDaysAgo));
+  const [averageDuration] = await db
+    .select({ average: sql<number>`coalesce(avg(${userSessions.durationSeconds}), 0)` })
+    .from(userSessions)
+    .where(sql`${userSessions.durationSeconds} is not null`);
   const [totalActions] = await db
     .select({ count: sql<number>`count(*)` })
     .from(userActions);
@@ -697,6 +715,10 @@ export async function getStatsOverview() {
   return {
     totalSessions: totalSessions.count,
     activeUsersLast30Days: activeLast30.count,
+    activeUsersLast7Days: activeLast7.count,
+    activeUsersLast24Hours: activeLast24.count,
+    sessionsLast7Days: sessionsLast7.count,
+    averageSessionDurationSeconds: Number(averageDuration.average ?? 0),
     totalActions: totalActions.count,
     totalPageViews: totalPageViews.count,
   };

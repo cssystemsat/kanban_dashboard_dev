@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.4",
-  "changes": ["Central de Avisos com imagem opcional, pré-visualização e exibição no aviso recebido."]
+  "appVersion": "13.5",
+  "changes": ["Estatísticas de usuários aprimoradas, com atividade em 24h/7 dias, sessões recentes e duração média; removido Churns por CSM."]
 }
