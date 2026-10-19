@@ -5,41 +5,16 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { getLoginUrl } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
 
-const redirectToLoginIfUnauthorized = (error: unknown) => {
-  if (!(error instanceof TRPCClientError)) return;
-  if (typeof window === "undefined") return;
-
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
-  if (!isUnauthorized) return;
-
-  console.warn(
-    "[Auth] Unauthorized error detected, redirecting to login:",
-    error.message
-  );
-  console.warn("[Auth] Current URL:", window.location.href);
-
-  // Evitar redirect infinito se já estamos na página de login
-  if (
-    window.location.href.includes("/api/oauth/callback") ||
-    window.location.href.includes("manus.im/app-auth")
-  ) {
-    console.warn("[Auth] Already in OAuth flow, skipping redirect");
-    return;
-  }
-
-  window.location.href = getLoginUrl();
-};
-
 queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
-    redirectToLoginIfUnauthorized(error);
+    if (error instanceof TRPCClientError && error.message === UNAUTHED_ERR_MSG) {
+      console.info("[Auth] Usuário ainda não autenticado; exibindo tela de login.");
+    }
     console.error("[API Query Error]", error);
   }
 });
@@ -47,7 +22,9 @@ queryClient.getQueryCache().subscribe(event => {
 queryClient.getMutationCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.mutation.state.error;
-    redirectToLoginIfUnauthorized(error);
+    if (error instanceof TRPCClientError && error.message === UNAUTHED_ERR_MSG) {
+      console.info("[Auth] Ação protegida aguardando autenticação.");
+    }
     console.error("[API Mutation Error]", error);
   }
 });

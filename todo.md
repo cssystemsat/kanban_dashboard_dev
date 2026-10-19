@@ -84,7 +84,7 @@
 - [x] Validar visualmente o cronômetro e salvar uma versão pronta para publicação.
 - [x] Comparar a versão, o cache e o cronômetro entre a prévia e o domínio publicado.
 - [x] Confirmar que o cronômetro é executado no cliente antes e depois do login, sem preferência específica por usuário.
-- [ ] Validar o cronômetro no domínio publicado com a sessão autenticada de Agendamento CS.
+- [x] Decisão registrada: o usuário solicitou encerrar o item de validação autenticada do cronômetro em produção; a validação técnica não foi executada nem é necessária para as entregas seguintes.
 - [x] Mapear os caches de navegador, proxy de planilhas e servidor que atrasam os dados do Painel.
 - [x] Reduzir o TTL dos dados do Painel e forçar a recarga autenticada nas atualizações manual e automática.
 - [x] Exibir a atualização em curso e validar a propagação no ambiente de desenvolvimento.

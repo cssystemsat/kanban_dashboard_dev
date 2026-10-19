@@ -26,6 +26,7 @@ import { WootricAlert } from "./components/WootricAlert";
 import ErrorBoundary from "./components/ErrorBoundary";
 import VersionUpdatePrompt from "./components/VersionUpdatePrompt";
 import AdminNoticePrompt from "./components/AdminNoticePrompt";
+import LoginScreen from "./components/LoginScreen";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "./const";
@@ -298,6 +299,10 @@ function AppInner() {
 
   if (!authLoading && accessRestricted) {
     return <AccessRestrictedScreen />;
+  }
+
+  if (!authLoading && !user) {
+    return <LoginScreen />;
   }
 
   return (
