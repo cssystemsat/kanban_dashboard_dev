@@ -28,6 +28,7 @@ import {
   BellRing,
   CalendarClock,
   Image as ImageIcon,
+  Code2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,6 +71,13 @@ const TOOLS = [
     label: "Central de Avisos",
     icon: BellRing,
     description: "Crie avisos agendados para os usuários do sistema",
+    adminOnly: true,
+  },
+  {
+    id: "api",
+    label: "Documentação da API",
+    icon: Code2,
+    description: "Consulte a API e crie tokens para integrações",
     adminOnly: true,
   },
 ];
@@ -166,6 +174,8 @@ export default function Ferramentas() {
           <ChecklistsPage />
         ) : activeTool === "notices" && permission?.isAdmin ? (
           <AdminNoticesPage />
+        ) : activeTool === "api" && permission?.isAdmin ? (
+          <ApiDocumentationPage />
         ) : null}
       </main>
     </div>
@@ -1001,6 +1011,171 @@ function AdminNoticesPage() {
               {notice.isActive && <button type="button" onClick={() => deactivateMutation.mutate({ id: notice.id })} className="mt-3 text-xs font-semibold text-red-600">Desativar aviso</button>}
             </div>;
           })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function ApiDocumentationPage() {
+  const { data: users, isLoading: isLoadingUsers } = trpc.apiTokens.listUsers.useQuery();
+  const { data: tokens, isLoading: isLoadingTokens } = trpc.apiTokens.list.useQuery();
+  const utils = trpc.useUtils();
+  const [userEmail, setUserEmail] = useState("");
+  const [label, setLabel] = useState("");
+  const [createdToken, setCreatedToken] = useState<{
+    id: number;
+    token: string;
+    tokenPrefix: string;
+  } | null>(null);
+
+  const createMutation = trpc.apiTokens.create.useMutation({
+    onSuccess: async result => {
+      setCreatedToken(result);
+      setLabel("");
+      await utils.apiTokens.list.invalidate();
+      toast("Token criado. Copie-o agora: ele não será exibido novamente.");
+    },
+    onError: error => toast("Erro ao criar token: " + error.message),
+  });
+  const revokeMutation = trpc.apiTokens.revoke.useMutation({
+    onSuccess: async () => {
+      await utils.apiTokens.list.invalidate();
+      toast("Token revogado.");
+    },
+    onError: error => toast("Erro ao revogar token: " + error.message),
+  });
+
+  const copyToken = async () => {
+    if (!createdToken) return;
+    await navigator.clipboard.writeText(createdToken.token);
+    toast("Token copiado para a área de transferência.");
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-5">
+      <div>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800">
+          <Code2 className="h-5 w-5 text-blue-700" /> Documentação da API
+        </h2>
+        <p className="mt-1 max-w-3xl text-sm text-gray-500">
+          Área administrativa para preparar integrações com o painel. Nesta primeira etapa,
+          você pode provisionar tokens individuais para usuários autorizados.
+        </p>
+      </div>
+
+      {createdToken && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="font-semibold text-emerald-900">Token criado com sucesso</p>
+              <p className="mt-1 text-sm text-emerald-800">
+                Este é o único momento em que o valor completo aparece. Armazene-o em um local seguro.
+              </p>
+            </div>
+            <button type="button" onClick={() => setCreatedToken(null)} className="text-xs font-semibold text-emerald-700 hover:text-emerald-950">
+              Ocultar
+            </button>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <code className="min-w-0 flex-1 overflow-x-auto rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-950">
+              {createdToken.token}
+            </code>
+            <Button type="button" onClick={copyToken} className="gap-2 bg-emerald-700 text-white hover:bg-emerald-800">
+              Copiar token
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.9fr)]">
+        <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: "#E0E8F0" }}>
+          <div className="mb-4 flex items-start gap-3">
+            <div className="rounded-lg bg-blue-50 p-2 text-blue-700"><ShieldCheck className="h-5 w-5" /></div>
+            <div>
+              <h3 className="font-semibold text-gray-800">Criar token para um usuário</h3>
+              <p className="mt-1 text-xs leading-5 text-gray-500">Somente usuários que já estão na lista de permissões podem receber tokens.</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Usuário autorizado
+              <select
+                value={userEmail}
+                onChange={event => setUserEmail(event.target.value)}
+                disabled={isLoadingUsers}
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">{isLoadingUsers ? "Carregando usuários..." : "Selecione um usuário"}</option>
+                {(users ?? []).map(user => (
+                  <option key={user.email} value={user.email}>
+                    {user.label ? `${user.label} — ${user.email}` : user.email}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              Nome do token
+              <Input value={label} onChange={event => setLabel(event.target.value)} placeholder="Ex.: Integração financeira" className="mt-1" maxLength={120} />
+            </label>
+            <Button
+              type="button"
+              onClick={() => createMutation.mutate({ userEmail, label: label.trim() })}
+              disabled={createMutation.isPending || !userEmail || !label.trim()}
+              className="w-full gap-2 bg-[#001F3F] text-white hover:bg-[#0b3157]"
+            >
+              {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Code2 className="h-4 w-4" />}
+              {createMutation.isPending ? "Gerando token..." : "Gerar token"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-slate-50 p-5" style={{ borderColor: "#E0E8F0" }}>
+          <h3 className="font-semibold text-gray-800">Como o token será usado</h3>
+          <div className="mt-3 space-y-3 text-sm text-gray-600">
+            <p>Na próxima etapa, cada endpoint poderá exigir o cabeçalho:</p>
+            <pre className="overflow-x-auto rounded-lg bg-[#071b33] p-3 text-xs text-cyan-200"><code>Authorization: Bearer SEU_TOKEN</code></pre>
+            <p className="text-xs leading-5 text-gray-500">Os endpoints de leitura e escrita ainda serão construídos. Por segurança, o valor completo não fica salvo no banco e não pode ser recuperado depois.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: "#E0E8F0" }}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-gray-800">Tokens provisionados</h3>
+            <p className="mt-1 text-xs text-gray-500">Revogue imediatamente tokens que não devem mais ser utilizados.</p>
+          </div>
+          <Badge variant="outline">{tokens?.length ?? 0}</Badge>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          {isLoadingTokens ? (
+            <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          ) : (tokens ?? []).length === 0 ? (
+            <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-gray-500">Nenhum token criado.</p>
+          ) : (
+            <table className="w-full min-w-[680px] text-left text-sm">
+              <thead className="border-b text-xs uppercase tracking-wide text-gray-400">
+                <tr><th className="px-3 py-2">Usuário</th><th className="px-3 py-2">Nome</th><th className="px-3 py-2">Prefixo</th><th className="px-3 py-2">Criado em</th><th className="px-3 py-2">Status</th><th className="px-3 py-2" /></tr>
+              </thead>
+              <tbody>
+                {(tokens ?? []).map(token => {
+                  const revoked = Boolean(token.revokedAt);
+                  return (
+                    <tr key={token.id} className="border-b last:border-0">
+                      <td className="px-3 py-3 text-gray-700">{token.userEmail}</td>
+                      <td className="px-3 py-3 text-gray-700">{token.label}</td>
+                      <td className="px-3 py-3 font-mono text-xs text-gray-500">{token.tokenPrefix}...</td>
+                      <td className="px-3 py-3 text-xs text-gray-500">{new Date(token.createdAt).toLocaleString("pt-BR")}</td>
+                      <td className="px-3 py-3"><Badge variant="outline" className={revoked ? "text-gray-400" : "border-emerald-200 text-emerald-700"}>{revoked ? "Revogado" : "Ativo"}</Badge></td>
+                      <td className="px-3 py-3 text-right">{!revoked && <button type="button" onClick={() => revokeMutation.mutate({ id: token.id })} disabled={revokeMutation.isPending} className="text-xs font-semibold text-red-600 hover:text-red-800">Revogar</button>}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

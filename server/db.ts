@@ -38,6 +38,8 @@ import {
   adminNotices,
   adminNoticeAcknowledgments,
   InsertAdminNotice,
+  apiTokens,
+  InsertApiToken,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
@@ -232,6 +234,42 @@ export async function getEmailEntry(email: string) {
     .where(eq(allowedEmails.email, email.toLowerCase()))
     .limit(1);
   return result.length > 0 ? result[0] : null;
+}
+
+// ---- Tokens de API ----
+
+export async function getApiTokens() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: apiTokens.id,
+      userEmail: apiTokens.userEmail,
+      label: apiTokens.label,
+      tokenPrefix: apiTokens.tokenPrefix,
+      lastUsedAt: apiTokens.lastUsedAt,
+      revokedAt: apiTokens.revokedAt,
+      createdBy: apiTokens.createdBy,
+      createdAt: apiTokens.createdAt,
+    })
+    .from(apiTokens)
+    .orderBy(desc(apiTokens.createdAt));
+}
+
+export async function createApiToken(data: InsertApiToken) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const result = await db.insert(apiTokens).values(data);
+  return Number(result[0].insertId);
+}
+
+export async function revokeApiToken(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .update(apiTokens)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(apiTokens.id, id), sql`${apiTokens.revokedAt} IS NULL`));
 }
 
 // ---- Central de avisos administrativos ----

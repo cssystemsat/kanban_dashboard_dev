@@ -152,6 +152,29 @@ export const userActions = mysqlTable("user_actions", {
 export type UserAction = typeof userActions.$inferSelect;
 export type InsertUserAction = typeof userActions.$inferInsert;
 
+// Tokens de integração da API. O valor completo nunca é persistido;
+// somente o hash SHA-256 é armazenado e o token é exibido uma única vez.
+export const apiTokens = mysqlTable(
+  "api_tokens",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userEmail: varchar("userEmail", { length: 320 }).notNull(),
+    label: varchar("label", { length: 120 }).notNull(),
+    tokenPrefix: varchar("tokenPrefix", { length: 20 }).notNull(),
+    tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+    lastUsedAt: timestamp("lastUsedAt"),
+    revokedAt: timestamp("revokedAt"),
+    createdBy: varchar("createdBy", { length: 320 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    userEmailIdx: index("api_tokens_user_email_idx").on(table.userEmail),
+  })
+);
+
+export type ApiToken = typeof apiTokens.$inferSelect;
+export type InsertApiToken = typeof apiTokens.$inferInsert;
+
 // Central de avisos administrativos. A agenda é interpretada no fuso
 // America/Sao_Paulo no momento da consulta, sem timers no processo web.
 export const adminNotices = mysqlTable("admin_notices", {

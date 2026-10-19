@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createHash, randomBytes } from "node:crypto";
 import { COOKIE_NAME } from "@shared/const";
 import { parse as parseCookie } from "cookie";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -28,6 +29,9 @@ import {
   updateAllowedEmail,
   deleteAllowedEmail,
   getEmailEntry,
+  getApiTokens,
+  createApiToken,
+  revokeApiToken,
   getChecklistsForUser,
   getChecklistById,
   createChecklist,
@@ -930,6 +934,57 @@ export const appRouter = router({
         onlyAppKanban: owner ? false : entry.onlyAppKanban === 1,
       };
     }),
+  }),
+  apiTokens: router({
+    listUsers: allowlistedProcedure.query(async ({ ctx }) => {
+      await assertAdmin(ctx);
+      const emails = await getAllowedEmails();
+      return emails.map(entry => ({
+        email: entry.email,
+        label: entry.label,
+        isAdmin: entry.isAdmin === 1,
+      }));
+    }),
+    list: allowlistedProcedure.query(async ({ ctx }) => {
+      await assertAdmin(ctx);
+      return getApiTokens();
+    }),
+    create: allowlistedProcedure
+      .input(
+        z.object({
+          userEmail: z.string().trim().email(),
+          label: z.string().trim().min(1).max(120),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await assertAdmin(ctx);
+        const target = await getEmailEntry(input.userEmail);
+        if (!target) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "O usuário precisa estar na lista de permissões antes de receber um token.",
+          });
+        }
+        const token = `cs_${randomBytes(32).toString("base64url")}`;
+        const tokenHash = createHash("sha256").update(token).digest("hex");
+        const tokenPrefix = token.slice(0, 12);
+        const createdBy = ctx.user.email ?? ctx.user.openId;
+        const id = await createApiToken({
+          userEmail: target.email,
+          label: input.label,
+          tokenPrefix,
+          tokenHash,
+          createdBy,
+        });
+        return { id, token, tokenPrefix };
+      }),
+    revoke: allowlistedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        await assertAdmin(ctx);
+        await revokeApiToken(input.id);
+        return { success: true };
+      }),
   }),
   checklists: router({
     // Listar checklists visíveis para o usuário
