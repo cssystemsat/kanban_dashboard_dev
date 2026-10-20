@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.8",
-  "changes": ["Primeira etapa da documentação da API em Ferramentas, com criação, visualização única e revogação de tokens por usuário autorizado."]
+  "appVersion": "13.9",
+  "changes": ["Cards movidos para App entregue agora permanecem visíveis por 7 dias e depois são ocultados automaticamente do kanban."]
 }

@@ -111,7 +111,10 @@ export default function AppPersonalizado() {
   const { data: user } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery();
   const utils = trpc.useUtils();
-  const listCards = trpc.appKanban.list.useQuery();
+  const listCards = trpc.appKanban.list.useQuery(undefined, {
+    // Revalida a retenção de "App entregue" mesmo se a tela permanecer aberta.
+    refetchInterval: 60_000,
+  });
   const syncFromSheet = trpc.appKanban.syncFromSheet.useMutation();
   const automaticSyncStarted = useRef(false);
   const createCard = trpc.appKanban.create.useMutation();

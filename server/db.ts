@@ -44,6 +44,7 @@ import {
 import { ENV } from "./_core/env";
 import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
 import { normalizeCompanyName } from "./appKanbanSheetSync";
+import { isAppKanbanCardVisible } from "./appKanbanRetention";
 import {
   PROBLEM_STAGES,
   type ProblemasSyncRow,
@@ -1023,17 +1024,22 @@ export async function deleteClientComment(
 export async function getAppKanbanCards() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(appKanbanCards).orderBy(asc(appKanbanCards.order));
+  const cards = await db
+    .select()
+    .from(appKanbanCards)
+    .orderBy(asc(appKanbanCards.order));
+  return cards.filter(isAppKanbanCardVisible);
 }
 
 export async function getAppKanbanCardsByStage(stage: string) {
   const db = await getDb();
   if (!db) return [];
-  return db
+  const cards = await db
     .select()
     .from(appKanbanCards)
     .where(eq(appKanbanCards.stage, stage as any))
     .orderBy(asc(appKanbanCards.order));
+  return cards.filter(isAppKanbanCardVisible);
 }
 
 export async function createAppKanbanCard(data: InsertAppKanbanCard) {
@@ -1114,7 +1120,10 @@ export async function getPendingAppKanbanNewClients(userId: number) {
     .from(appKanbanNewClientAcknowledgments)
     .where(eq(appKanbanNewClientAcknowledgments.userId, userId));
   const acknowledgedIds = new Set(acknowledgments.map(item => item.cardId));
-  return cards.filter(card => !acknowledgedIds.has(card.id));
+  return cards.filter(
+    card =>
+      isAppKanbanCardVisible(card) && !acknowledgedIds.has(card.id)
+  );
 }
 
 export async function acknowledgeAppKanbanNewClients(
@@ -1171,7 +1180,11 @@ export async function moveAppKanbanCard(
     : "venda_feita";
   await db
     .update(appKanbanCards)
-    .set({ stage, order: newOrder })
+    .set({
+      stage,
+      order: newOrder,
+      deliveredAt: stage === "app_entregue" ? new Date() : null,
+    })
     .where(eq(appKanbanCards.id, cardId));
 
   // Registrar no histórico

@@ -281,6 +281,13 @@
       "when": 1792371719000,
       "tag": "0039_busy_gwen_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1792415921651,
+      "tag": "0040_lethal_sersi",
+      "breakpoints": true
     }
   ]
 }

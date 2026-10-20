@@ -9,6 +9,10 @@ const routerSource = readFileSync(
   new URL("./routers.ts", import.meta.url),
   "utf8"
 );
+const dbSource = readFileSync(
+  new URL("./db.ts", import.meta.url),
+  "utf8"
+);
 
 describe("atualização do App Kanban pela planilha", () => {
   it("exibe o botão e recarrega os cards após sincronizar", () => {
@@ -32,5 +36,11 @@ describe("atualização do App Kanban pela planilha", () => {
   it("permite criação manual para admins reconhecidos pelo e-mail", () => {
     expect(routerSource).toContain("isEmailAdmin(userEmail)");
     expect(routerSource).toContain("Apenas administradores podem criar cards");
+  });
+
+  it("revalida o kanban para ocultar cards entregues após sete dias", () => {
+    expect(source).toContain("refetchInterval: 60_000");
+    expect(dbSource).toContain('stage === "app_entregue" ? new Date() : null');
+    expect(dbSource).toContain("isAppKanbanCardVisible(card)");
   });
 });
