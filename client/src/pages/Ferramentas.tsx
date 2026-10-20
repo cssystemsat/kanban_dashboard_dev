@@ -29,6 +29,7 @@ import {
   CalendarClock,
   Image as ImageIcon,
   Code2,
+  Target,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -78,6 +79,13 @@ const TOOLS = [
     label: "Documentação da API",
     icon: Code2,
     description: "Consulte a API e crie tokens para integrações",
+    adminOnly: true,
+  },
+  {
+    id: "objectives",
+    label: "Objetivos",
+    icon: Target,
+    description: "Cadastre objetivos, subobjetivos e prazos de execução",
     adminOnly: true,
   },
 ];
@@ -176,6 +184,8 @@ export default function Ferramentas() {
           <AdminNoticesPage />
         ) : activeTool === "api" && permission?.isAdmin ? (
           <ApiDocumentationPage />
+        ) : activeTool === "objectives" && permission?.isAdmin ? (
+          <ObjectivesPage />
         ) : null}
       </main>
     </div>
@@ -1017,6 +1027,203 @@ function AdminNoticesPage() {
   );
 }
 
+
+type ObjectiveDraftRow = {
+  name: string;
+  deadlineDays: string;
+};
+
+function ObjectivesPage() {
+  const { data: objectives, isLoading } = trpc.objectives.list.useQuery();
+  const utils = trpc.useUtils();
+  const [objectiveName, setObjectiveName] = useState("");
+  const [rows, setRows] = useState<ObjectiveDraftRow[]>([
+    { name: "", deadlineDays: "1" },
+  ]);
+
+  const createMutation = trpc.objectives.create.useMutation({
+    onSuccess: async () => {
+      await utils.objectives.list.invalidate();
+      setObjectiveName("");
+      setRows([{ name: "", deadlineDays: "1" }]);
+      toast("Objetivo criado com sucesso.");
+    },
+    onError: error => toast("Erro ao criar objetivo: " + error.message),
+  });
+  const deleteMutation = trpc.objectives.delete.useMutation({
+    onSuccess: async () => {
+      await utils.objectives.list.invalidate();
+      toast("Objetivo removido.");
+    },
+    onError: error => toast("Erro ao remover objetivo: " + error.message),
+  });
+
+  const updateRow = (
+    index: number,
+    field: keyof ObjectiveDraftRow,
+    value: string
+  ) => {
+    setRows(current =>
+      current.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row
+      )
+    );
+  };
+
+  const submit = () => {
+    const subobjectives = rows
+      .map(row => ({
+        name: row.name.trim(),
+        deadlineDays: Number(row.deadlineDays),
+      }))
+      .filter(row => row.name.length > 0);
+    if (!objectiveName.trim()) {
+      toast("Informe o nome do objetivo.");
+      return;
+    }
+    if (
+      subobjectives.length === 0 ||
+      subobjectives.some(
+        row => !Number.isInteger(row.deadlineDays) || row.deadlineDays < 0
+      )
+    ) {
+      toast("Informe pelo menos um subobjetivo e prazos inteiros válidos.");
+      return;
+    }
+    createMutation.mutate({ name: objectiveName.trim(), subobjectives });
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-5">
+      <div>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800">
+          <Target className="h-5 w-5 text-indigo-600" /> Objetivos
+        </h2>
+        <p className="mt-1 max-w-3xl text-sm text-gray-500">
+          Cadastre um objetivo global e defina cada subobjetivo com seu prazo em
+          dias. Esta estrutura ficará disponível para as próximas automações.
+        </p>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+        <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: "#E0E8F0" }}>
+          <h3 className="mb-4 font-semibold text-gray-800">Novo objetivo</h3>
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Objetivo global
+              <Input
+                value={objectiveName}
+                onChange={event => setObjectiveName(event.target.value)}
+                placeholder="Ex.: Rastreamento básico"
+                className="mt-1"
+              />
+            </label>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-700">Subobjetivos e prazos</p>
+                <button
+                  type="button"
+                  onClick={() => setRows(current => [...current, { name: "", deadlineDays: "1" }])}
+                  className="text-xs font-semibold text-indigo-700 hover:text-indigo-900"
+                >
+                  + Adicionar subobjetivo
+                </button>
+              </div>
+              <div className="space-y-2 rounded-lg bg-slate-50 p-3">
+                {rows.map((row, index) => (
+                  <div key={index} className="grid grid-cols-[minmax(0,1fr)_110px_auto] items-end gap-2">
+                    <label className="text-xs font-medium text-gray-600">
+                      Subobjetivo {index + 1}
+                      <Input
+                        value={row.name}
+                        onChange={event => updateRow(index, "name", event.target.value)}
+                        placeholder="Ex.: Apontar primeiro equipamento"
+                        className="mt-1 bg-white text-sm"
+                      />
+                    </label>
+                    <label className="text-xs font-medium text-gray-600">
+                      Prazo (dias)
+                      <Input
+                        type="number"
+                        min={0}
+                        max={3650}
+                        value={row.deadlineDays}
+                        onChange={event => updateRow(index, "deadlineDays", event.target.value)}
+                        className="mt-1 bg-white text-sm"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setRows(current => current.length === 1 ? current : current.filter((_, rowIndex) => rowIndex !== index))}
+                      disabled={rows.length === 1}
+                      className="mb-1 rounded p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label={`Remover subobjetivo ${index + 1}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              onClick={submit}
+              disabled={createMutation.isPending}
+              className="w-full gap-2 bg-[#001F3F] text-white hover:bg-[#0b3157]"
+            >
+              <Plus className="h-4 w-4" />
+              {createMutation.isPending ? "Salvando..." : "Cadastrar objetivo"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold text-gray-800">Objetivos cadastrados</h3>
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          ) : (objectives ?? []).length === 0 ? (
+            <div className="rounded-xl border bg-white p-5 text-sm text-gray-500">
+              Nenhum objetivo cadastrado ainda.
+            </div>
+          ) : (
+            (objectives ?? []).map(objective => (
+              <div key={objective.id} className="rounded-xl border bg-white p-4 shadow-sm" style={{ borderColor: "#E0E8F0" }}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-gray-800">{objective.name}</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {objective.subobjectives.length} subobjetivo(s)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteMutation.mutate({ id: objective.id })}
+                    className="rounded p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    aria-label={`Remover objetivo ${objective.name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {objective.subobjectives.map(subobjective => (
+                    <div key={subobjective.id} className="flex items-center justify-between gap-3 rounded-md bg-slate-50 px-3 py-2 text-sm">
+                      <span className="min-w-0 text-gray-700">{subobjective.name}</span>
+                      <Badge variant="outline" className="shrink-0 border-indigo-200 bg-white text-indigo-700">
+                        até {subobjective.deadlineDays} {subobjective.deadlineDays === 1 ? "dia" : "dias"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ApiDocumentationPage() {
   const { data: users, isLoading: isLoadingUsers } = trpc.apiTokens.listUsers.useQuery();

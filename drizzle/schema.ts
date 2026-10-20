@@ -224,6 +224,42 @@ export type AdminNoticeAcknowledgment =
 export type InsertAdminNoticeAcknowledgment =
   typeof adminNoticeAcknowledgments.$inferInsert;
 
+// Catálogo administrativo de objetivos e subobjetivos com prazo em dias.
+export const objectiveTemplates = mysqlTable("objective_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  createdBy: varchar("createdBy", { length: 320 }).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ObjectiveTemplate = typeof objectiveTemplates.$inferSelect;
+export type InsertObjectiveTemplate = typeof objectiveTemplates.$inferInsert;
+
+export const objectiveTemplateSubobjectives = mysqlTable(
+  "objective_template_subobjectives",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    objectiveId: int("objectiveId").notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    deadlineDays: int("deadlineDays").notNull(),
+    sortOrder: int("sortOrder").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    objectiveIdx: index("objective_template_subobjectives_objective_idx").on(
+      table.objectiveId
+    ),
+  })
+);
+
+export type ObjectiveTemplateSubobjective =
+  typeof objectiveTemplateSubobjectives.$inferSelect;
+export type InsertObjectiveTemplateSubobjective =
+  typeof objectiveTemplateSubobjectives.$inferInsert;
+
 // Objetivos da aba Marcos: estado compartilhado entre todos os usuários.
 export const clientObjectiveCompletions = mysqlTable(
   "client_objective_completions",

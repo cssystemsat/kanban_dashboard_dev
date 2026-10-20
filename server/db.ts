@@ -40,6 +40,10 @@ import {
   InsertAdminNotice,
   apiTokens,
   InsertApiToken,
+  objectiveTemplates,
+  objectiveTemplateSubobjectives,
+  InsertObjectiveTemplate,
+  InsertObjectiveTemplateSubobjective,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
@@ -271,6 +275,69 @@ export async function revokeApiToken(id: number) {
     .update(apiTokens)
     .set({ revokedAt: new Date() })
     .where(and(eq(apiTokens.id, id), sql`${apiTokens.revokedAt} IS NULL`));
+}
+
+// ---- Catálogo administrativo de objetivos ----
+
+export async function getObjectiveTemplates() {
+  const db = await getDb();
+  if (!db) return [];
+  const objectives = await db
+    .select()
+    .from(objectiveTemplates)
+    .where(eq(objectiveTemplates.isActive, true))
+    .orderBy(asc(objectiveTemplates.name));
+  const subobjectives = await db
+    .select()
+    .from(objectiveTemplateSubobjectives)
+    .orderBy(
+      asc(objectiveTemplateSubobjectives.objectiveId),
+      asc(objectiveTemplateSubobjectives.sortOrder)
+    );
+  const byObjective = new Map<number, typeof subobjectives>();
+  for (const subobjective of subobjectives) {
+    const current = byObjective.get(subobjective.objectiveId) ?? [];
+    current.push(subobjective);
+    byObjective.set(subobjective.objectiveId, current);
+  }
+  return objectives.map(objective => ({
+    ...objective,
+    subobjectives: byObjective.get(objective.id) ?? [],
+  }));
+}
+
+export async function createObjectiveTemplate(
+  data: Omit<InsertObjectiveTemplate, "isActive">,
+  subobjectives: Array<
+    Omit<InsertObjectiveTemplateSubobjective, "objectiveId">
+  >
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const result = await db.insert(objectiveTemplates).values(data);
+  const objectiveId = Number(result[0].insertId);
+  if (subobjectives.length > 0) {
+    await db.insert(objectiveTemplateSubobjectives).values(
+      subobjectives.map((subobjective, index) => ({
+        ...subobjective,
+        objectiveId,
+        sortOrder: index,
+      }))
+    );
+  }
+  return objectiveId;
+}
+
+export async function deleteObjectiveTemplate(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .delete(objectiveTemplateSubobjectives)
+    .where(eq(objectiveTemplateSubobjectives.objectiveId, id));
+  await db
+    .update(objectiveTemplates)
+    .set({ isActive: false })
+    .where(eq(objectiveTemplates.id, id));
 }
 
 // ---- Central de avisos administrativos ----

@@ -1,4 +1,4 @@
 {
-  "appVersion": "13.9",
-  "changes": ["Cards movidos para App entregue agora permanecem visíveis por 7 dias e depois são ocultados automaticamente do kanban."]
+  "appVersion": "14.0",
+  "changes": ["Adicionada a central administrativa de Objetivos, com cadastro de subobjetivos e prazo individual em dias."]
 }

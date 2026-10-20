@@ -32,6 +32,9 @@ import {
   getApiTokens,
   createApiToken,
   revokeApiToken,
+  getObjectiveTemplates,
+  createObjectiveTemplate,
+  deleteObjectiveTemplate,
   getChecklistsForUser,
   getChecklistById,
   createChecklist,
@@ -983,6 +986,44 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         await assertAdmin(ctx);
         await revokeApiToken(input.id);
+        return { success: true };
+    }),
+  }),
+  objectives: router({
+    list: allowlistedProcedure.query(async ({ ctx }) => {
+      await assertAdmin(ctx);
+      return getObjectiveTemplates();
+    }),
+    create: allowlistedProcedure
+      .input(
+        z.object({
+          name: z.string().trim().min(1).max(255),
+          subobjectives: z
+            .array(
+              z.object({
+                name: z.string().trim().min(1).max(255),
+                deadlineDays: z.number().int().min(0).max(3650),
+              })
+            )
+            .min(1),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await assertAdmin(ctx);
+        const id = await createObjectiveTemplate(
+          {
+            name: input.name,
+            createdBy: ctx.user.email ?? ctx.user.openId,
+          },
+          input.subobjectives
+        );
+        return { id };
+      }),
+    delete: allowlistedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        await assertAdmin(ctx);
+        await deleteObjectiveTemplate(input.id);
         return { success: true };
       }),
   }),

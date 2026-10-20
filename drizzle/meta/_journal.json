@@ -288,6 +288,13 @@
       "when": 1792415921651,
       "tag": "0040_lethal_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1792496970521,
+      "tag": "0041_common_kronos",
+      "breakpoints": true
     }
   ]
 }
