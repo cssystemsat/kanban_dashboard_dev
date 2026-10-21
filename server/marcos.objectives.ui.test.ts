@@ -23,7 +23,8 @@ describe("Marcos — objetivos do cliente", () => {
   it("substitui o botão de grupo por uma seta que abre os objetivos", () => {
     expect(clientCard).toContain("Ver objetivos do cliente");
     expect(clientCard).toContain("setShowObjectives(value => !value)");
-    expect(clientCard).toContain("getGlobalObjectiveDefinition(tag)");
+    expect(clientCard).toContain("trpc.marcos.availableObjectives.useQuery");
+    expect(clientCard).toContain("Adicionar objetivo global");
     expect(clientCard).not.toContain('title="Abrir grupo do WhatsApp"');
   });
 
@@ -35,22 +36,22 @@ describe("Marcos — objetivos do cliente", () => {
     expect(clientCard).toContain('type="checkbox"');
     expect(clientCard).toContain("accent-emerald-600");
     expect(clientCard).toContain("line-through");
-    expect(clientCard).toContain("trpc.marcos.subobjectiveCompletions.useQuery");
-    expect(clientCard).toContain("sharedSubobjectiveSignature");
-    expect(clientCard).toContain("[sharedSubobjectiveSignature]");
-    expect(clientCard).toContain("trpc.marcos.setSubobjectiveCompletion.useMutation");
-    expect(clientCard).toContain("subobjectiveCompletionMetrics.invalidate");
-    expect(clientCard).toContain("isGlobalObjectiveComplete");
+    expect(clientCard).toContain("trpc.marcos.objectiveAssignments.useQuery");
+    expect(clientCard).toContain("trpc.marcos.setAssignedSubobjectiveCompletion.useMutation");
+    expect(clientCard).toContain("objectiveAssignmentMetrics.invalidate");
+    expect(clientCard).toContain("assignObjective.mutate");
+    expect(clientCard).toContain("removeObjective.mutate");
     expect(clientCard).toContain("O global conclui quando todos os subobjetivos");
     expect(clientCard).toContain("Data da conclusão");
     expect(clientCard).toContain('type="date"');
-    expect(clientCard).toContain("completedAt,");
+    expect(clientCard).toContain("completedAt:");
     expect(clientCard).not.toContain("localStorage");
   });
 
-  it("lê os objetivos da coluna AA", () => {
+  it("mantém a coluna AA apenas como legado, sem usá-la para exibir objetivos", () => {
     expect(kanbanData).toContain("const tagsIdx = 26; // Coluna AA");
     expect(kanbanData).toContain("tagsRaw");
+    expect(clientCard).not.toContain("getGlobalObjectiveDefinition(tag)");
   });
 
   it("usa o ID Central estável em vez do índice da linha", () => {
@@ -60,6 +61,10 @@ describe("Marcos — objetivos do cliente", () => {
   });
 
   it("persiste a conclusão no backend compartilhado", () => {
+    expect(routers).toContain("availableObjectives: allowlistedProcedure");
+    expect(routers).toContain("objectiveAssignments: protectedProcedure");
+    expect(routers).toContain("assignObjective: protectedProcedure");
+    expect(routers).toContain("setAssignedSubobjectiveCompletion: protectedProcedure");
     expect(routers).toContain("subobjectiveCompletions: protectedProcedure");
     expect(routers).toContain("setSubobjectiveCompletion: protectedProcedure");
     expect(routers).toContain("setClientSubobjectiveCompletion(");
@@ -67,5 +72,7 @@ describe("Marcos — objetivos do cliente", () => {
     expect(routers).toContain("completedAt: z");
     expect(schema).toContain('completedAt: timestamp("completedAt")');
     expect(schema).toContain("client_subobjective_completions");
+    expect(schema).toContain("clientObjectiveAssignments");
+    expect(schema).toContain("clientAssignedSubobjectiveCompletions");
   });
 });

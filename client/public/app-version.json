@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.0",
-  "changes": ["Adicionada a central administrativa de Objetivos, com cadastro de subobjetivos e prazo individual em dias."]
+  "appVersion": "14.1",
+  "changes": ["Marcos agora usa objetivos globais atribuídos por cliente, com subobjetivos e prazos cadastrados em Ferramentas; os KPIs de TTV do BI acompanham essa estrutura."]
 }

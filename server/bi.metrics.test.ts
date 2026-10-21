@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateAverageSubobjectiveTTV,
+  calculateAverageAssignedObjectiveTTV,
+  calculateAverageAssignedSubobjectiveTTV,
   calculateAverageTTV,
   deriveObjectiveCompletionsFromSubobjectives,
   filterClientsByObjectiveFilters,
+  filterClientsByAssignedObjectiveFilters,
   filterClientsByObjectives,
   getFlaggedOverdueGroups,
   getBICriticalGroups,
@@ -14,6 +17,8 @@ import {
   groupBoletoByCSM,
   groupClientCountByCSM,
   listObjectives,
+  listAssignedObjectiveOptions,
+  listAssignedSubobjectiveOptions,
   listSubobjectives,
   mergeObjectiveCompletions,
   parseBoleto,
@@ -413,5 +418,80 @@ describe("KPIs do BI baseados nos marcos de Marcos", () => {
         option => option.objective === "Migração"
       )
     ).toBe(true);
+  });
+
+  it("usa objetivos atribuídos e deixa o filtro de subobjetivo dependente do global", () => {
+    const definitions = [
+      {
+        id: 1,
+        name: "Rastreamento básico",
+        subobjectives: [
+          { id: 11, name: "Apontar equipamento", deadlineDays: 1 },
+          { id: 12, name: "Ver histórico", deadlineDays: 3 },
+        ],
+      },
+      {
+        id: 2,
+        name: "Migração",
+        subobjectives: [{ id: 21, name: "Importar dados", deadlineDays: 2 }],
+      },
+    ];
+    const clients = [
+      { id: "a", nome: "A", entrada: "20/10/2026" },
+      { id: "b", nome: "B", entrada: "20/10/2026" },
+    ];
+    const assignments = [
+      { clientId: "a", objectiveId: 1, objectiveName: "Rastreamento básico", assignedAt: null },
+      { clientId: "b", objectiveId: 2, objectiveName: "Migração", assignedAt: null },
+    ];
+    const completions = [
+      {
+        clientId: "a",
+        objectiveId: 1,
+        objectiveName: "Rastreamento básico",
+        subobjectiveId: 11,
+        subobjectiveName: "Apontar equipamento",
+        deadlineDays: 1,
+        completedAt: "2026-10-21",
+      },
+    ];
+
+    expect(listAssignedObjectiveOptions(definitions)).toEqual(["Migração", "Rastreamento básico"]);
+    expect(listAssignedSubobjectiveOptions(definitions, ["Migração"])).toEqual([
+      { key: "Migração::Importar dados", objective: "Migração", subobjective: "Importar dados" },
+    ]);
+    expect(
+      filterClientsByAssignedObjectiveFilters(
+        clients,
+        assignments,
+        [],
+        ["Rastreamento básico::Ver histórico"],
+        completions
+      ).map(client => client.nome)
+    ).toEqual(["A"]);
+  });
+
+  it("calcula TTV global somente quando todos os subobjetivos atribuídos foram concluídos", () => {
+    const definitions = [
+      {
+        id: 1,
+        name: "Rastreamento básico",
+        subobjectives: [
+          { id: 11, name: "Apontar equipamento", deadlineDays: 1 },
+          { id: 12, name: "Ver histórico", deadlineDays: 3 },
+        ],
+      },
+    ];
+    const clients = [{ id: "a", nome: "A", entrada: "20/10/2026" }];
+    const assignments = [{ clientId: "a", objectiveId: 1, objectiveName: "Rastreamento básico", assignedAt: null }];
+    const completions = [
+      { clientId: "a", objectiveId: 1, objectiveName: "Rastreamento básico", subobjectiveId: 11, subobjectiveName: "Apontar equipamento", deadlineDays: 1, completedAt: "2026-10-21" },
+      { clientId: "a", objectiveId: 1, objectiveName: "Rastreamento básico", subobjectiveId: 12, subobjectiveName: "Ver histórico", deadlineDays: 3, completedAt: "2026-10-23" },
+    ];
+    const global = calculateAverageAssignedObjectiveTTV(clients, assignments, completions, definitions);
+    const subobjective = calculateAverageAssignedSubobjectiveTTV(clients, completions);
+    expect(global.averageDays).toBe(3);
+    expect(global.entries[0].objectiveName).toBe("Rastreamento básico");
+    expect(subobjective.averageDays).toBe(2);
   });
 });

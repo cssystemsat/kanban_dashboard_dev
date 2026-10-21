@@ -106,11 +106,11 @@ describe("Wootric", () => {
     );
     expect(historyModal).not.toContain("WootricMark");
     expect(marcosCard).toContain("objectiveQueryInput");
-    expect(marcosCard).toContain("return current");
     expect(home).toContain("useMemo");
     expect(router).toContain("historyByCentral");
     expect(router).toContain("getWootricHistoryByCentralId");
     expect(router).not.toContain("WOOTRIC_CLIENT_SECRET");
+    expect(marcosCard).toContain("objectiveAssignments");
     expect(readFileSync(resolve(process.cwd(), "server/wootric.ts"), "utf8")).toContain(
       "page <= 30"
     );

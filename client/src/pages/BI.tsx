@@ -33,7 +33,10 @@ import {
   BI_SEGMENT_DEFINITIONS,
   calculateAverageTTV,
   calculateAverageSubobjectiveTTV,
+  calculateAverageAssignedObjectiveTTV,
+  calculateAverageAssignedSubobjectiveTTV,
   deriveObjectiveCompletionsFromSubobjectives,
+  filterClientsByAssignedObjectiveFilters,
   filterClientsByObjectiveFilters,
   getBICriticalGroups,
   getBIClientGroups,
@@ -41,10 +44,13 @@ import {
   getUnflaggedOverdueGroups,
   groupAverageTTVByObjective,
   groupAverageTTVBySubobjective,
+  groupAverageAssignedTTVByObjective,
   groupBoletoByCSM,
   groupClientCountByCSM,
   listCSMs,
   listObjectives,
+  listAssignedObjectiveOptions,
+  listAssignedSubobjectiveOptions,
   listSubobjectives,
   mergeObjectiveCompletions,
   normalizeCSM,
@@ -289,6 +295,16 @@ export default function BI() {
     trpc.marcos.subobjectiveCompletionMetrics.useQuery(undefined, {
       staleTime: 30_000,
     });
+  const { data: assignedObjectiveDefinitions = [] } =
+    trpc.marcos.availableObjectives.useQuery(undefined, { staleTime: 60_000 });
+  const { data: assignedObjectiveMetrics = [] } =
+    trpc.marcos.objectiveAssignmentMetrics.useQuery(undefined, {
+      staleTime: 30_000,
+    });
+  const { data: assignedSubobjectiveMetrics = [] } =
+    trpc.marcos.assignedSubobjectiveCompletionMetrics.useQuery(undefined, {
+      staleTime: 30_000,
+    });
 
   const refreshData = useCallback(async () => {
     setRefreshing(true);
@@ -316,13 +332,16 @@ export default function BI() {
   }, [refreshData]);
 
   const csmOptions = useMemo(() => listCSMs(data), [data]);
-  const objectiveOptions = useMemo(() => listObjectives(data), [data]);
+  const objectiveOptions = useMemo(
+    () => listAssignedObjectiveOptions(assignedObjectiveDefinitions),
+    [assignedObjectiveDefinitions]
+  );
   const subobjectiveOptions = useMemo(
     () =>
       selectedObjectives.length > 0
-        ? listSubobjectives(data, selectedObjectives)
+        ? listAssignedSubobjectiveOptions(assignedObjectiveDefinitions, selectedObjectives)
         : [],
-    [data, selectedObjectives]
+    [assignedObjectiveDefinitions, selectedObjectives]
   );
   useEffect(() => {
     const availableKeys = new Set(subobjectiveOptions.map(option => option.key));
@@ -347,12 +366,22 @@ export default function BI() {
       }
       return true;
     });
-    return filterClientsByObjectiveFilters(
+    return filterClientsByAssignedObjectiveFilters(
       baseFiltered,
+      assignedObjectiveMetrics,
       selectedObjectives,
-      selectedSubobjectives
+      selectedSubobjectives,
+      assignedSubobjectiveMetrics
     );
-  }, [data, searchCliente, selectedCSM, selectedObjectives, selectedSubobjectives]);
+  }, [
+    data,
+    searchCliente,
+    selectedCSM,
+    selectedObjectives,
+    selectedSubobjectives,
+    assignedObjectiveMetrics,
+    assignedSubobjectiveMetrics,
+  ]);
 
   const effectiveObjectiveCompletionMetrics = useMemo(
     () =>
@@ -423,24 +452,34 @@ export default function BI() {
   );
   const ttv = useMemo(
     () =>
-      calculateAverageTTV(
+      calculateAverageAssignedObjectiveTTV(
         filteredData,
-        effectiveObjectiveCompletionMetrics,
-        selectedObjectives
-      ),
-    [filteredData, effectiveObjectiveCompletionMetrics, selectedObjectives]
-  );
-  const subobjectiveTtv = useMemo(
-    () =>
-      calculateAverageSubobjectiveTTV(
-        filteredData,
-        subobjectiveCompletionMetrics,
+        assignedObjectiveMetrics,
+        assignedSubobjectiveMetrics,
+        assignedObjectiveDefinitions,
         selectedObjectives,
         selectedSubobjectives
       ),
     [
       filteredData,
-      subobjectiveCompletionMetrics,
+      assignedObjectiveMetrics,
+      assignedSubobjectiveMetrics,
+      assignedObjectiveDefinitions,
+      selectedObjectives,
+      selectedSubobjectives,
+    ]
+  );
+  const subobjectiveTtv = useMemo(
+    () =>
+      calculateAverageAssignedSubobjectiveTTV(
+        filteredData,
+        assignedSubobjectiveMetrics,
+        selectedObjectives,
+        selectedSubobjectives
+      ),
+    [
+      filteredData,
+      assignedSubobjectiveMetrics,
       selectedObjectives,
       selectedSubobjectives,
     ]
@@ -451,12 +490,8 @@ export default function BI() {
   );
   const ttvByObjective = useMemo(
     () =>
-      groupAverageTTVByObjective(
-        filteredData,
-        effectiveObjectiveCompletionMetrics,
-        selectedObjectives
-      ),
-    [filteredData, effectiveObjectiveCompletionMetrics, selectedObjectives]
+      groupAverageAssignedTTVByObjective(ttv.entries),
+    [ttv.entries]
   );
   const clientCountByCSM = useMemo(
     () => groupClientCountByCSM(filteredData),
@@ -487,7 +522,7 @@ export default function BI() {
         id: `${entry.clientId}-${entry.objectiveIndex}-${entry.completedAt.toISOString()}`,
         nome: entry.clientName,
         badge: `${entry.days} dias`,
-        detail: `Objetivo ${entry.objectiveIndex + 1} concluído em ${entry.completedAt.toLocaleDateString("pt-BR")}`,
+        detail: `${entry.objectiveName} concluído em ${entry.completedAt.toLocaleDateString("pt-BR")}`,
       })),
     [ttv.entries]
   );

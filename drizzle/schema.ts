@@ -260,6 +260,55 @@ export type ObjectiveTemplateSubobjective =
 export type InsertObjectiveTemplateSubobjective =
   typeof objectiveTemplateSubobjectives.$inferInsert;
 
+export const clientObjectiveAssignments = mysqlTable(
+  "client_objective_assignments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientId: varchar("clientId", { length: 255 }).notNull(),
+    objectiveId: int("objectiveId").notNull(),
+    assignedBy: varchar("assignedBy", { length: 320 }),
+    assignedAt: timestamp("assignedAt").defaultNow().notNull(),
+  },
+  table => ({
+    clientObjectiveUnique: uniqueIndex("client_objective_assignment_unique").on(
+      table.clientId,
+      table.objectiveId
+    ),
+    clientIdx: index("client_objective_assignment_client_idx").on(table.clientId),
+  })
+);
+
+export type ClientObjectiveAssignment = typeof clientObjectiveAssignments.$inferSelect;
+export type InsertClientObjectiveAssignment = typeof clientObjectiveAssignments.$inferInsert;
+
+export const clientAssignedSubobjectiveCompletions = mysqlTable(
+  "client_assigned_subobjective_completions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientId: varchar("clientId", { length: 255 }).notNull(),
+    objectiveId: int("objectiveId").notNull(),
+    subobjectiveId: int("subobjectiveId").notNull(),
+    completed: boolean("completed").default(true).notNull(),
+    updatedBy: varchar("updatedBy", { length: 320 }),
+    completedAt: timestamp("completedAt"),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    assignmentSubobjectiveUnique: uniqueIndex(
+      "client_assigned_subobjective_unique"
+    ).on(table.clientId, table.objectiveId, table.subobjectiveId),
+    clientObjectiveIdx: index("client_assigned_subobjective_client_idx").on(
+      table.clientId,
+      table.objectiveId
+    ),
+  })
+);
+
+export type ClientAssignedSubobjectiveCompletion =
+  typeof clientAssignedSubobjectiveCompletions.$inferSelect;
+export type InsertClientAssignedSubobjectiveCompletion =
+  typeof clientAssignedSubobjectiveCompletions.$inferInsert;
+
 // Objetivos da aba Marcos: estado compartilhado entre todos os usuários.
 export const clientObjectiveCompletions = mysqlTable(
   "client_objective_completions",

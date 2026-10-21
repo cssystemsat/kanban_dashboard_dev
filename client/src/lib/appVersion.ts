@@ -2,5 +2,5 @@
  * Versão funcional exibida aos usuários.
  * Incrementar este número a cada publicação que deve ser comunicada no painel.
  */
-// Cache persistente de NPS, média no Ongoing e impacto no Health Score.
-export const APP_VERSION = "14.0";
+// Objetivos administrativos atribuídos por cliente e KPIs do BI baseados nessa estrutura.
+export const APP_VERSION = "14.1";

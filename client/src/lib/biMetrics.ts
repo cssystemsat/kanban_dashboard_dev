@@ -29,6 +29,33 @@ type BICSMClient = Pick<
   "atendente" | "ultimoBoleto" | "nome"
 >;
 
+export type AssignedObjectiveDefinition = {
+  id: number;
+  name: string;
+  subobjectives: Array<{
+    id: number;
+    name: string;
+    deadlineDays: number;
+  }>;
+};
+
+export type AssignedObjectiveMetric = {
+  clientId: string;
+  objectiveId: number;
+  objectiveName: string;
+  assignedAt: Date | string | null;
+};
+
+export type AssignedSubobjectiveMetric = {
+  clientId: string;
+  objectiveId: number;
+  objectiveName: string;
+  subobjectiveId: number;
+  subobjectiveName: string;
+  deadlineDays: number;
+  completedAt: Date | string | null;
+};
+
 function normalizeObjective(value: string | undefined): string {
   return (value ?? "")
     .normalize("NFD")
@@ -128,6 +155,71 @@ export function filterClientsByObjectiveFilters<T extends { tags?: string[] }>(
       );
     })
   );
+}
+
+export function listAssignedObjectiveOptions(
+  objectives: AssignedObjectiveDefinition[]
+): string[] {
+  return [...objectives]
+    .map(objective => objective.name.trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+}
+
+export function listAssignedSubobjectiveOptions(
+  objectives: AssignedObjectiveDefinition[],
+  selectedObjectives: string[] = []
+): SubobjectiveFilterOption[] {
+  const selected = new Set(selectedObjectives.map(normalizeObjective).filter(Boolean));
+  return objectives
+    .filter(objective => selected.size === 0 || selected.has(normalizeObjective(objective.name)))
+    .flatMap(objective =>
+      objective.subobjectives.map(subobjective => ({
+        key: `${objective.name}::${subobjective.name}`,
+        objective: objective.name,
+        subobjective: subobjective.name,
+      }))
+    )
+    .sort(
+      (a, b) =>
+        a.objective.localeCompare(b.objective, "pt-BR") ||
+        a.subobjective.localeCompare(b.subobjective, "pt-BR")
+    );
+}
+
+export function filterClientsByAssignedObjectiveFilters<T extends { id: string }>(
+  clients: T[],
+  assignments: AssignedObjectiveMetric[],
+  selectedObjectives: string[],
+  selectedSubobjectiveKeys: string[],
+  completions: AssignedSubobjectiveMetric[] = []
+): T[] {
+  const selectedGlobal = new Set(selectedObjectives.map(normalizeObjective).filter(Boolean));
+  const selectedSubobjectives = new Set(selectedSubobjectiveKeys.map(normalizeObjective).filter(Boolean));
+  const selectedSubobjectiveObjectives = new Set(
+    [...selectedSubobjectives]
+      .map(value => value.split("::")[0])
+      .filter(Boolean)
+  );
+  if (selectedGlobal.size === 0 && selectedSubobjectives.size === 0) return clients;
+  const matchingClientIds = new Set<string>();
+  for (const assignment of assignments) {
+    const objectiveName = normalizeObjective(assignment.objectiveName);
+    const objectiveMatches = selectedGlobal.has(objectiveName);
+    const selectedSubobjectiveObjectiveMatches = selectedSubobjectiveObjectives.has(objectiveName);
+    const subobjectiveMatches = completions.some(
+      completion =>
+        completion.clientId === assignment.clientId &&
+        completion.objectiveId === assignment.objectiveId &&
+        selectedSubobjectives.has(
+          normalizeObjective(`${completion.objectiveName}::${completion.subobjectiveName}`)
+        )
+    );
+    if (objectiveMatches || selectedSubobjectiveObjectiveMatches || subobjectiveMatches) {
+      matchingClientIds.add(assignment.clientId);
+    }
+  }
+  return clients.filter(client => matchingClientIds.has(client.id));
 }
 
 export const BI_SEGMENT_DEFINITIONS: Record<
@@ -465,6 +557,165 @@ export function calculateAverageSubobjectiveTTV<T extends BITTVCandidate>(
     ? entries.reduce((total, entry) => total + entry.days, 0) / entries.length
     : null;
   return { averageDays, entries };
+}
+
+export function deriveAssignedObjectiveCompletions<
+  T extends { id: string }
+>(
+  clients: T[],
+  assignments: AssignedObjectiveMetric[],
+  completions: AssignedSubobjectiveMetric[],
+  objectives: AssignedObjectiveDefinition[]
+): ObjectiveCompletionMetric[] {
+  const objectiveById = new Map(objectives.map(objective => [objective.id, objective]));
+  return assignments.flatMap(assignment => {
+    const definition = objectiveById.get(assignment.objectiveId);
+    if (!definition || !clients.some(client => client.id === assignment.clientId)) return [];
+    const rows = completions.filter(
+      completion =>
+        completion.clientId === assignment.clientId &&
+        completion.objectiveId === assignment.objectiveId
+    );
+    const completedIds = new Set(rows.map(row => row.subobjectiveId));
+    if (definition.subobjectives.some(subobjective => !completedIds.has(subobjective.id))) {
+      return [];
+    }
+    const dates = rows
+      .map(row => parseCompletedAt(row.completedAt))
+      .filter((date): date is Date => date !== null);
+    if (dates.length !== definition.subobjectives.length) return [];
+    return [{
+      clientId: assignment.clientId,
+      objectiveIndex: assignment.objectiveId,
+      completedAt: new Date(Math.max(...dates.map(date => date.getTime()))),
+    }];
+  });
+}
+
+export function calculateAverageAssignedSubobjectiveTTV<T extends BITTVCandidate>(
+  clients: T[],
+  completions: AssignedSubobjectiveMetric[],
+  selectedObjectives: string[] = [],
+  selectedSubobjectiveKeys: string[] = []
+) {
+  const clientsById = new Map(clients.map(client => [client.id, client]));
+  const selected = new Set(selectedObjectives.map(normalizeObjective).filter(Boolean));
+  const selectedSubobjectives = new Set(selectedSubobjectiveKeys.map(normalizeObjective).filter(Boolean));
+  const entries = completions
+    .map(completion => {
+      const client = clientsById.get(completion.clientId);
+      const startDate = client ? parseBrazilianDate(client.entrada) : null;
+      const completedAt = parseCompletedAt(completion.completedAt);
+      if (
+        !client ||
+        !startDate ||
+        !completedAt ||
+        (selected.size > 0 && !selected.has(normalizeObjective(completion.objectiveName))) ||
+        (selectedSubobjectives.size > 0 &&
+          !selectedSubobjectives.has(
+            normalizeObjective(`${completion.objectiveName}::${completion.subobjectiveName}`)
+          ))
+      ) {
+        return null;
+      }
+      const days = Math.floor(
+        (completedAt.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (days < 0) return null;
+      return {
+        clientId: client.id,
+        clientName: client.nome,
+        objectiveName: completion.objectiveName,
+        subobjectiveName: completion.subobjectiveName,
+        subobjectiveIndex: completion.subobjectiveId,
+        completedAt,
+        days,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+  const averageDays = entries.length
+    ? entries.reduce((total, entry) => total + entry.days, 0) / entries.length
+    : null;
+  return { averageDays, entries };
+}
+
+export function calculateAverageAssignedObjectiveTTV<T extends BITTVCandidate>(
+  clients: T[],
+  assignments: AssignedObjectiveMetric[],
+  completions: AssignedSubobjectiveMetric[],
+  objectives: AssignedObjectiveDefinition[],
+  selectedObjectives: string[] = [],
+  selectedSubobjectiveKeys: string[] = []
+) {
+  const clientsById = new Map(clients.map(client => [client.id, client]));
+  const selected = new Set(selectedObjectives.map(normalizeObjective).filter(Boolean));
+  for (const key of selectedSubobjectiveKeys) {
+    const objectiveName = key.split("::")[0];
+    if (objectiveName) selected.add(normalizeObjective(objectiveName));
+  }
+  const objectiveById = new Map(objectives.map(objective => [objective.id, objective]));
+  const entries = assignments
+    .map(assignment => {
+      const client = clientsById.get(assignment.clientId);
+      const definition = objectiveById.get(assignment.objectiveId);
+      const rows = completions.filter(
+        completion =>
+          completion.clientId === assignment.clientId &&
+          completion.objectiveId === assignment.objectiveId
+      );
+      const completedIds = new Set(rows.map(row => row.subobjectiveId));
+      if (
+        !client ||
+        !definition ||
+        (selected.size > 0 && !selected.has(normalizeObjective(definition.name))) ||
+        definition.subobjectives.some(subobjective => !completedIds.has(subobjective.id))
+      ) {
+        return null;
+      }
+      const startDate = parseBrazilianDate(client.entrada);
+      const dates = rows
+        .map(row => parseCompletedAt(row.completedAt))
+        .filter((date): date is Date => date !== null);
+      if (!startDate || dates.length !== definition.subobjectives.length) return null;
+      const completedAt = new Date(Math.max(...dates.map(date => date.getTime())));
+      const days = Math.floor(
+        (completedAt.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (days < 0) return null;
+      return {
+        clientId: client.id,
+        clientName: client.nome,
+        objectiveIndex: assignment.objectiveId,
+        objectiveName: definition.name,
+        completedAt,
+        days,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+  const averageDays = entries.length
+    ? entries.reduce((total, entry) => total + entry.days, 0) / entries.length
+    : null;
+  return { averageDays, entries };
+}
+
+export function groupAverageAssignedTTVByObjective(
+  entries: Array<{ objectiveName: string; days: number }>
+) {
+  const grouped = new Map<string, { objective: string; totalDays: number; completions: number }>();
+  entries.forEach(entry => {
+    const key = normalizeObjective(entry.objectiveName);
+    const current = grouped.get(key) ?? { objective: entry.objectiveName, totalDays: 0, completions: 0 };
+    grouped.set(key, {
+      ...current,
+      totalDays: current.totalDays + entry.days,
+      completions: current.completions + 1,
+    });
+  });
+  return [...grouped.values()].map(item => ({
+    objective: item.objective,
+    dias: item.totalDays / item.completions,
+    conclusoes: item.completions,
+  }));
 }
 
 export function groupAverageTTVBySubobjective(

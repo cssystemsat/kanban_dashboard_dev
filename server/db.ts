@@ -44,6 +44,8 @@ import {
   objectiveTemplateSubobjectives,
   InsertObjectiveTemplate,
   InsertObjectiveTemplateSubobjective,
+  clientObjectiveAssignments,
+  clientAssignedSubobjectiveCompletions,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import type { AppKanbanSheetRow } from "./appKanbanSheetSync";
@@ -338,6 +340,180 @@ export async function deleteObjectiveTemplate(id: number) {
     .update(objectiveTemplates)
     .set({ isActive: false })
     .where(eq(objectiveTemplates.id, id));
+}
+
+// ---- Objetivos atribuídos aos clientes ----
+
+export async function getAvailableObjectiveTemplates() {
+  return getObjectiveTemplates();
+}
+
+export async function getClientObjectiveAssignments(clientId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const assignments = await db
+    .select()
+    .from(clientObjectiveAssignments)
+    .where(eq(clientObjectiveAssignments.clientId, clientId))
+    .orderBy(asc(clientObjectiveAssignments.assignedAt));
+  const objectives = await getObjectiveTemplates();
+  const objectiveById = new Map(objectives.map(objective => [objective.id, objective]));
+  const completions = await db
+    .select()
+    .from(clientAssignedSubobjectiveCompletions)
+    .where(eq(clientAssignedSubobjectiveCompletions.clientId, clientId));
+  const completionByKey = new Map(
+    completions.map(completion => [
+      `${completion.objectiveId}::${completion.subobjectiveId}`,
+      completion,
+    ])
+  );
+  return assignments.flatMap(assignment => {
+    const objective = objectiveById.get(assignment.objectiveId);
+    if (!objective) return [];
+    return [
+      {
+        ...assignment,
+        objective,
+        subobjectives: objective.subobjectives.map(subobjective => {
+          const completion = completionByKey.get(
+            `${assignment.objectiveId}::${subobjective.id}`
+          );
+          return {
+            ...subobjective,
+            completed: Boolean(completion?.completed),
+            completedAt: completion?.completedAt ?? null,
+          };
+        }),
+      },
+    ];
+  });
+}
+
+export async function assignObjectiveToClient(
+  clientId: string,
+  objectiveId: number,
+  assignedBy?: string | null
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .insert(clientObjectiveAssignments)
+    .values({ clientId, objectiveId, assignedBy: assignedBy ?? null })
+    .onDuplicateKeyUpdate({ set: { assignedBy: assignedBy ?? null } });
+}
+
+export async function removeObjectiveFromClient(clientId: string, objectiveId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .delete(clientAssignedSubobjectiveCompletions)
+    .where(
+      and(
+        eq(clientAssignedSubobjectiveCompletions.clientId, clientId),
+        eq(clientAssignedSubobjectiveCompletions.objectiveId, objectiveId)
+      )
+    );
+  await db
+    .delete(clientObjectiveAssignments)
+    .where(
+      and(
+        eq(clientObjectiveAssignments.clientId, clientId),
+        eq(clientObjectiveAssignments.objectiveId, objectiveId)
+      )
+    );
+}
+
+export async function setAssignedSubobjectiveCompletion(
+  clientId: string,
+  objectiveId: number,
+  subobjectiveId: number,
+  completed: boolean,
+  updatedBy?: string | null,
+  completedAt?: Date
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  if (completed) {
+    await db
+      .insert(clientAssignedSubobjectiveCompletions)
+      .values({
+        clientId,
+        objectiveId,
+        subobjectiveId,
+        completed: true,
+        updatedBy: updatedBy ?? null,
+        completedAt: completedAt ?? new Date(),
+      })
+      .onDuplicateKeyUpdate({
+        set: {
+          completed: true,
+          updatedBy: updatedBy ?? null,
+          completedAt: completedAt ?? new Date(),
+        },
+      });
+  } else {
+    await db
+      .delete(clientAssignedSubobjectiveCompletions)
+      .where(
+        and(
+          eq(clientAssignedSubobjectiveCompletions.clientId, clientId),
+          eq(clientAssignedSubobjectiveCompletions.objectiveId, objectiveId),
+          eq(clientAssignedSubobjectiveCompletions.subobjectiveId, subobjectiveId)
+        )
+      );
+  }
+}
+
+export async function getAssignedObjectiveAssignmentMetrics() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db
+    .select({
+      clientId: clientObjectiveAssignments.clientId,
+      objectiveId: clientObjectiveAssignments.objectiveId,
+      objectiveName: objectiveTemplates.name,
+      assignedAt: clientObjectiveAssignments.assignedAt,
+    })
+    .from(clientObjectiveAssignments)
+    .innerJoin(
+      objectiveTemplates,
+      eq(clientObjectiveAssignments.objectiveId, objectiveTemplates.id)
+    )
+    .where(eq(objectiveTemplates.isActive, true));
+}
+
+export async function getAssignedSubobjectiveCompletionMetrics() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db
+    .select({
+      clientId: clientAssignedSubobjectiveCompletions.clientId,
+      objectiveId: clientAssignedSubobjectiveCompletions.objectiveId,
+      objectiveName: objectiveTemplates.name,
+      subobjectiveId: clientAssignedSubobjectiveCompletions.subobjectiveId,
+      subobjectiveName: objectiveTemplateSubobjectives.name,
+      deadlineDays: objectiveTemplateSubobjectives.deadlineDays,
+      completedAt: clientAssignedSubobjectiveCompletions.completedAt,
+    })
+    .from(clientAssignedSubobjectiveCompletions)
+    .innerJoin(
+      objectiveTemplates,
+      eq(clientAssignedSubobjectiveCompletions.objectiveId, objectiveTemplates.id)
+    )
+    .innerJoin(
+      objectiveTemplateSubobjectives,
+      eq(
+        clientAssignedSubobjectiveCompletions.subobjectiveId,
+        objectiveTemplateSubobjectives.id
+      )
+    )
+    .where(
+      and(
+        eq(clientAssignedSubobjectiveCompletions.completed, true),
+        eq(objectiveTemplates.isActive, true)
+      )
+    );
 }
 
 // ---- Central de avisos administrativos ----

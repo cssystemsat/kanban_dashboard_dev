@@ -16,7 +16,7 @@ import {
   Star,
   Phone,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -29,22 +29,12 @@ import { calculateClientCriticality } from "@/lib/criticality";
 import { getContactButtonState } from "@/lib/contactStatus";
 import { WootricClientHistoryModal } from "./WootricClientHistoryModal";
 import { WootricMark } from "./WootricMark";
-import {
-  getGlobalObjectiveDefinition,
-  type GlobalObjectiveDefinition,
-} from "@shared/globalObjectives";
 
 interface ClientCardProps {
   client: ClientData;
   onAtendimento?: (client: ClientData) => void;
   onFriccao?: (client: ClientData) => void;
 }
-
-const EMPTY_SUBOBJECTIVE_COMPLETIONS: Array<{
-  objectiveName: string;
-  subobjectiveIndex: number;
-  completedAt: Date | string | null;
-}> = [];
 
 function getTodayInputDate(): string {
   return new Date().toLocaleDateString("sv-SE", {
@@ -57,6 +47,20 @@ function toInputDate(value: Date | string | null): string {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+}
+
+function addDaysToBrazilianDate(value: string, days: number): string {
+  const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (!match) return "Não calculado";
+  const year = match[3].length === 2 ? Number(`20${match[3]}`) : Number(match[3]);
+  const date = new Date(year, Number(match[2]) - 1, Number(match[1]));
+  if (Number.isNaN(date.getTime())) return "Não calculado";
+  date.setDate(date.getDate() + days);
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /** Cor do ícone de bandeira para cada nível */
@@ -83,37 +87,40 @@ export default function ClientCard({
   const [showObjectives, setShowObjectives] = useState(false);
   const [showWootricHistory, setShowWootricHistory] = useState(false);
   const [contactMarkedToday, setContactMarkedToday] = useState(false);
-  const [completedSubobjectives, setCompletedSubobjectives] = useState<
-    Record<string, boolean>
-  >({});
-  const [subobjectiveDates, setSubobjectiveDates] = useState<
-    Record<string, string>
-  >({});
+  const [showObjectivePicker, setShowObjectivePicker] = useState(false);
   const subobjectiveQueryInput = useMemo(
     () => ({ clientId: client.id }),
     [client.id]
   );
-  const { data: sharedSubobjectiveCompletions = EMPTY_SUBOBJECTIVE_COMPLETIONS } =
-    trpc.marcos.subobjectiveCompletions.useQuery(subobjectiveQueryInput, {
+  const { data: availableObjectives = [] } =
+    trpc.marcos.availableObjectives.useQuery(undefined, { staleTime: 60_000 });
+  const { data: assignedObjectives = [] } =
+    trpc.marcos.objectiveAssignments.useQuery(subobjectiveQueryInput, {
       staleTime: 30_000,
     });
-  const sharedSubobjectiveSignature = useMemo(
-    () =>
-      JSON.stringify(
-        sharedSubobjectiveCompletions.map(completion => ({
-          objectiveName: completion.objectiveName,
-          subobjectiveIndex: completion.subobjectiveIndex,
-          completedAt: completion.completedAt,
-        }))
-      ),
-    [sharedSubobjectiveCompletions]
-  );
   const utils = trpc.useUtils();
-  const setSubobjectiveCompletion = trpc.marcos.setSubobjectiveCompletion.useMutation({
+  const invalidateAssignedObjectives = () => {
+    void utils.marcos.objectiveAssignments.invalidate(subobjectiveQueryInput);
+    void utils.marcos.objectiveAssignmentMetrics.invalidate();
+    void utils.marcos.assignedSubobjectiveCompletionMetrics.invalidate();
+  };
+  const assignObjective = trpc.marcos.assignObjective.useMutation({
     onSuccess: () => {
-      void utils.marcos.subobjectiveCompletionMetrics.invalidate();
-      void utils.marcos.subobjectiveCompletions.invalidate(subobjectiveQueryInput);
+      invalidateAssignedObjectives();
+      toast.success("Objetivo adicionado ao cliente.");
     },
+    onError: error => toast.error(`Não foi possível adicionar o objetivo: ${error.message}`),
+  });
+  const removeObjective = trpc.marcos.removeObjective.useMutation({
+    onSuccess: () => {
+      invalidateAssignedObjectives();
+      toast.success("Objetivo removido do cliente.");
+    },
+    onError: error => toast.error(`Não foi possível remover o objetivo: ${error.message}`),
+  });
+  const setAssignedSubobjectiveCompletion = trpc.marcos.setAssignedSubobjectiveCompletion.useMutation({
+    onSuccess: () => invalidateAssignedObjectives(),
+    onError: error => toast.error(`Não foi possível salvar o subobjetivo: ${error.message}`),
   });
   const markContact = trpc.contato.marcar.useMutation({
     onSuccess: () => {
@@ -125,16 +132,10 @@ export default function ClientCard({
   const contactButton = getContactButtonState(
     contactMarkedToday ? 0 : client.diasUltimoContato
   );
-  const globalObjectives = useMemo(() => {
-    const seen = new Set<string>();
-    return (client.tags ?? [])
-      .map(tag => getGlobalObjectiveDefinition(tag))
-      .filter((objective): objective is GlobalObjectiveDefinition => {
-        if (!objective || seen.has(objective.name)) return false;
-        seen.add(objective.name);
-        return true;
-      });
-  }, [client.tags]);
+  const objectiveIds = new Set(assignedObjectives.map(objective => objective.objectiveId));
+  const objectiveOptions = availableObjectives.filter(
+    objective => !objectiveIds.has(objective.id)
+  );
   const isOverdue = client.marcoStatus === "atrasado";
   const { entry: agendaEntry, loading: agendaLoading } = useAgendaData(
     client.nome
@@ -151,50 +152,6 @@ export default function ClientCard({
   const diasCorridos = parseInt(String(client.diasCorridos || 0));
   const urs = parseInt(String(client.urs || 0));
   const shouldHighlightRedBorder = diasCorridos > 60 && urs < 30;
-
-  useEffect(() => {
-    setCompletedSubobjectives(current => {
-      const next = Object.fromEntries(
-        sharedSubobjectiveCompletions.map(completion => [
-          `${completion.objectiveName}::${completion.subobjectiveIndex}`,
-          true,
-        ])
-      );
-      const currentKeys = Object.keys(current);
-      const nextKeys = Object.keys(next);
-      if (
-        currentKeys.length === nextKeys.length &&
-        currentKeys.every(key => current[key] === next[key])
-      ) {
-        return current;
-      }
-      return next;
-    });
-    setSubobjectiveDates(current => {
-      const next = Object.fromEntries(
-        sharedSubobjectiveCompletions
-          .map(completion => [
-            `${completion.objectiveName}::${completion.subobjectiveIndex}`,
-            toInputDate(completion.completedAt),
-          ])
-          .filter(([, date]) => Boolean(date))
-      );
-      const currentKeys = Object.keys(current);
-      const nextKeys = Object.keys(next);
-      if (
-        currentKeys.length === nextKeys.length &&
-        currentKeys.every(key => current[key] === next[key])
-      ) {
-        return current;
-      }
-      return next;
-    });
-  }, [sharedSubobjectiveSignature]);
-
-  const isGlobalObjectiveComplete = (objective: GlobalObjectiveDefinition) =>
-    objective.subobjectives.every(
-      (_, index) => completedSubobjectives[`${objective.name}::${index}`]
-    );
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -441,8 +398,7 @@ export default function ClientCard({
         {/* Botões de Ação */}
         <div className="flex items-center gap-1.5 mt-0.5">
           {/* Botão Objetivos — substitui o grupo do WhatsApp e lê a coluna AA */}
-          {client.whatsappGrupo || (client.tags && client.tags.length > 0) ? (
-            <button
+          <button
               onClick={event => {
                 event.stopPropagation();
                 setShowObjectives(value => !value);
@@ -453,17 +409,7 @@ export default function ClientCard({
               aria-label={`Ver objetivos do cliente ${client.nome}`}
             >
               <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : client.whatsapp ? (
-            <button
-              onClick={handleWhatsApp}
-              className="flex-1 flex items-center justify-center p-1.5 rounded transition-all hover:opacity-90 hover:shadow-sm active:scale-95"
-              style={{ backgroundColor: "#25D366", color: "#FFFFFF" }}
-              title="Enviar WhatsApp"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </button>
-          ) : null}
+          </button>
 
           {/* Botão de contato — marca o checkbox K na aba Marcos */}
           <button
@@ -527,10 +473,10 @@ export default function ClientCard({
               <div className="mb-3 flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
                 <div>
                   <span className="block text-sm font-bold text-slate-900">
-                    Objetivos globais e subobjetivos
+                    Objetivos globais do cliente
                   </span>
                   <span className="text-[11px] text-slate-500">
-                    O global conclui quando todos os subobjetivos forem marcados.
+                    Os objetivos vêm da central Ferramentas. O global conclui quando todos os subobjetivos forem marcados.
                   </span>
                 </div>
                 <button
@@ -542,104 +488,93 @@ export default function ClientCard({
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-              {globalObjectives.length > 0 ? (
+              <div className="mb-3 rounded-lg border border-dashed border-emerald-300 bg-emerald-50/60 p-2.5">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-2 text-left font-semibold text-emerald-800"
+                  onClick={() => setShowObjectivePicker(value => !value)}
+                  aria-expanded={showObjectivePicker}
+                >
+                  <span className="flex items-center gap-2"><span className="text-lg leading-none">+</span> Adicionar objetivo global</span>
+                  <span className="text-[10px] font-normal">{objectiveOptions.length} disponível(is)</span>
+                </button>
+                {showObjectivePicker && (
+                  <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                    {objectiveOptions.map(objective => (
+                      <button
+                        key={objective.id}
+                        type="button"
+                        className="rounded-md border border-emerald-200 bg-white px-2.5 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-60"
+                        disabled={assignObjective.isPending}
+                        onClick={() => assignObjective.mutate({ clientId: client.id, objectiveId: objective.id })}
+                      >
+                        <span className="block font-semibold">{objective.name}</span>
+                        <span className="text-[10px] text-slate-500">{objective.subobjectives.length} subobjetivo(s)</span>
+                      </button>
+                    ))}
+                    {objectiveOptions.length === 0 && <span className="text-[10px] text-slate-500">Todos os objetivos disponíveis já foram adicionados.</span>}
+                  </div>
+                )}
+              </div>
+              {assignedObjectives.length > 0 ? (
                 <div className="space-y-3 text-slate-700">
-                  {globalObjectives.map(objective => {
-                    const globalCompleted = isGlobalObjectiveComplete(objective);
+                  {assignedObjectives.map(assignment => {
+                    const completedCount = assignment.subobjectives.filter(subobjective => subobjective.completed).length;
+                    const globalCompleted = assignment.subobjectives.length > 0 && completedCount === assignment.subobjectives.length;
                     return (
                       <section
-                        key={objective.name}
-                        className={`rounded-lg border p-3 transition-colors ${
-                          globalCompleted
-                            ? "border-emerald-300 bg-emerald-50"
-                            : "border-slate-200 bg-white"
-                        }`}
+                        key={assignment.objectiveId}
+                        className={`rounded-lg border p-3 transition-colors ${globalCompleted ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"}`}
                       >
                         <div className="mb-2 flex items-center justify-between gap-2">
-                          <h4 className="font-semibold text-slate-900">
-                            {objective.name}
-                          </h4>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              globalCompleted
-                                ? "bg-emerald-600 text-white"
-                                : "bg-slate-100 text-slate-500"
-                            }`}
-                          >
-                            {globalCompleted ? "Concluído" : "Em andamento"}
-                          </span>
+                          <h4 className="font-semibold text-slate-900">{assignment.objective.name}</h4>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${globalCompleted ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"}`}>
+                              {globalCompleted ? "Concluído" : `${completedCount}/${assignment.subobjectives.length}`}
+                            </span>
+                            <button
+                              type="button"
+                              className="rounded px-1 text-[10px] text-slate-400 hover:bg-red-50 hover:text-red-600"
+                              title="Remover objetivo do cliente"
+                              aria-label={`Remover objetivo ${assignment.objective.name}`}
+                              onClick={() => removeObjective.mutate({ clientId: client.id, objectiveId: assignment.objectiveId })}
+                            >
+                              remover
+                            </button>
+                          </div>
                         </div>
                         <ul className="space-y-1.5">
-                          {objective.subobjectives.map((subobjective, index) => {
-                            const key = `${objective.name}::${index}`;
-                            const completed = Boolean(completedSubobjectives[key]);
+                          {assignment.subobjectives.map(subobjective => {
+                            const completed = Boolean(subobjective.completed);
+                            const completedDate = toInputDate(subobjective.completedAt);
                             return (
-                              <li
-                                key={key}
-                                className={`rounded-md border px-2.5 py-2 ${
-                                  completed
-                                    ? "border-emerald-200 bg-emerald-100/70"
-                                    : "border-slate-100 bg-slate-50"
-                                }`}
-                              >
+                              <li key={subobjective.id} className={`rounded-md border px-2.5 py-2 ${completed ? "border-emerald-200 bg-emerald-100/70" : "border-slate-100 bg-slate-50"}`}>
                                 <div className="flex items-start gap-2">
                                   <input
                                     type="checkbox"
                                     checked={completed}
-                                    onChange={event => {
-                                      const checked = event.target.checked;
-                                      const completedAt = checked
-                                        ? subobjectiveDates[key] || getTodayInputDate()
-                                        : undefined;
-                                      setCompletedSubobjectives(current => ({
-                                        ...current,
-                                        [key]: checked,
-                                      }));
-                                      if (checked && completedAt) {
-                                        setSubobjectiveDates(current => ({
-                                          ...current,
-                                          [key]: completedAt,
-                                        }));
-                                      }
-                                      setSubobjectiveCompletion.mutate({
-                                        clientId: client.id,
-                                        objectiveName: objective.name,
-                                        subobjectiveIndex: index,
-                                        completed: checked,
-                                        completedAt,
-                                      });
-                                    }}
+                                    onChange={event => setAssignedSubobjectiveCompletion.mutate({
+                                      clientId: client.id,
+                                      objectiveId: assignment.objectiveId,
+                                      subobjectiveId: subobjective.id,
+                                      completed: event.target.checked,
+                                      completedAt: event.target.checked ? completedDate || getTodayInputDate() : undefined,
+                                    })}
                                     className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
-                                    aria-label={`Marcar subobjetivo como concluído: ${subobjective}`}
+                                    aria-label={`Marcar subobjetivo como concluído: ${subobjective.name}`}
                                   />
                                   <div className="min-w-0 flex-1">
-                                    <span className={completed ? "font-medium line-through" : ""}>
-                                      {subobjective}
-                                    </span>
+                                    <span className={completed ? "font-medium line-through" : ""}>{subobjective.name}</span>
+                                    <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">prazo: {addDaysToBrazilianDate(client.entrada, subobjective.deadlineDays)}</span>
                                     {completed && (
                                       <label className="mt-1.5 flex items-center gap-2 text-[10px] font-medium text-emerald-900">
                                         Data da conclusão
                                         <input
                                           type="date"
-                                          value={subobjectiveDates[key] ?? ""}
-                                          onChange={event => {
-                                            const completedAt = event.target.value;
-                                            setSubobjectiveDates(current => ({
-                                              ...current,
-                                              [key]: completedAt,
-                                            }));
-                                            if (completedAt) {
-                                              setSubobjectiveCompletion.mutate({
-                                                clientId: client.id,
-                                                objectiveName: objective.name,
-                                                subobjectiveIndex: index,
-                                                completed: true,
-                                                completedAt,
-                                              });
-                                            }
-                                          }}
+                                          value={completedDate}
+                                          onChange={event => event.target.value && setAssignedSubobjectiveCompletion.mutate({ clientId: client.id, objectiveId: assignment.objectiveId, subobjectiveId: subobjective.id, completed: true, completedAt: event.target.value })}
                                           className="h-6 rounded border border-emerald-300 bg-white px-1.5 text-[10px] text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400"
-                                          aria-label={`Data de conclusão: ${subobjective}`}
+                                          aria-label={`Data de conclusão: ${subobjective.name}`}
                                         />
                                       </label>
                                     )}
@@ -654,9 +589,7 @@ export default function ClientCard({
                   })}
                 </div>
               ) : (
-                <p className="text-slate-500">
-                  Nenhum objetivo global configurado para este cliente.
-                </p>
+                <p className="text-slate-500">Nenhum objetivo atribuído a este cliente. Use o botão + para começar.</p>
               )}
             </div>,
             document.body

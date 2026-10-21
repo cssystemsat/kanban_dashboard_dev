@@ -35,6 +35,13 @@ import {
   getObjectiveTemplates,
   createObjectiveTemplate,
   deleteObjectiveTemplate,
+  getAvailableObjectiveTemplates,
+  getClientObjectiveAssignments,
+  assignObjectiveToClient,
+  removeObjectiveFromClient,
+  setAssignedSubobjectiveCompletion,
+  getAssignedObjectiveAssignmentMetrics,
+  getAssignedSubobjectiveCompletionMetrics,
   getChecklistsForUser,
   getChecklistById,
   createChecklist,
@@ -317,6 +324,67 @@ export const appRouter = router({
     }),
   }),
   marcos: router({
+    availableObjectives: allowlistedProcedure.query(async () => {
+      return getAvailableObjectiveTemplates();
+    }),
+    objectiveAssignments: protectedProcedure
+      .input(z.object({ clientId: z.string().min(1).max(255) }))
+      .query(async ({ input }) => getClientObjectiveAssignments(input.clientId)),
+    objectiveAssignmentMetrics: protectedProcedure.query(async () => {
+      return getAssignedObjectiveAssignmentMetrics();
+    }),
+    assignedSubobjectiveCompletionMetrics: protectedProcedure.query(async () => {
+      return getAssignedSubobjectiveCompletionMetrics();
+    }),
+    assignObjective: protectedProcedure
+      .input(
+        z.object({
+          clientId: z.string().min(1).max(255),
+          objectiveId: z.number().int().positive(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await assignObjectiveToClient(
+          input.clientId,
+          input.objectiveId,
+          ctx.user.email
+        );
+        return { success: true };
+      }),
+    removeObjective: protectedProcedure
+      .input(
+        z.object({
+          clientId: z.string().min(1).max(255),
+          objectiveId: z.number().int().positive(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await removeObjectiveFromClient(input.clientId, input.objectiveId);
+        return { success: true };
+      }),
+    setAssignedSubobjectiveCompletion: protectedProcedure
+      .input(
+        z.object({
+          clientId: z.string().min(1).max(255),
+          objectiveId: z.number().int().positive(),
+          subobjectiveId: z.number().int().positive(),
+          completed: z.boolean(),
+          completedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await setAssignedSubobjectiveCompletion(
+          input.clientId,
+          input.objectiveId,
+          input.subobjectiveId,
+          input.completed,
+          ctx.user.email,
+          input.completedAt
+            ? new Date(`${input.completedAt}T12:00:00`)
+            : undefined
+        );
+        return { success: true };
+      }),
     objectiveCompletions: protectedProcedure
       .input(z.object({ clientId: z.string().min(1).max(255) }))
       .query(async ({ input }) => {
