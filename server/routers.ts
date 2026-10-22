@@ -1623,8 +1623,11 @@ export const appRouter = router({
         z.object({
           cardId: z.number(),
           logomarca: z.boolean().optional(),
+          nomeApp: z.boolean().optional(),
           descricaoCurta: z.boolean().optional(),
           descricaoLonga: z.boolean().optional(),
+          lojaPropria: z.boolean().optional(),
+          siteEmpresa: z.boolean().optional(),
           politicaPrivacidade: z.boolean().optional(),
         })
       )
@@ -1645,6 +1648,49 @@ export const appRouter = router({
         }
         const { cardId, ...data } = input;
         return upsertAppKanbanChecklist(cardId, data);
+      }),
+    updateReleaseDetails: protectedProcedure
+      .input(
+        z.object({
+          cardId: z.number(),
+          iosRejected: z.boolean().optional(),
+          androidRejected: z.boolean().optional(),
+          iosStoreUrl: z.string().trim().max(1024).optional(),
+          androidStoreUrl: z.string().trim().max(1024).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Voce precisa estar autenticado",
+          });
+        }
+        const isAdmin = await isEmailAdmin(ctx.user.email);
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Apenas administradores podem atualizar dados de publicação",
+          });
+        }
+        const { cardId, ...inputData } = input;
+        const data = {
+          ...inputData,
+          ...(input.iosStoreUrl !== undefined
+            ? { iosStoreUrl: input.iosStoreUrl || null }
+            : {}),
+          ...(input.androidStoreUrl !== undefined
+            ? { androidStoreUrl: input.androidStoreUrl || null }
+            : {}),
+        };
+        await updateAppKanbanCard(cardId, data);
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const updated = await db
+          .select()
+          .from(appKanbanCards)
+          .where(eq(appKanbanCards.id, cardId));
+        return updated[0] ?? null;
       }),
     updatePriority: protectedProcedure
       .input(

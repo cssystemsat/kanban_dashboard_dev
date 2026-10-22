@@ -302,6 +302,13 @@
       "when": 1792606351226,
       "tag": "0042_red_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1792678612076,
+      "tag": "0043_parched_meltdown",
+      "breakpoints": true
     }
   ]
 }

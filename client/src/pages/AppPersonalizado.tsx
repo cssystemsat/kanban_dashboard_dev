@@ -17,6 +17,7 @@ import {
   CheckSquare,
   Square,
   RefreshCw,
+  Link2,
 } from "lucide-react";
 
 const STAGES = [
@@ -41,8 +42,11 @@ const STAGE_LABELS: Record<string, string> = {
 
 const CHECKLIST_ITEMS = [
   { key: "logomarca", label: "Logomarca" },
+  { key: "nomeApp", label: "Nome do app" },
   { key: "descricaoCurta", label: "Descrição Curta" },
   { key: "descricaoLonga", label: "Descrição Longa" },
+  { key: "lojaPropria", label: "Loja propria" },
+  { key: "siteEmpresa", label: "Site da empresa" },
   { key: "politicaPrivacidade", label: "Política de privacidade" },
 ] as const;
 
@@ -56,6 +60,10 @@ interface KanbanCard {
   order: number;
   priority?: number;
   refusalReason?: string;
+  iosRejected?: boolean;
+  androidRejected?: boolean;
+  iosStoreUrl?: string | null;
+  androidStoreUrl?: string | null;
 }
 
 interface HistoryEntry {
@@ -69,8 +77,11 @@ interface HistoryEntry {
 
 interface ChecklistData {
   logomarca: boolean;
+  nomeApp: boolean;
   descricaoCurta: boolean;
   descricaoLonga: boolean;
+  lojaPropria: boolean;
+  siteEmpresa: boolean;
   politicaPrivacidade: boolean;
 }
 
@@ -89,6 +100,7 @@ export default function AppPersonalizado() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
+  const [storeLinksCardId, setStoreLinksCardId] = useState<number | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [selectedCardName, setSelectedCardName] = useState("");
   const [selectedCardData, setSelectedCardData] = useState<KanbanCard | null>(
@@ -97,8 +109,11 @@ export default function AppPersonalizado() {
   const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
   const [checklistState, setChecklistState] = useState<ChecklistData>({
     logomarca: false,
+    nomeApp: false,
     descricaoCurta: false,
     descricaoLonga: false,
+    lojaPropria: false,
+    siteEmpresa: false,
     politicaPrivacidade: false,
   });
   const [formData, setFormData] = useState({
@@ -123,6 +138,7 @@ export default function AppPersonalizado() {
   const updateChecklist = trpc.appKanban.updateChecklist.useMutation();
   const updatePriority = trpc.appKanban.updatePriority.useMutation();
   const updateRefusalReason = trpc.appKanban.updateRefusalReason.useMutation();
+  const updateReleaseDetails = trpc.appKanban.updateReleaseDetails.useMutation();
 
   // Query de histórico com cardId dinâmico
   const historyQuery = trpc.appKanban.history.useQuery(
@@ -160,15 +176,21 @@ export default function AppPersonalizado() {
     if (checklistQuery.data) {
       setChecklistState({
         logomarca: checklistQuery.data.logomarca ?? false,
+        nomeApp: checklistQuery.data.nomeApp ?? false,
         descricaoCurta: checklistQuery.data.descricaoCurta ?? false,
         descricaoLonga: checklistQuery.data.descricaoLonga ?? false,
+        lojaPropria: checklistQuery.data.lojaPropria ?? false,
+        siteEmpresa: checklistQuery.data.siteEmpresa ?? false,
         politicaPrivacidade: checklistQuery.data.politicaPrivacidade ?? false,
       });
     } else if (showDataModal) {
       setChecklistState({
         logomarca: false,
+        nomeApp: false,
         descricaoCurta: false,
         descricaoLonga: false,
+        lojaPropria: false,
+        siteEmpresa: false,
         politicaPrivacidade: false,
       });
     }
@@ -223,6 +245,50 @@ export default function AppPersonalizado() {
       // Revert on error
       setChecklistState(prev => ({ ...prev, [key]: !newValue }));
       console.error("Erro ao atualizar checklist:", error);
+    }
+  };
+
+  const handleReleaseToggle = async (
+    card: KanbanCard,
+    key: "iosRejected" | "androidRejected"
+  ) => {
+    if (!canEditChecklist) return;
+    const value = !card[key];
+    setCards(prev =>
+      prev.map(current =>
+        current.id === card.id ? { ...current, [key]: value } : current
+      )
+    );
+    try {
+      await updateReleaseDetails.mutateAsync({ cardId: card.id, [key]: value });
+    } catch (error) {
+      setCards(prev =>
+        prev.map(current =>
+          current.id === card.id ? { ...current, [key]: !value } : current
+        )
+      );
+      console.error("Erro ao atualizar status das lojas:", error);
+    }
+  };
+
+  const handleStoreLinkBlur = async (
+    card: KanbanCard,
+    key: "iosStoreUrl" | "androidStoreUrl",
+    value: string
+  ) => {
+    const normalized = value.trim();
+    try {
+      await updateReleaseDetails.mutateAsync({
+        cardId: card.id,
+        [key]: normalized,
+      });
+      setCards(prev =>
+        prev.map(current =>
+          current.id === card.id ? { ...current, [key]: normalized } : current
+        )
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar link da loja:", error);
     }
   };
 
@@ -595,6 +661,81 @@ export default function AppPersonalizado() {
                           placeholder="Motivo da recusa..."
                           className="w-full h-12 text-[10px] border border-red-200 rounded bg-red-50 px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-red-400 resize-none"
                         />
+                        <div className="mt-1.5 grid grid-cols-2 gap-1">
+                          {([
+                            ["iosRejected", "iOS"],
+                            ["androidRejected", "Android"],
+                          ] as const).map(([key, label]) => (
+                            <label
+                              key={key}
+                              className="flex items-center gap-1 rounded border border-red-200 bg-white px-1.5 py-1 text-[10px] text-gray-700"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={Boolean(card[key])}
+                                onChange={() => handleReleaseToggle(card, key)}
+                              />
+                              {label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {stage.id === "app_entregue" && isAdmin && (
+                      <div className="mb-1.5 rounded border border-green-200 bg-green-50 p-1.5">
+                        <div className="grid grid-cols-2 gap-1">
+                          {([
+                            ["iosRejected", "iOS"],
+                            ["androidRejected", "Android"],
+                          ] as const).map(([key, label]) => (
+                            <label
+                              key={key}
+                              className="flex items-center gap-1 rounded border border-green-200 bg-white px-1.5 py-1 text-[10px] text-gray-700"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={Boolean(card[key])}
+                                onChange={() => handleReleaseToggle(card, key)}
+                              />
+                              {label}
+                            </label>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setStoreLinksCardId(current =>
+                              current === card.id ? null : card.id
+                            )
+                          }
+                          className="mt-1.5 flex w-full items-center justify-center gap-1 rounded border border-green-300 bg-white px-1.5 py-1 text-[10px] text-green-700 hover:bg-green-100"
+                        >
+                          <Link2 className="h-3 w-3" />
+                          Links das lojas
+                        </button>
+                        {storeLinksCardId === card.id && (
+                          <div className="mt-1.5 space-y-1">
+                            <input
+                              type="url"
+                              defaultValue={card.iosStoreUrl ?? ""}
+                              onBlur={e =>
+                                handleStoreLinkBlur(card, "iosStoreUrl", e.target.value)
+                              }
+                              placeholder="Link da loja iOS"
+                              className="h-6 w-full rounded border border-green-200 bg-white px-1.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-green-400"
+                            />
+                            <input
+                              type="url"
+                              defaultValue={card.androidStoreUrl ?? ""}
+                              onBlur={e =>
+                                handleStoreLinkBlur(card, "androidStoreUrl", e.target.value)
+                              }
+                              placeholder="Link da loja Android"
+                              className="h-6 w-full rounded border border-green-200 bg-white px-1.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-green-400"
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -648,42 +789,10 @@ export default function AppPersonalizado() {
               </button>
             </div>
             <div className="space-y-3">
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <p className="text-xs text-gray-500">Empresa</p>
-                <p className="text-sm font-semibold text-gray-800">
-                  {selectedCardData.companyName}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <p className="text-xs text-gray-500">CSM</p>
-                <p className="text-sm font-semibold text-gray-800">
-                  {selectedCardData.csm}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <p className="text-xs text-gray-500">Data de Início</p>
-                <p className="text-sm font-semibold text-gray-800">
-                  {formatDate(selectedCardData.startDate)}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <p className="text-xs text-gray-500">Etapa Atual</p>
-                <p className="text-sm font-semibold text-gray-800">
-                  {STAGE_LABELS[selectedCardData.stage] ||
-                    selectedCardData.stage}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <p className="text-xs text-gray-500">Dias Corridos</p>
-                <p className="text-sm font-semibold text-orange-600">
-                  {getDaysSince(selectedCardData.startDate)} dias
-                </p>
-              </div>
-
-              {/* Checklist */}
+              {/* Checklist de requisitos */}
               <div className="p-3 bg-gray-50 rounded border border-gray-200">
                 <p className="text-xs text-gray-500 mb-2">
-                  Checklist de Documentos
+                  Checklist de requisitos
                 </p>
                 <div className="space-y-2">
                   {CHECKLIST_ITEMS.map(item => (

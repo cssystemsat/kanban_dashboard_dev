@@ -13,6 +13,10 @@ const dbSource = readFileSync(
   new URL("./db.ts", import.meta.url),
   "utf8"
 );
+const schemaSource = readFileSync(
+  new URL("../drizzle/schema.ts", import.meta.url),
+  "utf8"
+);
 
 describe("atualização do App Kanban pela planilha", () => {
   it("exibe o botão e recarrega os cards após sincronizar", () => {
@@ -42,5 +46,38 @@ describe("atualização do App Kanban pela planilha", () => {
     expect(source).toContain("refetchInterval: 60_000");
     expect(dbSource).toContain('stage === "app_entregue" ? new Date() : null');
     expect(dbSource).toContain("isAppKanbanCardVisible(card)");
+  });
+
+  it("exibe somente os sete requisitos no modal Dados", () => {
+    expect(source).toContain("Checklist de requisitos");
+    for (const label of [
+      "Logomarca",
+      "Nome do app",
+      "Descrição Curta",
+      "Descrição Longa",
+      "Loja propria",
+      "Site da empresa",
+      "Política de privacidade",
+    ]) {
+      expect(source).toContain(label);
+    }
+    expect(routerSource).toContain("nomeApp: z.boolean().optional()");
+    expect(routerSource).toContain("lojaPropria: z.boolean().optional()");
+    expect(routerSource).toContain("siteEmpresa: z.boolean().optional()");
+  });
+
+  it("persiste os checks de iOS/Android e os links no App entregue", () => {
+    expect(source).toContain('stage.id === "teste_liberacao"');
+    expect(source).toContain('stage.id === "app_entregue"');
+    expect(source).toContain('"iosRejected", "iOS"');
+    expect(source).toContain('"androidRejected", "Android"');
+    expect(source).toContain("Link2");
+    expect(source).toContain("iosStoreUrl");
+    expect(source).toContain("androidStoreUrl");
+    expect(routerSource).toContain("updateReleaseDetails");
+    expect(schemaSource).toContain('iosRejected: boolean("iosRejected")');
+    expect(schemaSource).toContain('androidRejected: boolean("androidRejected")');
+    expect(schemaSource).toContain('iosStoreUrl: varchar("iosStoreUrl"');
+    expect(schemaSource).toContain('androidStoreUrl: varchar("androidStoreUrl"');
   });
 });

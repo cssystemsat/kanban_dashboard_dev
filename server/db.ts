@@ -1646,8 +1646,11 @@ export async function upsertAppKanbanChecklist(
   cardId: number,
   data: {
     logomarca?: boolean;
+    nomeApp?: boolean;
     descricaoCurta?: boolean;
     descricaoLonga?: boolean;
+    lojaPropria?: boolean;
+    siteEmpresa?: boolean;
     politicaPrivacidade?: boolean;
   }
 ) {
@@ -1671,8 +1674,11 @@ export async function upsertAppKanbanChecklist(
     await db.insert(appKanbanChecklist).values({
       cardId,
       logomarca: data.logomarca ?? false,
+      nomeApp: data.nomeApp ?? false,
       descricaoCurta: data.descricaoCurta ?? false,
       descricaoLonga: data.descricaoLonga ?? false,
+      lojaPropria: data.lojaPropria ?? false,
+      siteEmpresa: data.siteEmpresa ?? false,
       politicaPrivacidade: data.politicaPrivacidade ?? false,
     });
     const inserted = await db

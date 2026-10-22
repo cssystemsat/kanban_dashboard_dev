@@ -485,6 +485,10 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
   order: int("order").default(0).notNull(), // Para ordenação dentro de cada etapa
   priority: int("priority").default(0).notNull(), // Prioridade (1 até N) apenas para estágio "desenvolvimento"
   refusalReason: text("refusalReason"), // Motivo da recusa quando em "teste_liberacao"
+  iosRejected: boolean("iosRejected").default(false).notNull(),
+  androidRejected: boolean("androidRejected").default(false).notNull(),
+  iosStoreUrl: varchar("iosStoreUrl", { length: 1024 }),
+  androidStoreUrl: varchar("androidStoreUrl", { length: 1024 }),
   deliveredAt: timestamp("deliveredAt"), // Início da retenção de 7 dias em "App entregue"
   createdBy: varchar("createdBy", { length: 320 }).notNull(), // E-mail do admin que criou
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -628,8 +632,11 @@ export const appKanbanChecklist = mysqlTable("app_kanban_checklist", {
   id: int("id").autoincrement().primaryKey(),
   cardId: int("cardId").notNull(), // FK para app_kanban_cards
   logomarca: boolean("logomarca").default(false).notNull(),
+  nomeApp: boolean("nomeApp").default(false).notNull(),
   descricaoCurta: boolean("descricaoCurta").default(false).notNull(),
   descricaoLonga: boolean("descricaoLonga").default(false).notNull(),
+  lojaPropria: boolean("lojaPropria").default(false).notNull(),
+  siteEmpresa: boolean("siteEmpresa").default(false).notNull(),
   politicaPrivacidade: boolean("politicaPrivacidade").default(false).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
