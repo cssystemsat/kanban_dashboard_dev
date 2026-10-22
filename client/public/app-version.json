@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.2",
-  "changes": ["Agora é possível editar objetivos já cadastrados em Ferramentas, incluindo nome, subobjetivos e prazos, preservando conclusões dos subobjetivos mantidos."]
+  "appVersion": "14.3",
+  "changes": ["A aba Marcos agora possui filtro de Persona, lido da coluna Y e combinável com os demais filtros da tela."]
 }

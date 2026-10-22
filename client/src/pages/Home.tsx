@@ -94,6 +94,7 @@ export default function Home() {
   const [selectedComercial, setSelectedComercial] = useState<string | null>(
     null
   );
+  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   const [searchCliente, setSearchCliente] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ok" | "atrasado">(
     "all"
@@ -208,6 +209,9 @@ export default function Home() {
   if (selectedComercial) {
     filteredData = filterByCommercial(filteredData, selectedComercial);
   }
+  if (selectedPersona) {
+    filteredData = filteredData.filter(client => client.persona === selectedPersona);
+  }
   if (searchCliente.trim()) {
     filteredData = filteredData.filter(client =>
       client.nome.toLowerCase().includes(searchCliente.toLowerCase())
@@ -300,6 +304,11 @@ export default function Home() {
       selectedComercial
     );
   }
+  if (selectedPersona) {
+    baseDataForCounts = baseDataForCounts.filter(
+      client => client.persona === selectedPersona
+    );
+  }
   if (dateFilterStart && dateFilterEnd) {
     baseDataForCounts = baseDataForCounts.filter(client => {
       return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
@@ -331,6 +340,9 @@ export default function Home() {
     new Set(data.map(c => c.atendente).filter(Boolean))
   ).sort();
   const comerciais = listCommercials(data);
+  const personas = Array.from(
+    new Set(data.map(client => client.persona?.trim()).filter(Boolean))
+  ).sort((a, b) => a!.localeCompare(b!, "pt-BR")) as string[];
 
   // Ordenar clientes por data de entrada (mais antigos em cima)
   const sortedData = [...filteredData].sort((a, b) => {
@@ -385,6 +397,7 @@ export default function Home() {
     flagFilter ||
     selectedAtendente ||
     selectedComercial ||
+    selectedPersona ||
     percentualDesatualizadoFilter !== null ||
     diferencaActive ||
     topBoleto > 0 ||
@@ -441,6 +454,20 @@ export default function Home() {
                 {comerciais.map(comercial => (
                   <option key={comercial} value={comercial}>
                     {comercial}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedPersona || ""}
+                onChange={e => setSelectedPersona(e.target.value || null)}
+                className="h-7 px-2 rounded text-xs text-gray-700 bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                aria-label="Filtrar por Persona"
+              >
+                <option value="">Persona: Todas</option>
+                {personas.map(persona => (
+                  <option key={persona} value={persona}>
+                    {persona}
                   </option>
                 ))}
               </select>
@@ -619,6 +646,11 @@ export default function Home() {
           {selectedComercial && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
               Comercial: {selectedComercial}
+            </span>
+          )}
+          {selectedPersona && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Persona: {selectedPersona}
             </span>
           )}
           {percentualDesatualizadoFilter !== null && (
