@@ -42,10 +42,13 @@ describe("atualização do App Kanban pela planilha", () => {
     expect(routerSource).toContain("Apenas administradores podem criar cards");
   });
 
-  it("revalida o kanban para ocultar cards entregues após sete dias", () => {
+  it("revalida o kanban para ocultar cards após Chave Virada", () => {
     expect(source).toContain("refetchInterval: 60_000");
     expect(dbSource).toContain('stage === "app_entregue" ? new Date() : null');
     expect(dbSource).toContain("isAppKanbanCardVisible(card)");
+    expect(source).toContain("Chave Virada");
+    expect(source).toContain("formatKeyTurnedCountdown");
+    expect(routerSource).toContain("keyTurnedAt: input.keyTurned ? new Date() : null");
   });
 
   it("exibe somente os sete requisitos no modal Dados", () => {

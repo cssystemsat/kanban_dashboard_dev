@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.4",
-  "changes": ["O App Personalizado agora tem checklist de requisitos com sete itens e controles de iOS/Android e links das lojas no App entregue."]
+  "appVersion": "14.5",
+  "changes": ["No App entregue, o card permanece até Chave Virada ser marcada; depois exibe cronômetro de dois dias. O campo de recusa foi corrigido para não travar durante a digitação."]
 }

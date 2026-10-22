@@ -1657,6 +1657,7 @@ export const appRouter = router({
           androidRejected: z.boolean().optional(),
           iosStoreUrl: z.string().trim().max(1024).optional(),
           androidStoreUrl: z.string().trim().max(1024).optional(),
+          keyTurned: z.boolean().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -1681,6 +1682,12 @@ export const appRouter = router({
             : {}),
           ...(input.androidStoreUrl !== undefined
             ? { androidStoreUrl: input.androidStoreUrl || null }
+            : {}),
+          ...(input.keyTurned !== undefined
+            ? {
+                keyTurned: input.keyTurned,
+                keyTurnedAt: input.keyTurned ? new Date() : null,
+              }
             : {}),
         };
         await updateAppKanbanCard(cardId, data);

@@ -489,7 +489,9 @@ export const appKanbanCards = mysqlTable("app_kanban_cards", {
   androidRejected: boolean("androidRejected").default(false).notNull(),
   iosStoreUrl: varchar("iosStoreUrl", { length: 1024 }),
   androidStoreUrl: varchar("androidStoreUrl", { length: 1024 }),
-  deliveredAt: timestamp("deliveredAt"), // Início da retenção de 7 dias em "App entregue"
+  deliveredAt: timestamp("deliveredAt"), // Data histórica de entrada em "App entregue"
+  keyTurned: boolean("keyTurned").default(false).notNull(),
+  keyTurnedAt: timestamp("keyTurnedAt"),
   createdBy: varchar("createdBy", { length: 320 }).notNull(), // E-mail do admin que criou
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

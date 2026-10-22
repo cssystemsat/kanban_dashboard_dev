@@ -64,6 +64,8 @@ interface KanbanCard {
   androidRejected?: boolean;
   iosStoreUrl?: string | null;
   androidStoreUrl?: string | null;
+  keyTurned?: boolean;
+  keyTurnedAt?: string | Date | null;
 }
 
 interface HistoryEntry {
@@ -92,6 +94,25 @@ function getDaysSince(startDate: string | Date): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
+const KEY_TURNED_RETENTION_MS = 2 * 24 * 60 * 60 * 1000;
+
+function formatKeyTurnedCountdown(card: KanbanCard, nowMs: number) {
+  if (!card.keyTurned) return null;
+  const turnedAt = card.keyTurnedAt
+    ? new Date(card.keyTurnedAt).getTime()
+    : Number.NaN;
+  if (!Number.isFinite(turnedAt)) return "aguardando data";
+  const remaining = Math.max(
+    0,
+    KEY_TURNED_RETENTION_MS - (nowMs - turnedAt)
+  );
+  const totalMinutes = Math.ceil(remaining / 60_000);
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+  return `${days}d ${hours}h ${minutes}min`;
+}
+
 export default function AppPersonalizado() {
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,6 +122,7 @@ export default function AppPersonalizado() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
   const [storeLinksCardId, setStoreLinksCardId] = useState<number | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [selectedCardName, setSelectedCardName] = useState("");
   const [selectedCardData, setSelectedCardData] = useState<KanbanCard | null>(
@@ -122,6 +144,11 @@ export default function AppPersonalizado() {
     comercial: "",
     startDate: "",
   });
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const { data: user } = trpc.auth.me.useQuery();
   const { data: myPerms } = trpc.config.myPermissions.useQuery();
@@ -250,13 +277,21 @@ export default function AppPersonalizado() {
 
   const handleReleaseToggle = async (
     card: KanbanCard,
-    key: "iosRejected" | "androidRejected"
+    key: "iosRejected" | "androidRejected" | "keyTurned"
   ) => {
     if (!canEditChecklist) return;
     const value = !card[key];
+    const keyTurnedAt =
+      key === "keyTurned" ? (value ? new Date() : null) : card.keyTurnedAt;
     setCards(prev =>
       prev.map(current =>
-        current.id === card.id ? { ...current, [key]: value } : current
+        current.id === card.id
+          ? {
+              ...current,
+              [key]: value,
+              ...(key === "keyTurned" ? { keyTurnedAt } : {}),
+            }
+          : current
       )
     );
     try {
@@ -264,7 +299,15 @@ export default function AppPersonalizado() {
     } catch (error) {
       setCards(prev =>
         prev.map(current =>
-          current.id === card.id ? { ...current, [key]: !value } : current
+          current.id === card.id
+            ? {
+                ...current,
+                [key]: !value,
+                ...(key === "keyTurned"
+                  ? { keyTurnedAt: card.keyTurnedAt }
+                  : {}),
+              }
+            : current
         )
       );
       console.error("Erro ao atualizar status das lojas:", error);
@@ -640,16 +683,22 @@ export default function AppPersonalizado() {
                     {stage.id === "teste_liberacao" && isAdmin && (
                       <div className="mb-1.5">
                         <textarea
-                          value={card.refusalReason || ""}
-                          onChange={e => {
-                            const newReason = e.target.value;
+                          defaultValue={card.refusalReason || ""}
+                          onBlur={e => {
+                            const newReason = e.target.value.trim();
                             updateRefusalReason
                               .mutateAsync({
                                 cardId: card.id,
                                 refusalReason: newReason || undefined,
                               })
                               .then(() => {
-                                listCards.refetch();
+                                setCards(prev =>
+                                  prev.map(current =>
+                                    current.id === card.id
+                                      ? { ...current, refusalReason: newReason }
+                                      : current
+                                  )
+                                );
                               })
                               .catch(error => {
                                 console.error(
@@ -684,6 +733,21 @@ export default function AppPersonalizado() {
 
                     {stage.id === "app_entregue" && isAdmin && (
                       <div className="mb-1.5 rounded border border-green-200 bg-green-50 p-1.5">
+                        <label className="mb-1.5 flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-1.5 py-1 text-[10px] font-semibold text-amber-800">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(card.keyTurned)}
+                            onChange={() =>
+                              handleReleaseToggle(card, "keyTurned")
+                            }
+                          />
+                          Chave Virada
+                        </label>
+                        {card.keyTurned && (
+                          <p className="mb-1.5 rounded bg-white px-1.5 py-1 text-center text-[10px] font-semibold text-amber-700">
+                            Sai do painel em: {formatKeyTurnedCountdown(card, nowMs)}
+                          </p>
+                        )}
                         <div className="grid grid-cols-2 gap-1">
                           {([
                             ["iosRejected", "iOS"],

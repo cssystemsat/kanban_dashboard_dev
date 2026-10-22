@@ -1,40 +1,51 @@
 import { describe, expect, it } from "vitest";
 import {
-  APP_DELIVERED_RETENTION_MS,
+  KEY_TURNED_RETENTION_MS,
   isAppKanbanCardVisible,
 } from "./appKanbanRetention";
 
 const now = Date.parse("2026-10-20T12:00:00.000Z");
 
-function card(deliveredAt: string | null, updatedAt = "2026-10-20T11:00:00.000Z") {
+function card(
+  keyTurnedAt: string | null,
+  keyTurned = true,
+  updatedAt = "2026-10-20T11:00:00.000Z"
+) {
   return {
     stage: "app_entregue",
-    deliveredAt: deliveredAt ? new Date(deliveredAt) : null,
+    keyTurned,
+    keyTurnedAt: keyTurnedAt ? new Date(keyTurnedAt) : null,
     updatedAt: new Date(updatedAt),
   };
 }
 
-describe("retenção do App entregue", () => {
-  it("mantém o card durante os sete dias", () => {
+describe("retenção após Chave Virada", () => {
+  it("mantém o App entregue visível enquanto Chave Virada não foi marcada", () => {
+    expect(
+      isAppKanbanCardVisible(card("2026-10-13T12:00:00.000Z", false), now)
+    ).toBe(true);
+  });
+
+  it("mantém o card durante os dois dias após Chave Virada", () => {
     expect(
       isAppKanbanCardVisible(
-        card("2026-10-13T12:00:00.001Z"),
+        card(new Date(now - KEY_TURNED_RETENTION_MS + 1).toISOString()),
         now
       )
     ).toBe(true);
 
     expect(
       isAppKanbanCardVisible(
-        card("2026-10-13T12:00:00.000Z"),
+        card(new Date(now - KEY_TURNED_RETENTION_MS).toISOString()),
         now
       )
     ).toBe(false);
   });
 
-  it("oculta o card após sete dias completos", () => {
+  it("oculta o card após dois dias completos", () => {
     expect(
       isAppKanbanCardVisible(
-        card(new Date(now - APP_DELIVERED_RETENTION_MS - 1).toISOString()),
+        card(new Date(now - KEY_TURNED_RETENTION_MS - 1).toISOString()),
         now
       )
     ).toBe(false);
@@ -42,17 +53,14 @@ describe("retenção do App entregue", () => {
 
   it("não aplica retenção aos demais estágios", () => {
     expect(
-      isAppKanbanCardVisible(
-        { ...card("2026-09-01T12:00:00.000Z"), stage: "desenvolvimento" },
-        now
-      )
+      isAppKanbanCardVisible({ ...card("2026-09-01T12:00:00.000Z"), stage: "desenvolvimento" }, now)
     ).toBe(true);
   });
 
-  it("usa updatedAt para cards antigos sem deliveredAt", () => {
+  it("usa updatedAt como fallback para cards marcados sem data", () => {
     expect(
       isAppKanbanCardVisible(
-        card(null, "2026-10-13T12:00:00.000Z"),
+        card(null, true, "2026-10-13T12:00:00.000Z"),
         now
       )
     ).toBe(false);
