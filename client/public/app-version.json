@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.5",
-  "changes": ["No App entregue, o card permanece até Chave Virada ser marcada; depois exibe cronômetro de dois dias. O campo de recusa foi corrigido para não travar durante a digitação."]
+  "appVersion": "14.6",
+  "changes": ["Agora é possível editar CSM, Comercial e data de início nos cards do App Personalizado; o CSM do cadastro manual passou a ser um campo livre."]
 }

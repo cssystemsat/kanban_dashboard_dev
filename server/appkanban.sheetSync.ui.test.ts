@@ -42,6 +42,16 @@ describe("atualização do App Kanban pela planilha", () => {
     expect(routerSource).toContain("Apenas administradores podem criar cards");
   });
 
+  it("permite editar CSM, Comercial e data de início com CSM livre", () => {
+    expect(source).toContain('placeholder="CSM"');
+    expect(source).toContain("Editar informações");
+    expect(source).toContain("Salvar alterações");
+    expect(source).toContain("trpc.appKanban.updateInfo.useMutation");
+    expect(routerSource).toContain("updateInfo: protectedProcedure");
+    expect(routerSource).toContain("startDate: new Date(`${input.startDate}T00:00:00.000Z`)");
+    expect(routerSource).toContain("Apenas administradores podem editar informações dos cards");
+  });
+
   it("revalida o kanban para ocultar cards após Chave Virada", () => {
     expect(source).toContain("refetchInterval: 60_000");
     expect(dbSource).toContain('stage === "app_entregue" ? new Date() : null');

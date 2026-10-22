@@ -18,6 +18,7 @@ import {
   Square,
   RefreshCw,
   Link2,
+  Pencil,
 } from "lucide-react";
 
 const STAGES = [
@@ -59,7 +60,7 @@ interface KanbanCard {
   stage: string;
   order: number;
   priority?: number;
-  refusalReason?: string;
+  refusalReason?: string | null;
   iosRejected?: boolean;
   androidRejected?: boolean;
   iosStoreUrl?: string | null;
@@ -121,6 +122,7 @@ export default function AppPersonalizado() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [storeLinksCardId, setStoreLinksCardId] = useState<number | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
@@ -128,6 +130,12 @@ export default function AppPersonalizado() {
   const [selectedCardData, setSelectedCardData] = useState<KanbanCard | null>(
     null
   );
+  const [editingCard, setEditingCard] = useState<KanbanCard | null>(null);
+  const [editForm, setEditForm] = useState({
+    csm: "",
+    comercial: "",
+    startDate: "",
+  });
   const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
   const [checklistState, setChecklistState] = useState<ChecklistData>({
     logomarca: false,
@@ -166,6 +174,7 @@ export default function AppPersonalizado() {
   const updatePriority = trpc.appKanban.updatePriority.useMutation();
   const updateRefusalReason = trpc.appKanban.updateRefusalReason.useMutation();
   const updateReleaseDetails = trpc.appKanban.updateReleaseDetails.useMutation();
+  const updateCardInfo = trpc.appKanban.updateInfo.useMutation();
 
   // Query de histórico com cardId dinâmico
   const historyQuery = trpc.appKanban.history.useQuery(
@@ -426,6 +435,48 @@ export default function AppPersonalizado() {
     setShowDataModal(true);
   };
 
+  const handleShowEdit = (card: KanbanCard) => {
+    const startDate = new Date(card.startDate);
+    const inputDate = Number.isNaN(startDate.getTime())
+      ? ""
+      : startDate.toISOString().slice(0, 10);
+    setEditingCard(card);
+    setEditForm({
+      csm: card.csm || "",
+      comercial: card.comercial || "",
+      startDate: inputDate,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCard || !isAdmin) return;
+    if (!editForm.csm.trim() || !editForm.comercial.trim() || !editForm.startDate) {
+      alert("Preencha CSM, Comercial e data de início.");
+      return;
+    }
+    try {
+      const updated = await updateCardInfo.mutateAsync({
+        cardId: editingCard.id,
+        csm: editForm.csm.trim(),
+        comercial: editForm.comercial.trim(),
+        startDate: editForm.startDate,
+      });
+      setCards(prev =>
+        prev.map(card =>
+          card.id === editingCard.id
+            ? { ...card, ...updated }
+            : card
+        )
+      );
+      setShowEditModal(false);
+      setEditingCard(null);
+    } catch (error) {
+      console.error("Erro ao atualizar informações do card:", error);
+      alert("Não foi possível salvar as informações do card.");
+    }
+  };
+
   const getCardsByStage = (stageId: string) => {
     return cards.filter(card => {
       const matchesStage = card.stage === stageId;
@@ -489,22 +540,13 @@ export default function AppPersonalizado() {
                     setFormData({ ...formData, companyName: e.target.value })
                   }
                 />
-                <select
+                <Input
+                  placeholder="CSM"
                   value={formData.csm}
                   onChange={e =>
                     setFormData({ ...formData, csm: e.target.value })
                   }
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="">Selecione o CSM</option>
-                  <option value="João">João</option>
-                  <option value="Duda">Duda</option>
-                  <option value="Clarice">Clarice</option>
-                  <option value="Lucas">Lucas</option>
-                  <option value="Luis">Luis</option>
-                  <option value="Rafaela">Rafaela</option>
-                  <option value="Jeferson">Jeferson</option>
-                </select>
+                />
                 <select
                   value={formData.comercial}
                   onChange={e =>
@@ -805,6 +847,16 @@ export default function AppPersonalizado() {
 
                     {/* Buttons: Info + Dados */}
                     <div className="flex gap-1">
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleShowEdit(card)}
+                          className="flex items-center justify-center gap-1 h-5 px-2 text-[10px] text-orange-600 border border-orange-200 rounded hover:bg-orange-50 transition-colors"
+                          title="Editar informações"
+                        >
+                          <Pencil className="w-2.5 h-2.5" />
+                          Editar
+                        </button>
+                      )}
                       <button
                         onClick={() =>
                           handleShowHistory(card.id, card.companyName)
@@ -888,6 +940,76 @@ export default function AppPersonalizado() {
                   {CHECKLIST_ITEMS.length} concluídos
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editingCard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div className="absolute inset-0 bg-black/20" />
+          <div
+            className="relative w-[90vw] max-w-md rounded-lg border border-gray-300 bg-white p-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold">
+                Editar informações - {editingCard.companyName}
+              </h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-lg font-bold text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  CSM
+                </label>
+                <Input
+                  value={editForm.csm}
+                  onChange={e =>
+                    setEditForm(prev => ({ ...prev, csm: e.target.value }))
+                  }
+                  placeholder="Digite o CSM"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Comercial
+                </label>
+                <Input
+                  value={editForm.comercial}
+                  onChange={e =>
+                    setEditForm(prev => ({ ...prev, comercial: e.target.value }))
+                  }
+                  placeholder="Digite o Comercial"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Data de início
+                </label>
+                <Input
+                  type="date"
+                  value={editForm.startDate}
+                  onChange={e =>
+                    setEditForm(prev => ({ ...prev, startDate: e.target.value }))
+                  }
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={handleSaveEdit}
+                disabled={updateCardInfo.isPending}
+              >
+                {updateCardInfo.isPending ? "Salvando..." : "Salvar alterações"}
+              </Button>
             </div>
           </div>
         </div>

@@ -1699,6 +1699,38 @@ export const appRouter = router({
           .where(eq(appKanbanCards.id, cardId));
         return updated[0] ?? null;
       }),
+    updateInfo: protectedProcedure
+      .input(
+        z.object({
+          cardId: z.number(),
+          csm: z.string().trim().min(1).max(255),
+          comercial: z.string().trim().min(1).max(255),
+          startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.email) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+        if (!(ctx.user.role === "admin" || (await isEmailAdmin(ctx.user.email)))) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Apenas administradores podem editar informações dos cards",
+          });
+        }
+        await updateAppKanbanCard(input.cardId, {
+          csm: input.csm,
+          comercial: input.comercial,
+          startDate: new Date(`${input.startDate}T00:00:00.000Z`),
+        });
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const updated = await db
+          .select()
+          .from(appKanbanCards)
+          .where(eq(appKanbanCards.id, input.cardId));
+        return updated[0] ?? null;
+      }),
     updatePriority: protectedProcedure
       .input(
         z.object({
