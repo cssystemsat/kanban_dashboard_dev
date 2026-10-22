@@ -17,6 +17,8 @@ describe("central de Objetivos", () => {
     expect(pageSource).toContain('id: "objectives"');
     expect(pageSource).toContain("<ObjectivesPage />");
     expect(pageSource).toContain("Cadastrar objetivo");
+    expect(pageSource).toContain("Editar objetivo");
+    expect(pageSource).toContain("Salvar alterações");
   });
 
   it("permite múltiplos subobjetivos com prazo em dias", () => {
@@ -32,12 +34,20 @@ describe("central de Objetivos", () => {
     expect(schemaSource).toContain("deadlineDays");
     expect(dbSource).toContain("createObjectiveTemplate");
     expect(dbSource).toContain("getObjectiveTemplates");
+    expect(dbSource).toContain("updateObjectiveTemplate");
   });
 
   it("protege a listagem e o cadastro para administradores", () => {
     expect(routerSource).toContain("objectives: router({");
     expect(routerSource).toContain("getObjectiveTemplates()");
     expect(routerSource).toContain("createObjectiveTemplate(");
+    expect(routerSource).toContain("updateObjectiveTemplate(");
     expect(routerSource).toContain("await assertAdmin(ctx)");
+  });
+
+  it("edita objetivos sem recriar subobjetivos mantidos", () => {
+    expect(dbSource).toContain("incomingIds");
+    expect(dbSource).toContain("clientAssignedSubobjectiveCompletions");
+    expect(routerSource).toContain('id: z.number().int().positive().optional()');
   });
 });

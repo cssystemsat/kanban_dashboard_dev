@@ -34,6 +34,7 @@ import {
   revokeApiToken,
   getObjectiveTemplates,
   createObjectiveTemplate,
+  updateObjectiveTemplate,
   deleteObjectiveTemplate,
   getAvailableObjectiveTemplates,
   getClientObjectiveAssignments,
@@ -1086,6 +1087,31 @@ export const appRouter = router({
           input.subobjectives
         );
         return { id };
+      }),
+    update: allowlistedProcedure
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          name: z.string().trim().min(1).max(255),
+          subobjectives: z
+            .array(
+              z.object({
+                id: z.number().int().positive().optional(),
+                name: z.string().trim().min(1).max(255),
+                deadlineDays: z.number().int().min(0).max(3650),
+              })
+            )
+            .min(1),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await assertAdmin(ctx);
+        await updateObjectiveTemplate(
+          input.id,
+          { name: input.name },
+          input.subobjectives
+        );
+        return { success: true };
       }),
     delete: allowlistedProcedure
       .input(z.object({ id: z.number().int().positive() }))

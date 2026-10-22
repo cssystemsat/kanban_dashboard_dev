@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.1",
-  "changes": ["Marcos agora usa objetivos globais atribuídos por cliente, com subobjetivos e prazos cadastrados em Ferramentas; os KPIs de TTV do BI acompanham essa estrutura."]
+  "appVersion": "14.2",
+  "changes": ["Agora é possível editar objetivos já cadastrados em Ferramentas, incluindo nome, subobjetivos e prazos, preservando conclusões dos subobjetivos mantidos."]
 }

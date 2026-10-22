@@ -1029,8 +1029,19 @@ function AdminNoticesPage() {
 
 
 type ObjectiveDraftRow = {
+  id?: number;
   name: string;
   deadlineDays: string;
+};
+
+type ObjectiveTemplateView = {
+  id: number;
+  name: string;
+  subobjectives: Array<{
+    id: number;
+    name: string;
+    deadlineDays: number;
+  }>;
 };
 
 function ObjectivesPage() {
@@ -1040,19 +1051,35 @@ function ObjectivesPage() {
   const [rows, setRows] = useState<ObjectiveDraftRow[]>([
     { name: "", deadlineDays: "1" },
   ]);
+  const [editingObjective, setEditingObjective] =
+    useState<ObjectiveTemplateView | null>(null);
+
+  const resetForm = () => {
+    setEditingObjective(null);
+    setObjectiveName("");
+    setRows([{ name: "", deadlineDays: "1" }]);
+  };
 
   const createMutation = trpc.objectives.create.useMutation({
     onSuccess: async () => {
       await utils.objectives.list.invalidate();
-      setObjectiveName("");
-      setRows([{ name: "", deadlineDays: "1" }]);
+      resetForm();
       toast("Objetivo criado com sucesso.");
     },
     onError: error => toast("Erro ao criar objetivo: " + error.message),
   });
+  const updateMutation = trpc.objectives.update.useMutation({
+    onSuccess: async () => {
+      await utils.objectives.list.invalidate();
+      resetForm();
+      toast("Objetivo atualizado com sucesso.");
+    },
+    onError: error => toast("Erro ao atualizar objetivo: " + error.message),
+  });
   const deleteMutation = trpc.objectives.delete.useMutation({
     onSuccess: async () => {
       await utils.objectives.list.invalidate();
+      if (editingObjective) resetForm();
       toast("Objetivo removido.");
     },
     onError: error => toast("Erro ao remover objetivo: " + error.message),
@@ -1070,9 +1097,22 @@ function ObjectivesPage() {
     );
   };
 
+  const startEditing = (objective: ObjectiveTemplateView) => {
+    setEditingObjective(objective);
+    setObjectiveName(objective.name);
+    setRows(
+      objective.subobjectives.map(subobjective => ({
+        id: subobjective.id,
+        name: subobjective.name,
+        deadlineDays: String(subobjective.deadlineDays),
+      }))
+    );
+  };
+
   const submit = () => {
     const subobjectives = rows
       .map(row => ({
+        ...(row.id ? { id: row.id } : {}),
         name: row.name.trim(),
         deadlineDays: Number(row.deadlineDays),
       }))
@@ -1090,8 +1130,18 @@ function ObjectivesPage() {
       toast("Informe pelo menos um subobjetivo e prazos inteiros válidos.");
       return;
     }
-    createMutation.mutate({ name: objectiveName.trim(), subobjectives });
+    if (editingObjective) {
+      updateMutation.mutate({
+        id: editingObjective.id,
+        name: objectiveName.trim(),
+        subobjectives,
+      });
+    } else {
+      createMutation.mutate({ name: objectiveName.trim(), subobjectives });
+    }
   };
+
+  const saving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
@@ -1100,14 +1150,28 @@ function ObjectivesPage() {
           <Target className="h-5 w-5 text-indigo-600" /> Objetivos
         </h2>
         <p className="mt-1 max-w-3xl text-sm text-gray-500">
-          Cadastre um objetivo global e defina cada subobjetivo com seu prazo em
-          dias. Esta estrutura ficará disponível para as próximas automações.
+            Cadastre ou edite um objetivo global e defina cada subobjetivo com seu
+            prazo em dias. As edições preservam as conclusões dos subobjetivos
+            mantidos.
         </p>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
         <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: "#E0E8F0" }}>
-          <h3 className="mb-4 font-semibold text-gray-800">Novo objetivo</h3>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="font-semibold text-gray-800">
+              {editingObjective ? "Editar objetivo" : "Novo objetivo"}
+            </h3>
+            {editingObjective && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-800"
+              >
+                Cancelar edição
+              </button>
+            )}
+          </div>
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
               Objetivo global
@@ -1170,11 +1234,11 @@ function ObjectivesPage() {
             <Button
               type="button"
               onClick={submit}
-              disabled={createMutation.isPending}
+              disabled={saving}
               className="w-full gap-2 bg-[#001F3F] text-white hover:bg-[#0b3157]"
             >
-              <Plus className="h-4 w-4" />
-              {createMutation.isPending ? "Salvando..." : "Cadastrar objetivo"}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : editingObjective ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              {saving ? "Salvando..." : editingObjective ? "Salvar alterações" : "Cadastrar objetivo"}
             </Button>
           </div>
         </div>
@@ -1197,14 +1261,24 @@ function ObjectivesPage() {
                       {objective.subobjectives.length} subobjetivo(s)
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => deleteMutation.mutate({ id: objective.id })}
-                    className="rounded p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                    aria-label={`Remover objetivo ${objective.name}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => startEditing(objective)}
+                      className="rounded p-2 text-gray-400 hover:bg-indigo-50 hover:text-indigo-700"
+                      aria-label={`Editar objetivo ${objective.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteMutation.mutate({ id: objective.id })}
+                      className="rounded p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                      aria-label={`Remover objetivo ${objective.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-3 space-y-2">
                   {objective.subobjectives.map(subobjective => (

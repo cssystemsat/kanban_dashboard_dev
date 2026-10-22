@@ -330,6 +330,77 @@ export async function createObjectiveTemplate(
   return objectiveId;
 }
 
+export async function updateObjectiveTemplate(
+  id: number,
+  data: { name: string },
+  subobjectives: Array<{
+    id?: number;
+    name: string;
+    deadlineDays: number;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  await db.transaction(async tx => {
+    await tx
+      .update(objectiveTemplates)
+      .set({ name: data.name })
+      .where(eq(objectiveTemplates.id, id));
+
+    const existing = await tx
+      .select()
+      .from(objectiveTemplateSubobjectives)
+      .where(eq(objectiveTemplateSubobjectives.objectiveId, id));
+    const incomingIds = new Set(
+      subobjectives.flatMap(subobjective =>
+        subobjective.id ? [subobjective.id] : []
+      )
+    );
+
+    for (const current of existing) {
+      if (!incomingIds.has(current.id)) {
+        await tx
+          .delete(clientAssignedSubobjectiveCompletions)
+          .where(
+            and(
+              eq(clientAssignedSubobjectiveCompletions.objectiveId, id),
+              eq(clientAssignedSubobjectiveCompletions.subobjectiveId, current.id)
+            )
+          );
+        await tx
+          .delete(objectiveTemplateSubobjectives)
+          .where(eq(objectiveTemplateSubobjectives.id, current.id));
+      }
+    }
+
+    for (const [sortOrder, subobjective] of subobjectives.entries()) {
+      if (subobjective.id && existing.some(item => item.id === subobjective.id)) {
+        await tx
+          .update(objectiveTemplateSubobjectives)
+          .set({
+            name: subobjective.name,
+            deadlineDays: subobjective.deadlineDays,
+            sortOrder,
+          })
+          .where(
+            and(
+              eq(objectiveTemplateSubobjectives.id, subobjective.id),
+              eq(objectiveTemplateSubobjectives.objectiveId, id)
+            )
+          );
+      } else {
+        await tx.insert(objectiveTemplateSubobjectives).values({
+          objectiveId: id,
+          name: subobjective.name,
+          deadlineDays: subobjective.deadlineDays,
+          sortOrder,
+        });
+      }
+    }
+  });
+}
+
 export async function deleteObjectiveTemplate(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
