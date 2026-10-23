@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.6",
-  "changes": ["Agora é possível editar CSM, Comercial e data de início nos cards do App Personalizado; o CSM do cadastro manual passou a ser um campo livre."]
+  "appVersion": "14.7",
+  "changes": ["Corrigido o filtro da aba Marcos para clientes que entraram entre duas datas, com comparação por dia e sem deslocamento de fuso."]
 }

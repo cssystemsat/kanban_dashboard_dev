@@ -11,6 +11,8 @@ describe("Filtro de data da aba Marcos", () => {
     expect(parseMarcosDate("23/09/2026")?.getFullYear()).toBe(2026);
     expect(parseMarcosDate("23/09/2026")?.getMonth()).toBe(8);
     expect(parseMarcosDate("2026-09-23")?.getDate()).toBe(23);
+    expect(parseMarcosDate("23-09-2026")?.getDate()).toBe(23);
+    expect(parseMarcosDate("2026-09-23T12:00:00Z")?.getDate()).toBe(23);
   });
 
   it("inclui o dia final selecionado no período", () => {
@@ -18,6 +20,15 @@ describe("Filtro de data da aba Marcos", () => {
     const end = new Date(2026, 8, 23);
     expect(isMarcosDateInRange("23/09/2026", start, end)).toBe(true);
     expect(isMarcosDateInRange("22/09/2026", start, end)).toBe(false);
+  });
+
+  it("aceita somente um dos limites quando o filtro está parcialmente preenchido", () => {
+    const start = new Date(2026, 8, 23);
+    const end = new Date(2026, 8, 23);
+    expect(isMarcosDateInRange("24/09/2026", start, null)).toBe(true);
+    expect(isMarcosDateInRange("22/09/2026", start, null)).toBe(false);
+    expect(isMarcosDateInRange("22/09/2026", null, end)).toBe(true);
+    expect(isMarcosDateInRange("24/09/2026", null, end)).toBe(false);
   });
 
   it("mantém os presets de contrato como filtro aberto no início", () => {

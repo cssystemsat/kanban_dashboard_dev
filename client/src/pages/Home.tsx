@@ -222,7 +222,7 @@ export default function Home() {
       client => client.marcoStatus === statusFilter
     );
   }
-  if (dateFilterStart && dateFilterEnd) {
+  if (dateFilterStart || dateFilterEnd) {
     filteredData = filteredData.filter(client => {
       return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
     });
@@ -309,7 +309,7 @@ export default function Home() {
       client => client.persona === selectedPersona
     );
   }
-  if (dateFilterStart && dateFilterEnd) {
+  if (dateFilterStart || dateFilterEnd) {
     baseDataForCounts = baseDataForCounts.filter(client => {
       return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
     });
