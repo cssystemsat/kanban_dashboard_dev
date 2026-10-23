@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Milestone, RefreshCw, UserRound } from "lucide-react";
+import { Check, Loader2, Milestone, RefreshCw, UserRound } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { clearSheetsCache } from "@/lib/sheetsCache";
-import { parseTimelineCsvRows } from "@/lib/timelineCsv";
+import {
+  parseTimelineClientEntries,
+  parseTimelineCsvRows,
+} from "@/lib/timelineCsv";
 
 const FRICCOES_GID = 594161358;
 
@@ -105,6 +108,7 @@ export default function Timeline({
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const [openEventKey, setOpenEventKey] = useState<string | null>(null);
+  const [objectiveDraft, setObjectiveDraft] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(() => Date.now());
 
@@ -120,22 +124,52 @@ export default function Timeline({
       refetchOnWindowFocus: true,
     }
   );
+  const clientsQuery = trpc.sheets.csv.useQuery(
+    { source: "primary", gid: 0, refreshKey: String(refreshNonce) },
+    {
+      staleTime: 0,
+      refetchOnMount: "always",
+      refetchOnWindowFocus: true,
+    }
+  );
+  const timelineDetailQuery = trpc.timeline.detail.useQuery(
+    { clientName: selectedClientId || "_" },
+    { enabled: Boolean(selectedClientId), staleTime: 0 }
+  );
+  const saveObjectiveMutation = trpc.timeline.saveObjective.useMutation({
+    onSuccess: () => void timelineDetailQuery.refetch(),
+  });
   const timelineClients = useMemo(() => {
     const csv = frictionQuery.data?.csv;
-    if (!csv) return [];
     const clientsByKey = new Map<string, string>();
-    for (const row of parseTimelineCsvRows(csv)) {
+    for (const row of parseTimelineCsvRows(csv ?? "")) {
+      const key = normalizeClientName(row.client);
+      if (!clientsByKey.has(key)) clientsByKey.set(key, row.client);
+    }
+    for (const row of parseTimelineClientEntries(clientsQuery.data?.csv ?? "")) {
       const key = normalizeClientName(row.client);
       if (!clientsByKey.has(key)) clientsByKey.set(key, row.client);
     }
     return [...clientsByKey.values()].sort((first, second) =>
       first.localeCompare(second, "pt-BR", { sensitivity: "base" })
     );
-  }, [frictionQuery.data?.csv]);
+  }, [clientsQuery.data?.csv, frictionQuery.data?.csv]);
   const selectedClient = timelineClients.find(
     client =>
       normalizeClientName(client) === normalizeClientName(selectedClientId)
   );
+  const selectedEntryDate = useMemo(() => {
+    if (!selectedClient) return "";
+    return (
+      parseTimelineClientEntries(clientsQuery.data?.csv ?? "").find(
+        row => normalizeClientName(row.client) === normalizeClientName(selectedClient)
+      )?.entryDate ?? ""
+    );
+  }, [clientsQuery.data?.csv, selectedClient]);
+
+  useEffect(() => {
+    setObjectiveDraft(timelineDetailQuery.data?.objective ?? "");
+  }, [selectedClient, timelineDetailQuery.data?.objective]);
 
   useEffect(() => {
     if (isRefreshing && !frictionQuery.isFetching) {
@@ -149,6 +183,14 @@ export default function Timeline({
     setOpenEventKey(null);
     clearSheetsCache();
     setRefreshNonce(Date.now());
+  };
+
+  const saveObjective = () => {
+    if (!selectedClient) return;
+    saveObjectiveMutation.mutate({
+      clientName: selectedClient,
+      objective: objectiveDraft,
+    });
   };
 
   const eventsByDay = useMemo(() => {
@@ -192,6 +234,8 @@ export default function Timeline({
     });
     return chunkEvents(flatEvents, 5);
   }, [eventsByDay]);
+  const timelineRows =
+    eventRows.length > 0 || !selectedEntryDate ? eventRows : [[]];
 
   return (
     <main
@@ -339,9 +383,10 @@ export default function Timeline({
                 Não foi possível carregar os acontecimentos deste cliente.
               </p>
             )}
-            {!frictionQuery.isLoading &&
+              {!frictionQuery.isLoading &&
               !frictionQuery.error &&
-              eventRows.length === 0 && (
+              eventRows.length === 0 &&
+              !selectedEntryDate && (
                 <p className="rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 py-8 text-center text-sm text-[#6B7280]">
                   {selectedTag
                     ? `Nenhum acontecimento com a Tag “${selectedTag}” para este cliente.`
@@ -350,9 +395,9 @@ export default function Timeline({
               )}
             {!frictionQuery.isLoading &&
               !frictionQuery.error &&
-              eventRows.length > 0 && (
+              timelineRows.length > 0 && (
                 <div className="space-y-0 overflow-visible pb-2">
-                  {eventRows.map((row, rowIndex) => {
+                  {timelineRows.map((row, rowIndex) => {
                     const isReversed = rowIndex % 2 === 1;
                     const displayRow = row;
                     const nextRow = eventRows[rowIndex + 1];
@@ -366,15 +411,50 @@ export default function Timeline({
                         className="relative min-h-[164px] px-1 py-3 sm:px-3"
                       >
                         {rowIndex === 0 && (
-                          <div className="absolute left-0 top-[38px] z-20 hidden -translate-x-1/4 flex-col items-center gap-1 xl:flex">
+                          <div className="absolute left-0 top-[8px] z-20 hidden -translate-x-1/4 flex-col items-center gap-1 xl:flex">
+                            {selectedEntryDate && (
+                              <span className="text-[10px] font-bold text-[#536784]">
+                                {selectedEntryDate}
+                              </span>
+                            )}
                             <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#536784]">
                               Início
                             </span>
-                            <span className="h-4 w-4 rounded-full border-4 border-white bg-[#F4B942] shadow-[0_0_0_3px_#FDECC2,0_2px_5px_rgba(16,42,114,0.15)]" />
+                            <button
+                              type="button"
+                              aria-label="Ver ou editar objetivo do cliente"
+                              onClick={() =>
+                                setOpenEventKey(current =>
+                                  current === "timeline-start" ? null : "timeline-start"
+                                )
+                              }
+                              className="h-4 w-4 cursor-pointer rounded-full border-4 border-white bg-[#F4B942] shadow-[0_0_0_3px_#FDECC2,0_2px_5px_rgba(16,42,114,0.15)] transition hover:scale-125 focus:outline-none focus:ring-2 focus:ring-[#F4B942]"
+                            />
+                            {openEventKey === "timeline-start" && (
+                              <div className="absolute left-6 top-0 z-30 w-[260px] rounded-xl border border-[#CBD5E1] bg-[#102A72] p-3 text-left text-[11px] text-white shadow-xl">
+                                <p className="mb-2 text-xs font-bold">Objetivo do cliente</p>
+                                <textarea
+                                  value={objectiveDraft}
+                                  onChange={event => setObjectiveDraft(event.target.value)}
+                                  placeholder="Digite o objetivo do cliente"
+                                  rows={3}
+                                  className="w-full resize-y rounded-lg border border-white/20 bg-white px-2 py-1.5 text-xs text-[#102A72] outline-none focus:ring-2 focus:ring-[#F4B942]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={saveObjective}
+                                  disabled={saveObjectiveMutation.isPending}
+                                  className="mt-2 inline-flex items-center gap-1 rounded-lg bg-[#F4B942] px-2.5 py-1.5 text-xs font-bold text-[#102A72] disabled:opacity-60"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  {saveObjectiveMutation.isPending ? "Salvando..." : "Salvar objetivo"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                         <div className="absolute left-6 right-6 top-[58px] hidden h-[5px] rounded-full bg-gradient-to-r from-[#D7E2F0] via-[#C7D7EA] to-[#D7E2F0] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] xl:block" />
-                        {rowIndex < eventRows.length - 1 && (
+                        {rowIndex < timelineRows.length - 1 && (
                           <>
                             {/* A etiqueta abaixo substitui o antigo ponto de ancoragem top-[104px]. */}
                             <div

@@ -19,6 +19,7 @@ import {
   clientComments,
   clientCommentHistory,
   InsertClientComment,
+  timelineClientDetails,
   appKanbanCards,
   appKanbanNewClientAcknowledgments,
   appKanbanHistory,
@@ -1331,6 +1332,46 @@ export async function deleteClientComment(
       )
     );
   return true;
+}
+
+// ─── Timeline: objetivo inicial do cliente ───
+
+export async function getTimelineClientDetail(clientName: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(timelineClientDetails)
+    .where(eq(timelineClientDetails.clientName, clientName))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertTimelineClientDetail(data: {
+  clientName: string;
+  objective: string;
+  updatedBy?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db
+    .select()
+    .from(timelineClientDetails)
+    .where(eq(timelineClientDetails.clientName, data.clientName))
+    .limit(1);
+  if (existing[0]) {
+    await db
+      .update(timelineClientDetails)
+      .set({ objective: data.objective, updatedBy: data.updatedBy ?? null })
+      .where(eq(timelineClientDetails.id, existing[0].id));
+    return { ...existing[0], objective: data.objective, updatedBy: data.updatedBy ?? null };
+  }
+  const result = await db.insert(timelineClientDetails).values({
+    clientName: data.clientName,
+    objective: data.objective,
+    updatedBy: data.updatedBy ?? null,
+  });
+  return { id: result[0].insertId, ...data };
 }
 
 // ─── App Kanban Cards ───

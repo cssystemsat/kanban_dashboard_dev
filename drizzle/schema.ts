@@ -379,6 +379,22 @@ export const clientComments = mysqlTable("client_comments", {
 export type ClientComment = typeof clientComments.$inferSelect;
 export type InsertClientComment = typeof clientComments.$inferInsert;
 
+// Metadados compartilhados do início da Timeline por cliente.
+export const timelineClientDetails = mysqlTable(
+  "timeline_client_details",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientName: varchar("clientName", { length: 255 }).notNull().unique(),
+    objective: text("objective").notNull(),
+    updatedBy: varchar("updatedBy", { length: 320 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  }
+);
+
+export type TimelineClientDetail = typeof timelineClientDetails.$inferSelect;
+export type InsertTimelineClientDetail = typeof timelineClientDetails.$inferInsert;
+
 // Histórico imutável de cada comentário/edição usado pelo relatório de Evolução de URs
 export const clientCommentHistory = mysqlTable(
   "client_comment_history",

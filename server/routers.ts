@@ -69,6 +69,8 @@ import {
   getClientsWithComments,
   upsertClientComment,
   deleteClientComment,
+  getTimelineClientDetail,
+  upsertTimelineClientDetail,
   getAppKanbanCards,
   getAppKanbanCardsByStage,
   createAppKanbanCard,
@@ -1441,6 +1443,25 @@ export const appRouter = router({
           name: ctx.user.name ?? undefined,
         });
       }),
+  }),
+  timeline: router({
+    detail: protectedProcedure
+      .input(z.object({ clientName: z.string().trim().min(1) }))
+      .query(async ({ input }) => getTimelineClientDetail(input.clientName)),
+    saveObjective: protectedProcedure
+      .input(
+        z.object({
+          clientName: z.string().trim().min(1),
+          objective: z.string().trim().max(2000),
+        })
+      )
+      .mutation(async ({ input, ctx }) =>
+        upsertTimelineClientDetail({
+          clientName: input.clientName,
+          objective: input.objective,
+          updatedBy: ctx.user.email ?? ctx.user.name ?? undefined,
+        })
+      ),
   }),
   problemas: router({
     list: protectedProcedure.query(async () => getProblemasCards()),

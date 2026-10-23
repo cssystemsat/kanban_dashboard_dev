@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.8",
-  "changes": ["Corrigido o filtro Entrada De/Até da aba Marcos: agora ele mostra somente os clientes cuja data de entrada está dentro do período selecionado."]
+  "appVersion": "14.9",
+  "changes": ["A Timeline agora começa na data de entrada do cliente e permite cadastrar ou editar o objetivo diretamente na bolinha amarela inicial."]
 }

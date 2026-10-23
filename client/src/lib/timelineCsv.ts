@@ -12,6 +12,11 @@ export type TimelineCsvRow = {
   event: TimelineCsvEvent;
 };
 
+export type TimelineClientEntry = {
+  client: string;
+  entryDate: string;
+};
+
 /**
  * Faz o parse de CSV respeitando aspas, vírgulas e quebras de linha dentro de
  * uma célula. A API do Google Sheets envolve a descrição multiline em aspas,
@@ -76,4 +81,12 @@ export function parseTimelineCsvRows(csv: string): TimelineCsvRow[] {
         csm: row[6]?.trim() || "Não informado",
       },
     }));
+}
+
+/** Coluna B = cliente; coluna D = data de entrada na aba Marcos. */
+export function parseTimelineClientEntries(csv: string): TimelineClientEntry[] {
+  return parseTimelineCsvRecords(csv)
+    .slice(1)
+    .filter(row => Boolean(row[1]?.trim() && row[3]?.trim()))
+    .map(row => ({ client: row[1].trim(), entryDate: row[3].trim() }));
 }

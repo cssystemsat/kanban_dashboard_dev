@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseTimelineCsvRows } from "../client/src/lib/timelineCsv";
+import {
+  parseTimelineClientEntries,
+  parseTimelineCsvRows,
+} from "../client/src/lib/timelineCsv";
 
 const sideMenuSource = readFileSync(
   resolve(process.cwd(), "client/src/components/SideMenu.tsx"),
@@ -59,6 +62,13 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("break-words");
   });
 
+  it("lê a data de entrada da aba Marcos pelo cliente", () => {
+    const csv = "Código,Cliente,CSM,Data de entrada\n001,Orionsat,Ana,05/10/2026";
+    expect(parseTimelineClientEntries(csv)).toEqual([
+      { client: "Orionsat", entryDate: "05/10/2026" },
+    ]);
+  });
+
   it("expõe refresh manual sem perder cliente ou filtro", () => {
     expect(timelineSource).toContain('title="Atualizar dados da planilha"');
     expect(timelineSource).toContain('"Atualizando..."');
@@ -105,6 +115,11 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain("top-[104px]");
     expect(timelineSource).toContain("event.description");
     expect(timelineSource).toContain("event.csm");
+    expect(timelineSource).toContain("parseTimelineClientEntries");
+    expect(timelineSource).toContain("selectedEntryDate");
+    expect(timelineSource).toContain('aria-label="Ver ou editar objetivo do cliente"');
+    expect(timelineSource).toContain("timeline.saveObjective");
+    expect(timelineSource).toContain("Objetivo do cliente");
     expect(timelineSource).toContain("tabIndex={0}");
     expect(timelineSource).toContain("openEventKey");
     expect(timelineSource).toContain("aria-expanded={isOpen}");
