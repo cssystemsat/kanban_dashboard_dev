@@ -45,4 +45,16 @@ describe("Filtro de data da aba Marcos", () => {
     expect(source).toContain("createPortal");
     expect(source).toContain("fixed right-2 top-12");
   });
+
+  it("conecta o filtro De/Até do cabeçalho à data de entrada do kanban", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "client/src/pages/Home.tsx"),
+      "utf8"
+    );
+    expect(source).toContain("parseMarcosDate(marcosTrendStartDate)");
+    expect(source).toContain("parseMarcosDate(marcosTrendEndDate)");
+    expect(source).toContain(
+      "isMarcosDateInRange(client.entrada, trendStartDate, trendEndDate)"
+    );
+  });
 });

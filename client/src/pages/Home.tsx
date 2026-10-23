@@ -180,11 +180,11 @@ export default function Home() {
     [data]
   );
   const trendStartDate = useMemo(
-    () => (marcosTrendStartDate ? new Date(marcosTrendStartDate) : null),
+    () => parseMarcosDate(marcosTrendStartDate),
     [marcosTrendStartDate]
   );
   const trendEndDate = useMemo(
-    () => (marcosTrendEndDate ? new Date(marcosTrendEndDate) : null),
+    () => parseMarcosDate(marcosTrendEndDate),
     [marcosTrendEndDate]
   );
   const { trends: allTrends } = useMultipleURsTrends(
@@ -226,6 +226,13 @@ export default function Home() {
     filteredData = filteredData.filter(client => {
       return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
     });
+  }
+  // O filtro De/Até destacado no cabeçalho é o filtro de entrada dos clientes.
+  // Ele também alimenta o gráfico de URs, mas precisa restringir o kanban.
+  if (trendStartDate || trendEndDate) {
+    filteredData = filteredData.filter(client =>
+      isMarcosDateInRange(client.entrada, trendStartDate, trendEndDate)
+    );
   }
   if (percentualDesatualizadoFilter !== null) {
     filteredData = filteredData.filter(
@@ -314,6 +321,11 @@ export default function Home() {
       return isMarcosDateInRange(client.entrada, dateFilterStart, dateFilterEnd);
     });
   }
+  if (trendStartDate || trendEndDate) {
+    baseDataForCounts = baseDataForCounts.filter(client =>
+      isMarcosDateInRange(client.entrada, trendStartDate, trendEndDate)
+    );
+  }
 
   // Contagem por nível de flag
   const flagCounts: Record<FlagLevel, number> = {
@@ -392,6 +404,8 @@ export default function Home() {
   const hasActiveFilter = !!(
     dateFilterStart ||
     dateFilterEnd ||
+    marcosTrendStartDate ||
+    marcosTrendEndDate ||
     searchCliente ||
     statusFilter !== "all" ||
     flagFilter ||
@@ -546,8 +560,8 @@ export default function Home() {
               {/* Filtro de Tendência */}
               <div className="flex items-center gap-1 whitespace-nowrap">
                 <div className="flex items-center gap-0.5">
-                  <label className="text-[9px] font-semibold text-gray-300">
-                    De
+                    <label className="text-[9px] font-semibold text-gray-300">
+                    Entrada De
                   </label>
                   <input
                     type="date"
@@ -558,7 +572,7 @@ export default function Home() {
                   />
                 </div>
                 <div className="flex items-center gap-0.5">
-                  <label className="text-[9px] font-semibold text-gray-300">
+                    <label className="text-[9px] font-semibold text-gray-300">
                     Até
                   </label>
                   <input
@@ -621,6 +635,11 @@ export default function Home() {
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
               Data: {dateFilterStart.toLocaleDateString("pt-BR")} -{" "}
               {dateFilterEnd.toLocaleDateString("pt-BR")}
+            </span>
+          )}
+          {(marcosTrendStartDate || marcosTrendEndDate) && (
+            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+              Entrada: {marcosTrendStartDate || "início"} - {marcosTrendEndDate || "hoje"}
             </span>
           )}
           {searchCliente && (

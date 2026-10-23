@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.7",
-  "changes": ["Corrigido o filtro da aba Marcos para clientes que entraram entre duas datas, com comparação por dia e sem deslocamento de fuso."]
+  "appVersion": "14.8",
+  "changes": ["Corrigido o filtro Entrada De/Até da aba Marcos: agora ele mostra somente os clientes cuja data de entrada está dentro do período selecionado."]
 }
