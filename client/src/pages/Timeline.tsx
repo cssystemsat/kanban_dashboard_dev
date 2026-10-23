@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Loader2, Milestone, RefreshCw, UserRound } from "lucide-react";
+import {
+  Check,
+  Loader2,
+  Milestone,
+  Plus,
+  RefreshCw,
+  UserRound,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { clearSheetsCache } from "@/lib/sheetsCache";
+import FriccaoModal from "@/components/FriccaoModal";
 import {
   parseTimelineClientEntries,
   parseTimelineCsvRows,
@@ -109,6 +117,7 @@ export default function Timeline({
   const [selectedTag, setSelectedTag] = useState("");
   const [openEventKey, setOpenEventKey] = useState<string | null>(null);
   const [objectiveDraft, setObjectiveDraft] = useState("");
+  const [showEventModal, setShowEventModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(() => Date.now());
 
@@ -269,6 +278,18 @@ export default function Timeline({
               />
               {isRefreshing ? "Atualizando..." : "Atualizar"}
             </button>
+            {selectedClient && (
+              <button
+                type="button"
+                onClick={() => setShowEventModal(true)}
+                title="Registrar acontecimento para este cliente"
+                aria-label="Adicionar acontecimento"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#102A72] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0B1F58]"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Acontecimento</span>
+              </button>
+            )}
             <div className="w-full lg:max-w-md">
               <label htmlFor="timeline-client" className="sr-only">
                 Cliente
@@ -579,6 +600,16 @@ export default function Timeline({
           </div>
         )}
       </section>
+      {showEventModal && selectedClient && (
+        <FriccaoModal
+          client={{ nome: selectedClient }}
+          onClose={() => setShowEventModal(false)}
+          onSaved={() => {
+            clearSheetsCache();
+            setRefreshNonce(Date.now());
+          }}
+        />
+      )}
     </main>
   );
 }

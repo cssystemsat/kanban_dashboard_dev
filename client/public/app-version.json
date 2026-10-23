@@ -1,4 +1,4 @@
 {
-  "appVersion": "14.9",
-  "changes": ["A Timeline agora começa na data de entrada do cliente e permite cadastrar ou editar o objetivo diretamente na bolinha amarela inicial."]
+  "appVersion": "15.0",
+  "changes": ["A Timeline agora possui um botão de adicionar acontecimento para o cliente selecionado, usando a mesma tela de registro disponível em Marcos."]
 }

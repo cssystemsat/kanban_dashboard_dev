@@ -5,8 +5,9 @@ import { ClientData } from "@/hooks/useKanbanData";
 import { trpc } from "@/lib/trpc";
 
 interface FriccaoModalProps {
-  client: ClientData;
+  client: Pick<ClientData, "nome">;
   onClose: () => void;
+  onSaved?: () => void;
 }
 
 const SETORES = [
@@ -52,7 +53,7 @@ const INITIAL_FORM: FriccaoForm = {
   descricao: "",
 };
 
-export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
+export default function FriccaoModal({ client, onClose, onSaved }: FriccaoModalProps) {
   const [form, setForm] = useState(INITIAL_FORM);
   const { data: permission, isLoading: permissionLoading } =
     trpc.atendimento.checkPermission.useQuery();
@@ -61,6 +62,7 @@ export default function FriccaoModal({ client, onClose }: FriccaoModalProps) {
       toast.success(
         `Acontecimento registrado na linha ${data.row} da planilha!`
       );
+      onSaved?.();
       onClose();
     },
     onError: error =>

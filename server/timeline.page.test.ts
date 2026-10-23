@@ -120,6 +120,9 @@ describe("aba Timeline", () => {
     expect(timelineSource).toContain('aria-label="Ver ou editar objetivo do cliente"');
     expect(timelineSource).toContain("timeline.saveObjective");
     expect(timelineSource).toContain("Objetivo do cliente");
+    expect(timelineSource).toContain('aria-label="Adicionar acontecimento"');
+    expect(timelineSource).toContain('import FriccaoModal from "@/components/FriccaoModal"');
+    expect(timelineSource).toContain("onSaved={() =>");
     expect(timelineSource).toContain("tabIndex={0}");
     expect(timelineSource).toContain("openEventKey");
     expect(timelineSource).toContain("aria-expanded={isOpen}");
