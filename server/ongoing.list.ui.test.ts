@@ -44,4 +44,8 @@ describe("Ongoing — visualização em lista", () => {
     expect(ongoingSource).toContain("sortDirection");
     expect(ongoingSource).toContain("sortKey");
   });
+
+  it("usa chave composta nas linhas para atualizar corretamente após filtrar CSM", () => {
+    expect(ongoingSource).toContain('key={`${client.id || "sem-codigo"}-${client.centralId || "sem-central"}-${client.nome}-${index}`}');
+  });
 });

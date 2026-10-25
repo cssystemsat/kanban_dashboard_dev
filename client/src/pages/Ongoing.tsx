@@ -781,9 +781,9 @@ export default function Ongoing() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-700">
-                    {sortedData.map(client => (
+                    {sortedData.map((client, index) => (
                       <tr
-                        key={client.id}
+                        key={`${client.id || "sem-codigo"}-${client.centralId || "sem-central"}-${client.nome}-${index}`}
                         className="cursor-pointer hover:bg-blue-50/50"
                         onClick={() => {
                           setSelectedClient(client);
