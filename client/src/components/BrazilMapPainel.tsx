@@ -128,6 +128,33 @@ export default function BrazilMapPainel({
     );
   };
 
+  const exportStateToXLSX = () => {
+    if (!selectedState) return;
+    const rows = selectedStateClients.map(client => ({
+      Cliente: client.nome,
+      Boleto: client.faturamento || "—",
+      Cidade: client.cidade || "—",
+      Estado: client.estado || selectedState,
+      Atendente: client.atendente || "—",
+      Comercial: client.comercial || "—",
+    }));
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet["!cols"] = [
+      { wch: 34 },
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 24 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+    XLSX.writeFile(
+      workbook,
+      `clientes_${selectedState.toLowerCase()}_${new Date().toISOString().split("T")[0]}.xlsx`
+    );
+  };
+
   const selectedStateClients = selectedState
     ? clientsByState[selectedState] || []
     : [];
@@ -402,16 +429,28 @@ export default function BrazilMapPainel({
             className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto shadow-lg"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center gap-3 mb-4">
               <h3 className="text-lg font-bold" style={{ color: "#001F3F" }}>
                 Clientes em {selectedState}
               </h3>
-              <button
-                onClick={() => setSelectedState(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={exportStateToXLSX}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
+                  style={{ backgroundColor: "#E0E8F0", color: "#001F3F" }}
+                  title={`Exportar clientes de ${selectedState} para Excel`}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Exportar Excel
+                </button>
+                <button
+                  onClick={() => setSelectedState(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                  aria-label="Fechar lista do estado"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">

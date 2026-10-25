@@ -34,6 +34,13 @@ describe("mapa e lista detalhada do Painel", () => {
     expect(component).toContain("Exportar XLSX");
   });
 
+  it("permite exportar somente os clientes do estado aberto no modal", () => {
+    expect(component).toContain("exportStateToXLSX");
+    expect(component).toContain("selectedStateClients.map");
+    expect(component).toContain("Exportar Excel");
+    expect(component).toContain("clientes_${selectedState.toLowerCase()}");
+  });
+
   it("lê cidade da coluna AI", () => {
     expect(hook).toContain("row[34]");
     expect(hook).toContain("cidade");

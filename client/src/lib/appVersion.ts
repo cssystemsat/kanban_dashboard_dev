@@ -2,5 +2,5 @@
  * Versão funcional exibida aos usuários.
  * Incrementar este número a cada publicação que deve ser comunicada no painel.
  */
-// Ongoing com atualização correta das linhas ao filtrar CSM.
-export const APP_VERSION = "15.3";
+// Exportação da lista específica de cada estado no mapa do Painel.
+export const APP_VERSION = "15.4";

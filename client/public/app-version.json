@@ -1,4 +1,4 @@
 {
-  "appVersion": "15.3",
-  "changes": ["Corrigido o filtro de CSM na lista do Ongoing para atualizar corretamente todas as linhas, sem manter clientes de um filtro anterior."]
+  "appVersion": "15.4",
+  "changes": ["Adicionada exportação para Excel da lista de clientes do estado selecionado no mapa da aba Painel."]
 }
