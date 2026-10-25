@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, Flag } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  ArrowDownAZ,
+  ArrowUpAZ,
+  FileSpreadsheet,
+  Flag,
+  LayoutGrid,
+  List,
+  RefreshCw,
+} from "lucide-react";
 import { useOngoingData, OngoingClientData } from "@/hooks/useOngoingData";
 import OngoingCard from "@/components/OngoingCard";
 import OngoingClientModal from "@/components/OngoingClientModal";
@@ -9,6 +18,17 @@ import { trpc } from "@/lib/trpc";
 
 const FLAG_LEVELS = ["Red Flag", "Yellow Flag", "Black Flag"] as const;
 type FlagLevel = (typeof FLAG_LEVELS)[number];
+type ViewMode = "cards" | "list";
+type SortKey =
+  | "nome"
+  | "placas"
+  | "ultimoContato"
+  | "ultimoBoleto"
+  | "comercial"
+  | "csm"
+  | "situacao"
+  | "decisor"
+  | "contatoDecissor";
 
 const FLAG_STYLES: Record<
   FlagLevel,
@@ -72,6 +92,9 @@ export default function Ongoing() {
   const [ultimoBoletoMax, setUltimoBoletoMax] = useState<number | null>(null);
   const [selectedSituacao, setSelectedSituacao] = useState<string | null>(null);
   const [contactAgeFilter, setContactAgeFilter] = useState<string>("");
+  const [viewMode, setViewMode] = useState<ViewMode>("cards");
+  const [sortKey, setSortKey] = useState<SortKey>("nome");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [deltaMaxInput, setDeltaMaxInput] = useState<string>("");
   const [topBoleto, setTopBoleto] = useState<number>(0);
   const [topVolume, setTopVolume] = useState<number>(0);
@@ -114,11 +137,9 @@ export default function Ongoing() {
   if (contactAgeFilter) {
     filteredData = filteredData.filter(client => {
       const days = client.diasUltimoContato;
-      if (contactAgeFilter === "7") return days >= 7 && days < 14;
-      if (contactAgeFilter === "14") return days >= 14 && days < 30;
-      if (contactAgeFilter === "30") return days >= 30 && days < 60;
-      if (contactAgeFilter === "60") return days === 60;
-      if (contactAgeFilter === "mais60") return days > 60;
+      if (contactAgeFilter === "dia") return days >= 1;
+      if (contactAgeFilter === "semana") return days >= 7;
+      if (contactAgeFilter === "mes") return days >= 30;
       return true;
     });
   }
@@ -181,7 +202,19 @@ export default function Ongoing() {
     new Set(data.map(c => c.situacao).filter(Boolean))
   ).sort();
 
-  const sortedData = [...filteredData];
+  const sortedData = [...filteredData].sort((first, second) => {
+    const firstValue = first[sortKey];
+    const secondValue = second[sortKey];
+    const firstNumber = typeof firstValue === "number" ? firstValue : Number.NaN;
+    const secondNumber = typeof secondValue === "number" ? secondValue : Number.NaN;
+    const comparison = Number.isFinite(firstNumber) && Number.isFinite(secondNumber)
+      ? firstNumber - secondNumber
+      : String(firstValue ?? "").localeCompare(String(secondValue ?? ""), "pt-BR", {
+          numeric: true,
+          sensitivity: "base",
+        });
+    return sortDirection === "asc" ? comparison : -comparison;
+  });
   const deltaActive = deltaMaxInput !== "" && !isNaN(parseFloat(deltaMaxInput));
   const hasActiveFilter = !!(
     ultimoBoletoMin !== null ||
@@ -361,7 +394,7 @@ export default function Ongoing() {
 
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-              Sem contato há
+              Sem contato
             </label>
             <select
               value={contactAgeFilter || "todos"}
@@ -369,11 +402,9 @@ export default function Ongoing() {
               className="h-8 px-2.5 rounded-md text-sm text-gray-700 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white"
             >
               <option value="todos">Todos</option>
-              <option value="7">7 dias</option>
-              <option value="14">14 dias</option>
-              <option value="30">30 dias</option>
-              <option value="60">60 dias</option>
-              <option value="mais60">&gt;60 dias</option>
+              <option value="dia">Sem contato no dia</option>
+              <option value="semana">Sem contato na semana</option>
+              <option value="mes">Sem contato no mês</option>
             </select>
           </div>
 
@@ -461,6 +492,9 @@ export default function Ongoing() {
               setUltimoBoletoMax(null);
               setSelectedSituacao(null);
               setContactAgeFilter("");
+              setViewMode("cards");
+              setSortKey("nome");
+              setSortDirection("asc");
               setDeltaMaxInput("");
               setTopBoleto(0);
               setTopVolume(0);
@@ -517,7 +551,7 @@ export default function Ongoing() {
           )}
           {contactAgeFilter && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-              Sem contato há: {contactAgeFilter === "mais60" ? ">60 dias" : `${contactAgeFilter} dias`}
+              Sem contato: {contactAgeFilter === "dia" ? "no dia" : contactAgeFilter === "semana" ? "na semana" : "no mês"}
             </span>
           )}
           {deltaActive && (
@@ -537,6 +571,81 @@ export default function Ongoing() {
           )}
         </div>
       )}
+
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E0E8F0] bg-white p-2">
+        <div className="flex items-center gap-1 rounded-md bg-gray-100 p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode("cards")}
+            className={`inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-semibold ${viewMode === "cards" ? "bg-white text-[#102A72] shadow-sm" : "text-gray-500"}`}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" /> Cards
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("list")}
+            className={`inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-semibold ${viewMode === "list" ? "bg-white text-[#102A72] shadow-sm" : "text-gray-500"}`}
+          >
+            <List className="h-3.5 w-3.5" /> Lista
+          </button>
+        </div>
+        {viewMode === "list" && (
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="text-xs font-semibold text-gray-500" htmlFor="ongoing-sort">
+              Ordenar por
+            </label>
+            <select
+              id="ongoing-sort"
+              value={sortKey}
+              onChange={event => setSortKey(event.target.value as SortKey)}
+              className="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs text-gray-700"
+            >
+              <option value="nome">Nome do cliente</option>
+              <option value="placas">Placas</option>
+              <option value="ultimoContato">Último contato</option>
+              <option value="ultimoBoleto">Boleto</option>
+              <option value="comercial">Comercial</option>
+              <option value="csm">CSM</option>
+              <option value="situacao">Situação</option>
+              <option value="decisor">Decisor</option>
+              <option value="contatoDecissor">Contato do decisor</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setSortDirection(current => current === "asc" ? "desc" : "asc")}
+              title={sortDirection === "asc" ? "Crescente" : "Decrescente"}
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+            >
+              {sortDirection === "asc" ? <ArrowDownAZ className="h-3.5 w-3.5" /> : <ArrowUpAZ className="h-3.5 w-3.5" />}
+              {sortDirection === "asc" ? "Crescente" : "Decrescente"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const rows = sortedData.map(client => ({
+                  "Nome do cliente": client.nome,
+                  Placas: client.placas,
+                  "Último contato": client.ultimoContato || "-",
+                  Boleto: client.ultimoBoleto,
+                  Comercial: client.comercial || "-",
+                  CSM: client.csm || "-",
+                  Situação: client.situacao || "-",
+                  Decisor: client.decisor || "-",
+                  "Contato do decisor": client.contatoDecissor || "-",
+                }));
+                const worksheet = XLSX.utils.json_to_sheet(rows);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Ongoing");
+                XLSX.writeFile(workbook, `ongoing_${new Date().toISOString().slice(0, 10)}.xlsx`);
+              }}
+              disabled={!sortedData.length}
+              className="inline-flex h-8 items-center gap-1 rounded-md bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" /> Exportar Excel
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Conteúdo Principal */}
       <main>
@@ -630,6 +739,42 @@ export default function Ongoing() {
               })}
             </div>
 
+            {viewMode === "list" && sortedData.length > 0 && (
+              <div className="mb-4 overflow-x-auto rounded-lg border border-[#E0E8F0] bg-white shadow-sm">
+                <table className="w-full min-w-[1050px] text-left text-xs">
+                  <thead className="bg-[#F1F5F9] text-[10px] uppercase tracking-wide text-gray-500">
+                    <tr>
+                      {["Nome do cliente", "Placas", "Último contato", "Boleto", "Comercial", "CSM", "Situação", "Decisor", "Contato do decisor"].map(label => (
+                        <th key={label} className="whitespace-nowrap px-3 py-2 font-bold">{label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-700">
+                    {sortedData.map(client => (
+                      <tr
+                        key={client.id}
+                        className="cursor-pointer hover:bg-blue-50/50"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsModalOpen(true);
+                        }}
+                      >
+                        <td className="whitespace-nowrap px-3 py-2 font-semibold text-[#102A72]">{client.nome}</td>
+                        <td className="px-3 py-2">{client.placas.toLocaleString("pt-BR")}</td>
+                        <td className="whitespace-nowrap px-3 py-2">{client.ultimoContato || "-"}</td>
+                        <td className="whitespace-nowrap px-3 py-2">{client.ultimoBoleto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+                        <td className="px-3 py-2">{client.comercial || "-"}</td>
+                        <td className="px-3 py-2">{client.csm || "-"}</td>
+                        <td className="px-3 py-2">{client.situacao || "-"}</td>
+                        <td className="px-3 py-2">{client.decisor || "-"}</td>
+                        <td className="px-3 py-2">{client.contatoDecissor || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {/* Grid de Cards */}
             {sortedData.length === 0 ? (
               <div className="flex items-center justify-center min-h-[40vh]">
@@ -637,7 +782,7 @@ export default function Ongoing() {
                   Nenhum cliente encontrado com os filtros selecionados.
                 </p>
               </div>
-            ) : (
+            ) : viewMode === "cards" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {sortedData.map((client, index) => (
                   <div key={`${client.id}-${index}`} className="space-y-2">
@@ -663,7 +808,7 @@ export default function Ongoing() {
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </>
         )}
       </main>

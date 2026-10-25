@@ -128,8 +128,10 @@ describe("BI shell", () => {
   });
 
   it("offers contact age filters in Ongoing and marks column K after attendance", () => {
-    expect(ongoingPageSource).toContain("Sem contato há");
-    expect(ongoingPageSource).toContain('value="mais60"');
+    expect(ongoingPageSource).toContain("Sem contato");
+    expect(ongoingPageSource).toContain('value="dia">Sem contato no dia');
+    expect(ongoingPageSource).toContain('value="semana">Sem contato na semana');
+    expect(ongoingPageSource).toContain('value="mes">Sem contato no mês');
     expect(ongoingPageSource).toContain("onClick={refresh}");
     expect(ongoingPageSource).toContain("Filtros compactos no topo");
     expect(ongoingPageSource).not.toContain("AtendimentoModal");

@@ -1,4 +1,4 @@
 {
-  "appVersion": "15.0",
-  "changes": ["A Timeline agora possui um botão de adicionar acontecimento para o cliente selecionado, usando a mesma tela de registro disponível em Marcos."]
+  "appVersion": "15.1",
+  "changes": ["A aba Ongoing agora oferece visualização em lista, filtro de clientes sem contato, ordenação por colunas e exportação para Excel."]
 }
