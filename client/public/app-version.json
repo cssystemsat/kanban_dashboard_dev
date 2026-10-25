@@ -1,4 +1,4 @@
 {
-  "appVersion": "15.1",
-  "changes": ["A aba Ongoing agora oferece visualização em lista, filtro de clientes sem contato, ordenação por colunas e exportação para Excel."]
+  "appVersion": "15.2",
+  "changes": ["A ordenação da lista do Ongoing agora é feita diretamente ao clicar no título de cada coluna, com correção para datas, vazios e empates de nomes."]
 }

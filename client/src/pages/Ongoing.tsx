@@ -30,6 +30,25 @@ type SortKey =
   | "decisor"
   | "contatoDecissor";
 
+const SORTABLE_COLUMNS: Array<{ key: SortKey; label: string }> = [
+  { key: "nome", label: "Nome do cliente" },
+  { key: "placas", label: "Placas" },
+  { key: "ultimoContato", label: "Último contato" },
+  { key: "ultimoBoleto", label: "Boleto" },
+  { key: "comercial", label: "Comercial" },
+  { key: "csm", label: "CSM" },
+  { key: "situacao", label: "Situação" },
+  { key: "decisor", label: "Decisor" },
+  { key: "contatoDecissor", label: "Contato do decisor" },
+];
+
+function dateValue(value: string) {
+  const match = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+  if (!match) return Number.NaN;
+  const year = Number(match[3].length === 2 ? `20${match[3]}` : match[3]);
+  return new Date(year, Number(match[2]) - 1, Number(match[1])).getTime();
+}
+
 const FLAG_STYLES: Record<
   FlagLevel,
   {
@@ -205,14 +224,36 @@ export default function Ongoing() {
   const sortedData = [...filteredData].sort((first, second) => {
     const firstValue = first[sortKey];
     const secondValue = second[sortKey];
-    const firstNumber = typeof firstValue === "number" ? firstValue : Number.NaN;
-    const secondNumber = typeof secondValue === "number" ? secondValue : Number.NaN;
-    const comparison = Number.isFinite(firstNumber) && Number.isFinite(secondNumber)
-      ? firstNumber - secondNumber
-      : String(firstValue ?? "").localeCompare(String(secondValue ?? ""), "pt-BR", {
-          numeric: true,
-          sensitivity: "base",
-        });
+    const firstText = String(firstValue ?? "").trim();
+    const secondText = String(secondValue ?? "").trim();
+    const firstEmpty = firstText === "" || firstText === "-";
+    const secondEmpty = secondText === "" || secondText === "-";
+    if (firstEmpty !== secondEmpty) return firstEmpty ? 1 : -1;
+
+    let comparison = 0;
+    if (sortKey === "ultimoContato") {
+      const firstDate = dateValue(firstText);
+      const secondDate = dateValue(secondText);
+      if (Number.isFinite(firstDate) && Number.isFinite(secondDate)) {
+        comparison = firstDate - secondDate;
+      }
+    }
+    if (comparison === 0) {
+      const firstNumber = typeof firstValue === "number" ? firstValue : Number.NaN;
+      const secondNumber = typeof secondValue === "number" ? secondValue : Number.NaN;
+      comparison = Number.isFinite(firstNumber) && Number.isFinite(secondNumber)
+        ? firstNumber - secondNumber
+        : firstText.localeCompare(secondText, "pt-BR", {
+            numeric: true,
+            sensitivity: "base",
+          });
+    }
+    if (comparison === 0) {
+      comparison = first.nome.localeCompare(second.nome, "pt-BR", {
+        numeric: true,
+        sensitivity: "base",
+      });
+    }
     return sortDirection === "asc" ? comparison : -comparison;
   });
   const deltaActive = deltaMaxInput !== "" && !isNaN(parseFloat(deltaMaxInput));
@@ -591,34 +632,7 @@ export default function Ongoing() {
         </div>
         {viewMode === "list" && (
           <div className="flex flex-wrap items-center gap-2">
-            <label className="text-xs font-semibold text-gray-500" htmlFor="ongoing-sort">
-              Ordenar por
-            </label>
-            <select
-              id="ongoing-sort"
-              value={sortKey}
-              onChange={event => setSortKey(event.target.value as SortKey)}
-              className="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs text-gray-700"
-            >
-              <option value="nome">Nome do cliente</option>
-              <option value="placas">Placas</option>
-              <option value="ultimoContato">Último contato</option>
-              <option value="ultimoBoleto">Boleto</option>
-              <option value="comercial">Comercial</option>
-              <option value="csm">CSM</option>
-              <option value="situacao">Situação</option>
-              <option value="decisor">Decisor</option>
-              <option value="contatoDecissor">Contato do decisor</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => setSortDirection(current => current === "asc" ? "desc" : "asc")}
-              title={sortDirection === "asc" ? "Crescente" : "Decrescente"}
-              className="inline-flex h-8 items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              {sortDirection === "asc" ? <ArrowDownAZ className="h-3.5 w-3.5" /> : <ArrowUpAZ className="h-3.5 w-3.5" />}
-              {sortDirection === "asc" ? "Crescente" : "Decrescente"}
-            </button>
+            <span className="text-xs text-gray-500">Clique no título da coluna para ordenar</span>
             <button
               type="button"
               onClick={() => {
@@ -744,8 +758,25 @@ export default function Ongoing() {
                 <table className="w-full min-w-[1050px] text-left text-xs">
                   <thead className="bg-[#F1F5F9] text-[10px] uppercase tracking-wide text-gray-500">
                     <tr>
-                      {["Nome do cliente", "Placas", "Último contato", "Boleto", "Comercial", "CSM", "Situação", "Decisor", "Contato do decisor"].map(label => (
-                        <th key={label} className="whitespace-nowrap px-3 py-2 font-bold">{label}</th>
+                      {SORTABLE_COLUMNS.map(column => (
+                        <th key={column.key} className="whitespace-nowrap px-1 py-1 font-bold">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (sortKey === column.key) {
+                                setSortDirection(current => current === "asc" ? "desc" : "asc");
+                              } else {
+                                setSortKey(column.key);
+                                setSortDirection("asc");
+                              }
+                            }}
+                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-left hover:bg-blue-100 hover:text-[#102A72] ${sortKey === column.key ? "text-[#102A72]" : ""}`}
+                            title={`Ordenar por ${column.label}`}
+                          >
+                            {column.label}
+                            {sortKey === column.key && (sortDirection === "asc" ? <ArrowDownAZ className="h-3 w-3" /> : <ArrowUpAZ className="h-3 w-3" />)}
+                          </button>
+                        </th>
                       ))}
                     </tr>
                   </thead>
