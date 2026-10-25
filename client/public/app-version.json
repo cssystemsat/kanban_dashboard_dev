@@ -1,4 +1,7 @@
 {
   "appVersion": "15.4",
-  "changes": ["Adicionada exportação para Excel da lista de clientes do estado selecionado no mapa da aba Painel."]
+  "changes": [
+    "Botão de exportar por região do mapa.",
+    "Opção de lista na aba Ongoing."
+  ]
 }
